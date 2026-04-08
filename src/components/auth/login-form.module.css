@@ -1,0 +1,45 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.forgot {
+  font-size: 0.875rem;
+  color: var(--fg-secondary);
+}
+
+.forgot:hover {
+  color: var(--fg-primary);
+}
+
+.submit {
+  width: 100%;
+  margin-top: var(--spacing-sm);
+}
+
+.switch {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--fg-secondary);
+  margin-top: var(--spacing-sm);
+}
+
+.switch a {
+  font-weight: 600;
+}
+
+.errorBanner {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--error);
+  color: var(--error);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  text-align: center;
+}
