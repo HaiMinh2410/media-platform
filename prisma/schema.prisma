@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model Workspace {
+  id               String            @id @default(uuid())
+  name             String
+  userId           String            // Supabase Auth User ID
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  platformAccounts PlatformAccount[]
+  botConfigs       BotConfig[]
+}
+
+model PlatformAccount {
+  id            String         @id @default(uuid())
+  workspaceId   String
+  platform      Platform
+  externalId    String         // ID from Meta/TikTok
+  name          String
+  accessToken   String
+  refreshToken  String?
+  expiresAt     DateTime?
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id])
+  conversations Conversation[]
+
+  @@unique([platform, externalId])
+}
+
+enum Platform {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  WHATSAPP
+}
+
+model Conversation {
+  id                String          @id @default(uuid())
+  platformAccountId String
+  platform          Platform
+  externalId        String          // ID from platform
+  status            ConvStatus      @default(OPEN)
+  lastMessageAt     DateTime        @default(now())
+  platformAccount   PlatformAccount @relation(fields: [platformAccountId], references: [id])
+  messages          Message[]
+
+  @@unique([platform, externalId])
+}
+
+enum ConvStatus {
+  OPEN
+  PENDING_AGENT
+  RESOLVED
+  SPAM
+}
+
+model Message {
+  id             String          @id @default(uuid())
+  conversationId String
+  content        String
+  senderId       String          // External sender ID or system ID
+  senderType     SenderType
+  createdAt      DateTime        @default(now())
+  conversation   Conversation    @relation(fields: [conversationId], references: [id])
+  aiReplyLogs    AIReplyLog[]
+}
+
+enum SenderType {
+  USER
+  AGENT
+  BOT
+  AI
+}
+
+model BotConfig {
+  id                  String    @id @default(uuid())
+  workspaceId         String
+  isActive            Boolean   @default(false)
+  triggerLabels       String[]  
+  autoSend            Boolean   @default(false)
+  confidenceThreshold Float     @default(0.75)
+  workspace           Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model AIReplyLog {
+  id         String      @id @default(uuid())
+  messageId  String
+  prompt     String
+  response   String
+  confidence Float
+  status     ReplyStatus
+  message    Message     @relation(fields: [messageId], references: [id])
+}
+
+enum ReplyStatus {
+  SUGGESTED
+  SENT
+  ESCALATED
+}
