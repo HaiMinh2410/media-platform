@@ -9,26 +9,29 @@ datasource db {
 model Workspace {
   id               String            @id @default(uuid())
   name             String
-  userId           String            // Supabase Auth User ID
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  userId           String            @map("user_id") // Supabase Auth User ID
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
   platformAccounts PlatformAccount[]
   botConfigs       BotConfig[]
+
+  @@map("workspaces")
 }
 
 model PlatformAccount {
   id            String         @id @default(uuid())
-  workspaceId   String
+  workspaceId   String         @map("workspace_id")
   platform      Platform
-  externalId    String         // ID from Meta/TikTok
+  externalId    String         @map("external_id") // ID from Meta/TikTok
   name          String
-  accessToken   String
-  refreshToken  String?
-  expiresAt     DateTime?
+  accessToken   String         @map("access_token")
+  refreshToken  String?        @map("refresh_token")
+  expiresAt     DateTime?      @map("expires_at")
   workspace     Workspace      @relation(fields: [workspaceId], references: [id])
   conversations Conversation[]
 
   @@unique([platform, externalId])
+  @@map("platform_accounts")
 }
 
 enum Platform {
@@ -40,15 +43,16 @@ enum Platform {
 
 model Conversation {
   id                String          @id @default(uuid())
-  platformAccountId String
+  platformAccountId String          @map("platform_account_id")
   platform          Platform
-  externalId        String          // ID from platform
+  externalId        String          @map("external_id") // ID from platform
   status            ConvStatus      @default(OPEN)
-  lastMessageAt     DateTime        @default(now())
+  lastMessageAt     DateTime        @default(now()) @map("last_message_at")
   platformAccount   PlatformAccount @relation(fields: [platformAccountId], references: [id])
   messages          Message[]
 
   @@unique([platform, externalId])
+  @@map("conversations")
 }
 
 enum ConvStatus {
@@ -60,13 +64,15 @@ enum ConvStatus {
 
 model Message {
   id             String          @id @default(uuid())
-  conversationId String
+  conversationId String          @map("conversation_id")
   content        String
-  senderId       String          // External sender ID or system ID
-  senderType     SenderType
-  createdAt      DateTime        @default(now())
+  senderId       String          @map("sender_id") // External sender ID or system ID
+  senderType     SenderType      @map("sender_type")
+  createdAt      DateTime        @default(now()) @map("created_at")
   conversation   Conversation    @relation(fields: [conversationId], references: [id])
   aiReplyLogs    AIReplyLog[]
+
+  @@map("messages")
 }
 
 enum SenderType {
@@ -78,22 +84,26 @@ enum SenderType {
 
 model BotConfig {
   id                  String    @id @default(uuid())
-  workspaceId         String
-  isActive            Boolean   @default(false)
-  triggerLabels       String[]  
-  autoSend            Boolean   @default(false)
-  confidenceThreshold Float     @default(0.75)
+  workspaceId         String    @map("workspace_id")
+  isActive            Boolean   @default(false) @map("is_active")
+  triggerLabels       String[]  @map("trigger_labels")
+  autoSend            Boolean   @default(false) @map("auto_send")
+  confidenceThreshold Float     @default(0.75) @map("confidence_threshold")
   workspace           Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@map("bot_configs")
 }
 
 model AIReplyLog {
   id         String      @id @default(uuid())
-  messageId  String
+  messageId  String      @map("message_id")
   prompt     String
   response   String
   confidence Float
   status     ReplyStatus
   message    Message     @relation(fields: [messageId], references: [id])
+
+  @@map("ai_reply_logs")
 }
 
 enum ReplyStatus {
