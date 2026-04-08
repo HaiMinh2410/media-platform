@@ -27,6 +27,7 @@ model PlatformAccount {
   accessToken   String         @map("access_token")
   refreshToken  String?        @map("refresh_token")
   expiresAt     DateTime?      @map("expires_at")
+  metadata      Json?          @default("{}")
   workspace     Workspace      @relation(fields: [workspaceId], references: [id])
   conversations Conversation[]
 

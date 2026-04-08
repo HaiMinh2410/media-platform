@@ -9,6 +9,7 @@ export type CreatePlatformAccountInput = {
   accessToken: string;
   refreshToken?: string | null;
   expiresAt?: Date | null;
+  metadata?: any; // Will be cast to Prisma JSON
 };
 
 export type PlatformAccountResult = {
@@ -17,4 +18,5 @@ export type PlatformAccountResult = {
   platform: Platform;
   externalId: string;
   name: string;
+  metadata?: any;
 };
