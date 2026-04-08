@@ -61,6 +61,29 @@ export class PlatformAccountRepository {
       return { data: null, error: 'DATABASE_ERROR' };
     }
   }
+
+  /**
+   * Finds all accounts for a given workspace.
+   */
+  async findByWorkspaceId(workspaceId: string): Promise<{ data: PlatformAccountResult[] | null, error: string | null }> {
+    try {
+      const accounts = await db.platformAccount.findMany({
+        where: { workspaceId },
+        select: {
+          id: true,
+          workspaceId: true,
+          platform: true,
+          externalId: true,
+          name: true,
+          metadata: true,
+        },
+      });
+      return { data: accounts as PlatformAccountResult[], error: null };
+    } catch (error) {
+      console.error('[PlatformAccountRepository] findByWorkspaceId failed:', error);
+      return { data: null, error: 'DATABASE_ERROR' };
+    }
+  }
 }
 
 // Singleton helper

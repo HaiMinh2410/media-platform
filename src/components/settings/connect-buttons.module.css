@@ -1,0 +1,47 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  height: 100%;
+}
+
+.iconWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  margin-bottom: 24px;
+}
+
+.facebookIcon {
+  width: 60px;
+  height: 60px;
+  color: #1877F2;
+  filter: drop-shadow(0 0 10px rgba(24, 119, 242, 0.3));
+}
+
+.instagramIcon {
+  width: 60px;
+  height: 60px;
+  color: #E4405F;
+  filter: drop-shadow(0 0 10px rgba(228, 64, 95, 0.3));
+}
+
+.tiktokIcon {
+  width: 60px;
+  height: 60px;
+  color: #fff;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+.connectBtn {
+  margin-top: auto;
+}
+
+.disabled {
+  opacity: 0.6;
+  filter: grayscale(1);
+}
