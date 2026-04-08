@@ -5,6 +5,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    seed: "bun prisma/seed.ts",
   },
   datasource: {
     // Prisma CLI uses this for migrations and introspection.
