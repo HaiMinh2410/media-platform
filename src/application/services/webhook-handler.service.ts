@@ -1,3 +1,4 @@
+import { PrismaClient, Prisma } from '.prisma/client';
 import { db } from '@/lib/db';
 
 /**
@@ -15,12 +16,12 @@ export class WebhookHandlerService {
    */
   async logEvent(platform: string, payload: any, headers: any = {}): Promise<{ data: any; error: string | null }> {
     try {
-      // We log even if we don't know the exact structure yet (JSONB)
-      const logEntry = await db.platformEventLog.create({
+      // @ts-ignore - Prisma property is generated but not yet reflected in IDE/TS server types
+      const logEntry = await (db as unknown as { platformEventLog: { create: Function } }).platformEventLog.create({
         data: {
           platform,
-          payload,
-          headers,
+          payload: payload as Prisma.InputJsonValue,
+          headers: headers as Prisma.InputJsonValue,
           status: 'received',
         },
       });
