@@ -1,0 +1,39 @@
+/**
+ * Unified types for parsed webhook events across different platforms.
+ */
+
+export type WebhookPlatform = 'meta' | 'tiktok' | 'whatsapp' | 'other';
+
+/**
+ * Represents a normalized webhook event after being parsed from platform-specific payloads.
+ */
+export interface ParsedWebhookEvent {
+  /** The platform that sent the webhook */
+  platform: WebhookPlatform;
+
+  /** The ID of the user who sent the message (from the platform's perspective) */
+  externalSenderId: string;
+
+  /** The ID of the page/account that received the message (from the platform's perspective) */
+  externalPageId: string;
+
+  /** The text content of the message (if applicable) */
+  messageText: string | null;
+
+  /** The original raw payload from the platform */
+  rawPayload: any;
+
+  /** The headers received with the webhook request */
+  headers: any;
+
+  /** When the event occurred (from platform timestamp or current time) */
+  receivedAt: Date;
+}
+
+/**
+ * Result of a parsing operation
+ */
+export type WebhookParseResult = {
+  data: ParsedWebhookEvent | null;
+  error: string | null;
+};

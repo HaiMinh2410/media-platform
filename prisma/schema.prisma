@@ -789,3 +789,17 @@ model PlatformEventLog {
   @@map("platform_event_logs")
   @@schema("public")
 }
+
+model WebhookEvent {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform         String   @db.VarChar(20)
+  externalSenderId String   @map("external_sender_id")
+  externalPageId   String   @map("external_page_id")
+  messageText      String?  @map("message_text")
+  payload          Json
+  headers          Json?    @default("{}")
+  receivedAt       DateTime @default(now()) @map("received_at") @db.Timestamptz(6)
+
+  @@map("webhook_events")
+  @@schema("public")
+}

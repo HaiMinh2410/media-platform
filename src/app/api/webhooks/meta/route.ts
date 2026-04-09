@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMetaSecurityService } from '@/infrastructure/meta/meta-security.service';
 import { webhookHandler } from '@/application/services/webhook-handler.service';
+import { webhookIngestion } from '@/application/services/webhook-ingestion.service';
 
 /**
  * Meta Webhook Endpoint
@@ -73,12 +74,17 @@ export async function POST(request: NextRequest) {
     const { error: logError } = await webhookHandler.logEvent('meta', payload, importantHeaders);
 
     if (logError) {
-      // We still return 200 to Meta even if internal logging failed, 
-      // but we log it internally. Meta will retry if we return 500.
-      console.error('[MetaWebhook] Event received but logging failed:', logError);
+      console.error('[MetaWebhook] RAW Event logging failed:', logError);
     }
 
-    // 5. Acknowledge receipt
+    // 5. Ingest and Parse (Processed Log for easier debugging/ref)
+    const { error: ingestError } = await webhookIngestion.ingestMeta(payload, importantHeaders);
+    
+    if (ingestError) {
+      console.error('[MetaWebhook] PROCESSED Event ingestion failed:', ingestError);
+    }
+
+    // 6. Acknowledge receipt
     // Meta requires a 200 OK response to stop retrying
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err: any) {
