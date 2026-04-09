@@ -19,16 +19,17 @@ export class WebhookHandlerService {
       const logEntry = await db.platformEventLog.create({
         data: {
           platform,
-          payload: payload as Prisma.InputJsonValue,
-          headers: headers as Prisma.InputJsonValue,
+          payload: (payload || {}) as Prisma.InputJsonValue,
+          headers: (headers || {}) as Prisma.InputJsonValue,
           status: 'received',
         },
       });
 
       return { data: logEntry, error: null };
     } catch (err: any) {
-      console.error(`[WebhookHandlerService] Failed to log ${platform} event:`, err);
-      return { data: null, error: err.message || 'DATABASE_ERROR' };
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[WebhookHandlerService] Failed to log ${platform} event:`, message);
+      return { data: null, error: message || 'DATABASE_ERROR' };
     }
   }
 }

@@ -14,8 +14,9 @@ export class WebhookIngestionService {
    * 
    * @param payload Raw payload from Meta
    * @param headers Request headers
+   * @param parentLogId Optional ID of the raw log in platform_event_logs
    */
-  async ingestMeta(payload: MetaWebhookPayload, headers: any = {}): Promise<{ data: any; error: string | null }> {
+  async ingestMeta(payload: MetaWebhookPayload, headers: any = {}, parentLogId?: string): Promise<{ data: any; error: string | null }> {
     try {
       // 1. Parse the complex payload into a list of normalized events
       const events = metaParser.parse(payload, headers);
@@ -25,8 +26,6 @@ export class WebhookIngestionService {
       }
 
       // 2. Persist events to DB and collect their IDs
-      // We use a loop to ensure we get the generated UUID for each event
-      // for queuing, as createMany doesn't reliably return IDs on all platforms.
       const savedEvents = await Promise.all(
         events.map(async (event) => {
           return db.webhookEvent.create({
@@ -37,7 +36,8 @@ export class WebhookIngestionService {
               messageText: event.messageText,
               payload: event.rawPayload as Prisma.InputJsonValue,
               headers: event.headers as Prisma.InputJsonValue,
-              receivedAt: new Date(event.receivedAt),
+              receivedAt: event.receivedAt,
+              parentLogId: parentLogId || null,
             },
             select: { id: true }
           });
@@ -45,8 +45,6 @@ export class WebhookIngestionService {
       );
 
       // 3. Enqueue for background processing
-      // We don't await this within the critical path if we want maximum speed, 
-      // but BullMQ add() is fast and we want to ensure it's queued before responding.
       const queueResults = await Promise.all(
         events.map((event, index) => {
           const dbEvent = savedEvents[index];
@@ -69,8 +67,9 @@ export class WebhookIngestionService {
 
       return { data: { count: savedEvents.length, enqueued: queueResults.length - failedQueues.length }, error: null };
     } catch (err: any) {
-      console.error('[WebhookIngestionService] Meta ingestion error:', err);
-      return { data: null, error: err.message || 'INGESTION_FAILED' };
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('[WebhookIngestionService] Meta ingestion error:', message);
+      return { data: null, error: message || 'INGESTION_FAILED' };
     }
   }
 }

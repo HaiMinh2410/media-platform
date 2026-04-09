@@ -71,14 +71,15 @@ export async function POST(request: NextRequest) {
     };
 
     // We await the logging to ensure data safety before confirming to Meta
-    const { error: logError } = await webhookHandler.logEvent('meta', payload, importantHeaders);
+    const { data: logEntry, error: logError } = await webhookHandler.logEvent('meta', payload, importantHeaders);
 
     if (logError) {
       console.error('[MetaWebhook] RAW Event logging failed:', logError);
     }
 
     // 5. Ingest and Parse (Processed Log for easier debugging/ref)
-    const { error: ingestError } = await webhookIngestion.ingestMeta(payload, importantHeaders);
+    // Pass the raw log ID to link processed events back to their source
+    const { error: ingestError } = await webhookIngestion.ingestMeta(payload, importantHeaders, logEntry?.id);
     
     if (ingestError) {
       console.error('[MetaWebhook] PROCESSED Event ingestion failed:', ingestError);
