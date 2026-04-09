@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "error-handling-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "824c53fa080765f05862d3ec0ef829aaff9f8d544f9de0039b8fcafa6bc1a899"
+    }
+  }
+}

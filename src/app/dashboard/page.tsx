@@ -1,3 +1,4 @@
+/** Dashboard Page */
 import React from 'react';
 import { db } from '@/lib/db';
 import styles from './dashboard.module.css';
