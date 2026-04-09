@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { Prisma } from '@prisma/client';
 import { MetaWebhookPayload } from '@/domain/types/meta-webhook';
 import { metaParser } from '@/infrastructure/meta/meta-parser.service';
+import { queueService } from '@/application/queue/queue.service';
 
 /**
  * Service to orchestrate the ingestion of webhook events.
@@ -23,20 +24,50 @@ export class WebhookIngestionService {
         return { data: { count: 0 }, error: null };
       }
 
-      // @ts-ignore - Prisma property is generated but not yet reflected in IDE/TS server types
-      const result = await (db as unknown as { webhookEvent: { createMany: Function } }).webhookEvent.createMany({
-        data: events.map(event => ({
-          platform: event.platform,
-          externalSenderId: event.externalSenderId,
-          externalPageId: event.externalPageId,
-          messageText: event.messageText,
-          payload: event.rawPayload as Prisma.InputJsonValue,
-          headers: event.headers as Prisma.InputJsonValue,
-          receivedAt: event.receivedAt,
-        })),
-      });
+      // 2. Persist events to DB and collect their IDs
+      // We use a loop to ensure we get the generated UUID for each event
+      // for queuing, as createMany doesn't reliably return IDs on all platforms.
+      const savedEvents = await Promise.all(
+        events.map(async (event) => {
+          return db.webhookEvent.create({
+            data: {
+              platform: event.platform,
+              externalSenderId: event.externalSenderId,
+              externalPageId: event.externalPageId,
+              messageText: event.messageText,
+              payload: event.rawPayload as Prisma.InputJsonValue,
+              headers: event.headers as Prisma.InputJsonValue,
+              receivedAt: new Date(event.receivedAt),
+            },
+            select: { id: true }
+          });
+        })
+      );
 
-      return { data: result, error: null };
+      // 3. Enqueue for background processing
+      // We don't await this within the critical path if we want maximum speed, 
+      // but BullMQ add() is fast and we want to ensure it's queued before responding.
+      const queueResults = await Promise.all(
+        events.map((event, index) => {
+          const dbEvent = savedEvents[index];
+          return queueService.enqueueWebhookProcessing({
+            webhookEventId: dbEvent.id,
+            platform: event.platform,
+            externalSenderId: event.externalSenderId,
+            externalPageId: event.externalPageId,
+            messageText: event.messageText,
+            timestamp: event.receivedAt.toISOString(),
+          });
+        })
+      );
+
+      // Log any queuing errors but don't fail the request (data is safe in DB)
+      const failedQueues = queueResults.filter(r => r.error);
+      if (failedQueues.length > 0) {
+        console.warn(`[WebhookIngestionService] ${failedQueues.length} jobs failed to enqueue.`);
+      }
+
+      return { data: { count: savedEvents.length, enqueued: queueResults.length - failedQueues.length }, error: null };
     } catch (err: any) {
       console.error('[WebhookIngestionService] Meta ingestion error:', err);
       return { data: null, error: err.message || 'INGESTION_FAILED' };
