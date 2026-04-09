@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { signup } from '@/app/auth/actions';
 import styles from './login-form.module.css'; // Reusing styles
 
 export function RegisterForm() {
@@ -12,18 +13,39 @@ export function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     
-    console.log('Register:', { fullName, email, password });
+    const formData = new FormData();
+    formData.append('fullName', fullName);
+    formData.append('email', email);
+    formData.append('password', password);
     
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    const result = await signup(formData);
+    
+    setIsLoading(false);
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      setIsSuccess(true);
+    }
   };
+
+  if (isSuccess) {
+    return (
+      <div className={styles.success}>
+        <h3>Check your email</h3>
+        <p>We've sent a confirmation link to <strong>{email}</strong>.</p>
+        <Button className={styles.submit} onClick={() => window.location.href = '/auth/login'}>
+          Back to Login
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>

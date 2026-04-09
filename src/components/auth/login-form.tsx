@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { login } from '@/app/auth/actions';
 import styles from './login-form.module.css';
 
 export function LoginForm() {
@@ -17,14 +18,16 @@ export function LoginForm() {
     setIsLoading(true);
     setError(null);
     
-    // Logic sẽ được kết nối với Supabase Auth ở các task sau
-    console.log('Login with:', email, password);
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
     
-    setTimeout(() => {
+    const result = await login(formData);
+    
+    if (result?.error) {
+      setError(result.error);
       setIsLoading(false);
-      // Giả lập lỗi để test UI
-      // setError('Invalid credentials');
-    }, 1500);
+    }
   };
 
   return (
