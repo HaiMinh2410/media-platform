@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/infrastructure/supabase/middleware'
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request)
 
   const url = new URL(request.url)
@@ -11,8 +11,8 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = path.startsWith('/auth/login') || path.startsWith('/auth/register')
   
   // Protected routes (only for authenticated users)
-  // We include common dashboard and settings paths that will be built soon
   const isProtectedRoute = 
+    path === '/' ||
     path.startsWith('/dashboard') || 
     path.startsWith('/settings') || 
     path.startsWith('/inbox') || 
@@ -20,10 +20,10 @@ export async function middleware(request: NextRequest) {
 
   // Redirection logic
   if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL('/', request.url))
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  if (!user && isProtectedRoute) {
+  if (!user && isProtectedRoute && !isAuthRoute) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
