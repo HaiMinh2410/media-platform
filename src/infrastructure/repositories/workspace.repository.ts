@@ -8,7 +8,13 @@ export class WorkspaceRepository {
   async findByUserId(userId: string): Promise<{ data: WorkspaceResult[] | null, error: string | null }> {
     try {
       const workspaces = await db.workspace.findMany({
-        where: { userId },
+        where: {
+          workspace_members: {
+            some: {
+              profile_id: userId,
+            },
+          },
+        },
       });
       return { data: workspaces, error: null };
     } catch (error) {
@@ -23,7 +29,13 @@ export class WorkspaceRepository {
   async findFirstByUserId(userId: string): Promise<{ data: WorkspaceResult | null, error: string | null }> {
     try {
       const workspace = await db.workspace.findFirst({
-        where: { userId },
+        where: {
+          workspace_members: {
+            some: {
+              profile_id: userId,
+            },
+          },
+        },
         orderBy: { createdAt: 'asc' },
       });
       return { data: workspace, error: null };

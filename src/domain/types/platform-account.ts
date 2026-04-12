@@ -1,7 +1,7 @@
-import { Platform } from '@prisma/client';
-export { Platform };
+export type Platform = 'facebook' | 'instagram' | 'tiktok' | 'meta' | 'twitter' | 'linkedin';
 
 export type CreatePlatformAccountInput = {
+  profileId: string;  // Supabase auth user id — maps to profile_id (NOT NULL in DB)
   workspaceId: string;
   platform: Platform;
   externalId: string;
@@ -9,7 +9,7 @@ export type CreatePlatformAccountInput = {
   accessToken: string;
   refreshToken?: string | null;
   expiresAt?: Date | null;
-  metadata?: any; // Will be cast to Prisma JSON
+  metadata?: any;
 };
 
 export type PlatformAccountResult = {

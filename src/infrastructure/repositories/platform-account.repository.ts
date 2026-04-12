@@ -10,37 +10,45 @@ export class PlatformAccountRepository {
     try {
       const account = await db.platformAccount.upsert({
         where: {
-          platform_externalId: {
+          platform_platform_user_id: {
             platform: input.platform,
-            externalId: input.externalId,
+            platform_user_id: input.externalId,
           },
         },
         update: {
-          name: input.name,
-          accessToken: input.accessToken,
-          refreshToken: input.refreshToken,
-          expiresAt: input.expiresAt,
-          workspaceId: input.workspaceId, // Allow moving accounts between workspaces if needed, or keep same
+          platform_user_name: input.name,
+          workspaceId: input.workspaceId,
+          metadata: input.metadata || {},
         },
         create: {
           workspaceId: input.workspaceId,
+          profile_id: input.profileId,
           platform: input.platform,
-          externalId: input.externalId,
-          name: input.name,
-          accessToken: input.accessToken,
-          refreshToken: input.refreshToken,
-          expiresAt: input.expiresAt,
+          platform_user_id: input.externalId,
+          platform_user_name: input.name,
+          metadata: input.metadata || {},
         },
         select: {
           id: true,
           workspaceId: true,
           platform: true,
-          externalId: true,
-          name: true,
+          platform_user_id: true,
+          platform_user_name: true,
+          metadata: true,
         },
       });
 
-      return { data: account, error: null };
+      return {
+        data: {
+          id: account.id,
+          workspaceId: account.workspaceId,
+          platform: account.platform as any,
+          externalId: account.platform_user_id,
+          name: account.platform_user_name,
+          metadata: account.metadata,
+        },
+        error: null
+      };
     } catch (err: any) {
       console.error('[PlatformAccountRepository] Upsert failed:', err);
       return { data: null, error: 'DATABASE_ERROR' };
@@ -73,12 +81,22 @@ export class PlatformAccountRepository {
           id: true,
           workspaceId: true,
           platform: true,
-          externalId: true,
-          name: true,
+          platform_user_id: true,
+          platform_user_name: true,
           metadata: true,
         },
       });
-      return { data: accounts as PlatformAccountResult[], error: null };
+
+      const mappedAccounts: PlatformAccountResult[] = accounts.map(acc => ({
+        id: acc.id,
+        workspaceId: acc.workspaceId,
+        platform: acc.platform as any,
+        externalId: acc.platform_user_id,
+        name: acc.platform_user_name,
+        metadata: acc.metadata,
+      }));
+
+      return { data: mappedAccounts, error: null };
     } catch (error) {
       console.error('[PlatformAccountRepository] findByWorkspaceId failed:', error);
       return { data: null, error: 'DATABASE_ERROR' };

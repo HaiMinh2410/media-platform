@@ -7,7 +7,7 @@ export class MetaConnectionService {
   /**
    * Completes the Meta OAuth flow: exchange code, encrypt token, save account.
    */
-  async connectAccount(code: string, workspaceId: string, redirectUri: string) {
+  async connectAccount(code: string, workspaceId: string, redirectUri: string, profileId: string) {
     const metaClient = getMetaGraphClient();
     const encryption = getTokenEncryptionService();
     const repository = getPlatformAccountRepository();
@@ -39,8 +39,9 @@ export class MetaConnectionService {
     // 4. Save to Database
     // Defaulting to FACEBOOK for Meta OAuth connection, can be refined later for Instagram
     const saveResult = await repository.upsert({
+      profileId,
       workspaceId,
-      platform: Platform.FACEBOOK,
+      platform: 'facebook' as Platform,
       externalId: profile.id,
       name: profile.name,
       accessToken: encrypted.data,

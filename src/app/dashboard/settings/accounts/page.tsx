@@ -6,11 +6,10 @@ import { ConnectButtons } from '@/components/settings/connect-buttons';
 import { AccountsList } from '@/components/settings/accounts-list';
 import styles from './accounts-page.module.css';
 
-export default async function AccountsSettingsPage({
-  searchParams,
-}: {
-  searchParams: { success?: string; error?: string };
+export default async function AccountsSettingsPage(props: {
+  searchParams: Promise<{ success?: string; error?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   const supabase = createClient();
   const { data: { user } } = await (await supabase).auth.getUser();
 

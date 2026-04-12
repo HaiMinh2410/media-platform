@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { PlatformAccountResult } from '@/domain/types/platform-account';
-import { Platform } from '@prisma/client';
+
 import styles from './accounts-list.module.css';
 
 type AccountsListProps = {
@@ -23,13 +23,13 @@ export function AccountsList({ accounts }: AccountsListProps) {
         <Card key={account.id} className={styles.accountCard}>
           <div className={styles.header}>
             <div className={styles.platformIcon}>
-              {account.platform === Platform.FACEBOOK && (
+              {account.platform === 'FACEBOOK' && (
                 <div className={`${styles.iconCircle} ${styles.fb}`}>FB</div>
               )}
-              {account.platform === Platform.INSTAGRAM && (
+              {account.platform === 'INSTAGRAM' && (
                 <div className={`${styles.iconCircle} ${styles.ig}`}>IG</div>
               )}
-              {account.platform === Platform.TIKTOK && (
+              {account.platform === 'TIKTOK' && (
                 <div className={`${styles.iconCircle} ${styles.tt}`}>TT</div>
               )}
             </div>
