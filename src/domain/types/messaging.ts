@@ -35,3 +35,29 @@ export type MetaSendApiResponse = {
   message_id: string;
   recipient_id: string;
 };
+
+/**
+ * Input for persisting an incoming or outgoing message idempotently.
+ */
+export type PersistMessageInput = {
+  platform: string;
+  externalPageId: string;     // Meta/TikTok page ID
+  externalSenderId: string;   // The user we are chatting with
+  platformMessageId: string;  // The ID of the message from the platform
+  messageText: string;
+  senderType: 'user' | 'agent' | 'ai';
+  timestamp?: Date;           // Optional, defaults to now. Should receive webhook standard timestamp.
+};
+
+/**
+ * Result of persisting a message idempotently.
+ * isNewMessage indicates if the message was newly inserted (true) or already existed (false).
+ */
+export type PersistMessageResult = {
+  data: {
+    messageId: string;
+    conversationId: string;
+    isNewMessage: boolean;
+  } | null;
+  error: string | null;
+};
