@@ -46,11 +46,16 @@ export async function POST(request: NextRequest) {
 
     // 2. Verify signature using APP_SECRET
     const { data: isValid, error: verifError } = security.verifySignature(rawBody, signature);
+    const skipVerify = process.env.SKIP_WEBHOOK_VERIFY === 'true';
 
-    if (!isValid) {
+    if (!isValid && !skipVerify) {
       console.error('[MetaWebhook] Signature verification failed:', verifError);
       // Return 401 Unauthorized for security
       return NextResponse.json({ error: 'Unauthorized', code: verifError }, { status: 401 });
+    }
+
+    if (!isValid && skipVerify) {
+      console.warn('[MetaWebhook] ⚠️ WARNING: Signature verification skipped (SKIP_WEBHOOK_VERIFY=true)');
     }
 
     // 3. Parse payload into JSON
