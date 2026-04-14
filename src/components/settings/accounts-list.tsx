@@ -23,19 +23,19 @@ export function AccountsList({ accounts }: AccountsListProps) {
         <Card key={account.id} className={styles.accountCard}>
           <div className={styles.header}>
             <div className={styles.platformIcon}>
-              {account.platform === 'FACEBOOK' && (
+              {account.platform === 'facebook' && (
                 <div className={`${styles.iconCircle} ${styles.fb}`}>FB</div>
               )}
-              {account.platform === 'INSTAGRAM' && (
+              {account.platform === 'instagram' && (
                 <div className={`${styles.iconCircle} ${styles.ig}`}>IG</div>
               )}
-              {account.platform === 'TIKTOK' && (
+              {account.platform === 'tiktok' && (
                 <div className={`${styles.iconCircle} ${styles.tt}`}>TT</div>
               )}
             </div>
             <div className={styles.info}>
               <h4 className={styles.name}>{account.name}</h4>
-              <p className={styles.platformName}>{account.platform}</p>
+              <p className={styles.platformName}>{account.platform.charAt(0).toUpperCase() + account.platform.slice(1)}</p>
             </div>
             <div className={styles.status}>
               <span className={styles.badge}>Active</span>

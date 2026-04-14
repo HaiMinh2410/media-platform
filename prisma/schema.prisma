@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["partialIndexes", "driverAdapters"]
+  previewFeatures = ["driverAdapters", "partialIndexes"]
 }
 
 datasource db {
@@ -708,6 +708,35 @@ model workspace_members {
   @@schema("public")
 }
 
+model PlatformEventLog {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform      String         @db.VarChar(10)
+  payload       Json
+  headers       Json?          @default("{}")
+  status        String?        @default("received")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  webhookEvents WebhookEvent[]
+
+  @@map("platform_event_logs")
+  @@schema("public")
+}
+
+model WebhookEvent {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  platform         String            @db.VarChar(20)
+  externalSenderId String            @map("external_sender_id")
+  externalPageId   String            @map("external_page_id")
+  messageText      String?           @map("message_text")
+  payload          Json
+  headers          Json?             @default("{}")
+  receivedAt       DateTime          @default(now()) @map("received_at") @db.Timestamptz(6)
+  parentLogId      String?           @map("parent_log_id") @db.Uuid
+  parentLog        PlatformEventLog? @relation(fields: [parentLogId], references: [id], onUpdate: NoAction)
+
+  @@map("webhook_events")
+  @@schema("public")
+}
+
 enum aal_level {
   aal1
   aal2
@@ -777,34 +806,3 @@ enum one_time_token_type {
 
   @@schema("auth")
 }
-
-model PlatformEventLog {
-  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  platform      String         @db.VarChar(10)
-  payload       Json
-  headers       Json?          @default("{}")
-  status        String?        @default("received")
-  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  webhookEvents WebhookEvent[]
-
-  @@map("platform_event_logs")
-  @@schema("public")
-}
-
-
-model WebhookEvent {
-  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  platform         String            @db.VarChar(20)
-  externalSenderId String            @map("external_sender_id")
-  externalPageId   String            @map("external_page_id")
-  messageText      String?           @map("message_text")
-  payload          Json
-  headers          Json?             @default("{}")
-  receivedAt       DateTime          @default(now()) @map("received_at") @db.Timestamptz(6)
-  parentLogId      String?           @map("parent_log_id") @db.Uuid
-  parentLog        PlatformEventLog? @relation(fields: [parentLogId], references: [id], onDelete: SetNull)
-
-  @@map("webhook_events")
-  @@schema("public")
-}
-

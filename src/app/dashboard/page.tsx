@@ -1,15 +1,38 @@
-/** Dashboard Page */
 import React from 'react';
 import { db } from '@/lib/db';
 import styles from './dashboard.module.css';
 import Link from 'next/link';
+import { createClient } from '@/infrastructure/supabase/server';
+import { redirect } from 'next/navigation';
+import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
 
-async function getStats() {
+async function getStats(workspaceId: string) {
+  // Get all account user IDs in this workspace to filter webhook events
+  const accounts = await db.platformAccount.findMany({
+    where: { workspaceId },
+    select: { platform_user_id: true }
+  });
+  const pageIds = accounts.map(a => a.platform_user_id);
+
   const [accountCount, messageCount, conversationCount, eventCount] = await Promise.all([
-    db.platformAccount.count(),
-    db.message.count(),
-    db.conversation.count(),
-    db.webhookEvent.count(),
+    db.platformAccount.count({ where: { workspaceId } }),
+    db.message.count({ 
+      where: { 
+        conversation: { 
+          platform_accounts: { workspaceId } 
+        } 
+      } 
+    }),
+    db.conversation.count({ 
+      where: { 
+        platform_accounts: { workspaceId } 
+      } 
+    }),
+    db.webhookEvent.count({
+      where: {
+        externalPageId: { in: pageIds }
+      }
+    }),
   ]);
 
   return {
@@ -20,8 +43,13 @@ async function getStats() {
   };
 }
 
-async function getRecentMessages() {
+async function getRecentMessages(workspaceId: string) {
   return await db.message.findMany({
+    where: {
+      conversation: { 
+        platform_accounts: { workspaceId } 
+      }
+    },
     take: 5,
     orderBy: { createdAt: 'desc' },
     include: {
@@ -34,18 +62,45 @@ async function getRecentMessages() {
   });
 }
 
-async function getActiveAccounts() {
+async function getActiveAccounts(workspaceId: string) {
   return await db.platformAccount.findMany({
     take: 5,
-    where: { disconnected_at: null },
+    where: { 
+      workspaceId,
+      disconnected_at: null 
+    },
     orderBy: { created_at: 'desc' }
   });
 }
 
 export default async function DashboardPage() {
-  const stats = await getStats();
-  const recentMessages = await getRecentMessages();
-  const activeAccounts = await getActiveAccounts();
+  const supabase = createClient();
+  const { data: { user } } = await (await supabase).auth.getUser();
+
+  if (!user) {
+    redirect('/auth/login');
+  }
+
+  const workspaceRepo = getWorkspaceRepository();
+  const { data: workspace } = await workspaceRepo.findFirstByUserId(user.id);
+
+  if (!workspace) {
+    return (
+      <div className={styles.container}>
+        <header className={styles.header}>
+          <h1 className={`${styles.title} text-gradient`}>Dashboard</h1>
+        </header>
+        <div className="glass" style={{ padding: '40px', textAlign: 'center' }}>
+          <p>You don't have a workspace yet. Please go to settings to set up your account.</p>
+          <Link href="/dashboard/settings/accounts" className="button-primary" style={{ marginTop: '20px', display: 'inline-block' }}>Go to Settings</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const stats = await getStats(workspace.id);
+  const recentMessages = await getRecentMessages(workspace.id);
+  const activeAccounts = await getActiveAccounts(workspace.id);
 
   return (
     <div className={styles.container}>
@@ -58,31 +113,29 @@ export default async function DashboardPage() {
         <div className={`${styles.statCard} glass`}>
           <span className={styles.statLabel}>Connected Accounts</span>
           <span className={styles.statValue}>{stats.accounts}</span>
-          <span className={`${styles.statTrend} ${styles.trendUp}`}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-            Active
+          <span className={styles.statTrend}>
+            Accounts linked
           </span>
         </div>
         <div className={`${styles.statCard} glass`}>
           <span className={styles.statLabel}>Total Messages</span>
           <span className={styles.statValue}>{stats.messages}</span>
-          <span className={`${styles.statTrend} ${styles.trendUp}`}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-            +12% this week
+          <span className={styles.statTrend}>
+            Interactions recorded
           </span>
         </div>
         <div className={`${styles.statCard} glass`}>
           <span className={styles.statLabel}>Conversations</span>
           <span className={styles.statValue}>{stats.conversations}</span>
           <span className={styles.statTrend}>
-            Ongoing threads
+            Total active threads
           </span>
         </div>
         <div className={`${styles.statCard} glass`}>
           <span className={styles.statLabel}>Webhook Events</span>
           <span className={styles.statValue}>{stats.events}</span>
-          <span className={`${styles.statTrend} ${styles.trendUp}`}>
-            Real-time
+          <span className={styles.statTrend}>
+            Real-time events processed
           </span>
         </div>
       </div>
@@ -117,7 +170,7 @@ export default async function DashboardPage() {
 
         <section className={`${styles.section} glass`}>
           <div className={styles.sectionTitle}>
-            Top Accounts
+            Your Accounts
             <Link href="/dashboard/settings/accounts" className="text-gradient" style={{ fontSize: '0.9rem' }}>Manage</Link>
           </div>
           <div className={styles.cardList}>

@@ -79,8 +79,8 @@ export function Sidebar() {
         <div className={styles.user}>
           <div className={styles.avatar}>U</div>
           <div className={styles.userInfo}>
-            <p className={styles.userName}>User</p>
-            <p className={styles.userRole}>Pro Plan</p>
+            <p className={styles.userName}>Active User</p>
+            <p className={styles.userRole}>Workspace Member</p>
           </div>
         </div>
       </div>
