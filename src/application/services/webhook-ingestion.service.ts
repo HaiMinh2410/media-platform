@@ -53,6 +53,7 @@ export class WebhookIngestionService {
             platform: event.platform,
             externalSenderId: event.externalSenderId,
             externalPageId: event.externalPageId,
+            platformMessageId: event.platformMessageId,
             messageText: event.messageText,
             timestamp: event.receivedAt.toISOString(),
           });

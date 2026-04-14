@@ -17,6 +17,9 @@ export interface WebhookJobPayload {
   /** The platform's internal ID for the recipient (page/account) */
   externalPageId: string;
   
+  /** The platform's internal message ID */
+  platformMessageId: string;
+
   /** Normalized message content */
   messageText: string | null;
   

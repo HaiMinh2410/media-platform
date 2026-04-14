@@ -1,7 +1,7 @@
 export type WorkspaceResult = {
   id: string;
   name: string;
-  userId: string;
+  userId?: string;
   createdAt: Date;
   updatedAt: Date;
 };

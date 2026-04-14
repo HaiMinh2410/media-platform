@@ -36,6 +36,7 @@ export class MetaParserService {
             platform: 'meta',
             externalSenderId: msg.sender.id,
             externalPageId: pageId,
+            platformMessageId: msg.message?.mid || `evt_${entry.time}_${msg.sender.id}`,
             // Capture text or postback title as primary message text
             messageText: msg.message?.text || msg.postback?.title || null,
             rawPayload: payload,
