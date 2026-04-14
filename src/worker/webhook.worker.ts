@@ -109,10 +109,25 @@ function createWebhookWorker() {
         }
 
         // --- 4. AI Verification / Generation ---
+        // Fetch last 3 messages for context
+        const recentMessages = await db.message.findMany({
+          where: { conversationId: persistResult.conversationId },
+          orderBy: { createdAt: 'desc' },
+          take: 4, // Including the current message we just saved
+          select: { content: true, senderType: true }
+        });
+
+        // Convert to history format (ignoring the latest message which is passed separately)
+        const history = recentMessages
+          .slice(1) // Remove latest
+          .reverse() // Chronological order
+          .map(m => `${m.senderType === 'user' ? 'User' : 'Bot'}: ${m.content}`);
+
         const { data: generateResult, error: genErr } = await generateService.generate({
           text: messageText,
           classifyResult,
-          platform
+          platform,
+          history
         });
 
         if (genErr || !generateResult || !generateResult.reply) {
