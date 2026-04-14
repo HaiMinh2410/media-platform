@@ -38,3 +38,29 @@ export type ClassifyServiceResult = {
   data: ClassifyResult | null;
   error: string | null;
 };
+
+// ---------------------------------------------------------------------------
+// Generation types (T042)
+// ---------------------------------------------------------------------------
+
+/**
+ * Input for the generate service.
+ * Requires classifyResult from T041 to contextualise the reply.
+ */
+export type GenerateInput = {
+  text: string;                    // Original user message
+  classifyResult: ClassifyResult;  // Routing context from classify step
+  history?: string[];              // Optional: last N conversation turns
+  platform?: string;               // Optional: 'messenger' | 'instagram'
+};
+
+/**
+ * Service-level return type for generation.
+ */
+export type GenerateServiceResult = {
+  data: {
+    reply: string;
+    intent: MessageIntent;  // Forwarded from classifyResult for convenience
+  } | null;
+  error: string | null;
+};
