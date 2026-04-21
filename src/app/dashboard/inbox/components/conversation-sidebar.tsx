@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './conversation-sidebar.module.css';
 import { ConversationWithLastMessage } from '@/domain/types/messaging';
 import { ConversationItem } from './conversation-item';
+import { ConversationSkeleton } from './skeletons';
 
 export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
   const [conversations, setConversations] = useState<ConversationWithLastMessage[]>([]);
@@ -87,8 +88,14 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
         {conversations.map(conv => (
           <ConversationItem key={conv.id} conversation={conv} />
         ))}
-        
-        {loading && <div className={styles.loading}>Loading...</div>}
+
+        {loading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <ConversationSkeleton />
+            <ConversationSkeleton />
+            <ConversationSkeleton />
+          </div>
+        )}
         
         {!loading && conversations.length === 0 && (
           <div className={styles.empty}>

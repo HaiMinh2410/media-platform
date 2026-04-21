@@ -1,0 +1,64 @@
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--glass-bg) 25%,
+    rgba(255, 255, 255, 0.05) 50%,
+    var(--glass-bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.itemSkeleton {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+}
+
+.avatarSkeleton {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+}
+
+.textSkeleton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.titleSkeleton {
+  height: 14px;
+  width: 40%;
+}
+
+.descSkeleton {
+  height: 12px;
+  width: 70%;
+}
+
+.bubbleSkeleton {
+  max-width: 60%;
+  height: 60px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+
+.bubbleSkeletonLeft {
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.bubbleSkeletonRight {
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}

@@ -80,9 +80,10 @@
 }
 
 .active {
-  background: var(--glass-bg);
+  background: rgba(99, 102, 241, 0.1);
   color: var(--fg-primary);
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
 }
 
 .active .icon {
