@@ -61,3 +61,46 @@ export type PersistMessageResult = {
   } | null;
   error: string | null;
 };
+
+/**
+ * Pagination parameters for list endpoints.
+ */
+export type PaginationParams = {
+  limit?: number;
+  cursor?: string;
+};
+
+/**
+ * Filter for conversation list.
+ */
+export type ConversationFilter = {
+  workspaceId: string;
+  platform?: string;
+  status?: string;
+  search?: string;
+};
+
+/**
+ * Shared message data for list views.
+ */
+export type ConversationWithLastMessage = {
+  id: string;
+  platform_conversation_id: string;
+  last_message_at: Date;
+  status: string | null;
+  platform: string;
+  sender_name: string;
+  last_message_content: string;
+  unread_count: number;
+};
+
+/**
+ * Message with sender info for chat history.
+ */
+export type MessageWithSender = {
+  id: string;
+  content: string;
+  senderId: string;
+  senderType: 'user' | 'agent' | 'ai';
+  createdAt: Date;
+};

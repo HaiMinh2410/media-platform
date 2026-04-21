@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import type { PersistMessageInput, PersistMessageResult } from '@/domain/types/messaging';
+import type { PersistMessageInput, PersistMessageResult, MessageWithSender, PaginationParams } from '@/domain/types/messaging';
 
 /**
  * Idempotently persists an incoming or outgoing message.
@@ -115,5 +115,49 @@ export async function idempotentPersistMessage(
 
     console.error('❌ [MessageRepository] Error persisting message:', error);
     return { data: null, error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * Fetches message history for a specific conversation with cursor-based pagination.
+ */
+export async function getMessages(
+  conversationId: string,
+  pagination: PaginationParams
+): Promise<{ 
+  data: MessageWithSender[] | null; 
+  nextCursor: string | null; 
+  error: string | null 
+}> {
+  try {
+    const limit = pagination.limit || 50;
+    const cursor = pagination.cursor;
+
+    const messages = await db.message.findMany({
+      where: { conversationId },
+      take: limit + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      orderBy: { createdAt: 'desc' }
+    });
+
+    let nextCursor: string | null = null;
+    if (messages.length > limit) {
+      const nextItem = messages.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    const formatted: MessageWithSender[] = messages.map(m => ({
+      id: m.id,
+      content: m.content,
+      senderId: m.senderId,
+      senderType: (m.senderType as any) || 'user',
+      createdAt: m.createdAt
+    }));
+
+    return { data: formatted, nextCursor, error: null };
+  } catch (error: any) {
+    console.error('❌ [MessageRepository] Error fetching messages:', error);
+    return { data: null, nextCursor: null, error: error.message || 'Unknown database error' };
   }
 }
