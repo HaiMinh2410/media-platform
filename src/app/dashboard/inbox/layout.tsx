@@ -1,32 +1,37 @@
 import React from 'react';
 import styles from './inbox.module.css';
+import { ConversationSidebar } from './components/conversation-sidebar';
+import { createClient } from '@/infrastructure/supabase/server';
+import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
+import { redirect } from 'next/navigation';
 
 export const metadata = {
   title: 'Inbox | Media Platform',
 };
 
-export default function InboxLayout({
+export default async function InboxLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = createClient();
+  const { data: { user } } = await (await supabase).auth.getUser();
+
+  if (!user) {
+    redirect('/auth/login');
+  }
+
+  const workspaceRepo = getWorkspaceRepository();
+  const { data: workspace } = await workspaceRepo.findFirstByUserId(user.id);
+
+  if (!workspace) {
+    redirect('/dashboard');
+  }
+
   return (
     <div className={styles.inboxContainer}>
-      {/* 
-        This is a placeholder for the Conversation List sidebar. 
-        It will be implemented in T049.
-      */}
-      <aside className={styles.conversationSidebar}>
-        <div className={styles.placeholderList}>
-          <h2>Inbox</h2>
-          <p>Conversation list will appear here.</p>
-        </div>
-      </aside>
+      <ConversationSidebar workspaceId={workspace.id} />
       
-      {/* 
-        The main chat area. 
-        It will display either the empty state (page.tsx) or a specific conversation ([id]/page.tsx). 
-      */}
       <main className={styles.chatArea}>
         {children}
       </main>
