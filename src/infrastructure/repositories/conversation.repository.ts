@@ -139,7 +139,25 @@ export async function getConversationWithAccount(
     }
 
     const account = conversation.platform_accounts;
-    const latestToken = account.meta_tokens[0] ?? null;
+    let latestToken = account.meta_tokens[0] ?? null;
+
+    // Fallback: If no token explicitly linked to this account, try to find ANY valid 
+    // meta token within the same workspace (common in shared Meta app setups)
+    if (!latestToken) {
+      const workspaceToken = await db.meta_tokens.findFirst({
+        where: {
+          platform_accounts: {
+            workspaceId: account.workspaceId,
+            platform: account.platform // Match platform (e.g., both are Meta-based)
+          }
+        },
+        orderBy: { updated_at: 'desc' }
+      });
+      if (workspaceToken) {
+        latestToken = workspaceToken;
+        console.log(`[Repository] Using fallback workspace token for account ${account.id}`);
+      }
+    }
 
     return {
       data: {

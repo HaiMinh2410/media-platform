@@ -68,16 +68,19 @@ export const generateService = {
       ? `${userContent}\nPlatform: ${platform}`
       : userContent;
 
-    const messages = [
-      { role: 'system' as const, content: systemContent },
-      { role: 'user' as const, content: finalUserContent },
-    ];
+    // Step 5: Call Groq — plain text output
+    // Use custom systemPrompt and model if provided, otherwise fallback to defaults
+    const finalSystemContent = input.systemPrompt 
+      ? input.systemPrompt + "\n" + buildSystemContext(category, intent)
+      : systemContent;
 
-    // Step 5: Call Groq — plain text output, larger model for quality
     const { data: completion, error: groqError } = await groqClient.complete(
-      messages,
+      [
+        { role: 'system' as const, content: finalSystemContent },
+        { role: 'user' as const, content: finalUserContent },
+      ],
       {
-        model: AI_MODELS.GENERATE,
+        model: input.model || AI_MODELS.GENERATE,
         temperature: 0.4,
         maxTokens: 256,
         jsonMode: false,

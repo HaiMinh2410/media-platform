@@ -37,6 +37,7 @@ export function AccountsList({ accounts }: AccountsListProps) {
               <h4 className={styles.name}>{account.name}</h4>
               <p className={styles.platformName}>{account.platform.charAt(0).toUpperCase() + account.platform.slice(1)}</p>
             </div>
+            <div className={styles.status}>
               <span className={styles.badge}>Active</span>
               <Link href={`/dashboard/settings/accounts/${account.id}/bot`} className={styles.configBtn}>
                 Configure Bot

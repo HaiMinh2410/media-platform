@@ -52,6 +52,8 @@ export type GenerateInput = {
   classifyResult: ClassifyResult;  // Routing context from classify step
   history?: string[];              // Optional: last N conversation turns
   platform?: string;               // Optional: 'messenger' | 'instagram'
+  systemPrompt?: string;           // Optional: Custom system prompt from bot config
+  model?: string;                  // Optional: Specific model ID to use
 };
 
 /**

@@ -82,9 +82,9 @@ function createWebhookWorker() {
         }
 
         const botConfig = account.bot_configurations;
-        if (!botConfig?.is_active || !botConfig.auto_send) {
-          console.log(`[Worker] [${job.id}] Bot is inactive or auto_send is OFF for account ${account.id}.`);
-          return { status: 'ignored_by_config', eventId: webhookEventId };
+        if (!botConfig?.is_active) {
+          console.log(`[Worker] [${job.id}] Bot is inactive for account ${account.id}.`);
+          return { status: 'ignored_by_bot_config', eventId: webhookEventId };
         }
 
         // --- 3. AI Classification ---
@@ -127,7 +127,9 @@ function createWebhookWorker() {
           text: messageText,
           classifyResult,
           platform,
-          history
+          history,
+          systemPrompt: botConfig.system_prompt || undefined,
+          model: botConfig.model || undefined
         });
 
         if (genErr || !generateResult || !generateResult.reply) {
@@ -136,16 +138,39 @@ function createWebhookWorker() {
 
         const replyText = generateResult.reply;
 
-        // --- 5. Send via Platform API ---
+        // --- 5. Persist AI Log (Always create log if generation is successful) ---
+        const aiLog = await db.aIReplyLog.create({
+          data: {
+            messageId: persistResult.messageId, // Link to the user message that triggered it
+            prompt: `Intent: ${classifyResult.intent}${botConfig.system_prompt ? ` | Prompt: ${botConfig.system_prompt.substring(0, 50)}...` : ''}`,
+            response: replyText,
+            model: botConfig.model || AI_MODELS.GENERATE,
+            status: botConfig.auto_send ? 'suggested' : 'pending' // Just a status, auto-send check happens below
+          }
+        });
+        
+        console.log(`[Worker] [${job.id}] AI Suggestion created: ${aiLog.id}`);
+
+        // --- 6. Auto-Send via Platform API (Only if enabled) ---
+        if (!botConfig.auto_send) {
+          console.log(`[Worker] [${job.id}] Auto-send is OFF. Stopping after suggestion.`);
+          return { 
+            status: 'success_suggestion_only', 
+            eventId: webhookEventId,
+            suggestionId: aiLog.id
+          };
+        }
+
         let platformBotMessageId = `bot_generated_${Date.now()}`;
-        if (platform === 'meta') {
+        if (platform === 'meta' || platform === 'facebook' || platform === 'instagram') {
           const tokenRecord = account.meta_tokens[0];
           if (!tokenRecord) {
-            throw new Error(`No encrypted access token found for account ${account.id}`);
+            console.warn(`[Worker] [${job.id}] Cannot auto-send: No access token found for account ${account.id}`);
+            return { status: 'failed_auto_send_no_token', eventId: webhookEventId, suggestionId: aiLog.id };
           }
 
           const { data: sendResult, error: sendErr } = await metaSendService.sendText({
-            platform: platform as any,
+            platform: (platform === 'meta' ? 'messenger' : platform) as any,
             recipientId: externalSenderId,
             pageId: externalPageId,
             text: replyText,
@@ -153,17 +178,18 @@ function createWebhookWorker() {
           });
 
           if (sendErr) {
-            throw new Error(`Meta Send Service failed: ${sendErr}`);
+            console.error(`[Worker] [${job.id}] Meta Send Service failed: ${sendErr}`);
+            return { status: 'failed_auto_send_api_error', error: sendErr, eventId: webhookEventId };
           }
           if (sendResult && sendResult.messageId) {
             platformBotMessageId = sendResult.messageId;
           }
         } else {
-          // Other platforms eventually
           console.warn(`[Worker] [${job.id}] Send API for platform ${platform} not implemented yet`);
+          return { status: 'failed_auto_send_unsupported_platform', eventId: webhookEventId };
         }
 
-        // --- 6. Persist Bot Message ---
+        // --- 7. Persist Bot Message (Only if auto-sent) ---
         const { data: botPersist, error: botPersistErr } = await idempotentPersistMessage({
           platform,
           externalPageId,
@@ -175,18 +201,17 @@ function createWebhookWorker() {
         });
 
         if (botPersist && botPersist.isNewMessage) {
-          // Create AI logs for debugging/training
-          await db.aIReplyLog.create({
-            data: {
+          // Update AI log with the actual sent message ID
+          await db.aIReplyLog.update({
+            where: { id: aiLog.id },
+            data: { 
               messageId: botPersist.messageId,
-              prompt: `Intent: ${classifyResult.intent}, Category: ${classifyResult.category}`,
-              response: replyText,
-              model: AI_MODELS.GENERATE
+              status: 'sent' 
             }
           });
         }
 
-        console.log(`[Worker] [${job.id}] Bot reply sent & persisted successfully.`);
+        console.log(`[Worker] [${job.id}] Bot reply auto-sent & persisted successfully.`);
 
         return {
           processedAt: new Date().toISOString(),

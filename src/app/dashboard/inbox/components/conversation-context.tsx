@@ -26,7 +26,9 @@ export function ConversationContext({ platform, externalId, lastMessageAt, pageN
           </div>
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>Last Message</span>
-            <span className={styles.infoValue}>{new Date(lastMessageAt).toLocaleString()}</span>
+            <span className={styles.infoValue} suppressHydrationWarning>
+              {new Date(lastMessageAt).toLocaleString()}
+            </span>
           </div>
         </div>
       </div>
