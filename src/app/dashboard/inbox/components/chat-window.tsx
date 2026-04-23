@@ -5,6 +5,7 @@ import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { MessageBubble } from './message-bubble';
 import { ChatSkeleton } from './skeletons';
+import { useInboxRealtime } from '../hooks/use-inbox-realtime';
 
 export function ChatWindow({ conversationId }: { conversationId: string }) {
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
@@ -15,6 +16,8 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
   const observerTarget = useRef<HTMLDivElement>(null);
   const previousScrollHeight = useRef<number>(0);
   const isInitialLoad = useRef(true);
+  // Track IDs so Realtime duplicates from the initial fetch are ignored
+  const seenIds = useRef<Set<string>>(new Set());
 
   const fetchMessages = useCallback(async (cursor?: string | null) => {
     try {
@@ -33,7 +36,10 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
 
       if (data.data) {
         // API returns newest first. We reverse to make oldest first for chronological order visually.
-        const chronologicalChunk = [...data.data].reverse();
+        const chronologicalChunk = [...data.data].reverse() as MessageWithSender[];
+        
+        // Track seen IDs to avoid realtime duplicates
+        chronologicalChunk.forEach(m => seenIds.current.add(m.id));
         
         setMessages(prev => {
           // If cursor is present, we are prepending older chunks at the top
@@ -49,11 +55,17 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
     }
   }, [conversationId]);
 
-  // Initial fetch
+  // Initial fetch + mark conversation as read
   useEffect(() => {
     isInitialLoad.current = true;
+    seenIds.current = new Set();
     fetchMessages(null);
-  }, [fetchMessages]);
+
+    // Fire-and-forget: mark all messages as read when entering the conversation
+    fetch(`/api/conversations/${conversationId}/read`, { method: 'PATCH' }).catch(
+      (err) => console.warn('[ChatWindow] Failed to mark conversation as read:', err)
+    );
+  }, [fetchMessages, conversationId]);
 
   // Handle scroll position maintenance
   useEffect(() => {
@@ -61,14 +73,14 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
     const scrollEl = scrollRef.current;
 
     if (isInitialLoad.current && messages.length > 0) {
-      // First load: smoothly scroll to bottom
+      // First load: scroll to bottom
       scrollEl.scrollTo(0, scrollEl.scrollHeight);
       isInitialLoad.current = false;
     } else if (messages.length > 0 && previousScrollHeight.current > 0) {
-      // Older items fetched: maintain user's view by adjusting scroll relative to new height
+      // Older items fetched: maintain user's view by adjusting scroll
       const heightDifference = scrollEl.scrollHeight - previousScrollHeight.current;
       scrollEl.scrollTo(0, scrollEl.scrollTop + heightDifference);
-      previousScrollHeight.current = 0; // reset
+      previousScrollHeight.current = 0;
     }
   }, [messages]);
 
@@ -80,7 +92,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
           fetchMessages(nextCursor);
         }
       },
-      { threshold: 0 } // Trigger right when pixel 1 is visible
+      { threshold: 0 }
     );
 
     if (observerTarget.current) {
@@ -89,6 +101,27 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
 
     return () => observer.disconnect();
   }, [nextCursor, loading, fetchMessages]);
+
+  // Realtime: append new messages arriving from Supabase
+  const handleNewMessage = useCallback((message: MessageWithSender) => {
+    // Dedup: ignore if we already fetched this message in the initial load
+    if (seenIds.current.has(message.id)) return;
+    seenIds.current.add(message.id);
+
+    setMessages(prev => [...prev, message]);
+
+    // Auto-scroll to bottom when new message arrives (only if already at bottom)
+    requestAnimationFrame(() => {
+      const el = scrollRef.current;
+      if (!el) return;
+      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+      if (isNearBottom) {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      }
+    });
+  }, []);
+
+  useInboxRealtime({ conversationId, onNewMessage: handleNewMessage });
 
   return (
     <div className={styles.messagesArea} ref={scrollRef}>

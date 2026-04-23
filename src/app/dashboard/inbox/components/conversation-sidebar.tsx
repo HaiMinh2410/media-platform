@@ -5,6 +5,7 @@ import styles from './conversation-sidebar.module.css';
 import { ConversationWithLastMessage } from '@/domain/types/messaging';
 import { ConversationItem } from './conversation-item';
 import { ConversationSkeleton } from './skeletons';
+import { useSidebarRealtime } from '../hooks/use-sidebar-realtime';
 
 export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
   const [conversations, setConversations] = useState<ConversationWithLastMessage[]>([]);
@@ -14,6 +15,8 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
   const [searchQuery, setSearchQuery] = useState('');
   
   const observerTarget = useRef<HTMLDivElement>(null);
+  // Stable ref to fetch so the realtime callback can trigger a refetch
+  const fetchRef = useRef<(() => void) | null>(null);
 
   // Debounce search input
   useEffect(() => {
@@ -46,7 +49,12 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
     }
   }, [workspaceId, searchQuery]);
 
-  // Initial load and Search query change
+  // Stable ref for realtime callback
+  useEffect(() => {
+    fetchRef.current = () => fetchConversations(null, true);
+  }, [fetchConversations]);
+
+  // Initial load and search query change
   useEffect(() => {
     fetchConversations(null, true);
   }, [fetchConversations]);
@@ -68,6 +76,50 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
 
     return () => observer.disconnect();
   }, [nextCursor, loading, fetchConversations]);
+
+  // Realtime: handle conversation INSERT/UPDATE events
+  // Strategy: on UPDATE, optimistically update last_message_at in local state and re-sort.
+  // On INSERT, refetch the first page so the new conversation appears at the top.
+  const handleConversationUpdated = useCallback(
+    (
+      eventType: 'INSERT' | 'UPDATE',
+      partial: Pick<ConversationWithLastMessage, 'id' | 'platform_conversation_id' | 'last_message_at' | 'status'>
+    ) => {
+      if (eventType === 'INSERT') {
+        // Refetch to pick up the new conversation with all joined fields (platform, sender_name, etc.)
+        fetchRef.current?.();
+        return;
+      }
+
+      // UPDATE: patch in-place and re-sort by last_message_at desc
+      setConversations(prev => {
+        const exists = prev.some(c => c.id === partial.id);
+        if (!exists) {
+          // Unknown conversation — could belong to a different workspace, ignore
+          return prev;
+        }
+
+        const updated = prev.map(c =>
+          c.id === partial.id
+            ? {
+                ...c,
+                last_message_at: partial.last_message_at,
+                status: partial.status,
+              }
+            : c
+        );
+
+        // Re-sort: most recently active first
+        return [...updated].sort(
+          (a, b) =>
+            new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+        );
+      });
+    },
+    []
+  );
+
+  useSidebarRealtime({ workspaceId, onConversationUpdated: handleConversationUpdated });
 
   return (
     <aside className={styles.sidebar}>
