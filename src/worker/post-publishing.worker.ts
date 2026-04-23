@@ -1,6 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '../infrastructure/queue/bullmq.provider';
 import { POST_PUBLISHING_QUEUE, PostJobData } from '../infrastructure/queue/post-queue';
+import { getMetaPublishingService } from '../infrastructure/services/meta-publishing.service';
 
 console.log(`[Worker] Post Publishing Worker started...`);
 
@@ -11,15 +12,15 @@ const worker = new Worker<PostJobData>(
     
     console.log(`[Worker] Processing post ${postId} for workspace ${workspaceId}`);
     
-    // TODO: Implement actual Meta publishing logic in T070
-    // 1. Fetch post from DB
-    // 2. Determine platform and call Meta API
-    // 3. Update DB status to 'published' or 'failed'
+    const publishingService = getMetaPublishingService();
+    const result = await publishingService.publishPost(postId);
     
-    // Simulate processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log(`[Worker] Successfully "processed" post ${postId}`);
+    if (result.success) {
+      console.log(`[Worker] Successfully published post ${postId}. Platform ID: ${result.platformPostId}`);
+    } else {
+      console.error(`[Worker] Failed to publish post ${postId}: ${result.error}`);
+      throw new Error(result.error); // Allow BullMQ to retry if needed
+    }
   },
   {
     connection: redisConnection,
