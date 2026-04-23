@@ -33,7 +33,7 @@ export class MetaParserService {
       if (entry.messaging && Array.isArray(entry.messaging)) {
         for (const msg of entry.messaging) {
           events.push({
-            platform: 'meta',
+            platform: payload.object === 'instagram' ? 'instagram' : 'facebook',
             externalSenderId: msg.sender.id,
             externalPageId: pageId,
             platformMessageId: msg.message?.mid || `evt_${entry.time}_${msg.sender.id}`,
