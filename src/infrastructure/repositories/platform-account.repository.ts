@@ -76,12 +76,24 @@ export class PlatformAccountRepository {
   /**
    * Finds an account by ID.
    */
-  async findById(id: string) {
+  async findById(id: string): Promise<{ data: PlatformAccount | null, error: string | null }> {
     try {
       const account = await db.platformAccount.findUnique({
         where: { id },
       });
-      return { data: account, error: null };
+      if (!account) return { data: null, error: 'Account not found' };
+
+      return { 
+        data: {
+          id: account.id,
+          workspaceId: account.workspaceId,
+          platform: account.platform as any,
+          externalId: account.platform_user_id,
+          name: account.platform_user_name,
+          metadata: account.metadata,
+        }, 
+        error: null 
+      };
     } catch (error) {
       console.error('[PlatformAccountRepository] findById failed:', error);
       return { data: null, error: 'DATABASE_ERROR' };

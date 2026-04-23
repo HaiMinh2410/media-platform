@@ -15,15 +15,15 @@ export function SchedulingPanel({ scheduledAt, onChange, isSubmitting, onPublish
   const isScheduled = !!scheduledAt;
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 space-y-6">
+    <div className="glass-card rounded-[2rem] p-6 space-y-8">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-300">Publishing Options</h3>
-        <div className="flex bg-slate-950 rounded-lg p-1 border border-slate-800">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500">Publishing</h3>
+        <div className="flex bg-black/40 rounded-2xl p-1.5 border border-white/5 shadow-inner">
           <button
             onClick={() => onChange(null)}
             className={cn(
-              "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all",
-              !isScheduled ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-300"
+              "px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all duration-300",
+              !isScheduled ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "text-slate-500 hover:text-slate-300"
             )}
           >
             Now
@@ -31,8 +31,8 @@ export function SchedulingPanel({ scheduledAt, onChange, isSubmitting, onPublish
           <button
             onClick={() => onChange(new Date(Date.now() + 24 * 60 * 60 * 1000))}
             className={cn(
-              "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all",
-              isScheduled ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-300"
+              "px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all duration-300",
+              isScheduled ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "text-slate-500 hover:text-slate-300"
             )}
           >
             Schedule

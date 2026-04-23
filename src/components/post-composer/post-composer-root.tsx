@@ -79,13 +79,14 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr,400px] gap-8">
-      {/* Editor Column */}
-      <div className="space-y-8 pb-20">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-bold text-white">Create Post</h1>
-          <p className="text-slate-500 text-sm">Compose and schedule your content across multiple platforms.</p>
-        </header>
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr,380px] gap-12">
+        {/* Editor Column */}
+        <div className="space-y-10 pb-20">
+          <header className="space-y-2">
+            <h1 className="text-4xl font-bold text-white tracking-tight">Create Post</h1>
+            <p className="text-slate-400 text-lg font-medium">Compose and schedule your content across multiple platforms.</p>
+          </header>
 
         <PlatformSelector 
           accounts={accounts} 
@@ -93,18 +94,18 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
           onChange={setSelectedAccountIds} 
         />
 
-        <div className="space-y-8 bg-slate-900/30 border border-slate-800/50 rounded-3xl p-6 md:p-8 backdrop-blur-sm">
-          <ContentEditor 
-            content={content} 
-            onChange={setContent} 
-          />
-          
-          <MediaUploader 
-            files={mediaFiles} 
-            onChange={setMediaFiles} 
-            workspaceId={workspaceId} 
-          />
-        </div>
+          <div className="space-y-10 glass-card rounded-[2.5rem] p-8 md:p-10">
+            <ContentEditor 
+              content={content} 
+              onChange={setContent} 
+            />
+            
+            <MediaUploader 
+              files={mediaFiles} 
+              onChange={setMediaFiles} 
+              workspaceId={workspaceId} 
+            />
+          </div>
 
         <SchedulingPanel 
           scheduledAt={scheduledAt} 
@@ -125,5 +126,6 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
         </div>
       </aside>
     </div>
+  </div>
   );
 }

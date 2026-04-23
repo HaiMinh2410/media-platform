@@ -26,19 +26,19 @@ export default async function PostsPage() {
   const { data: posts } = await postRepo.findByWorkspaceId(workspace.id);
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-white tracking-tight">Content Library</h1>
-          <p className="text-slate-500 text-sm">Manage your scheduled posts, drafts, and archives.</p>
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 space-y-12">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-3">
+          <h1 className="text-4xl font-bold text-white tracking-tight">Content Library</h1>
+          <p className="text-slate-400 text-lg font-medium">Manage your scheduled posts, drafts, and archives.</p>
         </div>
         
         <Link 
           href="/dashboard/composer"
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:shadow-blue-600/20 active:scale-95"
+          className="flex items-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-[15px] transition-all hover:shadow-2xl hover:shadow-blue-600/30 active:scale-95 group"
         >
-          <Plus size={18} />
-          New Post
+          <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+          Create Post
         </Link>
       </header>
 
