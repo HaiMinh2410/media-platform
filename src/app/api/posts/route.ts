@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPostRepository } from '@/infrastructure/repositories/post.repository';
+import { enqueuePostPublishing } from '@/infrastructure/queue/post-queue';
 import { z } from 'zod';
 
 const CreatePostSchema = z.object({
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ data });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API Posts] GET failed:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -58,8 +59,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error }, { status: 500 });
     }
 
+    if (data) {
+      // Enqueue background jobs for each post
+      await Promise.all(
+        data.map((post) => 
+          enqueuePostPublishing(
+            { postId: post.id, workspaceId: parsed.data.workspaceId },
+            post.scheduledAt
+          )
+        )
+      );
+    }
+
     return NextResponse.json({ data });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API Posts] POST failed:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
