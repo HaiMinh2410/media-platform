@@ -12,10 +12,14 @@ type Props = {
 };
 
 function formatModel(model: string): string {
+  if (model.includes('llama-3.3-70b')) return 'LLaMA 3.3 70B';
+  if (model.includes('llama-3.1-8b')) return 'LLaMA 3.1 8B';
+  if (model.includes('qwen-qwq-32b')) return 'Qwen3 32B';
+  if (model.includes('gpt-oss-120b')) return 'GPT-OSS 120B';
+  // Legacy fallbacks
   if (model.includes('llama3-70b')) return 'LLaMA 3 70B';
   if (model.includes('llama3-8b')) return 'LLaMA 3 8B';
   if (model.includes('mixtral')) return 'Mixtral 8×7B';
-  if (model.includes('gemma')) return 'Gemma 2';
   return model;
 }
 

@@ -49,7 +49,7 @@ export async function GET(
           confidence_threshold: 0.75,
           auto_send: false,
           system_prompt: '',
-          model: 'llama3-70b-8192'
+          model: 'llama-3.3-70b-versatile'
         } as any
       });
     }
@@ -103,7 +103,7 @@ export async function PATCH(
         confidence_threshold: body.confidence_threshold ?? 0.75,
         auto_send: body.auto_send ?? false,
         system_prompt: body.system_prompt ?? '',
-        model: body.model ?? 'llama3-70b-8192',
+        model: body.model ?? 'llama-3.3-70b-versatile',
       } as any,
       update: {
         is_active: body.is_active,

@@ -124,9 +124,10 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
               value={config.model}
               onChange={(e) => setConfig({ ...config, model: e.target.value })}
             >
-              <option value="llama3-70b-8192">LLaMA 3 70B (Recommended)</option>
-              <option value="llama3-8b-8192">LLaMA 3 8B (Fast)</option>
-              <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+              <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B Versatile (Recommended)</option>
+              <option value="llama-3.1-8b-instant">LLaMA 3.1 8B Instant (Fastest / Cheapest)</option>
+              <option value="qwen-qwq-32b">Qwen3 32B (Multilingual · 32k Context)</option>
+              <option value="openai/gpt-oss-120b">GPT-OSS 120B (Highest Quality / Reasoning)</option>
             </select>
           </div>
 
