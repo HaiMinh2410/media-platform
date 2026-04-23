@@ -50,7 +50,7 @@ export async function GET(
           auto_send: false,
           system_prompt: '',
           model: 'llama3-70b-8192'
-        }
+        } as any
       });
     }
 
@@ -104,7 +104,7 @@ export async function PATCH(
         auto_send: body.auto_send ?? false,
         system_prompt: body.system_prompt ?? '',
         model: body.model ?? 'llama3-70b-8192',
-      },
+      } as any,
       update: {
         is_active: body.is_active,
         trigger_labels: body.trigger_labels,
@@ -113,7 +113,7 @@ export async function PATCH(
         system_prompt: body.system_prompt,
         model: body.model,
         updated_at: new Date()
-      }
+      } as any
     });
 
     return NextResponse.json({ data: updatedConfig });

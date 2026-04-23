@@ -47,7 +47,7 @@ export async function GET(
         response: true,
         status: true,
         created_at: true,
-      },
+      } as any,
     });
 
     const suggestions: AiSuggestion[] = logs.map((log) => ({
@@ -56,8 +56,8 @@ export async function GET(
       model: log.model,
       prompt: log.prompt,
       response: log.response,
-      status: log.status,
-      createdAt: log.created_at.toISOString(),
+        status: (log as any).status,
+        createdAt: log.created_at.toISOString(),
     }));
 
     return NextResponse.json({ data: suggestions });

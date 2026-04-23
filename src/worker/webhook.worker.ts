@@ -128,8 +128,8 @@ function createWebhookWorker() {
           classifyResult,
           platform,
           history,
-          systemPrompt: botConfig.system_prompt || undefined,
-          model: botConfig.model || undefined
+          systemPrompt: (botConfig as any).system_prompt || undefined,
+          model: (botConfig as any).model as any || undefined
         });
 
         if (genErr || !generateResult || !generateResult.reply) {
@@ -142,10 +142,10 @@ function createWebhookWorker() {
         const aiLog = await db.aIReplyLog.create({
           data: {
             messageId: persistResult.messageId, // Link to the user message that triggered it
-            prompt: `Intent: ${classifyResult.intent}${botConfig.system_prompt ? ` | Prompt: ${botConfig.system_prompt.substring(0, 50)}...` : ''}`,
+            prompt: `Intent: ${classifyResult.intent}${(botConfig as any).system_prompt ? ` | Prompt: ${(botConfig as any).system_prompt.substring(0, 50)}...` : ''}`,
             response: replyText,
-            model: botConfig.model || AI_MODELS.GENERATE,
-            status: botConfig.auto_send ? 'suggested' : 'pending' // Just a status, auto-send check happens below
+            model: (botConfig as any).model || AI_MODELS.GENERATE,
+            status: (botConfig as any).auto_send ? 'suggested' : 'pending' as any // Just a status, auto-send check happens below
           }
         });
         
@@ -206,7 +206,7 @@ function createWebhookWorker() {
             where: { id: aiLog.id },
             data: { 
               messageId: botPersist.messageId,
-              status: 'sent' 
+              status: 'sent' as any 
             }
           });
         }

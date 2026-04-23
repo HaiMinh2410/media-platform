@@ -80,7 +80,7 @@ export const generateService = {
         { role: 'user' as const, content: finalUserContent },
       ],
       {
-        model: input.model || AI_MODELS.GENERATE,
+        model: (input.model || AI_MODELS.GENERATE) as any,
         temperature: 0.4,
         maxTokens: 256,
         jsonMode: false,

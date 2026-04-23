@@ -1,4 +1,5 @@
 // src/domain/types/ai-pipeline.ts
+import { AIModel } from './ai';
 
 /**
  * Possible routing intents for an incoming message.
@@ -53,7 +54,7 @@ export type GenerateInput = {
   history?: string[];              // Optional: last N conversation turns
   platform?: string;               // Optional: 'messenger' | 'instagram'
   systemPrompt?: string;           // Optional: Custom system prompt from bot config
-  model?: string;                  // Optional: Specific model ID to use
+  model?: AIModel;                  // Optional: Specific model ID to use
 };
 
 /**
