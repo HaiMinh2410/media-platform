@@ -145,8 +145,8 @@ function createWebhookWorker() {
             prompt: `Intent: ${classifyResult.intent}${(botConfig as any).system_prompt ? ` | Prompt: ${(botConfig as any).system_prompt.substring(0, 50)}...` : ''}`,
             response: replyText,
             model: (botConfig as any).model || AI_MODELS.GENERATE,
-            status: (botConfig as any).auto_send ? 'suggested' : 'pending' as any // Just a status, auto-send check happens below
-          }
+            status: (botConfig as any).auto_send ? 'suggested' : 'pending' 
+          } as any
         });
         
         console.log(`[Worker] [${job.id}] AI Suggestion created: ${aiLog.id}`);
@@ -206,8 +206,8 @@ function createWebhookWorker() {
             where: { id: aiLog.id },
             data: { 
               messageId: botPersist.messageId,
-              status: 'sent' as any 
-            }
+              status: 'sent' 
+            } as any
           });
         }
 
