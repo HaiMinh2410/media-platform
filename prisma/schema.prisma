@@ -603,6 +603,8 @@ model bot_configurations {
   trigger_labels       String[]
   confidence_threshold Float           @default(0.75)
   auto_send            Boolean         @default(false)
+  system_prompt        String?         @default("")
+  model                String          @default("llama3-70b-8192")
   updated_at           DateTime        @default(now())
   platform_accounts    PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
