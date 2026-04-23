@@ -87,6 +87,97 @@ export class PostRepository {
       return { data: null, error: 'DATABASE_ERROR' };
     }
   }
+
+  /**
+   * Finds a post by ID.
+   */
+  async findById(id: string): Promise<{ data: Post | null, error: string | null }> {
+    try {
+      const r = await db.posts.findUnique({
+        where: { id },
+      });
+
+      if (!r) return { data: null, error: 'POST_NOT_FOUND' };
+
+      return {
+        data: {
+          id: r.id,
+          accountId: r.account_id,
+          title: r.title,
+          content: r.content,
+          mediaUrls: r.media_urls,
+          status: r.status as PostStatus,
+          scheduledAt: r.scheduled_at,
+          publishedAt: r.published_at,
+          errorMessage: r.error_message,
+          metadata: r.metadata as Record<string, unknown>,
+          platformPostId: r.platform_post_id,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        },
+        error: null,
+      };
+    } catch (error: unknown) {
+      console.error('[PostRepository] findById failed:', error);
+      return { data: null, error: 'DATABASE_ERROR' };
+    }
+  }
+
+  /**
+   * Updates a post.
+   */
+  async updatePost(id: string, data: Partial<Post>): Promise<{ data: Post | null, error: string | null }> {
+    try {
+      const r = await db.posts.update({
+        where: { id },
+        data: {
+          title: data.title,
+          content: data.content,
+          media_urls: data.mediaUrls,
+          status: data.status,
+          scheduled_at: data.scheduledAt,
+          metadata: data.metadata || undefined,
+        },
+      });
+
+      return {
+        data: {
+          id: r.id,
+          accountId: r.account_id,
+          title: r.title,
+          content: r.content,
+          mediaUrls: r.media_urls,
+          status: r.status as PostStatus,
+          scheduledAt: r.scheduled_at,
+          publishedAt: r.published_at,
+          errorMessage: r.error_message,
+          metadata: r.metadata as Record<string, unknown>,
+          platformPostId: r.platform_post_id,
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        },
+        error: null,
+      };
+    } catch (error: unknown) {
+      console.error('[PostRepository] updatePost failed:', error);
+      return { data: null, error: 'DATABASE_ERROR' };
+    }
+  }
+
+  /**
+   * Deletes a post.
+   */
+  async deletePost(id: string): Promise<{ success: boolean, error: string | null }> {
+    try {
+      await db.posts.delete({
+        where: { id },
+      });
+      return { success: true, error: null };
+    } catch (error: unknown) {
+      console.error('[PostRepository] deletePost failed:', error);
+      return { success: false, error: 'DATABASE_ERROR' };
+    }
+  }
 }
 
 // Singleton helper
