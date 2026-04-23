@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const platform = searchParams.get('platform') || undefined;
     const status = searchParams.get('status') || undefined;
     const search = searchParams.get('search') || undefined;
+    const unread = searchParams.get('unread') === 'true';
     const cursor = searchParams.get('cursor') || undefined;
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
       platform,
       status,
       search,
+      unread: unread ? true : undefined,
     };
 
     const pagination: PaginationParams = {

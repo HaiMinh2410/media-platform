@@ -30,8 +30,10 @@ export async function getConversations(
           // Filter by platform if provided
           ...(filter.platform ? { platform: filter.platform } : {}),
         },
-        // Filter by status if provided
+        // Filter by status if provided (e.g., 'open', 'resolved')
         ...(filter.status ? { status: filter.status } : {}),
+        // Filter by unread if provided
+        ...(filter.unread ? { messages: { some: { is_read: false } } } : {}),
         // Search in platform ID or message content
         ...(filter.search ? {
           OR: [

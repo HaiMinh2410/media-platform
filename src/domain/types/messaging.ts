@@ -78,6 +78,7 @@ export type ConversationFilter = {
   platform?: string;
   status?: string;
   search?: string;
+  unread?: boolean;
 };
 
 /**

@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams } from 'next/navigation';
+import { toast } from 'sonner';
 import styles from './conversation-sidebar.module.css';
 import { ConversationWithLastMessage } from '@/domain/types/messaging';
 import { ConversationItem } from './conversation-item';
@@ -13,6 +15,14 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'open' | 'done'>('all');
+  
+  const params = useParams();
+  const activeIdRef = useRef(params?.id);
+  
+  useEffect(() => {
+    activeIdRef.current = params?.id;
+  }, [params?.id]);
   
   const observerTarget = useRef<HTMLDivElement>(null);
   // Stable ref to fetch so the realtime callback can trigger a refetch
@@ -34,6 +44,8 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
       url.searchParams.set('limit', '15');
       if (cursor) url.searchParams.set('cursor', cursor);
       if (searchQuery) url.searchParams.set('search', searchQuery);
+      if (activeFilter === 'unread') url.searchParams.set('unread', 'true');
+      if (activeFilter === 'open' || activeFilter === 'done') url.searchParams.set('status', activeFilter);
 
       const res = await fetch(url.toString());
       const data = await res.json();
@@ -47,14 +59,14 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, searchQuery]);
+  }, [workspaceId, searchQuery, activeFilter]);
 
   // Stable ref for realtime callback
   useEffect(() => {
     fetchRef.current = () => fetchConversations(null, true);
   }, [fetchConversations]);
 
-  // Initial load and search query change
+  // Initial load and whenever filters change
   useEffect(() => {
     fetchConversations(null, true);
   }, [fetchConversations]);
@@ -93,10 +105,19 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
 
       // UPDATE: patch in-place and re-sort by last_message_at desc
       setConversations(prev => {
-        const exists = prev.some(c => c.id === partial.id);
-        if (!exists) {
+        const existing = prev.find(c => c.id === partial.id);
+        if (!existing) {
           // Unknown conversation — could belong to a different workspace, ignore
           return prev;
+        }
+
+        const isNewer = new Date(partial.last_message_at).getTime() > new Date(existing.last_message_at).getTime();
+        
+        if (isNewer && partial.id !== activeIdRef.current) {
+          toast(`New message from ${existing.sender_name}`, {
+            description: new Date(partial.last_message_at).toLocaleTimeString()
+          });
+          // Also, we could optimistically increment unread_count here, but simple refetching logic is safer for accuracy.
         }
 
         const updated = prev.map(c =>
@@ -105,6 +126,8 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
                 ...c,
                 last_message_at: partial.last_message_at,
                 status: partial.status,
+                // If it's a new message and not active, pessimistically increment unread count
+                unread_count: (isNewer && partial.id !== activeIdRef.current) ? c.unread_count + 1 : c.unread_count,
               }
             : c
         );
@@ -134,6 +157,20 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
+        <div className={styles.tabsContainer}>
+          <button 
+            className={`${styles.filterTab} ${activeFilter === 'all' ? styles.activeTab : ''}`}
+            onClick={() => setActiveFilter('all')}
+          >All</button>
+          <button 
+            className={`${styles.filterTab} ${activeFilter === 'unread' ? styles.activeTab : ''}`}
+            onClick={() => setActiveFilter('unread')}
+          >Unread</button>
+          <button 
+            className={`${styles.filterTab} ${activeFilter === 'open' ? styles.activeTab : ''}`}
+            onClick={() => setActiveFilter('open')}
+          >Open</button>
+        </div>
       </div>
 
       <div className={styles.list}>
