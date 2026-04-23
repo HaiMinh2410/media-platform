@@ -3,7 +3,7 @@ import { redisConnection } from '@/infrastructure/queue/bullmq.provider';
 import { QueueName, WebhookJobPayload } from '@/domain/types/queue';
 import { idempotentPersistMessage } from '@/infrastructure/repositories/message.repository';
 import { classifyService } from '@/application/ai/classify.service';
-import { generateService } from '../../generate.service';
+import { generateService } from '@/application/ai/generate.service';
 import { metaSendService } from '@/application/services/meta-send.service';
 import { db } from '@/lib/db';
 import { AI_MODELS } from '@/domain/types/ai';
@@ -170,7 +170,7 @@ function createWebhookWorker() {
           }
 
           const { data: sendResult, error: sendErr } = await metaSendService.sendText({
-            platform: (platform === 'meta' ? 'messenger' : platform) as any,
+            platform: platform === 'instagram' ? 'instagram' : 'messenger',
             recipientId: externalSenderId,
             pageId: externalPageId,
             text: replyText,

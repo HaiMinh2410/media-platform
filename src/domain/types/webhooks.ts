@@ -2,7 +2,7 @@
  * Unified types for parsed webhook events across different platforms.
  */
 
-export type WebhookPlatform = 'meta' | 'tiktok' | 'whatsapp' | 'other';
+export type WebhookPlatform = 'meta' | 'tiktok' | 'whatsapp' | 'facebook' | 'instagram' | 'other';
 
 /**
  * Represents a normalized webhook event after being parsed from platform-specific payloads.
