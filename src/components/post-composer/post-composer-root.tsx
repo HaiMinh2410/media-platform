@@ -81,6 +81,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-8 py-10">
       <div className="grid grid-cols-1 xl:grid-cols-[1fr,380px] gap-12">
+
         {/* Editor Column */}
         <div className="space-y-10 pb-20">
           <header className="space-y-2">
@@ -88,44 +89,44 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
             <p className="text-slate-400 text-lg font-medium">Compose and schedule your content across multiple platforms.</p>
           </header>
 
-        <PlatformSelector 
-          accounts={accounts} 
-          selectedIds={selectedAccountIds} 
-          onChange={setSelectedAccountIds} 
-        />
+          <PlatformSelector
+            accounts={accounts}
+            selectedIds={selectedAccountIds}
+            onChange={setSelectedAccountIds}
+          />
 
           <div className="space-y-10 glass-card rounded-[2.5rem] p-8 md:p-10">
-            <ContentEditor 
-              content={content} 
-              onChange={setContent} 
+            <ContentEditor
+              content={content}
+              onChange={setContent}
             />
-            
-            <MediaUploader 
-              files={mediaFiles} 
-              onChange={setMediaFiles} 
-              workspaceId={workspaceId} 
+            <MediaUploader
+              files={mediaFiles}
+              onChange={setMediaFiles}
+              workspaceId={workspaceId}
             />
           </div>
 
-        <SchedulingPanel 
-          scheduledAt={scheduledAt} 
-          onChange={setScheduledAt} 
-          isSubmitting={isSubmitting}
-          onPublish={handlePublish}
-        />
-      </div>
-
-      {/* Preview Column (Sticky) */}
-      <aside className="hidden xl:block">
-        <div className="sticky top-8">
-          <PostPreview 
-            content={content} 
-            mediaUrls={mediaFiles.filter(f => f.status === 'done').map(f => f.url)} 
-            platform={previewPlatform}
+          <SchedulingPanel
+            scheduledAt={scheduledAt}
+            onChange={setScheduledAt}
+            isSubmitting={isSubmitting}
+            onPublish={handlePublish}
           />
         </div>
-      </aside>
+
+        {/* Preview Column (Sticky) */}
+        <aside className="hidden xl:block">
+          <div className="sticky top-8">
+            <PostPreview
+              content={content}
+              mediaUrls={mediaFiles.filter(f => f.status === 'done').map(f => f.url)}
+              platform={previewPlatform}
+            />
+          </div>
+        </aside>
+
+      </div>
     </div>
-  </div>
   );
 }
