@@ -1,9 +1,7 @@
 import React from 'react';
 import { db } from '@/lib/db';
 import { notFound } from 'next/navigation';
-import { ChatWindow } from '../components/chat-window';
-import { ReplyBox } from '../components/reply-box';
-import { ConversationContext } from '../components/conversation-context';
+import { ConversationPageClient } from '../components/conversation-page-client';
 import styles from '../components/chat.module.css';
 
 export default async function ConversationPage({
@@ -42,19 +40,14 @@ export default async function ConversationPage({
         </div>
       </header>
 
-      <div className={styles.mainContent}>
-        <div className={styles.chatMain}>
-          <ChatWindow conversationId={id} />
-          <ReplyBox conversationId={id} />
-        </div>
-        
-        <ConversationContext 
-          platform={platform}
-          externalId={conversation.platform_conversation_id}
-          lastMessageAt={conversation.lastMessageAt}
-          pageName={conversation.platform_accounts.platform_user_name}
-        />
-      </div>
+      {/* Client boundary: owns state for fillText (AI suggestion → ReplyBox) */}
+      <ConversationPageClient
+        conversationId={id}
+        platform={platform}
+        externalId={conversation.platform_conversation_id}
+        lastMessageAt={conversation.lastMessageAt}
+        pageName={conversation.platform_accounts.platform_user_name}
+      />
     </div>
   );
 }

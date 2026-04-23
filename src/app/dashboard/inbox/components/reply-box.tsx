@@ -1,14 +1,40 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styles from './chat.module.css';
 
 type SendState = 'idle' | 'sending' | 'error';
 
-export function ReplyBox({ conversationId }: { conversationId: string }) {
+type ReplyBoxProps = {
+  conversationId: string;
+  /** When set, pre-fills the textarea with this text (for AI suggestion injection). */
+  fillText?: string;
+};
+
+export function ReplyBox({ conversationId, fillText }: ReplyBoxProps) {
   const [text, setText] = useState('');
   const [sendState, setSendState] = useState<SendState>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Sync external fillText into the textarea (from AI suggestion).
+  // fillText format: "<seq>|<actualText>" to allow re-injection of the same text.
+  useEffect(() => {
+    if (!fillText) return;
+    const pipeIdx = fillText.indexOf('|');
+    const actualText = pipeIdx >= 0 ? fillText.slice(pipeIdx + 1) : fillText;
+    setText(actualText);
+    setSendState('idle');
+    setErrorMsg(null);
+    // Resize textarea to fit the injected content
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (el) {
+        el.style.height = 'auto';
+        el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+        el.focus();
+      }
+    });
+  }, [fillText]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {

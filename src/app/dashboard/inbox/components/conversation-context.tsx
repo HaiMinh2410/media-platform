@@ -12,7 +12,7 @@ type ContextProps = {
 
 export function ConversationContext({ platform, externalId, lastMessageAt, pageName }: ContextProps) {
   return (
-    <aside className={styles.sidePanel}>
+    <>
       <div className={styles.sideSection}>
         <h3>Conversation Details</h3>
         <div className={styles.infoGrid}>
@@ -44,16 +44,6 @@ export function ConversationContext({ platform, externalId, lastMessageAt, pageN
           </div>
         </div>
       </div>
-
-      <div className={styles.sideSection}>
-        <h3>AI Automation</h3>
-        <div className={styles.infoGrid}>
-          <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>Auto-Reply</span>
-            <span className={styles.infoValue}>Enabled</span>
-          </div>
-        </div>
-      </div>
-    </aside>
+    </>
   );
 }

@@ -133,3 +133,16 @@ export type MarkReadResult = {
   } | null;
   error: string | null;
 };
+
+/**
+ * A single AI-generated reply suggestion from ai_reply_logs.
+ */
+export type AiSuggestion = {
+  id: string;
+  messageId: string;
+  model: string;
+  prompt: string;
+  response: string;
+  status: string;
+  createdAt: string;
+};
