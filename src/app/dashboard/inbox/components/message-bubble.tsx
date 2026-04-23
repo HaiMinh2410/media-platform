@@ -35,4 +35,4 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
       </div>
     </div>
   );
-}
+});

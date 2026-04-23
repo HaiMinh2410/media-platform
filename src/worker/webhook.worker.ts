@@ -3,7 +3,7 @@ import { redisConnection } from '@/infrastructure/queue/bullmq.provider';
 import { QueueName, WebhookJobPayload } from '@/domain/types/queue';
 import { idempotentPersistMessage } from '@/infrastructure/repositories/message.repository';
 import { classifyService } from '@/application/ai/classify.service';
-import { generateService } from '@/application/ai/generate.service';
+import { generateService } from '../../generate.service';
 import { metaSendService } from '@/application/services/meta-send.service';
 import { db } from '@/lib/db';
 import { AI_MODELS } from '@/domain/types/ai';
@@ -31,9 +31,9 @@ function createWebhookWorker() {
     async (job: Job<WebhookJobPayload>) => {
       const { webhookEventId, platform, externalSenderId, externalPageId, platformMessageId, timestamp } = job.data;
       const messageText = job.data.messageText || '';
-      
+
       console.log(`[Worker] [${job.id}] Processing event ${webhookEventId} from ${platform}`);
-      
+
       try {
         // --- 1. Persist Incoming Message ---
         const { data: persistResult, error: persistErr } = await idempotentPersistMessage({
@@ -59,7 +59,7 @@ function createWebhookWorker() {
 
         // Skip bot processing if there's no actual text (e.g. just an image without text)
         if (!messageText.trim()) {
-           return { status: 'success_no_text', eventId: webhookEventId };
+          return { status: 'success_no_text', eventId: webhookEventId };
         }
 
         // --- 2. Check Bot Configurations ---
@@ -139,28 +139,28 @@ function createWebhookWorker() {
         // --- 5. Send via Platform API ---
         let platformBotMessageId = `bot_generated_${Date.now()}`;
         if (platform === 'meta') {
-           const tokenRecord = account.meta_tokens[0];
-           if (!tokenRecord) {
-             throw new Error(`No encrypted access token found for account ${account.id}`);
-           }
+          const tokenRecord = account.meta_tokens[0];
+          if (!tokenRecord) {
+            throw new Error(`No encrypted access token found for account ${account.id}`);
+          }
 
-           const { data: sendResult, error: sendErr } = await metaSendService.sendText({
-             platform: platform as any,
-             recipientId: externalSenderId,
-             pageId: externalPageId,
-             text: replyText,
-             encryptedToken: tokenRecord.encrypted_access_token
-           });
+          const { data: sendResult, error: sendErr } = await metaSendService.sendText({
+            platform: platform as any,
+            recipientId: externalSenderId,
+            pageId: externalPageId,
+            text: replyText,
+            encryptedToken: tokenRecord.encrypted_access_token
+          });
 
-           if (sendErr) {
-             throw new Error(`Meta Send Service failed: ${sendErr}`);
-           }
-           if (sendResult && sendResult.messageId) {
-             platformBotMessageId = sendResult.messageId;
-           }
+          if (sendErr) {
+            throw new Error(`Meta Send Service failed: ${sendErr}`);
+          }
+          if (sendResult && sendResult.messageId) {
+            platformBotMessageId = sendResult.messageId;
+          }
         } else {
-           // Other platforms eventually
-           console.warn(`[Worker] [${job.id}] Send API for platform ${platform} not implemented yet`);
+          // Other platforms eventually
+          console.warn(`[Worker] [${job.id}] Send API for platform ${platform} not implemented yet`);
         }
 
         // --- 6. Persist Bot Message ---
@@ -175,20 +175,20 @@ function createWebhookWorker() {
         });
 
         if (botPersist && botPersist.isNewMessage) {
-           // Create AI logs for debugging/training
-           await db.aIReplyLog.create({
-             data: {
-               messageId: botPersist.messageId,
-               prompt: `Intent: ${classifyResult.intent}, Category: ${classifyResult.category}`,
-               response: replyText,
-               model: AI_MODELS.GENERATE
-             }
-           });
+          // Create AI logs for debugging/training
+          await db.aIReplyLog.create({
+            data: {
+              messageId: botPersist.messageId,
+              prompt: `Intent: ${classifyResult.intent}, Category: ${classifyResult.category}`,
+              response: replyText,
+              model: AI_MODELS.GENERATE
+            }
+          });
         }
 
         console.log(`[Worker] [${job.id}] Bot reply sent & persisted successfully.`);
 
-        return { 
+        return {
           processedAt: new Date().toISOString(),
           status: 'success_replied',
           eventId: webhookEventId,

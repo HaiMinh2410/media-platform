@@ -1,5 +1,5 @@
 import { classifyService } from '@/application/ai/classify.service';
-import { generateService } from '@/application/ai/generate.service';
+import { generateService } from '../../generate.service';
 
 /**
  * Script này dùng để kiểm tra xem AI (Groq) có đang hoạt động hay không.
@@ -7,7 +7,7 @@ import { generateService } from '@/application/ai/generate.service';
  */
 async function testAI() {
   console.log('🚀 Đang kiểm tra AI Pipeline...');
-  
+
   const textInput = 'Chào shop, sản phẩm này giá bao nhiêu vậy?';
   console.log(`\n[Test] Input: "${textInput}"`);
 
