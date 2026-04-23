@@ -1,7 +1,7 @@
 // src/infrastructure/meta/meta-messaging.client.ts
 import { MetaSendApiResponse, SendMessageResult } from '@/domain/types/messaging';
 
-const GRAPH_API_BASE = 'https://graph.facebook.com/v19.0';
+const GRAPH_API_BASE = 'https://graph.facebook.com/v21.0';
 
 /**
  * Low-level HTTP client for Meta Graph API Send Message endpoint.
@@ -19,7 +19,8 @@ export const metaMessagingClient = {
     text: string,
     accessToken: string
   ): Promise<SendMessageResult> {
-    const url = `${GRAPH_API_BASE}/${pageId}/messages?access_token=${accessToken}`;
+    // Note: Using 'me/messages' for Instagram/Messenger allows the API to 
+    const url = `https://graph.facebook.com/v21.0/me/messages`;
 
     const body = {
       recipient: { id: recipientId },
@@ -30,7 +31,10 @@ export const metaMessagingClient = {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
         body: JSON.stringify(body),
       });
 

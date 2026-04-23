@@ -140,22 +140,51 @@ export async function getConversationWithAccount(
 
     const account = conversation.platform_accounts;
     let latestToken = account.meta_tokens[0] ?? null;
+    let effectivePageId = account.platform_user_id;
 
-    // Fallback: If no token explicitly linked to this account, try to find ANY valid 
-    // meta token within the same workspace (common in shared Meta app setups)
+    // Preference: Instagram Messaging REQUIRES a Facebook Page Access Token and Page ID.
+    // If the account is Instagram, we prioritize finding a Facebook token in the same workspace.
+    if (account.platform === 'instagram' || !latestToken) {
+      const fbToken = await db.meta_tokens.findFirst({
+        where: {
+          platform_accounts: {
+            workspaceId: account.workspaceId,
+            platform: 'facebook'
+          }
+        },
+        include: {
+          platform_accounts: true
+        },
+        orderBy: { updated_at: 'desc' }
+      });
+
+      if (fbToken) {
+        latestToken = fbToken;
+        // CRITICAL FOR INSTAGRAM: Use the Instagram ID (account.platform_user_id) 
+        // in the URL, but use the Facebook Token (latestToken) for Auth.
+        effectivePageId = account.platform_user_id; 
+        console.log(`[Repository] Using Instagram ID (${effectivePageId}) with Facebook Token fallback for account ${account.id}`);
+      }
+    }
+
+    // Secondary Fallback: Any Meta-compatible token in the workspace
     if (!latestToken) {
       const workspaceToken = await db.meta_tokens.findFirst({
         where: {
           platform_accounts: {
             workspaceId: account.workspaceId,
-            platform: account.platform // Match platform (e.g., both are Meta-based)
+            platform: { in: ['facebook', 'instagram', 'meta'] }
           }
+        },
+        include: {
+          platform_accounts: true
         },
         orderBy: { updated_at: 'desc' }
       });
       if (workspaceToken) {
         latestToken = workspaceToken;
-        console.log(`[Repository] Using fallback workspace token for account ${account.id}`);
+        effectivePageId = workspaceToken.platform_accounts.platform_user_id;
+        console.log(`[Repository] Using generic workspace fallback for account ${account.id}`);
       }
     }
 
@@ -167,7 +196,7 @@ export async function getConversationWithAccount(
         account: {
           id: account.id,
           platform: account.platform,
-          platform_user_id: account.platform_user_id,
+          platform_user_id: effectivePageId,
           encryptedToken: latestToken?.encrypted_access_token ?? null,
         },
       },
