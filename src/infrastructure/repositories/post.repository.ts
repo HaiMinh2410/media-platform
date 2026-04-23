@@ -36,16 +36,17 @@ export class PostRepository {
           scheduledAt: r.scheduled_at,
           publishedAt: r.published_at,
           errorMessage: r.error_message,
-          metadata: r.metadata as any,
+          metadata: r.metadata as Record<string, unknown>,
           platformPostId: r.platform_post_id,
           createdAt: r.created_at,
           updatedAt: r.updated_at,
         })),
         error: null,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('[PostRepository] createPosts failed:', error);
-      return { data: null, error: `DATABASE_ERROR: ${error.message}` };
+      return { data: null, error: `DATABASE_ERROR: ${errorMessage}` };
     }
   }
 
@@ -74,14 +75,14 @@ export class PostRepository {
           scheduledAt: r.scheduled_at,
           publishedAt: r.published_at,
           errorMessage: r.error_message,
-          metadata: r.metadata as any,
+          metadata: r.metadata as Record<string, unknown>,
           platformPostId: r.platform_post_id,
           createdAt: r.created_at,
           updatedAt: r.updated_at,
         })),
         error: null,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[PostRepository] findByWorkspaceId failed:', error);
       return { data: null, error: 'DATABASE_ERROR' };
     }

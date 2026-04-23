@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PlatformSelector } from './platform-selector';
 import { ContentEditor } from './content-editor';
 import { MediaUploader } from './media-uploader';
@@ -21,7 +21,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
   // State
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
   const [content, setContent] = useState('');
-  const [mediaFiles, setMediaFiles] = useState<any[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<{ id: string; url: string; status: string; type: string }[]>([]);
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
