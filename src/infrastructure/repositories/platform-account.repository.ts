@@ -120,6 +120,39 @@ export class PlatformAccountRepository {
       return { data: null, error: 'DATABASE_ERROR' };
     }
   }
+
+  /**
+   * Finds all accounts that have Meta tokens attached.
+   * Useful for background sync services (Analytics, Scheduler).
+   */
+  async findAllWithMetaTokens() {
+    try {
+      const accounts = await db.platformAccount.findMany({
+        where: {
+          platform: { in: ['facebook', 'instagram'] },
+        },
+        include: {
+          meta_tokens: {
+            orderBy: { updated_at: 'desc' },
+            take: 1,
+          },
+        },
+      });
+
+      return {
+        data: accounts.map(acc => ({
+          id: acc.id,
+          externalId: acc.platform_user_id,
+          platform: acc.platform,
+          encryptedToken: acc.meta_tokens[0]?.encrypted_access_token,
+        })).filter(acc => !!acc.encryptedToken),
+        error: null,
+      };
+    } catch (error) {
+      console.error('[PlatformAccountRepository] findAllWithMetaTokens failed:', error);
+      return { data: null, error: 'DATABASE_ERROR' };
+    }
+  }
 }
 
 // Singleton helper

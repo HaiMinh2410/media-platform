@@ -32,3 +32,31 @@ export type MetaApiResponse<T> = {
   error: string | null;
   details?: any; // For debugging internal Meta errors
 };
+
+export type MetaInsightValue = {
+  value: number;
+  end_time: string;
+};
+
+export type MetaInsightItem = {
+  name: string;
+  period: string;
+  values: MetaInsightValue[];
+  title: string;
+  description: string;
+  id: string;
+};
+
+export type MetaInsightsResponse = {
+  data: MetaInsightItem[];
+};
+
+export type MetaPageFansResponse = {
+  fan_count: number;
+  id: string;
+};
+
+export type MetaIGFollowersResponse = {
+  followers_count: number;
+  id: string;
+};
