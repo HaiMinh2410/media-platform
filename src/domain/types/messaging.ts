@@ -104,3 +104,32 @@ export type MessageWithSender = {
   senderType: 'user' | 'agent' | 'ai';
   createdAt: Date;
 };
+
+/**
+ * Input for the agent reply endpoint.
+ */
+export type ReplyInput = {
+  conversationId: string;
+  text: string;
+};
+
+/**
+ * Result of the agent reply endpoint.
+ */
+export type ReplyResult = {
+  data: {
+    messageId: string;        // internal DB message ID
+    platformMessageId: string; // Meta message ID returned from Graph API
+  } | null;
+  error: string | null;
+};
+
+/**
+ * Result of the mark-as-read endpoint.
+ */
+export type MarkReadResult = {
+  data: {
+    updatedCount: number;
+  } | null;
+  error: string | null;
+};

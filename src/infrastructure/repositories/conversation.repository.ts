@@ -2,8 +2,10 @@ import { db } from '@/lib/db';
 import type { 
   ConversationFilter, 
   PaginationParams, 
-  ConversationWithLastMessage 
+  ConversationWithLastMessage,
+  MarkReadResult 
 } from '@/domain/types/messaging';
+
 
 /**
  * Fetches a list of conversations for a specific workspace with pagination and filters.
@@ -86,5 +88,98 @@ export async function getConversations(
   } catch (error: any) {
     console.error('❌ [ConversationRepository] Error fetching conversations:', error);
     return { data: null, nextCursor: null, error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * ConversationWithAccount groups conversation data with its Platform Account
+ * and the latest Meta token — needed for agent replies.
+ */
+export type ConversationWithAccount = {
+  id: string;
+  platform_conversation_id: string;
+  status: string | null;
+  account: {
+    id: string;
+    platform: string;
+    platform_user_id: string;  // The page ID used as sender
+    encryptedToken: string | null;
+  };
+};
+
+/**
+ * Fetches a single conversation with its associated platform account
+ * and the most recent Meta access token (encrypted).
+ * Used by the reply endpoint to resolve the token for sending.
+ *
+ * @param conversationId UUID of the conversation
+ */
+export async function getConversationWithAccount(
+  conversationId: string
+): Promise<{ data: ConversationWithAccount | null; error: string | null }> {
+  try {
+    const conversation = await db.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        platform_accounts: {
+          include: {
+            meta_tokens: {
+              orderBy: { updated_at: 'desc' },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    if (!conversation) {
+      return { data: null, error: 'CONVERSATION_NOT_FOUND' };
+    }
+
+    const account = conversation.platform_accounts;
+    const latestToken = account.meta_tokens[0] ?? null;
+
+    return {
+      data: {
+        id: conversation.id,
+        platform_conversation_id: conversation.platform_conversation_id,
+        status: conversation.status,
+        account: {
+          id: account.id,
+          platform: account.platform,
+          platform_user_id: account.platform_user_id,
+          encryptedToken: latestToken?.encrypted_access_token ?? null,
+        },
+      },
+      error: null,
+    };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown database error';
+    console.error('❌ [ConversationRepository] Error in getConversationWithAccount:', error);
+    return { data: null, error: msg };
+  }
+}
+
+/**
+ * Marks all unread messages in a conversation as read.
+ * Returns the count of updated messages.
+ *
+ * @param conversationId UUID of the conversation
+ */
+export async function markAllRead(conversationId: string): Promise<MarkReadResult> {
+  try {
+    const result = await db.message.updateMany({
+      where: {
+        conversationId,
+        is_read: false,
+      },
+      data: { is_read: true },
+    });
+
+    return { data: { updatedCount: result.count }, error: null };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown database error';
+    console.error('❌ [ConversationRepository] Error in markAllRead:', error);
+    return { data: null, error: msg };
   }
 }

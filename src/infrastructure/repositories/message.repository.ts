@@ -1,5 +1,7 @@
 import { db } from '@/lib/db';
+import { randomUUID } from 'crypto';
 import type { PersistMessageInput, PersistMessageResult, MessageWithSender, PaginationParams } from '@/domain/types/messaging';
+
 
 /**
  * Idempotently persists an incoming or outgoing message.
@@ -159,5 +161,48 @@ export async function getMessages(
   } catch (error: any) {
     console.error('❌ [MessageRepository] Error fetching messages:', error);
     return { data: null, nextCursor: null, error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * Creates a single outgoing (agent) message in an existing conversation.
+ * Generates a unique platform_message_id since the real Meta ID is not
+ * available synchronously at the time of insertion (MVP tradeoff).
+ *
+ * @param conversationId - The conversation this reply belongs to
+ * @param text           - The message text content
+ * @param agentId        - The sender ID (page ID or a sentinel like "agent")
+ * @returns The newly created message, or an error
+ */
+export async function createOutgoingMessage(
+  conversationId: string,
+  text: string,
+  agentId: string
+): Promise<{ data: { messageId: string; platformMessageId: string } | null; error: string | null }> {
+  try {
+    const platformMessageId = `agent-reply-${randomUUID()}`;
+
+    const message = await db.message.create({
+      data: {
+        conversationId,
+        senderId: agentId,
+        content: text,
+        platform_message_id: platformMessageId,
+        senderType: 'agent',
+        is_read: true,
+      },
+    });
+
+    // Update conversation's lastMessageAt so sidebar reflects the new reply
+    await db.conversation.update({
+      where: { id: conversationId },
+      data: { lastMessageAt: message.createdAt },
+    });
+
+    return { data: { messageId: message.id, platformMessageId }, error: null };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown database error';
+    console.error('❌ [MessageRepository] Error creating outgoing message:', error);
+    return { data: null, error: msg };
   }
 }

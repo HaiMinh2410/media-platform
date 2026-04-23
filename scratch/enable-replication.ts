@@ -1,16 +1,11 @@
 import { PrismaClient } from '@prisma/client'
 
 async function main() {
-  const prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.DIRECT_URL
-      }
-    }
-  })
+  const prisma = new PrismaClient()
 
   try {
     console.log('🚀 Enabling Supabase Replication...')
+
     
     await prisma.$executeRawUnsafe(`
       BEGIN;
