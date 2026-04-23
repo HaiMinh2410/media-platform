@@ -85,6 +85,7 @@ model AIReplyLog {
   prompt     String
   response   String
   model      String
+  status     String   @default("suggested")
   created_at DateTime @default(now())
   message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
