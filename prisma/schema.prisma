@@ -646,10 +646,14 @@ model meta_tokens {
 model posts {
   id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   account_id        String          @db.Uuid
+  title             String?
   content           String?
   media_urls        String[]
   status            String          @default("draft")
   scheduled_at      DateTime?
+  published_at      DateTime?
+  error_message     String?
+  metadata          Json?           @default("{}")
   platform_post_id  String?
   created_at        DateTime        @default(now())
   updated_at        DateTime        @default(now())
