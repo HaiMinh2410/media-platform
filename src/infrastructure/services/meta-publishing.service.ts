@@ -18,13 +18,23 @@ export class MetaPublishingService {
       return { success: false, error: postErr || 'Post not found' };
     }
 
-    // 2. Fetch account details
-    const { data: account, error: accErr } = await accountRepo.findById(post.accountId);
-    if (accErr || !account) {
-      return { success: false, error: accErr || 'Account not found' };
+    // 2. Fetch account details with tokens
+    const account = await db.platformAccount.findUnique({
+      where: { id: post.accountId },
+      include: {
+        meta_tokens: {
+          orderBy: { updated_at: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!account) {
+      return { success: false, error: 'Account not found' };
     }
 
-    if (!account.accessToken) {
+    const accessToken = account.meta_tokens[0]?.encrypted_access_token;
+    if (!accessToken) {
       return { success: false, error: 'Access token missing' };
     }
 
@@ -33,16 +43,16 @@ export class MetaPublishingService {
 
       if (account.platform === 'facebook') {
         result = await this.publishToFacebook(
-          account.platformId,
-          account.accessToken,
-          post.content,
+          account.platform_user_id,
+          accessToken,
+          post.content || '',
           post.mediaUrls
         );
       } else if (account.platform === 'instagram') {
         result = await this.publishToInstagram(
-          account.platformId,
-          account.accessToken,
-          post.content,
+          account.platform_user_id,
+          accessToken,
+          post.content || '',
           post.mediaUrls
         );
       } else {

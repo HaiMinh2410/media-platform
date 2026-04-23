@@ -35,7 +35,7 @@ export default async function BotConfigPage(props: { params: Promise<{ id: strin
           </Link>
           <h1 className={styles.title}>Bot Configuration</h1>
           <p className={styles.subtitle}>
-            Manage AI automation for <strong>{account.name}</strong> ({account.platform})
+            Manage AI automation for <strong>{account.platform_user_name}</strong> ({account.platform})
           </p>
         </div>
       </header>

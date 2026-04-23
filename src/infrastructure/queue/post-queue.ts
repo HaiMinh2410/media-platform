@@ -3,7 +3,7 @@ import { redisConnection } from './bullmq.provider';
 
 export const POST_PUBLISHING_QUEUE = 'post-publishing';
 
-export const postQueue = new Queue(POST_PUBLISHING_QUEUE, {
+export const postQueue = redisConnection ? new Queue(POST_PUBLISHING_QUEUE, {
   connection: redisConnection,
   defaultJobOptions: {
     attempts: 3,
@@ -16,7 +16,7 @@ export const postQueue = new Queue(POST_PUBLISHING_QUEUE, {
       count: 100,
     },
   },
-});
+}) : undefined;
 
 export type PostJobData = {
   postId: string;
@@ -29,7 +29,12 @@ export async function enqueuePostPublishing(data: PostJobData, scheduledAt?: Dat
   const delay = Math.max(0, publishTime - now);
 
   console.log(`[Queue] Enqueuing post ${data.postId} with delay ${delay}ms`);
-
+  
+  if (!postQueue) {
+    console.error('[Queue] postQueue is not initialized');
+    return null;
+  }
+  
   return postQueue.add(
     'publish',
     data,
@@ -41,6 +46,7 @@ export async function enqueuePostPublishing(data: PostJobData, scheduledAt?: Dat
 }
 
 export async function removePostFromQueue(postId: string) {
+  if (!postQueue) return;
   const job = await postQueue.getJob(postId);
   if (job) {
     await job.remove();

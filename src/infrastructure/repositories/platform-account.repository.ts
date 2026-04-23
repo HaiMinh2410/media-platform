@@ -1,12 +1,12 @@
 import { db } from '../../lib/db';
-import type { CreatePlatformAccountInput, PlatformAccountResult } from '../../domain/types/platform-account';
+import type { CreatePlatformAccountInput, PlatformAccount } from '../../domain/types/platform-account';
 
 export class PlatformAccountRepository {
   /**
    * Upserts a platform account (Facebook/Instagram/TikTok).
    * Updates the tokens if the account already exists for the same platform/externalId.
    */
-  async upsert(input: CreatePlatformAccountInput): Promise<{ data: PlatformAccountResult | null, error: string | null }> {
+  async upsert(input: CreatePlatformAccountInput): Promise<{ data: PlatformAccount | null, error: string | null }> {
     console.log('>>> [Repository] UPSERT START - Platform:', input.platform, 'Token present:', !!input.accessToken);
     try {
       const result = await db.$transaction(async (tx) => {
@@ -91,7 +91,7 @@ export class PlatformAccountRepository {
   /**
    * Finds all accounts for a given workspace.
    */
-  async findByWorkspaceId(workspaceId: string): Promise<{ data: PlatformAccountResult[] | null, error: string | null }> {
+  async findByWorkspaceId(workspaceId: string): Promise<{ data: PlatformAccount[] | null, error: string | null }> {
     try {
       const accounts = await db.platformAccount.findMany({
         where: { workspaceId },
@@ -105,7 +105,7 @@ export class PlatformAccountRepository {
         },
       });
 
-      const mappedAccounts: PlatformAccountResult[] = accounts.map(acc => ({
+      const mappedAccounts: PlatformAccount[] = accounts.map(acc => ({
         id: acc.id,
         workspaceId: acc.workspaceId,
         platform: acc.platform as any,

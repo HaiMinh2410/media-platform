@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { PlatformAccountResult } from '@/domain/types/platform-account';
-import { Check, Facebook, Instagram } from 'lucide-react';
+import { PlatformAccount } from '@/domain/types/platform-account';
+import { Check, Globe, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type PlatformSelectorProps = {
-  accounts: PlatformAccountResult[];
+  accounts: PlatformAccount[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
 };
@@ -26,7 +26,7 @@ export function PlatformSelector({ accounts, selectedIds, onChange }: PlatformSe
       <div className="flex flex-wrap gap-3">
         {accounts.map((account) => {
           const isSelected = selectedIds.includes(account.id);
-          const PlatformIcon = account.platform === 'facebook' ? Facebook : Instagram;
+          const PlatformIcon = account.platform === 'facebook' ? Globe : Camera;
 
           return (
             <button

@@ -12,7 +12,7 @@ export type CreatePlatformAccountInput = {
   metadata?: any;
 };
 
-export type PlatformAccountResult = {
+export type PlatformAccount = {
   id: string;
   workspaceId: string;
   platform: Platform;

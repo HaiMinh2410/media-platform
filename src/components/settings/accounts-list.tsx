@@ -1,11 +1,11 @@
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
-import { PlatformAccountResult } from '@/domain/types/platform-account';
+import { PlatformAccount } from '@/domain/types/platform-account';
 
 import styles from './accounts-list.module.css';
 
 type AccountsListProps = {
-  accounts: PlatformAccountResult[];
+  accounts: PlatformAccount[];
 };
 
 export function AccountsList({ accounts }: AccountsListProps) {

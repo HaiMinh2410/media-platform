@@ -6,12 +6,12 @@ import { ContentEditor } from './content-editor';
 import { MediaUploader } from './media-uploader';
 import { PostPreview } from './post-preview';
 import { SchedulingPanel } from './scheduling-panel';
-import { PlatformAccountResult } from '@/domain/types/platform-account';
+import { PlatformAccount } from '@/domain/types/platform-account';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 type PostComposerRootProps = {
-  accounts: PlatformAccountResult[];
+  accounts: PlatformAccount[];
   workspaceId: string;
 };
 
@@ -21,7 +21,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
   // State
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
   const [content, setContent] = useState('');
-  const [mediaFiles, setMediaFiles] = useState<{ id: string; url: string; status: string; type: string }[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<{ id: string; url: string; status: 'uploading' | 'done' | 'error'; type: 'image' | 'video'; progress: number; alt?: string }[]>([]);
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Facebook, Instagram, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from 'lucide-react';
+import { Globe, Camera, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -66,7 +66,7 @@ function InstagramPreview({ content, mediaUrls }: { content: string; mediaUrls: 
         {mediaUrls.length > 0 ? (
           <img src={mediaUrls[0]} alt="Post" className="w-full h-full object-cover" />
         ) : (
-          <Instagram size={48} className="text-gray-200" />
+          <Camera size={48} className="text-gray-200" />
         )}
         {mediaUrls.length > 1 && (
           <div className="absolute top-3 right-3 bg-black/50 text-white text-[9px] px-2 py-1 rounded-full backdrop-blur-md">

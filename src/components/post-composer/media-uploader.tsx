@@ -65,7 +65,7 @@ export function MediaUploader({ files, onChange, workspaceId }: MediaUploaderPro
   }, [files, onChange, workspaceId, supabase]);
 
   const updateFileStatus = (id: string, status: MediaFile['status'], progress: number, url?: string) => {
-    onChange(prev => prev.map(f => f.id === id ? { ...f, status, progress, url: url || f.url } : f));
+    onChange(files.map((f: MediaFile) => f.id === id ? { ...f, status, progress, url: url || f.url } : f));
   };
 
   const removeFile = (id: string) => {

@@ -5,6 +5,10 @@ import { getMetaPublishingService } from '../infrastructure/services/meta-publis
 
 console.log(`[Worker] Post Publishing Worker started...`);
 
+if (!redisConnection) {
+  throw new Error('[Worker] Redis connection missing. Cannot start worker.');
+}
+
 const worker = new Worker<PostJobData>(
   POST_PUBLISHING_QUEUE,
   async (job: Job<PostJobData>) => {
@@ -23,7 +27,7 @@ const worker = new Worker<PostJobData>(
     }
   },
   {
-    connection: redisConnection,
+    connection: redisConnection!,
     concurrency: 5,
   }
 );
