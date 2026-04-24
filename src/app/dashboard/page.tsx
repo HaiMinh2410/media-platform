@@ -6,6 +6,9 @@ import { createClient } from '@/infrastructure/supabase/server';
 import { redirect } from 'next/navigation';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getStats(workspaceId: string) {
   // Get all account user IDs in this workspace to filter webhook events
   const accounts = await db.platformAccount.findMany({
@@ -148,20 +151,33 @@ export default async function DashboardPage() {
           </div>
           <div className={styles.cardList}>
             {recentMessages.length > 0 ? (
-              recentMessages.map((msg) => (
-                <div key={msg.id} className={styles.cardItem}>
-                  <div className={styles.itemIcon}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              recentMessages.map((msg) => {
+                const conversation = msg.conversation as any;
+                return (
+                  <div key={msg.id} className={styles.cardItem}>
+                    <div className={styles.itemIcon} style={{ overflow: 'hidden', padding: 0 }}>
+                      {conversation.customer_avatar ? (
+                        <img 
+                          src={conversation.customer_avatar} 
+                          alt={conversation.customer_name || msg.senderId} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifySelf: 'center', background: 'rgba(255,255,255,0.05)', fontSize: '0.75rem', fontWeight: 600 }}>
+                          {(conversation.customer_name || msg.senderId).substring(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className={styles.itemContent}>
+                      <div className={styles.itemName}>{conversation.customer_name || msg.senderId}</div>
+                      <div className={styles.itemMeta}>{msg.content.substring(0, 60)}{msg.content.length > 60 ? '...' : ''}</div>
+                    </div>
+                    <div className={styles.itemMeta}>
+                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
-                  <div className={styles.itemContent}>
-                    <div className={styles.itemName}>{msg.senderId}</div>
-                    <div className={styles.itemMeta}>{msg.content.substring(0, 60)}{msg.content.length > 60 ? '...' : ''}</div>
-                  </div>
-                  <div className={styles.itemMeta}>
-                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className={styles.itemMeta} style={{ padding: '20px', textAlign: 'center' }}>No messages yet.</div>
             )}

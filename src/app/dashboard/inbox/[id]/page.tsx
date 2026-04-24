@@ -4,6 +4,9 @@ import { notFound } from 'next/navigation';
 import { ConversationPageClient } from '../components/conversation-page-client';
 import styles from '../components/chat.module.css';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function ConversationPage({
   params
 }: {
@@ -21,8 +24,8 @@ export default async function ConversationPage({
   }
 
   const platform = conversation.platform_accounts.platform;
-  const userName = conversation.customer_name || conversation.platform_conversation_id; 
-  const userAvatar = conversation.customer_avatar;
+  const userName = (conversation as any).customer_name || conversation.platform_conversation_id; 
+  const userAvatar = (conversation as any).customer_avatar;
 
   const getInitials = (name: string) => {
     const split = name.split(' ');
@@ -60,7 +63,7 @@ export default async function ConversationPage({
         externalId={conversation.platform_conversation_id}
         lastMessageAt={conversation.lastMessageAt}
         pageName={conversation.platform_accounts.platform_user_name}
-        customerName={conversation.customer_name || undefined}
+        customerName={(conversation as any).customer_name || undefined}
       />
     </div>
   );

@@ -30,25 +30,32 @@ export const metaProfileService = {
       // 2. Fetch profile from Meta
       const graphClient = getMetaGraphClient();
       
-      // Fields differ slightly between Messenger and Instagram
-      // Messenger: first_name, last_name, profile_pic
-      // Instagram: name, profile_pic
+      // We try with a broad set of fields, but handle partial failures
       const fields = platform === 'instagram' ? 'name,profile_pic' : 'name,first_name,last_name,profile_pic';
       
-      const { data: profile, error: apiError } = await graphClient.request<any>(
-        externalSenderId,
-        plainToken,
-        { fields }
-      );
+      let result = await graphClient.request<any>(externalSenderId, plainToken, { fields });
+      
+      if (result.error && result.error.includes('profile_pic')) {
+        console.log(`[MetaProfileService] Retrying without profile_pic for ${externalSenderId}...`);
+        const fallbackFields = platform === 'instagram' ? 'name' : 'name,first_name,last_name';
+        result = await graphClient.request<any>(externalSenderId, plainToken, { fields: fallbackFields });
+      }
 
-      if (apiError || !profile) {
-        console.warn(`[MetaProfileService] Fetch failed for ${externalSenderId}:`, apiError);
+      if (result.error || !result.data) {
+        console.warn(`[MetaProfileService] Fetch failed for ${externalSenderId}:`, result.error);
         return;
       }
 
+      const profile = result.data;
+
       // 3. Normalize Name and Avatar
-      const name = profile.name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || `User ${externalSenderId.slice(-4)}`;
-      const avatar = profile.profile_pic || profile.picture?.data?.url || null;
+      const name = profile.name || 
+                   (profile.first_name || profile.last_name ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : null) || 
+                   `User ${externalSenderId.slice(-4)}`;
+      
+      const avatar = profile.profile_pic || 
+                     (profile.picture?.data?.url) || 
+                     null;
 
       // 4. Update Conversation
       await db.conversation.update({
