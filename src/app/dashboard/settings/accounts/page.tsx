@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/infrastructure/supabase/server';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
 import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
