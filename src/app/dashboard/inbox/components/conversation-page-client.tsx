@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { ChatWindow } from './chat-window';
+import { ChatWindow, ChatWindowRef } from './chat-window';
 import { ReplyBox } from './reply-box';
 import { ConversationContext } from './conversation-context';
 import { AiSuggestionPanel } from './ai-suggestion-panel';
 import { useAiSuggestions } from '../hooks/use-ai-suggestions';
 import styles from './chat.module.css';
+import { MessageWithSender } from '@/domain/types/messaging';
 
 type ConversationPageClientProps = {
   conversationId: string;
@@ -23,8 +24,7 @@ type ConversationPageClientProps = {
  * and ReplyBox. When the user clicks "Use this" on a suggestion, the
  * selected text is injected into ReplyBox via the `fillText` prop.
  *
- * This component is intentionally kept thin — business logic lives in
- * hooks and child components.
+ * It also handles wiring up optimistic updates between ReplyBox and ChatWindow.
  */
 export function ConversationPageClient({
   conversationId,
@@ -38,6 +38,7 @@ export function ConversationPageClient({
   // Format: "<seq>|<text>" — ReplyBox parses the text part.
   const [fillText, setFillText] = useState<string | undefined>(undefined);
   const fillSeqRef = React.useRef(0);
+  const chatRef = React.useRef<ChatWindowRef>(null);
 
   const { suggestions, loading, dismiss } = useAiSuggestions({ conversationId });
 
@@ -46,13 +47,18 @@ export function ConversationPageClient({
     setFillText(`${fillSeqRef.current}|${text}`);
   }, []);
 
+  const handleMessageSent = useCallback((message: MessageWithSender) => {
+    chatRef.current?.addMessage(message);
+  }, []);
+
   return (
     <div className={styles.mainContent}>
       <div className={styles.chatMain}>
-        <ChatWindow conversationId={conversationId} />
+        <ChatWindow ref={chatRef} conversationId={conversationId} />
         <ReplyBox
           conversationId={conversationId}
           fillText={fillText}
+          onMessageSent={handleMessageSent}
         />
       </div>
 

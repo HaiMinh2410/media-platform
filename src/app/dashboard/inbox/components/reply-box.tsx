@@ -3,15 +3,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './chat.module.css';
 
+import { MessageWithSender } from '@/domain/types/messaging';
+
 type SendState = 'idle' | 'sending' | 'error';
 
 type ReplyBoxProps = {
   conversationId: string;
   /** When set, pre-fills the textarea with this text (for AI suggestion injection). */
   fillText?: string;
+  /** Callback to notify parent about a successful send (for optimistic UI). */
+  onMessageSent?: (message: MessageWithSender) => void;
 };
 
-export function ReplyBox({ conversationId, fillText }: ReplyBoxProps) {
+export function ReplyBox({ conversationId, fillText, onMessageSent }: ReplyBoxProps) {
   const [text, setText] = useState('');
   const [sendState, setSendState] = useState<SendState>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -53,11 +57,23 @@ export function ReplyBox({ conversationId, fillText }: ReplyBoxProps) {
       });
 
       if (res.ok || res.status === 207) {
+        const responseData = await res.json();
         // 201 Created or 207 Multi-Status (sent but DB persist partial failure)
         setText('');
         setSendState('idle');
         // Reset textarea height
         if (textareaRef.current) textareaRef.current.style.height = 'auto';
+
+        // Trigger optimistic update if callback provided
+        if (onMessageSent && responseData.data) {
+          onMessageSent({
+            id: responseData.data.messageId,
+            content: trimmed,
+            senderId: 'agent', // Generic agent ID for optimistic display
+            senderType: 'agent',
+            createdAt: new Date(),
+          });
+        }
       } else {
         const data = await res.json().catch(() => ({}));
         const msg = data.error || `Send failed (${res.status})`;

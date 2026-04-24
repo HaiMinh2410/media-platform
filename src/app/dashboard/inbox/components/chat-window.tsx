@@ -1,13 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { MessageBubble } from './message-bubble';
 import { ChatSkeleton } from './skeletons';
 import { useInboxRealtime } from '../hooks/use-inbox-realtime';
 
-export function ChatWindow({ conversationId }: { conversationId: string }) {
+export type ChatWindowRef = {
+  addMessage: (message: MessageWithSender) => void;
+};
+
+export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
+  ({ conversationId }, ref) => {
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [loading, setLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -105,6 +110,7 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
   // Realtime: append new messages arriving from Supabase
   const handleNewMessage = useCallback((message: MessageWithSender) => {
     // Dedup: ignore if we already fetched this message in the initial load
+    // or if it was added optimistically via addMessage ref
     if (seenIds.current.has(message.id)) return;
     seenIds.current.add(message.id);
 
@@ -120,6 +126,13 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
       }
     });
   }, []);
+
+  // Expose addMessage to parent so ReplyBox can trigger optimistic updates
+  useImperativeHandle(ref, () => ({
+    addMessage: (message: MessageWithSender) => {
+      handleNewMessage(message);
+    }
+  }), [handleNewMessage]);
 
   useInboxRealtime({ conversationId, onNewMessage: handleNewMessage });
 
@@ -144,4 +157,6 @@ export function ChatWindow({ conversationId }: { conversationId: string }) {
       )}
     </div>
   );
-}
+});
+
+ChatWindow.displayName = 'ChatWindow';
