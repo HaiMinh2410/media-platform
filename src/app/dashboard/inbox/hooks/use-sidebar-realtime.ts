@@ -34,6 +34,15 @@ type UseSidebarRealtimeOptions = {
       'id' | 'platform_conversation_id' | 'last_message_at' | 'status'
     >
   ) => void;
+  /**
+   * Called when a new message is inserted.
+   * Use this to update the preview text in the sidebar.
+   */
+  onMessageReceived?: (payload: {
+    conversationId: string;
+    content: string;
+    createdAt: Date;
+  }) => void;
 };
 
 /**
@@ -58,12 +67,16 @@ type UseSidebarRealtimeOptions = {
 export function useSidebarRealtime({
   workspaceId,
   onConversationUpdated,
+  onMessageReceived,
 }: UseSidebarRealtimeOptions): void {
   // Stable ref to the latest callback — avoids re-subscribing on callback identity change
   const callbackRef = useRef(onConversationUpdated);
+  const messageCallbackRef = useRef(onMessageReceived);
+
   useEffect(() => {
     callbackRef.current = onConversationUpdated;
-  }, [onConversationUpdated]);
+    messageCallbackRef.current = onMessageReceived;
+  }, [onConversationUpdated, onMessageReceived]);
 
   useEffect(() => {
     if (!workspaceId) return;
@@ -81,11 +94,14 @@ export function useSidebarRealtime({
           table: 'conversations',
         },
         (payload) => {
-          const row = payload.new as ConversationRow;
+          console.log('[Realtime:Sidebar] 📥 New conversation event:', payload);
+          const row = payload.new as any;
+          console.log('[Realtime:Sidebar] Row keys:', Object.keys(row));
+          
           callbackRef.current('INSERT', {
             id: row.id,
-            platform_conversation_id: row.platform_conversation_id,
-            last_message_at: new Date(row.last_message_at),
+            platform_conversation_id: row.platform_conversation_id || row.platformConversationId,
+            last_message_at: new Date(row.last_message_at || row.lastMessageAt),
             status: row.status,
           });
         }
@@ -98,13 +114,38 @@ export function useSidebarRealtime({
           table: 'conversations',
         },
         (payload) => {
-          const row = payload.new as ConversationRow;
+          console.log('[Realtime:Sidebar] 🔄 Conversation update event:', payload);
+          const row = payload.new as any;
+          
           callbackRef.current('UPDATE', {
             id: row.id,
-            platform_conversation_id: row.platform_conversation_id,
-            last_message_at: new Date(row.last_message_at),
+            platform_conversation_id: row.platform_conversation_id || row.platformConversationId,
+            last_message_at: new Date(row.last_message_at || row.lastMessageAt),
             status: row.status,
           });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          console.log('[Realtime:Sidebar] ✉️ New message for preview:', payload);
+          const row = payload.new as any;
+          const conversationId = row.conversation_id || row.conversationId;
+          const content = row.content;
+          const createdAt = new Date(row.created_at || row.createdAt);
+
+          if (conversationId && content) {
+            messageCallbackRef.current?.({
+              conversationId,
+              content,
+              createdAt,
+            });
+          }
         }
       )
       .subscribe((status) => {

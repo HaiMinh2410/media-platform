@@ -142,7 +142,34 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
     []
   );
 
-  useSidebarRealtime({ workspaceId, onConversationUpdated: handleConversationUpdated });
+  const handleMessageReceived = useCallback((payload: { conversationId: string; content: string; createdAt: Date }) => {
+    setConversations(prev => {
+      const existing = prev.find(c => c.id === payload.conversationId);
+      if (!existing) return prev;
+
+      // Update the preview text and timestamp
+      const updated = prev.map(c => 
+        c.id === payload.conversationId 
+          ? { 
+              ...c, 
+              last_message_content: payload.content,
+              last_message_at: payload.createdAt
+            } 
+          : c
+      );
+
+      // Re-sort: move the updated conversation to the top
+      return [...updated].sort(
+        (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+      );
+    });
+  }, []);
+
+  useSidebarRealtime({ 
+    workspaceId, 
+    onConversationUpdated: handleConversationUpdated,
+    onMessageReceived: handleMessageReceived
+  });
 
   return (
     <aside className={styles.sidebar}>

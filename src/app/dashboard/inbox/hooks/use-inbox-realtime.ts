@@ -67,12 +67,17 @@ export function useInboxRealtime({
           // Filtering is handled client-side in the callback below.
         },
         (payload) => {
-          console.log('[Realtime] 📩 New message event received:', payload);
-          const row = payload.new as MessageRow;
+          console.log('[Realtime] 📩 New message event received!', payload);
+          const row = payload.new as any;
+          console.log('[Realtime] Row keys:', Object.keys(row));
+          console.log('[Realtime] Full row content:', JSON.stringify(row));
 
-          // Client-side filtering to ensure we only process messages for THIS conversation
-          if (row.conversation_id !== conversationId) {
-            console.log(`[Realtime] ⏩ Ignoring message for different conversation: ${row.conversation_id}`);
+          // Try both snake_case and camelCase
+          const incomingConvId = row.conversation_id || row.conversationId;
+
+          // Client-side filtering
+          if (incomingConvId !== conversationId) {
+            console.log(`[Realtime] ⏩ Ignoring message. Target: ${conversationId}, Received: ${incomingConvId}`);
             return;
           }
 
