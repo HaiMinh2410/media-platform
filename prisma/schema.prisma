@@ -604,7 +604,7 @@ model bot_configurations {
   confidence_threshold Float           @default(0.75)
   auto_send            Boolean         @default(false)
   system_prompt        String?         @default("")
-  model                String          @default("llama-3.3-70b-versatile")
+  model                String          @default("auto")
   updated_at           DateTime        @default(now())
   platform_accounts    PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 

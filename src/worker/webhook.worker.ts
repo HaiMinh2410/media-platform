@@ -7,6 +7,7 @@ import { generateService } from '@/application/ai/generate.service';
 import { metaSendService } from '@/application/services/meta-send.service';
 import { db } from '@/lib/db';
 import { AI_MODELS } from '@/domain/types/ai';
+import { selectModel } from '@/application/ai/model-selector';
 
 /**
  * Webhook Event Worker.
@@ -123,13 +124,21 @@ function createWebhookWorker() {
           .reverse() // Chronological order
           .map(m => `${m.senderType === 'user' ? 'User' : 'Bot'}: ${m.content}`);
 
+        const selectedModel = selectModel({
+          text: messageText,
+          history,
+          userConfiguredModel: (botConfig as any).model
+        });
+
+        console.log(`[Worker] [${job.id}] Auto-selected model: ${selectedModel}`);
+
         const { data: generateResult, error: genErr } = await generateService.generate({
           text: messageText,
           classifyResult,
           platform,
           history,
           systemPrompt: (botConfig as any).system_prompt || undefined,
-          model: (botConfig as any).model as any || undefined
+          model: selectedModel
         });
 
         if (genErr || !generateResult || !generateResult.reply) {
@@ -144,7 +153,7 @@ function createWebhookWorker() {
             messageId: persistResult.messageId, // Link to the user message that triggered it
             prompt: `Intent: ${classifyResult.intent}${(botConfig as any).system_prompt ? ` | Prompt: ${(botConfig as any).system_prompt.substring(0, 50)}...` : ''}`,
             response: replyText,
-            model: (botConfig as any).model || AI_MODELS.GENERATE,
+            model: selectedModel,
             status: (botConfig as any).auto_send ? 'suggested' : 'pending' 
           } as any
         });

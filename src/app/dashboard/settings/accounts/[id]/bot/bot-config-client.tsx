@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { ROLE_TEMPLATES } from '@/application/ai/role-templates';
 import styles from './bot-config-client.module.css';
 
 type BotConfig = {
@@ -105,6 +106,25 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
             System Prompt
             <span className={styles.helpText}>Instructions for the AI on how to respond. Be specific about tone and boundary.</span>
           </label>
+
+          <select 
+            disabled={!config.is_active}
+            className={`${styles.select} ${styles.templateSelect}`}
+            onChange={(e) => {
+              const template = ROLE_TEMPLATES.find(t => t.id === e.target.value);
+              if (template) {
+                setConfig({ ...config, system_prompt: template.prompt });
+                toast.info(`Đã áp dụng mẫu: ${template.name}`);
+              }
+            }}
+            defaultValue=""
+          >
+            <option value="" disabled>✨ Chọn role mẫu để điền nhanh...</option>
+            {ROLE_TEMPLATES.map(t => (
+              <option key={t.id} value={t.id}>{t.name} — {t.description}</option>
+            ))}
+          </select>
+
           <textarea 
             disabled={!config.is_active}
             className={styles.textarea}
@@ -124,6 +144,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
               value={config.model}
               onChange={(e) => setConfig({ ...config, model: e.target.value })}
             >
+              <option value="auto">Auto Selection (Intelligent routing)</option>
               <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B Versatile (Recommended)</option>
               <option value="llama-3.1-8b-instant">LLaMA 3.1 8B Instant (Fastest / Cheapest)</option>
               <option value="qwen-qwq-32b">Qwen3 32B (Multilingual · 32k Context)</option>
