@@ -63,10 +63,18 @@ export function useInboxRealtime({
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`,
+          // Note: Removed server-side filter as it can be flaky with UUID formats/quoting.
+          // Filtering is handled client-side in the callback below.
         },
         (payload) => {
+          console.log('[Realtime] 📩 New message event received:', payload);
           const row = payload.new as MessageRow;
+
+          // Client-side filtering to ensure we only process messages for THIS conversation
+          if (row.conversation_id !== conversationId) {
+            console.log(`[Realtime] ⏩ Ignoring message for different conversation: ${row.conversation_id}`);
+            return;
+          }
 
           // Map DB row → domain type expected by ChatWindow / MessageBubble
           const message: MessageWithSender = {
