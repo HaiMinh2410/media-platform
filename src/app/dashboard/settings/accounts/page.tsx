@@ -42,32 +42,59 @@ export default async function AccountsSettingsPage(props: {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.titleGroup}>
-          <h1 className={styles.title}>Connected Accounts</h1>
-          <p className={styles.subtitle}>Manage your social media integrations and automation settings.</p>
+          <h1 className={`${styles.title} text-gradient`}>Platform Connections</h1>
+          <p className={styles.subtitle}>Manage your social media integrations and unified inbox settings.</p>
         </div>
       </header>
 
       {searchParams.success && (
         <div className={styles.alertSuccess}>
+          <svg viewBox="0 0 20 20" fill="currentColor" width="20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
           Account connected successfully!
         </div>
       )}
 
       {searchParams.error && (
         <div className={styles.alertError}>
+          <svg viewBox="0 0 20 20" fill="currentColor" width="20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
           Failed to connect account: {searchParams.error}
         </div>
       )}
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Your Accounts</h2>
-        <AccountsList accounts={accounts || []} />
-      </section>
+      <div className={styles.mainGrid}>
+        <div className={styles.leftCol}>
+          <section className={`${styles.section} glass`}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Connected Accounts</h2>
+              <span className={styles.countBadge}>{accounts.length}</span>
+            </div>
+            <AccountsList accounts={accounts || []} />
+          </section>
+        </div>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Add New Connection</h2>
-        <ConnectButtons workspaceId={workspace.id} />
-      </section>
+        <div className={styles.rightCol}>
+          <section className={`${styles.section} glass`}>
+            <h2 className={styles.sectionTitle}>Add New Connection</h2>
+            <p className={styles.sectionDesc}>Connect your professional accounts to enable unified messaging and AI automation.</p>
+            <ConnectButtons workspaceId={workspace.id} />
+          </section>
+
+          <section className={`${styles.section} glass`} style={{ marginTop: '24px', opacity: 0.8 }}>
+            <h2 className={styles.sectionTitle} style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }}>Developer Tools</h2>
+            <p className={styles.sectionDesc} style={{ fontSize: '0.8rem' }}>Manually update tokens or debug connection issues.</p>
+            <Link 
+              href="/dashboard/settings/accounts/debug" 
+              className={styles.debugLink}
+            >
+              Open Debug Connection Tool
+            </Link>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
