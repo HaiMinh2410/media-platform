@@ -5,6 +5,7 @@ import { idempotentPersistMessage } from '@/infrastructure/repositories/message.
 import { classifyService } from '@/application/ai/classify.service';
 import { generateService } from '@/application/ai/generate.service';
 import { metaSendService } from '@/application/services/meta-send.service';
+import { metaProfileService } from '@/application/services/meta-profile.service';
 import { db } from '@/lib/db';
 import { AI_MODELS } from '@/domain/types/ai';
 import { selectModel } from '@/application/ai/model-selector';
@@ -80,6 +81,23 @@ function createWebhookWorker() {
 
         if (!account) {
           throw new Error(`Platform account missing for page ${externalPageId}`);
+        }
+
+        // --- 2.5 Sync Customer Profile if missing ---
+        // We do this asynchronously to avoid delaying the AI response
+        const convo = await db.conversation.findUnique({
+          where: { id: persistResult.conversationId },
+          select: { customer_name: true }
+        });
+
+        if (!convo?.customer_name && account.meta_tokens[0]) {
+          console.log(`[Worker] [${job.id}] Missing customer profile, triggering sync...`);
+          metaProfileService.syncCustomerProfile({
+            conversationId: persistResult.conversationId,
+            platform,
+            externalSenderId: externalSenderId,
+            encryptedToken: account.meta_tokens[0].encrypted_access_token
+          }).catch(err => console.error(`[Worker] [${job.id}] Profile sync failed:`, err));
         }
 
         const botConfig = account.bot_configurations;

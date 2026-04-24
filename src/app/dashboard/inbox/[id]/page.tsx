@@ -21,14 +21,27 @@ export default async function ConversationPage({
   }
 
   const platform = conversation.platform_accounts.platform;
-  const userName = conversation.platform_conversation_id; 
+  const userName = conversation.customer_name || conversation.platform_conversation_id; 
+  const userAvatar = conversation.customer_avatar;
+
+  const getInitials = (name: string) => {
+    const split = name.split(' ');
+    if (split.length > 1) {
+      return (split[0][0] + split[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <div className={styles.chatContainer}>
       <header className={styles.header}>
         <div className={styles.userInfo}>
           <div className={styles.avatar}>
-            {userName.substring(0, 2).toUpperCase()}
+            {userAvatar ? (
+              <img src={userAvatar} alt={userName} className={styles.avatarImg} />
+            ) : (
+              getInitials(userName)
+            )}
           </div>
           <div>
             <h2 className={styles.userName}>{userName}</h2>
@@ -47,6 +60,7 @@ export default async function ConversationPage({
         externalId={conversation.platform_conversation_id}
         lastMessageAt={conversation.lastMessageAt}
         pageName={conversation.platform_accounts.platform_user_name}
+        customerName={conversation.customer_name || undefined}
       />
     </div>
   );

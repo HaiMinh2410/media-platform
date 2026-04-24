@@ -80,8 +80,9 @@ export async function getConversations(
       last_message_at: c.lastMessageAt,
       status: c.status,
       platform: c.platform_accounts.platform,
-      // For now we use the platform_conversation_id as the name until we have profile sync
-      sender_name: c.platform_conversation_id, 
+      // Priority: customer_name (synced from Meta) > platform_conversation_id (ID string)
+      sender_name: c.customer_name || c.platform_conversation_id, 
+      customer_avatar: c.customer_avatar,
       last_message_content: c.messages[0]?.content || '',
       unread_count: c._count.messages
     }));

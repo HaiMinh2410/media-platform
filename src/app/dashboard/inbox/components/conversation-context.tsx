@@ -8,14 +8,19 @@ type ContextProps = {
   externalId: string;
   lastMessageAt: Date;
   pageName: string;
+  customerName?: string;
 };
 
-export function ConversationContext({ platform, externalId, lastMessageAt, pageName }: ContextProps) {
+export function ConversationContext({ platform, externalId, lastMessageAt, pageName, customerName }: ContextProps) {
   return (
     <>
       <div className={styles.sideSection}>
         <h3>Conversation Details</h3>
         <div className={styles.infoGrid}>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Sender Name</span>
+            <span className={styles.infoValue}>{customerName || 'Syncing...'}</span>
+          </div>
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>Platform</span>
             <span className={styles.infoValue} style={{ textTransform: 'capitalize' }}>{platform}</span>

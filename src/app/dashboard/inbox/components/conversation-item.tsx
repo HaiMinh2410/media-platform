@@ -41,7 +41,11 @@ export function ConversationItem({ conversation }: { conversation: ConversationW
   return (
     <Link href={`/dashboard/inbox/${conversation.id}`} className={`${styles.item} ${isActive ? styles.active : ''} ${isUnread ? styles.unread : ''}`}>
       <div className={styles.avatar}>
-        {getInitials(conversation.sender_name)}
+        {conversation.customer_avatar ? (
+          <img src={conversation.customer_avatar} alt={conversation.sender_name} className={styles.avatarImg} />
+        ) : (
+          getInitials(conversation.sender_name)
+        )}
         <div className={styles.platformIcon}>
           {conversation.platform === 'instagram' ? (
             <svg viewBox="0 0 24 24" fill="none" stroke="#E1306C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

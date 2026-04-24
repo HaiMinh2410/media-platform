@@ -91,6 +91,7 @@ export type ConversationWithLastMessage = {
   status: string | null;
   platform: string;
   sender_name: string;
+  customer_avatar: string | null;
   last_message_content: string;
   unread_count: number;
 };

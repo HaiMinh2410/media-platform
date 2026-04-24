@@ -15,6 +15,7 @@ type ConversationPageClientProps = {
   externalId: string;
   lastMessageAt: Date;
   pageName: string;
+  customerName?: string;
 };
 
 /**
@@ -32,6 +33,7 @@ export function ConversationPageClient({
   externalId,
   lastMessageAt,
   pageName,
+  customerName,
 }: ConversationPageClientProps) {
   // fillText encodes both the suggestion text and a sequence counter
   // so the same text can be injected multiple times without React bailing out.
@@ -68,6 +70,7 @@ export function ConversationPageClient({
           externalId={externalId}
           lastMessageAt={lastMessageAt}
           pageName={pageName}
+          customerName={customerName}
         />
 
         <div className={styles.sideSection}>

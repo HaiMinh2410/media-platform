@@ -55,6 +55,8 @@ model Conversation {
   platform_conversation_id String
   lastMessageAt            DateTime        @default(now()) @map("last_message_at")
   status                   String?         @default("open")
+  customer_name            String?
+  customer_avatar          String?
   platform_accounts        PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
   messages                 Message[]
 
