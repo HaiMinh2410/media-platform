@@ -2,9 +2,9 @@ import { db } from '../src/lib/db';
 
 async function checkBotStatus() {
   const IG_PAGE_ID = '17841477493647789'; // Correct IG ID
-  
+
   console.log(`🔍 Checking account for ID: ${IG_PAGE_ID}`);
-  
+
   const account = await db.platformAccount.findFirst({
     where: { platform_user_id: IG_PAGE_ID },
     include: {
@@ -28,10 +28,10 @@ async function checkBotStatus() {
   });
 
   const latestMessages = await db.message.findMany({
-    where: { 
-        conversation: {
-            account_id: account.id
-        }
+    where: {
+      conversation: {
+        account_id: account.id
+      }
     },
     orderBy: { createdAt: 'desc' },
     take: 10
@@ -48,17 +48,17 @@ async function checkBotStatus() {
     orderBy: { created_at: 'desc' },
     take: 10,
     include: {
-        message: true
+      message: true
     }
   });
 
   console.log('📝 Latest AI Logs:', latestLogs.map(l => ({
-      id: l.id,
-      status: l.status,
-      model: l.model,
-      reply: l.response,
-      triggeredBy: l.message?.content,
-      time: l.created_at
+    id: l.id,
+    status: l.status,
+    model: l.model,
+    reply: l.response,
+    triggeredBy: l.message?.content,
+    time: l.created_at
   })));
 }
 
