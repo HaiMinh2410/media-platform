@@ -18,6 +18,7 @@ const ClassifyResultSchema = z.object({
   reason: z.string(),
   priority: z.enum(['low', 'medium', 'high']),
   category: z.enum(['sales', 'support', 'feedback', 'other']),
+  sentiment: z.enum(['positive', 'neutral', 'negative', 'frustrated']),
 });
 
 /**

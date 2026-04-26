@@ -12,6 +12,8 @@ export type MessageIntent =
 
 export type MessagePriority = 'low' | 'medium' | 'high';
 
+export type MessageSentiment = 'positive' | 'neutral' | 'negative' | 'frustrated';
+
 export type MessageCategory = 'sales' | 'support' | 'feedback' | 'other';
 
 /**
@@ -22,6 +24,7 @@ export type ClassifyResult = {
   reason: string;
   priority: MessagePriority;
   category: MessageCategory;
+  sentiment: MessageSentiment;
 };
 
 /**

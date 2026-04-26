@@ -23,8 +23,11 @@ Return a JSON object with:
   "intent": "AUTO_REPLY" | "SUGGESTION" | "ESCALATE" | "NO_ACTION",
   "reason": "Brief explanation",
   "priority": "low" | "medium" | "high",
-  "category": "sales" | "support" | "feedback" | "other"
-}`,
+  "category": "sales" | "support" | "feedback" | "other",
+  "sentiment": "positive" | "neutral" | "negative" | "frustrated"
+}
+
+Note: If sentiment is 'frustrated', you SHOULD prioritize 'ESCALATE' intent.`,
     user: (context: { text: string }) => `Message: "${context.text}"`,
   } as PromptTemplate,
 
