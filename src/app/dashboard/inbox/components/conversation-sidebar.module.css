@@ -74,6 +74,44 @@
   background: var(--accent-primary);
   border-color: var(--accent-primary);
   color: white;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+}
+
+.filtersRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.filterControls {
+  display: flex;
+  gap: 8px;
+}
+
+.iconButton {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--fg-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.iconButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--fg-primary);
+}
+
+.iconButton.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .list {
@@ -170,6 +208,14 @@
   margin-bottom: 4px;
 }
 
+.senderNameContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
 .senderName {
   font-weight: 500;
   color: var(--fg-primary);
@@ -225,6 +271,63 @@
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 0 10px rgba(99, 102, 241, 0.5); /* var(--accent-primary) shadow */
+}
+
+/* Smart Badges */
+.badgeContainer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.priorityBadge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.priorityHigh {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.priorityMedium {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.priorityLow {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.sentimentIcon {
+  font-size: 0.875rem;
+  filter: saturate(0.8);
+}
+
+.vipBadge {
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+}
+
+.duplicateIcon {
+  color: var(--fg-tertiary);
+  opacity: 0.6;
+}
+
+.itemInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
 }
 
 .loading {

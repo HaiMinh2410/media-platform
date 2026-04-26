@@ -6,9 +6,15 @@ import styles from './ai-suggestion-panel.module.css';
 
 type Props = {
   suggestions: AiSuggestion[];
+  tags: string[];
+  priority: string | null;
+  sentiment: string | null;
   loading: boolean;
   onUse: (text: string) => void;
   onDismiss: (id: string) => void;
+  onUpdateTags?: (tags: string[]) => void;
+  onUpdatePriority?: (priority: string) => void;
+  onUpdateSentiment?: (sentiment: string) => void;
 };
 
 function formatModel(model: string): string {
@@ -16,10 +22,6 @@ function formatModel(model: string): string {
   if (model.includes('llama-3.1-8b')) return 'LLaMA 3.1 8B';
   if (model.includes('qwen-qwq-32b')) return 'Qwen3 32B';
   if (model.includes('gpt-oss-120b')) return 'GPT-OSS 120B';
-  // Legacy fallbacks
-  if (model.includes('llama3-70b')) return 'LLaMA 3 70B';
-  if (model.includes('llama3-8b')) return 'LLaMA 3 8B';
-  if (model.includes('mixtral')) return 'Mixtral 8×7B';
   return model;
 }
 
@@ -45,7 +47,7 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>
-          <span>AI</span>
+          <span>AI Reply</span>
           <span className={styles.modelBadge}>{formatModel(suggestion.model)}</span>
         </div>
         <span className={styles.timeAgo}>{timeAgo(suggestion.createdAt)}</span>
@@ -57,17 +59,12 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
         <button
           className={styles.useBtn}
           onClick={() => onUse(suggestion.response)}
-          aria-label="Use this suggestion"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
           Use this
         </button>
         <button
           className={styles.dismissBtn}
           onClick={() => onDismiss(suggestion.id)}
-          aria-label="Dismiss suggestion"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -81,15 +78,98 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
 /**
  * AiSuggestionPanel
  *
- * Renders the AI Suggestions section in the conversation sidebar.
- * Shows up to 5 most recent AI-generated reply suggestions. Each card
- * has "Use this" (injects text into ReplyBox) and a dismiss button.
+ * Enhanced in T080 to include Smart Tagging and Conversation Insights.
  */
-export function AiSuggestionPanel({ suggestions, loading, onUse, onDismiss }: Props) {
+export function AiSuggestionPanel({ 
+  suggestions, 
+  tags, 
+  priority, 
+  sentiment, 
+  loading, 
+  onUse, 
+  onDismiss,
+  onUpdateTags,
+  onUpdatePriority,
+  onUpdateSentiment
+}: Props) {
   const visible = suggestions.slice(0, 5);
+
+  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+      const newTag = e.currentTarget.value.trim();
+      if (!tags.includes(newTag)) {
+        onUpdateTags?.([...tags, newTag]);
+      }
+      e.currentTarget.value = '';
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    onUpdateTags?.(tags.filter(t => t !== tagToRemove));
+  };
 
   return (
     <div className={styles.panel}>
+      {/* --- Insights Section --- */}
+      <div className={styles.insightsSection}>
+        <div className={styles.panelHeader}>
+          <div className={styles.panelTitle}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
+            </svg>
+            <span>Insights</span>
+          </div>
+        </div>
+        
+        <div className={styles.insightsRow}>
+          <div className={styles.insightItem}>
+            <span className={styles.insightLabel}>Priority</span>
+            <select 
+              className={`${styles.insightSelect} ${styles['prio_' + priority?.toLowerCase()]}`}
+              value={priority || 'none'}
+              onChange={(e) => onUpdatePriority?.(e.target.value)}
+            >
+              <option value="none">None</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div className={styles.insightItem}>
+            <span className={styles.insightLabel}>Sentiment</span>
+            <select 
+              className={styles.insightSelect}
+              value={sentiment || 'neutral'}
+              onChange={(e) => onUpdateSentiment?.(e.target.value)}
+            >
+              <option value="positive">Positive 😊</option>
+              <option value="neutral">Neutral 😐</option>
+              <option value="frustrated">Frustrated 😠</option>
+              <option value="negative">Negative 😟</option>
+            </select>
+          </div>
+        </div>
+
+        <div className={styles.tagSection}>
+          <div className={styles.tagList}>
+            {tags.map(tag => (
+              <span key={tag} className={styles.tagChip}>
+                {tag}
+                <button onClick={() => removeTag(tag)} className={styles.tagRemove}>&times;</button>
+              </span>
+            ))}
+            <input 
+              className={styles.tagInput} 
+              placeholder="+ Add tag..." 
+              onKeyDown={handleAddTag}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.divider} />
+
+      {/* --- Suggestions Section --- */}
       <div className={styles.panelHeader}>
         <div className={styles.panelTitle}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -106,17 +186,12 @@ export function AiSuggestionPanel({ suggestions, loading, onUse, onDismiss }: Pr
         <div className={styles.loadingState}>
           <div className={styles.shimmer} />
           <div className={styles.shimmer} style={{ width: '80%' }} />
-          <div className={styles.shimmer} style={{ width: '60%' }} />
         </div>
       )}
 
       {!loading && visible.length === 0 && (
         <div className={styles.emptyState}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.35 }}>
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-          </svg>
           <p>No suggestions yet</p>
-          <span>AI will suggest replies based on incoming messages.</span>
         </div>
       )}
 

@@ -110,6 +110,10 @@ export type ConversationWithLastMessage = {
   customer_avatar: string | null;
   last_message_content: string;
   unread_count: number;
+  priority?: string | null;
+  sentiment?: string | null;
+  is_vip?: boolean;
+  canonical_conversation_id?: string | null;
 };
 
 /**

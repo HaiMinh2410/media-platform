@@ -16,6 +16,8 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'open' | 'done'>('all');
+  const [isVipOnly, setIsVipOnly] = useState(false);
+  const [showDuplicates, setShowDuplicates] = useState(false);
   
   const params = useParams();
   const activeIdRef = useRef(params?.id);
@@ -46,6 +48,8 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
       if (searchQuery) url.searchParams.set('search', searchQuery);
       if (activeFilter === 'unread') url.searchParams.set('unread', 'true');
       if (activeFilter === 'open' || activeFilter === 'done') url.searchParams.set('status', activeFilter);
+      if (isVipOnly) url.searchParams.set('is_vip', 'true');
+      if (showDuplicates) url.searchParams.set('show_duplicates', 'true');
 
       const res = await fetch(url.toString());
       const data = await res.json();
@@ -59,7 +63,7 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, searchQuery, activeFilter]);
+  }, [workspaceId, searchQuery, activeFilter, isVipOnly, showDuplicates]);
 
   // Stable ref for realtime callback
   useEffect(() => {
@@ -184,19 +188,39 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <div className={styles.tabsContainer}>
-          <button 
-            className={`${styles.filterTab} ${activeFilter === 'all' ? styles.activeTab : ''}`}
-            onClick={() => setActiveFilter('all')}
-          >All</button>
-          <button 
-            className={`${styles.filterTab} ${activeFilter === 'unread' ? styles.activeTab : ''}`}
-            onClick={() => setActiveFilter('unread')}
-          >Unread</button>
-          <button 
-            className={`${styles.filterTab} ${activeFilter === 'open' ? styles.activeTab : ''}`}
-            onClick={() => setActiveFilter('open')}
-          >Open</button>
+        <div className={styles.filtersRow}>
+          <div className={styles.tabsContainer}>
+            <button 
+              className={`${styles.filterTab} ${activeFilter === 'all' ? styles.activeTab : ''}`}
+              onClick={() => setActiveFilter('all')}
+            >All</button>
+            <button 
+              className={`${styles.filterTab} ${activeFilter === 'unread' ? styles.activeTab : ''}`}
+              onClick={() => setActiveFilter('unread')}
+            >Unread</button>
+          </div>
+          
+          <div className={styles.filterControls}>
+            <button 
+              className={`${styles.iconButton} ${isVipOnly ? styles.active : ''}`}
+              onClick={() => setIsVipOnly(!isVipOnly)}
+              title="Filter VIP only"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill={isVipOnly ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+            </button>
+            <button 
+              className={`${styles.iconButton} ${showDuplicates ? styles.active : ''}`}
+              onClick={() => setShowDuplicates(!showDuplicates)}
+              title="Show linked identities"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 

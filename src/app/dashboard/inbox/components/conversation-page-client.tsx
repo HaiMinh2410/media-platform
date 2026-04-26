@@ -16,17 +16,11 @@ type ConversationPageClientProps = {
   lastMessageAt: Date;
   pageName: string;
   customerName?: string;
+  priority: string | null;
+  sentiment: string | null;
+  initialTags: string[];
 };
 
-/**
- * ConversationPageClient
- *
- * Client wrapper that owns the shared state between AiSuggestionPanel
- * and ReplyBox. When the user clicks "Use this" on a suggestion, the
- * selected text is injected into ReplyBox via the `fillText` prop.
- *
- * It also handles wiring up optimistic updates between ReplyBox and ChatWindow.
- */
 export function ConversationPageClient({
   conversationId,
   platform,
@@ -34,7 +28,11 @@ export function ConversationPageClient({
   lastMessageAt,
   pageName,
   customerName,
+  priority,
+  sentiment,
+  initialTags,
 }: ConversationPageClientProps) {
+  const [tags, setTags] = useState<string[]>(initialTags);
   // fillText encodes both the suggestion text and a sequence counter
   // so the same text can be injected multiple times without React bailing out.
   // Format: "<seq>|<text>" — ReplyBox parses the text part.
@@ -52,6 +50,40 @@ export function ConversationPageClient({
   const handleMessageSent = useCallback((message: MessageWithSender) => {
     chatRef.current?.addMessage(message);
   }, []);
+
+  const handleUpdateTags = useCallback(async (newTags: string[]) => {
+    setTags(newTags);
+    try {
+      await fetch(`/api/conversations/${conversationId}/tags`, {
+        method: 'PUT',
+        body: JSON.stringify({ tags: newTags }),
+      });
+    } catch (err) {
+      console.error('Failed to sync tags:', err);
+    }
+  }, [conversationId]);
+
+  const handleUpdatePriority = useCallback(async (newPriority: string) => {
+    try {
+      await fetch(`/api/conversations/${conversationId}/metadata`, {
+        method: 'PUT',
+        body: JSON.stringify({ priority: newPriority }),
+      });
+    } catch (err) {
+      console.error('Failed to sync priority:', err);
+    }
+  }, [conversationId]);
+
+  const handleUpdateSentiment = useCallback(async (newSentiment: string) => {
+    try {
+      await fetch(`/api/conversations/${conversationId}/metadata`, {
+        method: 'PUT',
+        body: JSON.stringify({ sentiment: newSentiment }),
+      });
+    } catch (err) {
+      console.error('Failed to sync sentiment:', err);
+    }
+  }, [conversationId]);
 
   return (
     <div className={styles.mainContent}>
@@ -76,9 +108,15 @@ export function ConversationPageClient({
         <div className={styles.sideSection}>
           <AiSuggestionPanel
             suggestions={suggestions}
+            tags={tags}
+            priority={priority}
+            sentiment={sentiment}
             loading={loading}
             onUse={handleUseSuggestion}
             onDismiss={dismiss}
+            onUpdateTags={handleUpdateTags}
+            onUpdatePriority={handleUpdatePriority}
+            onUpdateSentiment={handleUpdateSentiment}
           />
         </div>
       </aside>

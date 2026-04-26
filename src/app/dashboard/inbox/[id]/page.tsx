@@ -64,6 +64,9 @@ export default async function ConversationPage({
         lastMessageAt={conversation.lastMessageAt}
         pageName={conversation.platform_accounts.platform_user_name}
         customerName={(conversation as any).customer_name || undefined}
+        priority={(conversation as any).priority || null}
+        sentiment={(conversation as any).sentiment || null}
+        initialTags={(conversation as any).tags || []}
       />
     </div>
   );

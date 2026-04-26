@@ -38,6 +38,25 @@ export function ConversationItem({ conversation }: { conversation: ConversationW
 
   const isUnread = conversation.unread_count > 0;
 
+  const getPriorityClass = (priority?: string | null) => {
+    switch (priority?.toLowerCase()) {
+      case 'high': return styles.priorityHigh;
+      case 'medium': return styles.priorityMedium;
+      case 'low': return styles.priorityLow;
+      default: return '';
+    }
+  };
+
+  const getSentimentEmoji = (sentiment?: string | null) => {
+    switch (sentiment?.toLowerCase()) {
+      case 'positive': return '😊';
+      case 'frustrated': return '😠';
+      case 'negative': return '😟';
+      case 'neutral': return '😐';
+      default: return null;
+    }
+  };
+
   return (
     <Link href={`/dashboard/inbox/${conversation.id}`} className={`${styles.item} ${isActive ? styles.active : ''} ${isUnread ? styles.unread : ''}`}>
       <div className={styles.avatar}>
@@ -63,13 +82,44 @@ export function ConversationItem({ conversation }: { conversation: ConversationW
       
       <div className={styles.textContent}>
         <div className={styles.itemHeader}>
-          <span className={styles.senderName}>{conversation.sender_name || 'Unknown User'}</span>
+          <div className={styles.senderNameContainer}>
+            <span className={styles.senderName}>{conversation.sender_name || 'Unknown User'}</span>
+            {conversation.is_vip && (
+              <span className={styles.vipBadge} title="VIP Customer">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              </span>
+            )}
+            {getSentimentEmoji(conversation.sentiment) && (
+              <span className={styles.sentimentIcon} title={`Sentiment: ${conversation.sentiment}`}>
+                {getSentimentEmoji(conversation.sentiment)}
+              </span>
+            )}
+          </div>
           <span className={styles.time}>{formatTime(conversation.last_message_at)}</span>
         </div>
+        
         <div className={styles.itemBody}>
           <span className={styles.lastMessage}>{conversation.last_message_content || 'No messages'}</span>
           {isUnread && (
             <span className={styles.unreadBadge}>{conversation.unread_count}</span>
+          )}
+        </div>
+
+        <div className={styles.itemInfo}>
+          {conversation.priority && conversation.priority !== 'none' && (
+            <span className={`${styles.priorityBadge} ${getPriorityClass(conversation.priority)}`}>
+              {conversation.priority}
+            </span>
+          )}
+          {conversation.canonical_conversation_id && (
+            <span className={styles.duplicateIcon} title="Linked Identity">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+            </span>
           )}
         </div>
       </div>

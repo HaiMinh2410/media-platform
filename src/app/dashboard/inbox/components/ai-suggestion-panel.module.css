@@ -1,11 +1,9 @@
-/* ── Panel wrapper ─────────────────────────────────────────── */
 .panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* ── Panel header ──────────────────────────────────────────── */
 .panelHeader {
   display: flex;
   align-items: center;
@@ -39,11 +37,122 @@
   line-height: 1.6;
 }
 
-/* ── Card list ─────────────────────────────────────────────── */
 .cardList {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* ── Insights Section ───────────────────────────────────────── */
+.insightsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.insightsRow {
+  display: flex;
+  gap: 12px;
+}
+
+.insightItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+}
+
+.insightLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--fg-tertiary);
+}
+
+.insightValue,
+.insightSelect {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--fg-primary);
+  text-transform: capitalize;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
+}
+
+.insightSelect option {
+  background: #1a1a1a;
+  color: white;
+}
+
+.prio_high { color: #ef4444; }
+.prio_medium { color: #f59e0b; }
+.prio_low { color: #3b82f6; }
+
+/* ── Tag Section ────────────────────────────────────────────── */
+.tagSection {
+  margin-top: 4px;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tagChip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--fg-secondary);
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.tagRemove {
+  background: transparent;
+  border: none;
+  color: var(--fg-tertiary);
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tagRemove:hover {
+  color: #ef4444;
+}
+
+.tagInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--fg-primary);
+  font-size: 0.75rem;
+  padding: 4px 0;
+  min-width: 80px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--glass-border);
+  margin: 8px 0;
+  opacity: 0.5;
 }
 
 /* ── Individual card ───────────────────────────────────────── */
