@@ -6,9 +6,11 @@ import { classifyService } from '@/application/ai/classify.service';
 import { generateService } from '@/application/ai/generate.service';
 import { metaSendService } from '@/application/services/meta-send.service';
 import { metaProfileService } from '@/application/services/meta-profile.service';
+import { duplicateDetectionService } from '@/application/services/duplicate-detection.service';
 import { db } from '@/lib/db';
 import { AI_MODELS } from '@/domain/types/ai';
 import { selectModel } from '@/application/ai/model-selector';
+import { triageService } from '@/application/services/triage.service';
 
 /**
  * Webhook Event Worker.
@@ -100,6 +102,16 @@ function createWebhookWorker() {
           }).catch(err => console.error(`[Worker] [${job.id}] Profile sync failed:`, err));
         }
 
+        // --- 2.6 Cross-channel Duplicate Detection (async, non-blocking) ---
+        duplicateDetectionService.detect({
+          workspaceId: account.workspaceId,
+          platform,
+          externalSenderId,
+          conversationId: persistResult.conversationId,
+          customerName: convo?.customer_name ?? null,
+          customerAvatar: null,
+        }).catch(err => console.error(`[Worker] [${job.id}] Duplicate detection failed:`, err));
+
         const botConfig = account.bot_configurations;
         if (!botConfig?.is_active) {
           console.log(`[Worker] [${job.id}] Bot is inactive for account ${account.id}.`);
@@ -116,9 +128,16 @@ function createWebhookWorker() {
           throw new Error(`AI Classification failed: ${classifyErr}`);
         }
 
-        console.log(`[Worker] [${job.id}] Classified intent: ${classifyResult.intent} (Category: ${classifyResult.category})`);
+        console.log(`[Worker] [${job.id}] Classified intent: ${classifyResult.intent} (Category: ${classifyResult.category}, Sentiment: ${classifyResult.sentiment})`);
 
-        // If intent is escalate or no action, stop here
+        // --- 3.5 Auto-Triage ---
+        // Apply AI results to conversation metadata and auto-assign
+        const { error: triageErr } = await triageService.triage(persistResult.conversationId, classifyResult);
+        if (triageErr) {
+          console.error(`[Worker] [${job.id}] Triage failed: ${triageErr}`);
+        }
+
+        // If intent is escalate or no action, stop here (after triage is applied)
         if (classifyResult.intent === 'ESCALATE' || classifyResult.intent === 'NO_ACTION') {
           return {
             status: 'success_no_reply_needed',

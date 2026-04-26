@@ -3,7 +3,8 @@ import type {
   ConversationFilter, 
   PaginationParams, 
   ConversationWithLastMessage,
-  MarkReadResult 
+  MarkReadResult,
+  ConversationSort
 } from '@/domain/types/messaging';
 
 
@@ -13,7 +14,8 @@ import type {
  */
 export async function getConversations(
   filter: ConversationFilter,
-  pagination: PaginationParams
+  pagination: PaginationParams,
+  sort?: ConversationSort
 ): Promise<{ 
   data: ConversationWithLastMessage[] | null; 
   nextCursor: string | null; 
@@ -32,12 +34,21 @@ export async function getConversations(
         },
         // Filter by status if provided (e.g., 'open', 'resolved')
         ...(filter.status ? { status: filter.status } : {}),
+        // Filter by priority if provided
+        ...(filter.priority ? { priority: filter.priority } : {}),
+        // Filter by sentiment if provided
+        ...(filter.sentiment ? { sentiment: filter.sentiment } : {}),
+        // Filter by VIP status if provided
+        ...(filter.is_vip !== undefined ? { is_vip: filter.is_vip } : {}),
+        // Filter out duplicates by default
+        ...(filter.show_duplicates ? {} : { canonical_conversation_id: null }),
         // Filter by unread if provided
         ...(filter.unread ? { messages: { some: { is_read: false } } } : {}),
-        // Search in platform ID or message content
+        // Search in platform ID or message content or customer name
         ...(filter.search ? {
           OR: [
             { platform_conversation_id: { contains: filter.search, mode: 'insensitive' } },
+            { customer_name: { contains: filter.search, mode: 'insensitive' } },
             { messages: { some: { content: { contains: filter.search, mode: 'insensitive' } } } }
           ]
         } : {})
@@ -47,7 +58,9 @@ export async function getConversations(
       // Use standard Prisma cursor-based pagination
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0, // Skip the cursor element itself
-      orderBy: {
+      orderBy: sort ? {
+        [sort.field]: sort.order
+      } : {
         lastMessageAt: 'desc'
       },
       include: {
