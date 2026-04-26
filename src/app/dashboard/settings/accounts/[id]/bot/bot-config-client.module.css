@@ -285,3 +285,68 @@
 .toggleInput:checked + .toggleSlider:before {
   transform: translateX(24px);
 }
+
+.autoReplyFilters {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filterLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.filterOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filterOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #fff;
+  cursor: pointer;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.filterOption:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.filterOption:has(input:checked) {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+.filterOption input {
+  width: 14px;
+  height: 14px;
+  accent-color: #3b82f6;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}

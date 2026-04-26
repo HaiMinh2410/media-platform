@@ -14,7 +14,12 @@ type BotConfig = {
   auto_send: boolean;
   system_prompt: string;
   model: string;
+  auto_reply_priorities: string[];
+  auto_reply_sentiments: string[];
 };
+
+const PRIORITY_OPTIONS = ['low', 'medium', 'high'];
+const SENTIMENT_OPTIONS = ['positive', 'neutral', 'negative', 'frustrated'];
 
 export function BotConfigClient({ accountId }: { accountId: string }) {
   const [config, setConfig] = useState<BotConfig | null>(null);
@@ -182,6 +187,52 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
               <span>Automatically send replies that pass the confidence threshold instead of drafting suggestions.</span>
             </label>
           </div>
+
+          {config.auto_send && (
+            <div className={styles.autoReplyFilters}>
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>Auto-Reply for Priorities:</label>
+                <div className={styles.filterOptions}>
+                  {PRIORITY_OPTIONS.map(prio => (
+                    <label key={prio} className={styles.filterOption}>
+                      <input 
+                        type="checkbox"
+                        checked={config.auto_reply_priorities.includes(prio)}
+                        onChange={(e) => {
+                          const updated = e.target.checked 
+                            ? [...config.auto_reply_priorities, prio]
+                            : config.auto_reply_priorities.filter(p => p !== prio);
+                          setConfig({ ...config, auto_reply_priorities: updated });
+                        }}
+                      />
+                      <span className={styles.capitalize}>{prio}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>Auto-Reply for Sentiments:</label>
+                <div className={styles.filterOptions}>
+                  {SENTIMENT_OPTIONS.map(sent => (
+                    <label key={sent} className={styles.filterOption}>
+                      <input 
+                        type="checkbox"
+                        checked={config.auto_reply_sentiments.includes(sent)}
+                        onChange={(e) => {
+                          const updated = e.target.checked 
+                            ? [...config.auto_reply_sentiments, sent]
+                            : config.auto_reply_sentiments.filter(s => s !== sent);
+                          setConfig({ ...config, auto_reply_sentiments: updated });
+                        }}
+                      />
+                      <span className={styles.capitalize}>{sent}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 

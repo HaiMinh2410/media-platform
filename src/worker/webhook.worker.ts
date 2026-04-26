@@ -197,13 +197,27 @@ function createWebhookWorker() {
         
         console.log(`[Worker] [${job.id}] AI Suggestion created: ${aiLog.id}`);
 
-        // --- 6. Auto-Send via Platform API (Only if enabled) ---
-        if (!botConfig.auto_send) {
-          console.log(`[Worker] [${job.id}] Auto-send is OFF. Stopping after suggestion.`);
+        // --- 6. Auto-Send via Platform API (Only if enabled and filters match) ---
+        const allowedPriorities = (botConfig as any).auto_reply_priorities || [];
+        const allowedSentiments = (botConfig as any).auto_reply_sentiments || [];
+
+        const priorityMatch = allowedPriorities.length === 0 || allowedPriorities.includes(classifyResult.priority);
+        const sentimentMatch = allowedSentiments.length === 0 || allowedSentiments.includes(classifyResult.sentiment);
+
+        if (!botConfig.auto_send || !priorityMatch || !sentimentMatch) {
+          let reason = 'Auto-send is OFF';
+          if (botConfig.auto_send) {
+            if (!priorityMatch && !sentimentMatch) reason = `Priority (${classifyResult.priority}) and Sentiment (${classifyResult.sentiment}) not allowed`;
+            else if (!priorityMatch) reason = `Priority (${classifyResult.priority}) not allowed for auto-reply`;
+            else if (!sentimentMatch) reason = `Sentiment (${classifyResult.sentiment}) not allowed for auto-reply`;
+          }
+
+          console.log(`[Worker] [${job.id}] ${reason}. Stopping after suggestion.`);
           return { 
             status: 'success_suggestion_only', 
             eventId: webhookEventId,
-            suggestionId: aiLog.id
+            suggestionId: aiLog.id,
+            reason
           };
         }
 

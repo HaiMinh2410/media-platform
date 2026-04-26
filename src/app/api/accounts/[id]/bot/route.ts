@@ -49,7 +49,9 @@ export async function GET(
           confidence_threshold: 0.75,
           auto_send: false,
           system_prompt: '',
-          model: 'auto'
+          model: 'auto',
+          auto_reply_priorities: [],
+          auto_reply_sentiments: []
         } as any
       });
     }
@@ -104,6 +106,8 @@ export async function PATCH(
         auto_send: body.auto_send ?? false,
         system_prompt: body.system_prompt ?? '',
         model: body.model ?? 'auto',
+        auto_reply_priorities: body.auto_reply_priorities ?? [],
+        auto_reply_sentiments: body.auto_reply_sentiments ?? [],
       } as any,
       update: {
         is_active: body.is_active,
@@ -112,6 +116,8 @@ export async function PATCH(
         auto_send: body.auto_send,
         system_prompt: body.system_prompt,
         model: body.model,
+        auto_reply_priorities: body.auto_reply_priorities,
+        auto_reply_sentiments: body.auto_reply_sentiments,
         updated_at: new Date()
       } as any
     });

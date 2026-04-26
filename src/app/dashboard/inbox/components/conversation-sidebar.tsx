@@ -99,7 +99,7 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
   const handleConversationUpdated = useCallback(
     (
       eventType: 'INSERT' | 'UPDATE',
-      partial: Pick<ConversationWithLastMessage, 'id' | 'platform_conversation_id' | 'last_message_at' | 'status'>
+      partial: Pick<ConversationWithLastMessage, 'id' | 'platform_conversation_id' | 'last_message_at' | 'status' | 'priority' | 'sentiment'>
     ) => {
       if (eventType === 'INSERT') {
         // Refetch to pick up the new conversation with all joined fields (platform, sender_name, etc.)
@@ -121,7 +121,6 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
           toast(`New message from ${existing.sender_name}`, {
             description: new Date(partial.last_message_at).toLocaleTimeString()
           });
-          // Also, we could optimistically increment unread_count here, but simple refetching logic is safer for accuracy.
         }
 
         const updated = prev.map(c =>
@@ -130,11 +129,14 @@ export function ConversationSidebar({ workspaceId }: { workspaceId: string }) {
                 ...c,
                 last_message_at: partial.last_message_at,
                 status: partial.status,
+                priority: partial.priority,
+                sentiment: partial.sentiment,
                 // If it's a new message and not active, pessimistically increment unread count
                 unread_count: (isNewer && partial.id !== activeIdRef.current) ? c.unread_count + 1 : c.unread_count,
               }
             : c
         );
+
 
         // Re-sort: most recently active first
         return [...updated].sort(

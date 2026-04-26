@@ -616,6 +616,8 @@ model bot_configurations {
   auto_send            Boolean         @default(false)
   system_prompt        String?         @default("")
   model                String          @default("auto")
+  auto_reply_priorities String[]        @default([])
+  auto_reply_sentiments String[]        @default([])
   updated_at           DateTime        @default(now())
   platform_accounts    PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
