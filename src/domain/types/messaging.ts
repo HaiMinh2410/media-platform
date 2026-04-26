@@ -79,6 +79,22 @@ export type ConversationFilter = {
   status?: string;
   search?: string;
   unread?: boolean;
+  priority?: string;
+  sentiment?: string;
+  is_vip?: boolean;
+  show_duplicates?: boolean;
+};
+
+/**
+ * Sort parameters for conversation list.
+ */
+export type SortOrder = 'asc' | 'desc';
+
+export type ConversationSortField = 'lastMessageAt' | 'priority' | 'status' | 'sentiment';
+
+export type ConversationSort = {
+  field: ConversationSortField;
+  order: SortOrder;
 };
 
 /**
