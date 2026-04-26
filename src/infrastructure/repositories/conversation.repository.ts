@@ -97,7 +97,11 @@ export async function getConversations(
       sender_name: c.customer_name || c.platform_conversation_id, 
       customer_avatar: c.customer_avatar,
       last_message_content: c.messages[0]?.content || '',
-      unread_count: c._count.messages
+      unread_count: c._count.messages,
+      priority: c.priority,
+      sentiment: c.sentiment,
+      is_vip: c.is_vip,
+      canonical_conversation_id: c.canonical_conversation_id
     }));
 
     return { data: formatted, nextCursor, error: null };
