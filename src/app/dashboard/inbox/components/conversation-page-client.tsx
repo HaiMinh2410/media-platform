@@ -8,6 +8,7 @@ import { AiSuggestionPanel } from './ai-suggestion-panel';
 import { useAiSuggestions } from '../hooks/use-ai-suggestions';
 import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
+import { useMetadataRealtime } from '../hooks/use-inbox-realtime';
 
 type ConversationPageClientProps = {
   conversationId: string;
@@ -28,11 +29,14 @@ export function ConversationPageClient({
   lastMessageAt,
   pageName,
   customerName,
-  priority,
-  sentiment,
+  priority: initialPriority,
+  sentiment: initialSentiment,
   initialTags,
 }: ConversationPageClientProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
+  const [priority, setPriority] = useState<string | null>(initialPriority);
+  const [sentiment, setSentiment] = useState<string | null>(initialSentiment);
+  
   // fillText encodes both the suggestion text and a sequence counter
   // so the same text can be injected multiple times without React bailing out.
   // Format: "<seq>|<text>" — ReplyBox parses the text part.
@@ -64,6 +68,7 @@ export function ConversationPageClient({
   }, [conversationId]);
 
   const handleUpdatePriority = useCallback(async (newPriority: string) => {
+    setPriority(newPriority);
     try {
       await fetch(`/api/conversations/${conversationId}/metadata`, {
         method: 'PUT',
@@ -75,6 +80,7 @@ export function ConversationPageClient({
   }, [conversationId]);
 
   const handleUpdateSentiment = useCallback(async (newSentiment: string) => {
+    setSentiment(newSentiment);
     try {
       await fetch(`/api/conversations/${conversationId}/metadata`, {
         method: 'PUT',
@@ -84,6 +90,17 @@ export function ConversationPageClient({
       console.error('Failed to sync sentiment:', err);
     }
   }, [conversationId]);
+
+  // Realtime subscription for conversation metadata (priority, sentiment)
+  const handleRealtimeMetadata = useCallback((meta: { priority?: string | null; sentiment?: string | null }) => {
+    if (meta.priority !== undefined) setPriority(meta.priority);
+    if (meta.sentiment !== undefined) setSentiment(meta.sentiment);
+  }, []);
+
+  useMetadataRealtime({
+    conversationId,
+    onMetadataUpdate: handleRealtimeMetadata,
+  });
 
   return (
     <div className={styles.mainContent}>
@@ -123,3 +140,4 @@ export function ConversationPageClient({
     </div>
   );
 }
+

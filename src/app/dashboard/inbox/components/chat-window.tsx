@@ -5,7 +5,7 @@ import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { MessageBubble } from './message-bubble';
 import { ChatSkeleton } from './skeletons';
-import { useInboxRealtime } from '../hooks/use-inbox-realtime';
+import { useMessageRealtime } from '../hooks/use-inbox-realtime';
 
 export type ChatWindowRef = {
   addMessage: (message: MessageWithSender) => void;
@@ -134,7 +134,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
     }
   }), [handleNewMessage]);
 
-  useInboxRealtime({ conversationId, onNewMessage: handleNewMessage });
+  useMessageRealtime({ conversationId, onNewMessage: handleNewMessage });
 
   return (
     <div className={styles.messagesArea} ref={scrollRef}>

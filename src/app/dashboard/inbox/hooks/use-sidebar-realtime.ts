@@ -31,7 +31,7 @@ type UseSidebarRealtimeOptions = {
     eventType: 'INSERT' | 'UPDATE',
     partialConversation: Pick<
       ConversationWithLastMessage,
-      'id' | 'platform_conversation_id' | 'last_message_at' | 'status'
+      'id' | 'platform_conversation_id' | 'last_message_at' | 'status' | 'priority' | 'sentiment'
     >
   ) => void;
   /**
@@ -103,6 +103,8 @@ export function useSidebarRealtime({
             platform_conversation_id: row.platform_conversation_id || row.platformConversationId,
             last_message_at: new Date(row.last_message_at || row.lastMessageAt),
             status: row.status,
+            priority: row.priority,
+            sentiment: row.sentiment,
           });
         }
       )
@@ -122,6 +124,8 @@ export function useSidebarRealtime({
             platform_conversation_id: row.platform_conversation_id || row.platformConversationId,
             last_message_at: new Date(row.last_message_at || row.lastMessageAt),
             status: row.status,
+            priority: row.priority,
+            sentiment: row.sentiment,
           });
         }
       )

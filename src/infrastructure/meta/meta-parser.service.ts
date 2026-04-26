@@ -32,6 +32,11 @@ export class MetaParserService {
       // Handle 'messaging' events (standard messages, postbacks, etc.)
       if (entry.messaging && Array.isArray(entry.messaging)) {
         for (const msg of entry.messaging) {
+          // Skip echo messages (replies sent by the bot/page itself)
+          if (msg.message?.is_echo) {
+            continue;
+          }
+
           events.push({
             platform: payload.object === 'instagram' ? 'instagram' : 'facebook',
             externalSenderId: msg.sender.id,

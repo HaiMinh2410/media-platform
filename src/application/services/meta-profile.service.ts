@@ -1,6 +1,7 @@
 import { getTokenEncryptionService } from '@/infrastructure/crypto/token-encryption.service';
 import { getMetaGraphClient } from '@/infrastructure/meta/graph-api.client';
 import { db } from '@/lib/db';
+import { duplicateDetectionService } from './duplicate-detection.service';
 
 /**
  * Service to sync customer profile information (Name, Avatar) from Meta platforms.
@@ -67,6 +68,28 @@ export const metaProfileService = {
       });
 
       console.log(`[MetaProfileService] Successfully synced profile for ${name} (${externalSenderId})`);
+
+      // 5. Trigger Duplicate Detection now that we have a name!
+      // This is the most reliable time to link cross-channel identities.
+      const account = await db.platformAccount.findFirst({
+        where: { platform, platform_user_id: externalSenderId } // This might be wrong, need externalPageId
+      });
+      // Actually, we can get workspaceId from the conversation's account
+      const conversation = await db.conversation.findUnique({
+        where: { id: conversationId },
+        include: { platform_accounts: true }
+      });
+
+      if (conversation) {
+        duplicateDetectionService.detect({
+          workspaceId: conversation.platform_accounts.workspaceId,
+          platform,
+          externalSenderId,
+          conversationId,
+          customerName: name,
+          customerAvatar: avatar,
+        }).catch(err => console.error(`[MetaProfileService] Duplicate detection failed:`, err));
+      }
     } catch (err) {
       console.error(`[MetaProfileService] Unexpected error syncing profile:`, err);
     }

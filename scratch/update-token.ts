@@ -5,7 +5,7 @@ import { getTokenEncryptionService } from '../src/infrastructure/crypto/token-en
  * CONSOLIDATION SCRIPT
  * Xóa các tài khoản thừa, giữ lại duy nhất 1 Page Facebook và gắn mã chuẩn.
  */
-const NEW_TOKEN = 'EABAX69avEfIBRSpOEG3APXy2rPddOsoFMZC4kZA2ZB7mhbSLdZBpfbsKKwpL80RMWaRg5zZCGMUZA4yHzHkxPS7ShEbUdzkHeR4FJFxoWK6Abw7o0XqPd3PYjG2Rv6BPOYVFlrWtQXif4aiaVfJEw7F8t7NgStmZCLkIxLpiqj3unDq2Xcx2PZBjiKUKdgJ5caMiPORImEhfy2hNmF6dFH4zdNGqgrav2YVlCLRi3EVm9gwuPCEPWzOdt7M4krrhZBSb9BppZBX1MaZC58MAHYdGMEwA9UUQOnWZAu6nEqZAC9AZDZD';
+const NEW_TOKEN = 'EABAX69avEfIBRf1A9DlrssZA7k1EqrA7MF58FH3KlKPqiX6dX2MyIlJJO9hKt9U6rtwohLtawn4FAEHzTHGYW24aEvKayWqjnB1oBWe4oSRZBZALDkhZC8hsEzrG8f1Yp86uEZCbEeVam7zXZAN6Ita7vc0jcqLRHlwsqRCEMX2Yj8lnvxIADSnTZAOhELZBTCY2msMbZCnMAuu5sHH7dWcLx2hcuYBEPJbkaaaBHZCNT2oIszhN9unX4zdF8ZD';
 const CORRECT_PAGE_ID = '1183865494803444';
 
 async function consolidateAndFix() {

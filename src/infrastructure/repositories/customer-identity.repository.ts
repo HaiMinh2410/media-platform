@@ -98,10 +98,6 @@ export async function checkAndRegisterIdentity(
           where: {
             workspace_id: input.workspaceId,
             customer_name: input.customerName.trim(),
-            // Exclude identities that already have a mapping on this platform
-            platform_mappings: {
-              none: { platform: normalizedPlatform },
-            },
           },
           include: {
             platform_mappings: true,
