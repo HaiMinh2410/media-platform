@@ -33,7 +33,11 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
         const res = await fetch(`/api/accounts/${accountId}/bot`);
         if (!res.ok) throw new Error('Failed to fetch config');
         const json = await res.json();
-        setConfig(json.data);
+        setConfig({
+          ...json.data,
+          auto_reply_priorities: json.data.auto_reply_priorities || [],
+          auto_reply_sentiments: json.data.auto_reply_sentiments || []
+        });
       } catch (err) {
         toast.error('Could not load bot configuration');
       } finally {
@@ -197,7 +201,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
                     <label key={prio} className={styles.filterOption}>
                       <input 
                         type="checkbox"
-                        checked={config.auto_reply_priorities.includes(prio)}
+                        checked={(config.auto_reply_priorities || []).includes(prio)}
                         onChange={(e) => {
                           const updated = e.target.checked 
                             ? [...config.auto_reply_priorities, prio]
@@ -218,7 +222,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
                     <label key={sent} className={styles.filterOption}>
                       <input 
                         type="checkbox"
-                        checked={config.auto_reply_sentiments.includes(sent)}
+                        checked={(config.auto_reply_sentiments || []).includes(sent)}
                         onChange={(e) => {
                           const updated = e.target.checked 
                             ? [...config.auto_reply_sentiments, sent]
