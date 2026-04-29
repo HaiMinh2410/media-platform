@@ -45,7 +45,7 @@ On session start:
 | Level    | Load what                                                                                                                   | Used for                                              |
 |----------|-----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------|
 | NONE     | nothing                                                                                                                     | IDEA                                                  |
-| MINIMAL  | `memory_state.json` + decisions.log.jsonl (last 1 entry only)                                                                     | STATUS, STATUS-TODAY, ADHOC                           |
+| MINIMAL  | `memory_state.json` + decisions.log.jsonl (last 1 entry only)                                                               | STATUS, STATUS-TODAY, ADHOC                           |
 | HOTFIX   | `constraints.md` + `coding_rules.md` + affected file from stack trace                                                       | HOTFIX                                                |
 | STANDARD | `memory_state.json` + `constraints.md` + `coding_rules.md`                                                                  | EXECUTE FAST                                          |
 | REVIEW   | `constraints.md` + `coding_rules.md` + architecture rules from memory_core + task context                                   | REVIEW, PREVIEW, EXPERIMENT, DEBUG                    |
