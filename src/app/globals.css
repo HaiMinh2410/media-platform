@@ -1,36 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Core Colors */
-  --bg-primary: #050505;
-  --bg-secondary: #0a0a0b;
-  --bg-tertiary: #141416;
+  /* Core Backgrounds - Premium Dark Space */
+  --bg-primary: #020203;
+  --bg-secondary: #08080a;
+  --bg-tertiary: #0f0f12;
+  --bg-base: #141418;
   
-  --fg-primary: #ffffff;
-  --fg-secondary: #8e8e93;
-  --fg-tertiary: #48484a;
+  /* Foreground - High Contrast & Hierarchy */
+  --fg-primary: #fcfcfd;
+  --fg-secondary: #a1a1aa;
+  --fg-tertiary: #52525b;
   
-  --accent-primary: #6366f1;
-  --accent-secondary: #8b5cf6;
+  /* Accents - Cyber Neon Palette */
+  --accent-primary: #6366f1; /* Indigo */
+  --accent-secondary: #d946ef; /* Fuchsia */
+  --accent-tertiary: #14b8a6; /* Teal */
   --accent-gradient: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   
-  --success: #34c759;
-  --error: #ff3b30;
-  --warning: #ffcc00;
+  /* Semantic Colors */
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
   
-  /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.02);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  /* Glassmorphism Refined */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5);
   
-  /* Spacing & Borders */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
   --radius-full: 9999px;
 
   /* Spacing Tokens */
@@ -58,21 +66,25 @@ body {
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
-/* Scrollbar Styling */
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Scrollbar Styling - Minimalist & Sleek */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -96,11 +108,14 @@ h1, h2, h3, h4, h5, h6 {
   background-clip: text;
 }
 
-.glass-card, .glass {
+.glass {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
+}
+
+.glass-shadow {
   box-shadow: var(--glass-shadow);
 }
 
@@ -113,11 +128,13 @@ h1, h2, h3, h4, h5, h6 {
   scrollbar-width: none;
 }
 
+/* Base Overrides */
 @layer base {
   button {
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   button:active {
-    transform: scale(0.98);
+    transform: scale(0.96);
   }
 }
+
