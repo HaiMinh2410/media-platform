@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './inbox.module.css';
 import { MiddlePanel } from './components/middle-panel';
-import { LeftPanel } from './components/left-panel';
+import { SecondaryHeader } from './components/secondary-header';
 import { createClient } from '@/infrastructure/supabase/server';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
 import { redirect } from 'next/navigation';
@@ -31,12 +31,13 @@ export default async function InboxLayout({
 
   return (
     <div className={styles.inboxContainer}>
-      <LeftPanel />
-      <MiddlePanel workspaceId={workspace.id} />
-      
-      <main className={styles.chatArea}>
-        {children}
-      </main>
+      <SecondaryHeader />
+      <div className={styles.inboxContent}>
+        <MiddlePanel workspaceId={workspace.id} />
+        <main className={styles.chatArea}>
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

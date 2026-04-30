@@ -1,7 +1,3 @@
-# 🧠 ANTIGRAVITY v2 — GEMINI LOADER
-
----
-
 ## BOOT SEQUENCE
 
 On session start:

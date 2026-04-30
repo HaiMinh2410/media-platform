@@ -1,94 +1,92 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './sidebar.module.css';
+import { 
+  LayoutDashboard, 
+  BarChart3, 
+  Inbox, 
+  Users, 
+  PenTool, 
+  Files, 
+  Settings,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
+import clsx from 'clsx';
 
 const NAV_ITEMS = [
   {
     label: 'Dashboard',
     href: '/dashboard',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-        <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
-      </svg>
-    ),
+    icon: <LayoutDashboard size={20} />,
     exact: true
   },
   {
     label: 'Analytics',
     href: '/dashboard/analytics',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    ),
+    icon: <BarChart3 size={20} />,
   },
   {
     label: 'Inbox',
     href: '/dashboard/inbox',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-    ),
+    icon: <Inbox size={20} />,
     badge: '3'
   },
   {
     label: 'Accounts',
     href: '/dashboard/settings/accounts',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-        <circle cx="8.5" cy="7" r="4" />
-        <polyline points="17 11 19 13 23 9" />
-      </svg>
-    ),
+    icon: <Users size={20} />,
   },
   {
     label: 'Composer',
     href: '/dashboard/composer',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg>
-    ),
+    icon: <PenTool size={20} />,
   },
   {
     label: 'Posts',
     href: '/dashboard/posts',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-        <line x1="3" y1="9" x2="21" y2="9" />
-        <line x1="9" y1="21" x2="9" y2="9" />
-      </svg>
-    ),
+    icon: <Files size={20} />,
   },
   {
     label: 'Settings',
     href: '/dashboard/settings',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </svg>
-    ),
+    icon: <Settings size={20} />,
     exact: true
   },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    if (saved === 'true') {
+      setIsCollapsed(true);
+    }
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem('sidebar-collapsed', String(isCollapsed));
+      document.documentElement.style.setProperty('--sidebar-width', isCollapsed ? '80px' : '260px');
+    }
+  }, [isCollapsed, mounted]);
+
+  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
+
+  if (!mounted) return <aside className={styles.sidebar} />;
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.brand}>
+    <aside className={clsx(styles.sidebar, isCollapsed && styles.collapsed)}>
+      <div className={clsx(styles.brand, isCollapsed && styles.collapsed)}>
         <div className={styles.logo}>M</div>
-        <span className={styles.brandName}>Media</span>
+        {!isCollapsed && <span className={styles.brandName}>Media</span>}
       </div>
 
       <nav className={styles.nav}>
@@ -101,26 +99,42 @@ export function Sidebar() {
             <Link 
               key={item.href} 
               href={item.href}
-              className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+              className={clsx(styles.navItem, isActive && styles.active)}
+              data-tooltip={isCollapsed ? item.label : undefined}
             >
+              {isActive && <div className={styles.activeIndicator} />}
               <div className={styles.navContent}>
                 <span className={styles.icon}>{item.icon}</span>
-                <span className={styles.label}>{item.label}</span>
+                {!isCollapsed && <span className={styles.label}>{item.label}</span>}
               </div>
-              {item.badge && <span className={styles.badge}>{item.badge}</span>}
+              {item.badge && (
+                <span className={clsx(styles.badge, isCollapsed && styles.badgeCollapsed)}>
+                  {item.badge}
+                </span>
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className={styles.footer}>
-        <div className={styles.user}>
+      <div className={clsx(styles.footer, isCollapsed && styles.collapsed)}>
+        <div className={clsx(styles.user, isCollapsed && styles.collapsed)}>
           <div className={styles.avatar}>U</div>
-          <div className={styles.userInfo}>
-            <p className={styles.userName}>Active User</p>
-            <p className={styles.userRole}>Workspace Member</p>
-          </div>
+          {!isCollapsed && (
+            <div className={styles.userInfo}>
+              <p className={styles.userName}>Active User</p>
+              <p className={styles.userRole}>Workspace Member</p>
+            </div>
+          )}
         </div>
+        
+        <button 
+          className={clsx(styles.toggleBtn, isCollapsed && styles.collapsed)} 
+          onClick={toggleSidebar}
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
       </div>
     </aside>
   );

@@ -9,6 +9,8 @@ import { useAiSuggestions } from '../hooks/use-ai-suggestions';
 import { useMetadataRealtime } from '../hooks/use-inbox-realtime';
 import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
+import { useInboxStore } from '../store/inbox.store';
+import clsx from 'clsx';
 
 type RightPanelProps = {
   conversationId: string;
@@ -100,6 +102,8 @@ export function RightPanel({
     onMetadataUpdate: handleRealtimeMetadata,
   });
 
+  const isRightPanelVisible = useInboxStore((state) => state.isRightPanelVisible);
+
   return (
     <div className={styles.mainContent}>
       <div className={styles.chatMain}>
@@ -119,19 +123,21 @@ export function RightPanel({
         />
       </div>
 
-      <RightSidebar
-        conversationId={conversationId}
-        tags={tags}
-        priority={priority}
-        sentiment={sentiment}
-        suggestions={suggestions}
-        loadingSuggestions={loading}
-        onUseSuggestion={handleUseSuggestion}
-        onDismissSuggestion={dismiss}
-        onUpdateTags={handleUpdateTags}
-        onUpdatePriority={handleUpdatePriority}
-        onUpdateSentiment={handleUpdateSentiment}
-      />
+      <div className={clsx(styles.rightSidebarWrapper, !isRightPanelVisible && styles.hidden)}>
+        <RightSidebar
+          conversationId={conversationId}
+          tags={tags}
+          priority={priority}
+          sentiment={sentiment}
+          suggestions={suggestions}
+          loadingSuggestions={loading}
+          onUseSuggestion={handleUseSuggestion}
+          onDismissSuggestion={dismiss}
+          onUpdateTags={handleUpdateTags}
+          onUpdatePriority={handleUpdatePriority}
+          onUpdateSentiment={handleUpdateSentiment}
+        />
+      </div>
     </div>
   );
 }

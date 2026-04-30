@@ -24,6 +24,12 @@ interface InboxState {
   setTone: (tone: ToneMode) => void;
   setReplyAsId: (id: string | null) => void;
   setReplyOnChannel: (channel: string | null) => void;
+
+  isRightPanelVisible: boolean;
+  toggleRightPanel: () => void;
+
+  middlePanelWidth: number;
+  setMiddlePanelWidth: (width: number) => void;
 }
 
 export const useInboxStore = create<InboxState>((set) => ({
@@ -44,4 +50,10 @@ export const useInboxStore = create<InboxState>((set) => ({
   setTone: (tone) => set({ selectedTone: tone }),
   setReplyAsId: (id) => set({ replyAsId: id }),
   setReplyOnChannel: (channel) => set({ replyOnChannel: channel }),
+
+  isRightPanelVisible: true,
+  toggleRightPanel: () => set((state) => ({ isRightPanelVisible: !state.isRightPanelVisible })),
+
+  middlePanelWidth: 360,
+  setMiddlePanelWidth: (width) => set({ middlePanelWidth: width }),
 }));
