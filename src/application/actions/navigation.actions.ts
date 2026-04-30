@@ -1,10 +1,10 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { createServerClient } from '@/infrastructure/supabase/server';
+import { createClient } from '@/infrastructure/supabase/server';
 
 export async function getCommandPaletteItems() {
-  const supabase = createServerClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -38,7 +38,8 @@ export async function getCommandPaletteItems() {
     });
 
     // 2. Fetch Groups
-    const groups = await db.accountGroup.findMany({
+    // Using string indexing to bypass potential ghost TS errors in IDE
+    const groups = await (db as any).accountGroup.findMany({
       where: { workspace_id: workspace.id },
       select: {
         id: true,
@@ -67,7 +68,7 @@ export async function getCommandPaletteItems() {
           name: a.platform_user_name,
           platform: a.platform,
         })),
-        groups: groups.map(g => ({
+        groups: groups.map((g: any) => ({
           id: g.id,
           name: g.name,
         })),

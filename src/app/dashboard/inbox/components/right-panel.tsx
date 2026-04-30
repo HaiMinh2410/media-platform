@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { ChatWindow, ChatWindowRef } from './chat-window';
-import { ReplyComposer } from './reply-composer';
+import { ReplyComposer } from '@/app/dashboard/inbox/components/reply-composer';
 import { ChatHeader } from './chat-header';
 import { RightSidebar } from './right-sidebar';
 import { useAiSuggestions } from '../hooks/use-ai-suggestions';

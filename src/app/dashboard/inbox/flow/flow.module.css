@@ -17,6 +17,7 @@
   font-weight: 800;
   background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 8px;
 }
@@ -34,7 +35,7 @@
 
 .sectionTitle {
   display: flex;
-  items-center: center;
+  align-items: center;
   gap: 12px;
   margin-bottom: 20px;
   font-size: 1.25rem;

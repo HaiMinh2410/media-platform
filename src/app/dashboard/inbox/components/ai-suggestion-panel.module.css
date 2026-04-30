@@ -229,6 +229,7 @@
   /* Clamp to 4 lines to keep cards compact */
   display: -webkit-box;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
