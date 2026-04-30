@@ -165,6 +165,56 @@ export async function getMessages(
 }
 
 /**
+ * Fetches message history for a unified identity (Tier 4) across multiple conversations/platforms.
+ */
+export async function getUnifiedHistory(
+  identityId: string,
+  pagination: PaginationParams
+): Promise<{ 
+  data: MessageWithSender[] | null; 
+  nextCursor: string | null; 
+  error: string | null 
+}> {
+  try {
+    const limit = pagination.limit || 50;
+    const cursor = pagination.cursor;
+
+    const messages = await db.message.findMany({
+      where: {
+        conversation: {
+          customer_platform_mappings: {
+            some: { identity_id: identityId }
+          }
+        }
+      },
+      take: limit + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      orderBy: { createdAt: 'desc' }
+    });
+
+    let nextCursor: string | null = null;
+    if (messages.length > limit) {
+      const nextItem = messages.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    const formatted: MessageWithSender[] = messages.map(m => ({
+      id: m.id,
+      content: m.content,
+      senderId: m.senderId,
+      senderType: (m.senderType as any) || 'user',
+      createdAt: m.createdAt
+    }));
+
+    return { data: formatted, nextCursor, error: null };
+  } catch (error: any) {
+    console.error('❌ [MessageRepository] Error fetching unified messages:', error);
+    return { data: null, nextCursor: null, error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
  * Creates a single outgoing (agent) message in an existing conversation.
  * Generates a unique platform_message_id since the real Meta ID is not
  * available synchronously at the time of insertion (MVP tradeoff).

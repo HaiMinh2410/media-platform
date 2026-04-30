@@ -75,6 +75,9 @@ export type PaginationParams = {
  */
 export type ConversationFilter = {
   workspaceId: string;
+  groupId?: string;
+  accountId?: string;
+  identityId?: string;
   platform?: string;
   status?: string;
   search?: string;
@@ -114,6 +117,7 @@ export type ConversationWithLastMessage = {
   sentiment?: string | null;
   is_vip?: boolean;
   canonical_conversation_id?: string | null;
+  identity_id?: string | null;
 };
 
 /**

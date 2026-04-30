@@ -29,9 +29,23 @@ export async function getConversations(
       where: {
         platform_accounts: {
           workspaceId: filter.workspaceId,
+          // Tier 2: Scoped Inbox (Account Group)
+          ...(filter.groupId ? {
+            account_memberships: {
+              some: { group_id: filter.groupId }
+            }
+          } : {}),
+          // Tier 3: Single Account
+          ...(filter.accountId ? { id: filter.accountId } : {}),
           // Filter by platform if provided
           ...(filter.platform ? { platform: filter.platform } : {}),
         },
+        // Tier 4: Unified Contact (Identity)
+        ...(filter.identityId ? {
+          customer_platform_mappings: {
+            some: { identity_id: filter.identityId }
+          }
+        } : {}),
         // Filter by status if provided (e.g., 'open', 'resolved')
         ...(filter.status ? { status: filter.status } : {}),
         // Filter by priority if provided
@@ -77,6 +91,10 @@ export async function getConversations(
               where: { is_read: false }
             }
           }
+        },
+        customer_platform_mappings: {
+          select: { identity_id: true },
+          take: 1
         }
       }
     });
@@ -101,7 +119,8 @@ export async function getConversations(
       priority: c.priority,
       sentiment: c.sentiment,
       is_vip: c.is_vip,
-      canonical_conversation_id: c.canonical_conversation_id
+      canonical_conversation_id: c.canonical_conversation_id,
+      identity_id: c.customer_platform_mappings[0]?.identity_id ?? null
     }));
 
     return { data: formatted, nextCursor, error: null };
