@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from './inbox.module.css';
-import { ConversationSidebar } from './components/conversation-sidebar';
+import { MiddlePanel } from './components/middle-panel';
+import { LeftPanel } from './components/left-panel';
 import { createClient } from '@/infrastructure/supabase/server';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
 import { redirect } from 'next/navigation';
@@ -30,7 +31,8 @@ export default async function InboxLayout({
 
   return (
     <div className={styles.inboxContainer}>
-      <ConversationSidebar workspaceId={workspace.id} />
+      <LeftPanel />
+      <MiddlePanel workspaceId={workspace.id} />
       
       <main className={styles.chatArea}>
         {children}

@@ -3,14 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import styles from './conversation-sidebar.module.css';
+import styles from './middle-panel.module.css';
 import { ConversationWithLastMessage } from '@/domain/types/messaging';
+import { cn } from '@/lib/utils';
+import { MessageCircle, Flame, Star, Bot } from 'lucide-react';
 
-export function ConversationItem({ conversation }: { conversation: ConversationWithLastMessage }) {
+export function ThreadCard({ conversation, style }: { conversation: ConversationWithLastMessage, style?: React.CSSProperties }) {
   const pathname = usePathname();
   const isActive = pathname.includes(`/inbox/${conversation.id}`);
 
-  // Format time (e.g., "10:30 AM" or "Yesterday" or "Oct 24")
   const formatTime = (dateStr: Date | string) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -58,7 +59,11 @@ export function ConversationItem({ conversation }: { conversation: ConversationW
   };
 
   return (
-    <Link href={`/dashboard/inbox/${conversation.id}`} className={`${styles.item} ${isActive ? styles.active : ''} ${isUnread ? styles.unread : ''}`}>
+    <Link 
+      href={`/dashboard/inbox/${conversation.id}`} 
+      className={cn(styles.threadCard, isActive && styles.active, isUnread && styles.unread)}
+      style={style}
+    >
       <div className={styles.avatar}>
         {conversation.customer_avatar ? (
           <img src={conversation.customer_avatar} alt={conversation.sender_name} className={styles.avatarImg} />
@@ -73,8 +78,8 @@ export function ConversationItem({ conversation }: { conversation: ConversationW
               <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="#1877F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            <svg viewBox="0 0 24 24" fill="currentColor" className="text-[#1877F2]">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
             </svg>
           )}
         </div>
@@ -84,16 +89,29 @@ export function ConversationItem({ conversation }: { conversation: ConversationW
         <div className={styles.itemHeader}>
           <div className={styles.senderNameContainer}>
             <span className={styles.senderName}>{conversation.sender_name || 'Unknown User'}</span>
+            
+            {/* Tag Segment & State */}
             {conversation.is_vip && (
-              <span className={styles.vipBadge} title="VIP Customer">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
+              <span className={styles.vipBadge} title="VIP">
+                <Star size={12} fill="currentColor" />
               </span>
             )}
+            
             {getSentimentEmoji(conversation.sentiment) && (
               <span className={styles.sentimentIcon} title={`Sentiment: ${conversation.sentiment}`}>
                 {getSentimentEmoji(conversation.sentiment)}
+              </span>
+            )}
+
+            {conversation.priority === 'high' && (
+              <span className={styles.hotLeadBadge} title="Hot Lead">
+                <Flame size={12} fill="currentColor" />
+              </span>
+            )}
+            
+            {conversation.ai_replied && (
+              <span className={styles.aiBadge} title="AI Handled">
+                <Bot size={12} />
               </span>
             )}
           </div>
@@ -108,17 +126,14 @@ export function ConversationItem({ conversation }: { conversation: ConversationW
         </div>
 
         <div className={styles.itemInfo}>
-          {conversation.priority && conversation.priority !== 'none' && (
-            <span className={`${styles.priorityBadge} ${getPriorityClass(conversation.priority)}`}>
+          {conversation.priority && conversation.priority !== 'none' && conversation.priority !== 'high' && (
+            <span className={cn(styles.priorityBadge, getPriorityClass(conversation.priority))}>
               {conversation.priority}
             </span>
           )}
           {conversation.canonical_conversation_id && (
             <span className={styles.duplicateIcon} title="Linked Identity">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-              </svg>
+              <Users size={12} />
             </span>
           )}
         </div>

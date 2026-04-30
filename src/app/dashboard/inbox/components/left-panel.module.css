@@ -1,0 +1,128 @@
+.leftPanel {
+  width: 240px;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.header {
+  padding: 0 16px 16px;
+  margin-bottom: 8px;
+}
+
+.header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--fg-primary);
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  margin-bottom: 8px;
+  color: var(--fg-secondary);
+}
+
+.sectionHeader h3 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  color: var(--fg-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.menuItem:hover {
+  background: var(--glass-bg);
+  color: var(--fg-primary);
+}
+
+.menuItem.active {
+  background: var(--accent-gradient);
+  color: white;
+}
+
+.menuItem.active svg {
+  color: white !important;
+}
+
+.menuItem svg {
+  color: var(--fg-tertiary);
+}
+
+.statusIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: auto;
+}
+
+.healthy {
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.warning {
+  background: #F59E0B;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.error {
+  background: #EF4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+.iconPlaceholder {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.fbIcon { color: #1877F2; }
+.igIcon { color: #E1306C; }
+.tiktokIcon { 
+  width: 18px;
+  height: 18px;
+  color: var(--fg-primary); 
+}
+
+.hotIcon { color: #F97316; }
+.coldIcon { color: #0EA5E9; }
+.clockIcon { color: #F59E0B; }
