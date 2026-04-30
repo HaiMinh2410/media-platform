@@ -619,3 +619,178 @@
   background: var(--glass-bg);
   color: var(--fg-primary);
 }
+
+/* Advanced Composer Selectors */
+.composerSelectors {
+  display: flex;
+  gap: 16px;
+}
+
+.selectorItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selectorLabel {
+  font-size: 0.75rem;
+  color: var(--fg-tertiary);
+  white-space: nowrap;
+}
+
+.composerSelect {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--fg-secondary);
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.composerSelect:hover {
+  border-color: var(--fg-tertiary);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Reply Form Actions */
+.replyFormContainer {
+  position: relative;
+}
+
+.composerActions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 8px;
+}
+
+.actionIconButton {
+  background: transparent;
+  border: none;
+  color: var(--fg-tertiary);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionIconButton:hover {
+  color: var(--fg-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Snippets Popover */
+.snippetContainer {
+  position: relative;
+}
+
+.snippetsPopover {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 8px;
+  width: 280px;
+  background: #1a1a1e;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  overflow: hidden;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.popoverHeader {
+  padding: 12px 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--fg-tertiary);
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.popoverList {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.popoverItem {
+  width: 100%;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.popoverItem:last-child {
+  border-bottom: none;
+}
+
+.popoverItem:hover {
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.snippetTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--fg-primary);
+}
+
+.snippetPreview {
+  font-size: 0.75rem;
+  color: var(--fg-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* AI Draft Suggestion Area */
+.aiDraftArea {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05), rgba(99, 102, 241, 0.05));
+  border: 1px solid rgba(168, 85, 247, 0.1);
+  border-radius: var(--radius-md);
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.aiDraftLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #c084fc;
+  margin-bottom: 4px;
+}
+
+.aiDraftText {
+  font-size: 0.8125rem;
+  color: var(--fg-secondary);
+  font-style: italic;
+}

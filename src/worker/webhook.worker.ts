@@ -11,6 +11,7 @@ import { db } from '@/lib/db';
 import { AI_MODELS } from '@/domain/types/ai';
 import { selectModel } from '@/application/ai/model-selector';
 import { triageService } from '@/application/services/triage.service';
+import { aiRoutingService } from '@/application/services/ai-routing.service';
 
 /**
  * Webhook Event Worker.
@@ -169,20 +170,17 @@ function createWebhookWorker() {
 
         console.log(`[Worker] [${job.id}] Auto-selected model: ${selectedModel}`);
 
-        const { data: generateResult, error: genErr } = await generateService.generate({
-          text: messageText,
+        const { reply: replyText, isAutoReply, error: genErr } = await aiRoutingService.routeAndGenerate(
+          account.id,
+          messageText,
           classifyResult,
           platform,
-          history,
-          systemPrompt: (botConfig as any).system_prompt || undefined,
-          model: selectedModel
-        });
+          history
+        );
 
-        if (genErr || !generateResult || !generateResult.reply) {
-          throw new Error(`AI Generation failed: ${genErr}`);
+        if (genErr || !replyText) {
+          throw new Error(`AI Generation/Routing failed: ${genErr}`);
         }
-
-        const replyText = generateResult.reply;
 
         // --- 5. Persist AI Log (Always create log if generation is successful) ---
         const aiLog = await db.aIReplyLog.create({
@@ -204,9 +202,9 @@ function createWebhookWorker() {
         const priorityMatch = allowedPriorities.length === 0 || allowedPriorities.includes(classifyResult.priority);
         const sentimentMatch = allowedSentiments.length === 0 || allowedSentiments.includes(classifyResult.sentiment);
 
-        if (!botConfig.auto_send || !priorityMatch || !sentimentMatch) {
-          let reason = 'Auto-send is OFF';
-          if (botConfig.auto_send) {
+        if (!botConfig.auto_send || !priorityMatch || !sentimentMatch || !isAutoReply) {
+          let reason = 'Auto-send is OFF or Routing resolved to Draft Only';
+          if (botConfig.auto_send && isAutoReply) {
             if (!priorityMatch && !sentimentMatch) reason = `Priority (${classifyResult.priority}) and Sentiment (${classifyResult.sentiment}) not allowed`;
             else if (!priorityMatch) reason = `Priority (${classifyResult.priority}) not allowed for auto-reply`;
             else if (!sentimentMatch) reason = `Sentiment (${classifyResult.sentiment}) not allowed for auto-reply`;

@@ -45,6 +45,8 @@ model PlatformAccount {
   tiktok_token_refreshes tiktok_token_refreshes[]
   tiktok_tokens          tiktok_tokens?
   account_memberships    AccountGroupMembership[]
+  ai_personas            AIPersona?
+  auto_reply_rules       AutoReplyRule[]
 
   @@unique([platform, platform_user_id])
   @@index([workspaceId], map: "idx_platform_accounts_workspace_id")
@@ -819,6 +821,37 @@ model AccountGroupMembership {
 
   @@id([group_id, account_id])
   @@map("account_group_members")
+  @@schema("public")
+}
+
+model AIPersona {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id           String          @unique @db.Uuid
+  name                 String          @default("Professional")
+  tone_instructions    String          @default("Be professional, polite, and concise.")
+  emoji_usage          String          @default("minimal")
+  language_preference  String          @default("vi")
+  created_at           DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime        @default(now()) @updatedAt @db.Timestamptz(6)
+  platform_accounts    PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+
+  @@map("ai_personas")
+  @@schema("public")
+}
+
+model AutoReplyRule {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id           String          @db.Uuid
+  intent_category      String
+  keywords             String[]
+  reply_template       String
+  is_active            Boolean         @default(true)
+  created_at           DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime        @default(now()) @updatedAt @db.Timestamptz(6)
+  platform_accounts    PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+
+  @@index([account_id])
+  @@map("auto_reply_rules")
   @@schema("public")
 }
 
