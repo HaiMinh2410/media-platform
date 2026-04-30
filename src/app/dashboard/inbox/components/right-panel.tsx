@@ -1,48 +1,47 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { ChatWindow, ChatWindowRef } from './chat-window';
-import { ReplyBox } from './reply-box';
-import { ConversationContext } from './conversation-context';
-import { AiSuggestionPanel } from './ai-suggestion-panel';
+import { ReplyComposer } from './reply-composer';
+import { ChatHeader } from './chat-header';
+import { RightSidebar } from './right-sidebar';
 import { useAiSuggestions } from '../hooks/use-ai-suggestions';
+import { useMetadataRealtime } from '../hooks/use-inbox-realtime';
 import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
-import { useMetadataRealtime } from '../hooks/use-inbox-realtime';
 
-type ConversationPageClientProps = {
+type RightPanelProps = {
   conversationId: string;
   platform: string;
   externalId: string;
   lastMessageAt: Date;
   pageName: string;
   customerName?: string;
+  customerAvatar?: string;
   priority: string | null;
   sentiment: string | null;
   initialTags: string[];
 };
 
-export function ConversationPageClient({
+export function RightPanel({
   conversationId,
   platform,
   externalId,
   lastMessageAt,
   pageName,
   customerName,
+  customerAvatar,
   priority: initialPriority,
   sentiment: initialSentiment,
   initialTags,
-}: ConversationPageClientProps) {
+}: RightPanelProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [priority, setPriority] = useState<string | null>(initialPriority);
   const [sentiment, setSentiment] = useState<string | null>(initialSentiment);
   
-  // fillText encodes both the suggestion text and a sequence counter
-  // so the same text can be injected multiple times without React bailing out.
-  // Format: "<seq>|<text>" — ReplyBox parses the text part.
   const [fillText, setFillText] = useState<string | undefined>(undefined);
-  const fillSeqRef = React.useRef(0);
-  const chatRef = React.useRef<ChatWindowRef>(null);
+  const fillSeqRef = useRef(0);
+  const chatRef = useRef<ChatWindowRef>(null);
 
   const { suggestions, loading, dismiss } = useAiSuggestions({ conversationId });
 
@@ -91,7 +90,6 @@ export function ConversationPageClient({
     }
   }, [conversationId]);
 
-  // Realtime subscription for conversation metadata (priority, sentiment)
   const handleRealtimeMetadata = useCallback((meta: { priority?: string | null; sentiment?: string | null }) => {
     if (meta.priority !== undefined) setPriority(meta.priority);
     if (meta.sentiment !== undefined) setSentiment(meta.sentiment);
@@ -105,39 +103,35 @@ export function ConversationPageClient({
   return (
     <div className={styles.mainContent}>
       <div className={styles.chatMain}>
+        <ChatHeader 
+          customerName={customerName || externalId}
+          customerAvatar={customerAvatar}
+          platform={platform}
+          platformUserName={pageName}
+        />
         <ChatWindow ref={chatRef} conversationId={conversationId} />
-        <ReplyBox
+        <ReplyComposer
           conversationId={conversationId}
           fillText={fillText}
           onMessageSent={handleMessageSent}
+          platform={platform}
+          platformUserName={pageName}
         />
       </div>
 
-      <aside className={styles.sidePanel}>
-        <ConversationContext
-          platform={platform}
-          externalId={externalId}
-          lastMessageAt={lastMessageAt}
-          pageName={pageName}
-          customerName={customerName}
-        />
-
-        <div className={styles.sideSection}>
-          <AiSuggestionPanel
-            suggestions={suggestions}
-            tags={tags}
-            priority={priority}
-            sentiment={sentiment}
-            loading={loading}
-            onUse={handleUseSuggestion}
-            onDismiss={dismiss}
-            onUpdateTags={handleUpdateTags}
-            onUpdatePriority={handleUpdatePriority}
-            onUpdateSentiment={handleUpdateSentiment}
-          />
-        </div>
-      </aside>
+      <RightSidebar
+        conversationId={conversationId}
+        tags={tags}
+        priority={priority}
+        sentiment={sentiment}
+        suggestions={suggestions}
+        loadingSuggestions={loading}
+        onUseSuggestion={handleUseSuggestion}
+        onDismissSuggestion={dismiss}
+        onUpdateTags={handleUpdateTags}
+        onUpdatePriority={handleUpdatePriority}
+        onUpdateSentiment={handleUpdateSentiment}
+      />
     </div>
   );
 }
-

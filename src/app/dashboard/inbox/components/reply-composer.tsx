@@ -2,26 +2,32 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './chat.module.css';
-
 import { MessageWithSender } from '@/domain/types/messaging';
 
 type SendState = 'idle' | 'sending' | 'error';
 
-type ReplyBoxProps = {
+type ReplyComposerProps = {
   conversationId: string;
-  /** When set, pre-fills the textarea with this text (for AI suggestion injection). */
   fillText?: string;
-  /** Callback to notify parent about a successful send (for optimistic UI). */
   onMessageSent?: (message: MessageWithSender) => void;
+  platform: string;
+  platformUserName: string;
 };
 
-export function ReplyBox({ conversationId, fillText, onMessageSent }: ReplyBoxProps) {
+export function ReplyComposer({ 
+  conversationId, 
+  fillText, 
+  onMessageSent,
+  platform,
+  platformUserName
+}: ReplyComposerProps) {
   const [text, setText] = useState('');
   const [sendState, setSendState] = useState<SendState>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [tone, setTone] = useState<string>('professional');
 
-  // Sync external fillText into the textarea (from AI suggestion).
-  // fillText format: "<seq>|<actualText>" to allow re-injection of the same text.
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   useEffect(() => {
     if (!fillText) return;
     const pipeIdx = fillText.indexOf('|');
@@ -29,7 +35,6 @@ export function ReplyBox({ conversationId, fillText, onMessageSent }: ReplyBoxPr
     setText(actualText);
     setSendState('idle');
     setErrorMsg(null);
-    // Resize textarea to fit the injected content
     requestAnimationFrame(() => {
       const el = textareaRef.current;
       if (el) {
@@ -39,7 +44,6 @@ export function ReplyBox({ conversationId, fillText, onMessageSent }: ReplyBoxPr
       }
     });
   }, [fillText]);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,18 +62,15 @@ export function ReplyBox({ conversationId, fillText, onMessageSent }: ReplyBoxPr
 
       if (res.ok || res.status === 207) {
         const responseData = await res.json();
-        // 201 Created or 207 Multi-Status (sent but DB persist partial failure)
         setText('');
         setSendState('idle');
-        // Reset textarea height
         if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
-        // Trigger optimistic update if callback provided
         if (onMessageSent && responseData.data) {
           onMessageSent({
             id: responseData.data.messageId,
             content: trimmed,
-            senderId: 'agent', // Generic agent ID for optimistic display
+            senderId: 'agent',
             senderType: 'agent',
             createdAt: new Date(),
           });
@@ -86,7 +87,6 @@ export function ReplyBox({ conversationId, fillText, onMessageSent }: ReplyBoxPr
     }
   };
 
-  // Auto-resize textarea
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
     const el = textareaRef.current;
@@ -109,6 +109,43 @@ export function ReplyBox({ conversationId, fillText, onMessageSent }: ReplyBoxPr
           {errorMsg}
         </div>
       )}
+      
+      <div className={styles.replyToolbar}>
+        <div className={styles.replyAs}>
+          <span className={styles.replyAsLabel}>Reply as:</span>
+          <select className={styles.replyAsSelect} defaultValue={platformUserName}>
+            <option value={platformUserName}>{platformUserName} ({platform})</option>
+          </select>
+        </div>
+        
+        <div className={styles.aiTones}>
+          <button 
+            className={`${styles.toneBtn} ${tone === 'professional' ? styles.toneActive : ''}`}
+            onClick={() => setTone('professional')}
+          >
+            Professional
+          </button>
+          <button 
+            className={`${styles.toneBtn} ${tone === 'friendly' ? styles.toneActive : ''}`}
+            onClick={() => setTone('friendly')}
+          >
+            Friendly
+          </button>
+          <button 
+            className={`${styles.toneBtn} ${tone === 'empathetic' ? styles.toneActive : ''}`}
+            onClick={() => setTone('empathetic')}
+          >
+            Empathetic
+          </button>
+          <button className={styles.aiRewriteBtn}>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+            Rewrite
+          </button>
+        </div>
+      </div>
+
       <form className={styles.replyForm} onSubmit={handleSubmit}>
         <div className={styles.inputWrapper}>
           <textarea
