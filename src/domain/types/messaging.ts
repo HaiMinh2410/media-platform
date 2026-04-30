@@ -118,6 +118,7 @@ export type ConversationWithLastMessage = {
   is_vip?: boolean;
   canonical_conversation_id?: string | null;
   identity_id?: string | null;
+  ai_replied?: boolean;
 };
 
 /**

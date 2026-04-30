@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import styles from './middle-panel.module.css';
 import { ConversationWithLastMessage } from '@/domain/types/messaging';
 import { cn } from '@/lib/utils';
-import { MessageCircle, Flame, Star, Bot } from 'lucide-react';
+import { MessageCircle, Flame, Star, Bot, Users } from 'lucide-react';
 
 export function ThreadCard({ conversation, style }: { conversation: ConversationWithLastMessage, style?: React.CSSProperties }) {
   const pathname = usePathname();
