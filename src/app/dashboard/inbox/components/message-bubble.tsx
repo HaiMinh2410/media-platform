@@ -3,6 +3,7 @@
 import React, { memo } from 'react';
 import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
+import { Sparkles } from 'lucide-react';
 
 export const MessageBubble = memo(function MessageBubble({ message }: { message: MessageWithSender }) {
   const isUser = message.senderType === 'user';
@@ -22,16 +23,14 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
       <div className={`${styles.bubble} ${bubbleClass}`}>
         {isAi && (
           <div className={styles.aiBadge}>
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
-            </svg>
-            Auto-Reply
+            <Sparkles size={12} className="text-purple-400" />
+            <span>AI Auto-Reply</span>
           </div>
         )}
         <div className={styles.messageContent}>
           {message.content}
         </div>
-        <span className={styles.messageTime}>{timeString}</span>
+        <div className={styles.messageTime}>{timeString}</div>
       </div>
     </div>
   );

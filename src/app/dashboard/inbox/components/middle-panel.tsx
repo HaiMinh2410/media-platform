@@ -24,13 +24,49 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   // Power user feature: Multi-thread tabs
   const [activeThreads, setActiveThreads] = useState<ConversationWithLastMessage[]>([]);
 
-  const { viewMode, platform, segmentFilter } = useInboxStore();
+  const { viewMode, platform, segmentFilter, middlePanelWidth, setMiddlePanelWidth } = useInboxStore();
   
   const params = useParams();
   const router = useRouter();
   const pathname = usePathname();
   const activeIdRef = useRef(params?.id as string | undefined);
-  
+  const isResizing = useRef(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    isResizing.current = true;
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', stopResizing);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    isResizing.current = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', stopResizing);
+    document.body.style.cursor = 'default';
+    document.body.style.userSelect = 'auto';
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing.current) return;
+    if (panelRef.current) {
+      const rect = panelRef.current.getBoundingClientRect();
+      const newWidth = e.clientX - rect.left;
+      if (newWidth > 280 && newWidth < 500) {
+        setMiddlePanelWidth(newWidth);
+      }
+    }
+  }, [setMiddlePanelWidth]);
+
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', stopResizing);
+    };
+  }, [handleMouseMove, stopResizing]);
+
   useEffect(() => {
     activeIdRef.current = params?.id as string | undefined;
     
@@ -197,7 +233,15 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   if (pathname?.includes('/flow')) return null;
 
   return (
-    <aside className={styles.middlePanel}>
+    <aside 
+      className={styles.middlePanel} 
+      ref={panelRef}
+      style={{ width: middlePanelWidth }}
+    >
+      <div 
+        className={styles.resizeHandle} 
+        onMouseDown={startResizing}
+      />
       {/* Multi-thread Tabs for Power Users */}
       {activeThreads.length > 0 && (
         <div className={styles.multiThreadBar}>

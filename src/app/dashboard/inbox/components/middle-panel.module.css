@@ -1,10 +1,28 @@
 .middlePanel {
-  width: 360px;
+  position: relative;
+  min-width: 280px;
+  max-width: 500px;
   border-right: 1px solid var(--glass-border);
   background: rgba(255, 255, 255, 0.01);
   display: flex;
   flex-direction: column;
   height: 100%;
+  flex-shrink: 0;
+}
+
+.resizeHandle {
+  position: absolute;
+  right: -4px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 30;
+  transition: background 0.2s;
+}
+
+.resizeHandle:hover {
+  background: rgba(99, 102, 241, 0.3);
 }
 
 /* MultiThread Tabs */
