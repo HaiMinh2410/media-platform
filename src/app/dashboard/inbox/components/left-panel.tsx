@@ -12,8 +12,10 @@ import {
   Flame,
   Snowflake,
   Clock,
-  ChevronDown
+  ChevronDown,
+  Zap
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 
 export function LeftPanel() {
@@ -22,6 +24,7 @@ export function LeftPanel() {
     platform, setPlatform,
     segmentFilter, setSegmentFilter
   } = useInboxStore();
+  const router = useRouter();
 
   return (
     <div className={styles.leftPanel}>
@@ -37,6 +40,16 @@ export function LeftPanel() {
           >
             <Inbox size={18} />
             <span>Unified Inbox</span>
+          </button>
+          <button 
+            className={clsx(styles.menuItem, viewMode === 'daily_flow' && styles.active)}
+            onClick={() => {
+              setViewMode('daily_flow');
+              router.push('/dashboard/inbox/flow');
+            }}
+          >
+            <Zap size={18} className="text-yellow-400" />
+            <span>Daily Flow</span>
           </button>
           <button 
             className={clsx(styles.menuItem, viewMode === 'by_account' && styles.active)}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import styles from './middle-panel.module.css';
 import { ConversationWithLastMessage } from '@/domain/types/messaging';
@@ -28,6 +28,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
   const activeIdRef = useRef(params?.id as string | undefined);
   
   useEffect(() => {
@@ -192,6 +193,8 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     onConversationUpdated: handleConversationUpdated,
     onMessageReceived: handleMessageReceived
   });
+
+  if (pathname?.includes('/flow')) return null;
 
   return (
     <aside className={styles.middlePanel}>

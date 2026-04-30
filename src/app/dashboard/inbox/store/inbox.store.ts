@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ViewMode = 'all' | 'by_account' | 'by_contacts' | 'ai_priority';
+export type ViewMode = 'all' | 'by_account' | 'by_contacts' | 'ai_priority' | 'daily_flow';
 export type Platform = 'all' | 'facebook' | 'instagram' | 'tiktok' | 'custom';
 export type SegmentFilter = 'all' | 'hot_lead' | 'cold' | 'needs_reply';
 export type ToneMode = 'professional' | 'sales' | 'warm' | 'flirty';
