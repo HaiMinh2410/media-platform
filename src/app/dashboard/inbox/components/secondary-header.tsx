@@ -5,7 +5,9 @@ import styles from './secondary-header.module.css';
 import { useInboxStore } from '../store/inbox.store';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { Inbox, Zap, MessageCircle, Users, Sparkles } from 'lucide-react';
+import { Inbox, Zap, ChevronDown, Check, Users } from 'lucide-react';
+
+
 
 import { getAccountGroupsAction } from '@/application/actions/account-group.actions';
 import { AccountGroup } from '@/domain/types/account-group';
@@ -16,9 +18,23 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
     platform, setPlatform,
     segmentFilter, setSegmentFilter,
     selectedGroupId, setGroupId,
-    accountGroups, setAccountGroups
+    accountGroups, setAccountGroups 
   } = useInboxStore();
   const router = useRouter();
+  const [isOpen, setIsOpen] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const selectedGroup = accountGroups.find(g => g.id === selectedGroupId);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   React.useEffect(() => {
     if (workspaceId && accountGroups.length === 0) {
@@ -39,43 +55,46 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           <span>Tất cả tin nhắn</span>
         </button>
 
-        {accountGroups.map(group => {
-
-          const fbAccount = group.members.find(m => m.platform === 'facebook');
-          const igAccount = group.members.find(m => m.platform === 'instagram');
-          
-          return (
-            <button 
-              key={group.id}
-              className={clsx(styles.tab, selectedGroupId === group.id && styles.active)}
-              onClick={() => { setGroupId(group.id); router.push('/dashboard/inbox'); }}
-            >
-              <div className={styles.avatarGroup}>
-                {fbAccount && (
-                  <div className={styles.mainAvatar}>
-                    {fbAccount.metadata?.avatar_url ? (
-                      <img src={fbAccount.metadata.avatar_url} alt="" />
-                    ) : (
-                      <div className={styles.avatarPlaceholder}>{fbAccount.name[0]}</div>
-                    )}
-                  </div>
-                )}
-                {igAccount && (
-                  <div className={styles.subAvatar}>
-                    {igAccount.metadata?.avatar_url ? (
-                      <img src={igAccount.metadata.avatar_url} alt="" />
-                    ) : (
-                      <div className={styles.avatarPlaceholder}>{igAccount.name[0]}</div>
-                    )}
-                  </div>
-                )}
-                {/* Badge simulation */}
-                <div className={styles.badge} />
+        <div className={styles.dropdownContainer} ref={dropdownRef}>
+          <button 
+            className={clsx(styles.dropdownTrigger, selectedGroupId && styles.activeTrigger)}
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {selectedGroup ? (
+              <div className={styles.activeSelection}>
+                <CombinedAvatar group={selectedGroup} />
+                <span className={styles.triggerName}>{selectedGroup.name}</span>
               </div>
-              <span className={styles.groupName}>{group.name}</span>
-            </button>
-          );
-        })}
+            ) : (
+              <div className={styles.activeSelection}>
+                <div className={styles.placeholderIcon}><Users size={14} /></div>
+                <span className={styles.placeholderText}>Cụm tài khoản</span>
+              </div>
+            )}
+            <ChevronDown size={14} className={clsx(styles.chevron, isOpen && styles.chevronOpen)} />
+          </button>
+
+          {isOpen && (
+            <div className={styles.dropdownMenu}>
+              <div className={styles.menuHeader}>Chọn cụm tài khoản</div>
+              {accountGroups.map(group => (
+                <button 
+                  key={group.id}
+                  className={clsx(styles.menuItem, selectedGroupId === group.id && styles.activeItem)}
+                  onClick={() => {
+                    setGroupId(group.id);
+                    setIsOpen(false);
+                    router.push('/dashboard/inbox');
+                  }}
+                >
+                  <CombinedAvatar group={group} />
+                  <span className={styles.menuItemName}>{group.name}</span>
+                  {selectedGroupId === group.id && <Check size={14} className={styles.checkIcon} />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className={styles.divider} />
 
@@ -118,3 +137,34 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
     </div>
   );
 }
+
+function CombinedAvatar({ group }: { group: AccountGroup }) {
+  const fbAccount = group.members.find(m => m.platform === 'facebook');
+  const igAccount = group.members.find(m => m.platform === 'instagram');
+
+  const renderAvatar = (account: any, isSub = false) => {
+    const avatarUrl = account.metadata?.avatar_url;
+    const initial = account.name?.[0] || account.platform_user_name?.[0] || '?';
+
+    return (
+      <div className={isSub ? styles.subAvatar : styles.mainAvatar}>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" />
+        ) : (
+          <div className={styles.avatarPlaceholder} style={isSub ? { fontSize: '0.5rem' } : {}}>
+            {initial}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className={styles.avatarGroup}>
+      {fbAccount && renderAvatar(fbAccount)}
+      {igAccount && renderAvatar(igAccount, true)}
+      <div className={styles.badge} />
+    </div>
+  );
+}
+
