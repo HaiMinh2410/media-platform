@@ -48,3 +48,18 @@ export async function deleteAccountGroupAction(groupId: string): Promise<{ succe
   const repo = getAccountGroupRepository();
   return await repo.delete(groupId);
 }
+
+/**
+ * Updates the sort order of account clusters.
+ */
+export async function updateAccountGroupsOrderAction(
+  workspaceId: string, 
+  orderedIds: string[]
+): Promise<{ success: boolean; error: string | null }> {
+  if (!workspaceId || !orderedIds.length) {
+    return { success: false, error: 'WORKSPACE_ID_AND_IDS_REQUIRED' };
+  }
+
+  const repo = getAccountGroupRepository();
+  return await repo.updatePositions(workspaceId, orderedIds);
+}

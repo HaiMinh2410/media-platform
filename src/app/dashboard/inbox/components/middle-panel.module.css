@@ -115,40 +115,6 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
-/* Inbox Bucket Tabs */
-.bucketTabs {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
-}
-
-.bucketTab {
-  flex: 1;
-  text-align: center;
-  padding: 6px 0;
-  border-radius: var(--radius-sm);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--fg-secondary);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.bucketTab:hover {
-  color: var(--fg-primary);
-}
-
-.bucketTab.activeBucket {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-}
-
 /* Sort Bar */
 .sortBar {
   display: flex;
@@ -158,6 +124,60 @@
   border-bottom: 1px solid var(--glass-border);
   font-size: 0.75rem;
   color: var(--fg-tertiary);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+}
+
+.miniSelect {
+  background: transparent;
+  border: none;
+  color: var(--fg-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  padding: 2px 0;
+}
+
+.miniSelect option {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.orderBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--fg-tertiary);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.orderBtn:hover {
+  color: var(--fg-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.countInfo {
+  font-weight: 500;
 }
 
 .sortSelect {

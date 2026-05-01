@@ -545,3 +545,44 @@
   color: #fbbf24;
   opacity: 1;
 }
+
+.reorderGroup {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menuItemContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dragHandle {
+  cursor: grab;
+  color: var(--fg-muted);
+  opacity: 0;
+  transition: opacity 0.2s;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.menuItem:hover .dragHandle {
+  opacity: 0.5;
+}
+
+.dragHandle:hover {
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}

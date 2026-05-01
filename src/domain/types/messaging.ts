@@ -93,7 +93,7 @@ export type ConversationFilter = {
  */
 export type SortOrder = 'asc' | 'desc';
 
-export type ConversationSortField = 'lastMessageAt' | 'priority' | 'status' | 'sentiment';
+export type ConversationSortField = 'lastMessageAt' | 'priority' | 'status' | 'sentiment' | 'customer_name';
 
 export type ConversationSort = {
   field: ConversationSortField;

@@ -5,6 +5,7 @@ export type AccountGroup = {
   workspaceId: string;
   name: string;
   description: string | null;
+  position: number;
   createdAt: Date;
   updatedAt: Date;
   members: PlatformAccount[];

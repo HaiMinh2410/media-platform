@@ -1,7 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '@/infrastructure/queue/bullmq.provider';
 import { QueueName, WebhookJobPayload } from '@/domain/types/queue';
-import { idempotentPersistMessage, markAsRead, markAsDelivered } from '@/infrastructure/repositories/message.repository';
+import { idempotentPersistMessage, markAsRead, markAsDelivered } from '../../message.repository';
 import { classifyService } from '@/application/ai/classify.service';
 import { generateService } from '@/application/ai/generate.service';
 import { metaSendService } from '@/application/services/meta-send.service';
@@ -46,7 +46,7 @@ function createWebhookWorker() {
           try {
             const parsed = JSON.parse(messageText);
             if (parsed.watermark) watermark = new Date(parsed.watermark);
-          } catch (e) {}
+          } catch (e) { }
 
           await markAsRead(platform, externalPageId, externalSenderId, watermark);
           console.log(`[Worker] [${job.id}] Processed read receipt up to ${watermark.toISOString()}`);
@@ -59,7 +59,7 @@ function createWebhookWorker() {
           try {
             const parsed = JSON.parse(messageText);
             if (parsed.watermark) watermark = new Date(parsed.watermark);
-          } catch (e) {}
+          } catch (e) { }
 
           await markAsDelivered(platform, externalPageId, externalSenderId, watermark);
           console.log(`[Worker] [${job.id}] Processed delivery receipt up to ${watermark.toISOString()}`);
@@ -222,10 +222,10 @@ function createWebhookWorker() {
             prompt: `Intent: ${classifyResult.intent}${(botConfig as any).system_prompt ? ` | Prompt: ${(botConfig as any).system_prompt.substring(0, 50)}...` : ''}`,
             response: replyText,
             model: selectedModel,
-            status: (botConfig as any).auto_send ? 'suggested' : 'pending' 
+            status: (botConfig as any).auto_send ? 'suggested' : 'pending'
           } as any
         });
-        
+
         console.log(`[Worker] [${job.id}] AI Suggestion created: ${aiLog.id}`);
 
         // --- 6. Auto-Send via Platform API (Only if enabled and filters match) ---
@@ -244,8 +244,8 @@ function createWebhookWorker() {
           }
 
           console.log(`[Worker] [${job.id}] ${reason}. Stopping after suggestion.`);
-          return { 
-            status: 'success_suggestion_only', 
+          return {
+            status: 'success_suggestion_only',
             eventId: webhookEventId,
             suggestionId: aiLog.id,
             reason
@@ -313,9 +313,9 @@ function createWebhookWorker() {
           // Update AI log with the actual sent message ID
           await db.aIReplyLog.update({
             where: { id: aiLog.id },
-            data: { 
+            data: {
               messageId: botPersist.messageId,
-              status: 'sent' 
+              status: 'sent'
             } as any
           });
         }

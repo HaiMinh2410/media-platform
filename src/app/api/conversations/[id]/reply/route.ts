@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConversationWithAccount } from '@/infrastructure/repositories/conversation.repository';
-import { createOutgoingMessage } from '@/infrastructure/repositories/message.repository';
+import { createOutgoingMessage } from '../../../../../../message.repository';
 import { metaSendService } from '@/application/services/meta-send.service';
 import type { MessagingPlatform } from '@/domain/types/messaging';
 

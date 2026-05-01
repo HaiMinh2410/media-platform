@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMessages } from '@/infrastructure/repositories/message.repository';
+import { getMessages } from '../../../../../../message.repository';
 import { PaginationParams } from '@/domain/types/messaging';
 
 /**
@@ -13,7 +13,7 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    
+
     const cursor = searchParams.get('cursor') || undefined;
     const limitParams = searchParams.get('limit');
     const limit = limitParams ? parseInt(limitParams, 10) : 50;

@@ -5,15 +5,24 @@ import styles from './secondary-header.module.css';
 import { useInboxStore } from '../store/inbox.store';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { Inbox, Zap, ChevronDown, Check, Users, Plus, MoreHorizontal, Trash2, Edit2, X as CloseIcon } from 'lucide-react';
+import { 
+  Zap, ChevronDown, Check, Users, Plus, 
+  MoreHorizontal, Trash2, Edit2,
+  GripVertical
+} from 'lucide-react';
 import { CreateClusterModal } from './modals/create-cluster-modal';
 import { useUnreadRealtime } from '../hooks/use-unread-realtime';
+import { Reorder, useDragControls } from 'framer-motion';
 
-
-
-import { getAccountGroupsAction, deleteAccountGroupAction } from '@/application/actions/account-group.actions';
+import { 
+  getAccountGroupsAction, 
+  deleteAccountGroupAction,
+  updateAccountGroupsOrderAction
+} from '@/application/actions/account-group.actions';
 import { getUnreadCountsAction, UnreadCounts } from '@/application/actions/unread-counts.actions';
 import { AccountGroup } from '@/domain/types/account-group';
+import { SegmentFilter } from '../store/inbox.store';
+import { PlatformAccount } from '@/domain/types/platform-account';
 
 export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const { 
@@ -189,48 +198,36 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
 
               <div className={styles.menuDivider} />
 
-              {accountGroups.map(group => {
-                const isSelected = selectedIdsForAction.includes(group.id);
-                return (
-                  <button 
-                    key={group.id}
-                    className={clsx(
-                      styles.menuItem, 
-                      selectedGroupId === group.id && !isSelectionMode && styles.activeItem,
-                      isSelectionMode && isSelected && styles.selectedItem
-                    )}
-                    onClick={() => {
-                      if (isSelectionMode) {
-                        setSelectedIdsForAction(prev => 
-                          isSelected ? prev.filter(id => id !== group.id) : [...prev, group.id]
-                        );
-                      } else {
-                        setGroupId(group.id);
-                        setIsOpen(false);
-                        setViewMode('all');
-                        router.push('/dashboard/inbox');
-                      }
+              <Reorder.Group 
+                axis="y" 
+                values={accountGroups} 
+                onReorder={(newOrder) => {
+                  setAccountGroups(newOrder);
+                  updateAccountGroupsOrderAction(workspaceId, newOrder.map(g => g.id));
+                }}
+                className={styles.reorderGroup}
+              >
+                {accountGroups.map(group => (
+                  <ReorderItem 
+                    key={group.id} 
+                    group={group} 
+                    selectedGroupId={selectedGroupId}
+                    isSelectionMode={isSelectionMode}
+                    isSelected={selectedIdsForAction.includes(group.id)}
+                    onSelect={(id) => {
+                      setSelectedIdsForAction(prev => 
+                        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+                      );
                     }}
-                  >
-                    {isSelectionMode && (
-                      <div className={clsx(styles.checkbox, isSelected && styles.checkboxChecked)}>
-                        {isSelected && <Check size={10} color="#fff" />}
-                      </div>
-                    )}
-                    <CombinedAvatar group={group} unreadCount={group.unreadCount} />
-                    <span className={styles.menuItemName}>{group.name}</span>
-                    {!isSelectionMode && selectedGroupId === group.id && <Check size={14} className={styles.checkIcon} />}
-                    {isSelectionMode && selectedIdsForAction.length === 1 && isSelected && (
-                      <button className={styles.editBtn} onClick={(e) => {
-                        e.stopPropagation();
-                        alert('Tính năng Sửa đang được phát triển');
-                      }}>
-                        <Edit2 size={12} />
-                      </button>
-                    )}
-                  </button>
-                );
-              })}
+                    onActivate={(id) => {
+                      setGroupId(id);
+                      setIsOpen(false);
+                      setViewMode('all');
+                      router.push('/dashboard/inbox');
+                    }}
+                  />
+                ))}
+              </Reorder.Group>
             </div>
           )}
         </div>
@@ -279,12 +276,11 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           <select 
             className={styles.filterSelect}
             value={segmentFilter}
-            onChange={(e) => setSegmentFilter(e.target.value as any)}
+            onChange={(e) => setSegmentFilter(e.target.value as SegmentFilter)}
           >
             <option value="all">All Segments</option>
             <option value="hot_lead">🔥 Hot Leads</option>
             <option value="cold">❄️ Cold</option>
-            <option value="needs_reply">⏰ Needs Reply</option>
           </select>
         </div>
       </div>
@@ -301,13 +297,82 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   );
 }
 
+function ReorderItem({ 
+  group, 
+  selectedGroupId, 
+  isSelectionMode, 
+  isSelected, 
+  onSelect, 
+  onActivate 
+}: { 
+  group: AccountGroup; 
+  selectedGroupId: string | null;
+  isSelectionMode: boolean;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onActivate: (id: string) => void;
+}) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={group}
+      dragListener={false}
+      dragControls={controls}
+      className={clsx(
+        styles.menuItem, 
+        selectedGroupId === group.id && !isSelectionMode && styles.activeItem,
+        isSelectionMode && isSelected && styles.selectedItem
+      )}
+    >
+      <div 
+        className={styles.menuItemContent}
+        onClick={() => {
+          if (isSelectionMode) {
+            onSelect(group.id);
+          } else {
+            onActivate(group.id);
+          }
+        }}
+      >
+        {isSelectionMode && (
+          <div className={clsx(styles.checkbox, isSelected && styles.checkboxChecked)}>
+            {isSelected && <Check size={10} color="#fff" />}
+          </div>
+        )}
+        <CombinedAvatar group={group} unreadCount={group.unreadCount} />
+        <span className={styles.menuItemName}>{group.name}</span>
+        {!isSelectionMode && selectedGroupId === group.id && <Check size={14} className={styles.checkIcon} />}
+      </div>
+      
+      <div className={styles.itemActions}>
+        {isSelectionMode && isSelected && (
+          <button className={styles.editBtn} onClick={(e) => {
+            e.stopPropagation();
+            alert('Tính năng Sửa đang được phát triển');
+          }}>
+            <Edit2 size={12} />
+          </button>
+        )}
+        <div 
+          className={styles.dragHandle}
+          onPointerDown={(e) => controls.start(e)}
+        >
+          <GripVertical size={14} />
+        </div>
+      </div>
+    </Reorder.Item>
+  );
+}
+
 function CombinedAvatar({ group, unreadCount }: { group: AccountGroup; unreadCount?: number }) {
   const fbAccount = group.members.find(m => m.platform === 'facebook');
   const igAccount = group.members.find(m => m.platform === 'instagram');
 
-  const renderAvatar = (account: any, isSub = false) => {
+  const renderAvatar = (account: PlatformAccount | undefined, isSub = false) => {
+    if (!account) return null;
     const avatarUrl = account.metadata?.avatar_url;
-    const initial = account.name?.[0] || account.platform_user_name?.[0] || '?';
+    const initial = account.name?.[0] || '?';
 
     return (
       <div className={isSub ? styles.subAvatar : styles.mainAvatar}>

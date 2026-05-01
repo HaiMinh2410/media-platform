@@ -4,7 +4,7 @@ import { AccountGroup } from '@/domain/types/account-group';
 
 export type ViewMode = 'all' | 'by_account' | 'by_contacts' | 'ai_priority' | 'daily_flow';
 export type Platform = 'all' | 'facebook' | 'instagram' | 'tiktok' | 'custom';
-export type SegmentFilter = 'all' | 'hot_lead' | 'cold' | 'needs_reply';
+export type SegmentFilter = 'all' | 'unread' | 'needs_reply' | 'vip' | 'hot_lead' | 'cold';
 export type ToneMode = 'professional' | 'sales' | 'warm' | 'flirty';
 
 interface InboxState {

@@ -10,7 +10,7 @@ import { ConversationSkeleton } from './skeletons';
 import { useSidebarRealtime } from '../hooks/use-sidebar-realtime';
 import { useUnreadRealtime } from '../hooks/use-unread-realtime';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { MoreHorizontal, Settings, Plus, Filter } from 'lucide-react';
+import { MoreHorizontal, Settings, Plus, Filter, TrendingUp, TrendingDown } from 'lucide-react';
 import { useInboxStore } from '../store/inbox.store';
 import { getConversationAction } from '@/application/actions/inbox.actions';
 import { getCurrentWorkspaceUnreadCountAction } from '@/application/actions/workspace.actions';
@@ -21,8 +21,9 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeBucket, setActiveBucket] = useState<'all' | 'unread' | 'need_reply' | 'vip'>('all');
-  const [sortBy, setSortBy] = useState<'newest' | 'priority' | 'unread'>('newest');
+  const [filterBy, setFilterBy] = useState<'all' | 'unread' | 'priority'>('all');
+  const [sortField, setSortField] = useState<'date' | 'name'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // Power user feature: Multi-thread tabs
   const [activeThreads, setActiveThreads] = useState<ConversationWithLastMessage[]>([]);
@@ -109,23 +110,31 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
       setLoading(true);
       const url = new URL('/api/conversations', window.location.origin);
       url.searchParams.set('workspaceId', workspaceId);
-      url.searchParams.set('limit', '20'); // Fetch more for virtualization
+      url.searchParams.set('limit', '20');
       if (cursor) url.searchParams.set('cursor', cursor);
       if (searchQuery) url.searchParams.set('search', searchQuery);
       
-      // Apply buckets
-      if (activeBucket === 'unread') url.searchParams.set('unread', 'true');
-      if (activeBucket === 'vip') url.searchParams.set('is_vip', 'true');
-      if (activeBucket === 'need_reply') url.searchParams.set('status', 'open'); // Approximate
-      
-      // Apply global scopes from LeftPanel/SecondaryHeader
+      // Apply segment filter from global store (SecondaryHeader)
+      if (segmentFilter === 'unread') url.searchParams.set('unread', 'true');
+      if (segmentFilter === 'vip') url.searchParams.set('is_vip', 'true');
+      if (segmentFilter === 'needs_reply') url.searchParams.set('status', 'open');
+      if (segmentFilter === 'hot_lead') url.searchParams.set('priority', 'high');
+      if (segmentFilter === 'cold') url.searchParams.set('priority', 'low');
+
+      // Apply global scopes from LeftPanel
       if (selectedGroupId) url.searchParams.set('groupId', selectedGroupId);
       if (platform !== 'all') url.searchParams.set('platform', platform);
-      if (segmentFilter === 'hot_lead') url.searchParams.set('priority', 'high');
 
-      
-      // Sort
-      if (sortBy !== 'newest') url.searchParams.set('sort', sortBy);
+      // Handle Filter from the Filter dropdown
+      if (filterBy === 'unread') {
+        url.searchParams.set('unread', 'true');
+      } else if (filterBy === 'priority') {
+        url.searchParams.set('priority', 'high'); // Or custom priority logic
+      }
+
+      // Handle Sort Field & Order
+      url.searchParams.set('sortBy', sortField === 'date' ? 'lastMessageAt' : 'customer_name');
+      url.searchParams.set('sortOrder', sortOrder);
 
       const res = await fetch(url.toString());
       const data = await res.json();
@@ -139,7 +148,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, searchQuery, activeBucket, sortBy, platform, segmentFilter, selectedGroupId]);
+  }, [workspaceId, searchQuery, filterBy, sortField, sortOrder, platform, segmentFilter, selectedGroupId]);
 
 
   useEffect(() => {
@@ -203,7 +212,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
             : c
         );
 
-        if (sortBy === 'newest') {
+        if (sortField === 'date' && sortOrder === 'desc') {
           return [...updated].sort(
             (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
           );
@@ -211,7 +220,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
         return updated;
       });
     },
-    [sortBy]
+    [filterBy, sortField, sortOrder]
   );
 
   const handleMessageReceived = useCallback((payload: { conversationId: string; content: string; createdAt: Date }) => {
@@ -229,14 +238,14 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
           : c
       );
 
-      if (sortBy === 'newest') {
+      if (sortField === 'date' && sortOrder === 'desc') {
         return [...updated].sort(
           (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
         );
       }
       return updated;
     });
-  }, [sortBy]);
+  }, [filterBy, sortField, sortOrder]);
 
   useSidebarRealtime({ 
     workspaceId, 
@@ -318,40 +327,44 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
           onChange={(e) => setSearchInput(e.target.value)}
         />
         
-        {/* Inbox Bucket Tabs */}
-        <div className={styles.bucketTabs}>
-          <button 
-            className={`${styles.bucketTab} ${activeBucket === 'all' ? styles.activeBucket : ''}`}
-            onClick={() => setActiveBucket('all')}
-          >All</button>
-          <button 
-            className={`${styles.bucketTab} ${activeBucket === 'unread' ? styles.activeBucket : ''}`}
-            onClick={() => setActiveBucket('unread')}
-          >Unread</button>
-          <button 
-            className={`${styles.bucketTab} ${activeBucket === 'need_reply' ? styles.activeBucket : ''}`}
-            onClick={() => setActiveBucket('need_reply')}
-          >Need Reply</button>
-          <button 
-            className={`${styles.bucketTab} ${activeBucket === 'vip' ? styles.activeBucket : ''}`}
-            onClick={() => setActiveBucket('vip')}
-          >VIP</button>
-        </div>
+        {/* Filters are now managed in the SecondaryHeader */}
 
         {/* Inbox Sort Bar */}
         <div className={styles.sortBar}>
-          <span>{conversations.length} {conversations.length === 1 ? 'conversation' : 'conversations'}</span>
-          <div className="flex items-center gap-2">
-            <span>Sort by:</span>
-            <select 
-              className={styles.sortSelect}
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-            >
-              <option value="newest">Newest</option>
-              <option value="priority">Priority</option>
-              <option value="unread">Unread First</option>
-            </select>
+          <div className={styles.countInfo}>
+            <span>{conversations.length} items</span>
+          </div>
+          
+          <div className={styles.controls}>
+            <div className={styles.controlGroup}>
+              <select 
+                className={styles.miniSelect}
+                value={filterBy}
+                onChange={(e) => setFilterBy(e.target.value as 'all' | 'unread' | 'priority')}
+              >
+                <option value="all">All</option>
+                <option value="unread">Unread</option>
+                <option value="priority">Priority</option>
+              </select>
+            </div>
+
+            <div className={styles.controlGroup}>
+              <select 
+                className={styles.miniSelect}
+                value={sortField}
+                onChange={(e) => setSortField(e.target.value as 'date' | 'name')}
+              >
+                <option value="date">Date</option>
+                <option value="name">Name</option>
+              </select>
+              <button 
+                className={styles.orderBtn}
+                onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+              >
+                {sortOrder === 'asc' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+              </button>
+            </div>
           </div>
         </div>
       </div>

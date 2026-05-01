@@ -1,7 +1,7 @@
 'use server';
 
 import { getConversations } from '@/infrastructure/repositories/conversation.repository';
-import { getMessages, getUnifiedHistory } from '@/infrastructure/repositories/message.repository';
+import { getMessages, getUnifiedHistory } from '../../../message.repository';
 import { ConversationFilter, PaginationParams, ConversationSort, ConversationWithLastMessage } from '@/domain/types/messaging';
 
 /**
@@ -75,7 +75,7 @@ export async function getUnifiedMessagesAction(
  */
 export async function getConversationAction(conversationId: string): Promise<{ data: ConversationWithLastMessage | null; error: string | null }> {
   const { db } = await import('@/lib/db');
-  
+
   try {
     const conversation = await db.conversation.findUnique({
       where: { id: conversationId },

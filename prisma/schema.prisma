@@ -9,17 +9,17 @@ datasource db {
 }
 
 model Workspace {
-  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name                 String
-  slug                 String                @unique
-  settings             Json?                 @default("{}")
-  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt            DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  invitations          invitations[]
-  platformAccounts     PlatformAccount[]
-  workspace_members    workspace_members[]
-  customer_identities  CustomerIdentity[]
-  account_groups       AccountGroup[]
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String
+  slug                String              @unique
+  settings            Json?               @default("{}")
+  createdAt           DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  account_groups      AccountGroup[]
+  customer_identities CustomerIdentity[]
+  invitations         invitations[]
+  platformAccounts    PlatformAccount[]
+  workspace_members   workspace_members[]
 
   @@map("workspaces")
   @@schema("public")
@@ -35,7 +35,10 @@ model PlatformAccount {
   workspaceId            String                   @map("workspace_id") @db.Uuid
   disconnected_at        DateTime?                @db.Timestamptz(6)
   metadata               Json?                    @default("{}")
+  account_memberships    AccountGroupMembership[]
+  ai_personas            AIPersona?
   analytics_snapshots    analytics_snapshots[]
+  auto_reply_rules       AutoReplyRule[]
   bot_configurations     bot_configurations?
   conversations          Conversation[]
   meta_tokens            meta_tokens[]
@@ -44,9 +47,6 @@ model PlatformAccount {
   posts                  posts[]
   tiktok_token_refreshes tiktok_token_refreshes[]
   tiktok_tokens          tiktok_tokens?
-  account_memberships    AccountGroupMembership[]
-  ai_personas            AIPersona?
-  auto_reply_rules       AutoReplyRule[]
 
   @@unique([platform, platform_user_id])
   @@index([workspaceId], map: "idx_platform_accounts_workspace_id")
@@ -55,23 +55,23 @@ model PlatformAccount {
 }
 
 model Conversation {
-  id                         String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id                 String                      @db.Uuid
+  id                         String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id                 String                    @db.Uuid
   platform_conversation_id   String
-  lastMessageAt              DateTime                    @default(now()) @map("last_message_at")
-  status                     String?                     @default("open")
-  customer_name              String?
+  lastMessageAt              DateTime                  @default(now()) @map("last_message_at")
+  status                     String?                   @default("open")
   customer_avatar            String?
+  customer_name              String?
+  is_vip                     Boolean                   @default(false)
   /// Added in T073: Advanced Inbox Schema
-  priority                   String?                     @default("medium")
-  sentiment                  String?                     @default("neutral")
-  tags                       String[]                    @default([])
-  is_vip                     Boolean                     @default(false)
+  priority                   String?                   @default("medium")
+  sentiment                  String?                   @default("neutral")
   /// Points to the primary/canonical conversation when this convo is a cross-channel duplicate (T077)
-  canonical_conversation_id  String?                     @db.Uuid
-  platform_accounts          PlatformAccount             @relation(fields: [account_id], references: [id], onDelete: Cascade)
-  messages                   Message[]
+  canonical_conversation_id  String?                   @db.Uuid
+  tags                       String[]                  @default([])
+  platform_accounts          PlatformAccount           @relation(fields: [account_id], references: [id], onDelete: Cascade)
   customer_platform_mappings CustomerPlatformMapping[]
+  messages                   Message[]
 
   @@unique([account_id, platform_conversation_id])
   @@map("conversations")
@@ -85,9 +85,9 @@ model Message {
   content             String
   platform_message_id String       @unique
   is_read             Boolean      @default(false)
-  is_delivered        Boolean      @default(false)
   createdAt           DateTime     @default(now()) @map("created_at")
   senderType          String?      @default("user") @map("sender_type")
+  is_delivered        Boolean      @default(false)
   aiReplyLogs         AIReplyLog[]
   conversation        Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
@@ -101,8 +101,8 @@ model AIReplyLog {
   prompt     String
   response   String
   model      String
-  status     String   @default("suggested")
   created_at DateTime @default(now())
+  status     String   @default("suggested")
   message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@map("ai_reply_logs")
@@ -613,18 +613,18 @@ model analytics_snapshots {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model bot_configurations {
-  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id           String          @unique @db.Uuid
-  is_active            Boolean         @default(false)
-  trigger_labels       String[]
-  confidence_threshold Float           @default(0.75)
-  auto_send            Boolean         @default(false)
-  system_prompt        String?         @default("")
-  model                String          @default("auto")
+  id                    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id            String          @unique @db.Uuid
+  is_active             Boolean         @default(false)
+  trigger_labels        String[]
+  confidence_threshold  Float           @default(0.75)
+  auto_send             Boolean         @default(false)
+  updated_at            DateTime        @default(now())
+  model                 String          @default("auto")
+  system_prompt         String?         @default("")
   auto_reply_priorities String[]        @default([])
   auto_reply_sentiments String[]        @default([])
-  updated_at           DateTime        @default(now())
-  platform_accounts    PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  platform_accounts     PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@schema("public")
 }
@@ -664,17 +664,17 @@ model meta_tokens {
 model posts {
   id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   account_id        String          @db.Uuid
-  title             String?
   content           String?
   media_urls        String[]
   status            String          @default("draft")
   scheduled_at      DateTime?
-  published_at      DateTime?
-  error_message     String?
-  metadata          Json?           @default("{}")
   platform_post_id  String?
   created_at        DateTime        @default(now())
   updated_at        DateTime        @default(now())
+  error_message     String?
+  metadata          Json?           @default("{}")
+  published_at      DateTime?
+  title             String?
   platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@schema("public")
@@ -735,16 +735,16 @@ model workspace_members {
 
 /// Cross-channel customer identity — links the same person across Facebook, Instagram, etc.
 model CustomerIdentity {
-  id                   String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  workspace_id         String                   @db.Uuid
+  id                    String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_id          String                    @db.Uuid
   /// Primary external sender ID used as the canonical key for this identity
   canonical_external_id String
-  customer_name        String?
-  customer_avatar      String?
-  created_at           DateTime                 @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime                 @default(now()) @updatedAt @db.Timestamptz(6)
-  workspace            Workspace                @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
-  platform_mappings    CustomerPlatformMapping[]
+  customer_name         String?
+  customer_avatar       String?
+  created_at            DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime                  @default(now()) @updatedAt @db.Timestamptz(6)
+  workspace             Workspace                 @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  platform_mappings     CustomerPlatformMapping[]
 
   @@unique([workspace_id, canonical_external_id])
   @@index([workspace_id])
@@ -760,8 +760,8 @@ model CustomerPlatformMapping {
   external_sender_id String
   conversation_id    String           @db.Uuid
   created_at         DateTime         @default(now()) @db.Timestamptz(6)
-  identity           CustomerIdentity @relation(fields: [identity_id], references: [id], onDelete: Cascade)
   conversation       Conversation     @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  identity           CustomerIdentity @relation(fields: [identity_id], references: [id], onDelete: Cascade)
 
   @@unique([platform, external_sender_id])
   @@index([identity_id])
@@ -806,8 +806,9 @@ model AccountGroup {
   description  String?
   createdAt    DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-  workspace    Workspace                @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  position     Int                      @default(0)
   members      AccountGroupMembership[]
+  workspace    Workspace                @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
   @@map("account_groups")
   @@schema("public")
@@ -817,8 +818,8 @@ model AccountGroupMembership {
   group_id   String          @db.Uuid
   account_id String          @db.Uuid
   created_at DateTime        @default(now()) @db.Timestamptz(6)
-  group      AccountGroup    @relation(fields: [group_id], references: [id], onDelete: Cascade)
   account    PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  group      AccountGroup    @relation(fields: [group_id], references: [id], onDelete: Cascade)
 
   @@id([group_id, account_id])
   @@map("account_group_members")
@@ -826,30 +827,30 @@ model AccountGroupMembership {
 }
 
 model AIPersona {
-  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id           String          @unique @db.Uuid
-  name                 String          @default("Professional")
-  tone_instructions    String          @default("Be professional, polite, and concise.")
-  emoji_usage          String          @default("minimal")
-  language_preference  String          @default("vi")
-  created_at           DateTime        @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime        @default(now()) @updatedAt @db.Timestamptz(6)
-  platform_accounts    PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id          String          @unique @db.Uuid
+  name                String          @default("Professional")
+  tone_instructions   String          @default("Be professional, polite, and concise.")
+  emoji_usage         String          @default("minimal")
+  language_preference String          @default("vi")
+  created_at          DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime        @default(now()) @updatedAt @db.Timestamptz(6)
+  platform_accounts   PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@map("ai_personas")
   @@schema("public")
 }
 
 model AutoReplyRule {
-  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id           String          @db.Uuid
-  intent_category      String
-  keywords             String[]
-  reply_template       String
-  is_active            Boolean         @default(true)
-  created_at           DateTime        @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime        @default(now()) @updatedAt @db.Timestamptz(6)
-  platform_accounts    PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id        String          @db.Uuid
+  intent_category   String
+  keywords          String[]
+  reply_template    String
+  is_active         Boolean         @default(true)
+  created_at        DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime        @default(now()) @updatedAt @db.Timestamptz(6)
+  platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@index([account_id])
   @@map("auto_reply_rules")
