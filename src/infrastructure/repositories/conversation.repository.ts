@@ -199,10 +199,11 @@ export async function getConversationWithAccount(
       });
 
       if (linkedFbToken) {
-        // Use IG account ID as pageId (for the send URL), but use FB page token for auth
+        // Use the FB Page ID as effectivePageId for the send URL
+        // Testing shows that /{fb-page-id}/messages works while /{ig-id}/messages fails with error #3
         latestToken = linkedFbToken;
-        effectivePageId = account.platform_user_id; // Keep IG ID — not the FB page ID!
-        console.log(`[Repository] IG linked FB page found → using FB token for IG account ${account.platform_user_id}`);
+        effectivePageId = linkedFbToken.platform_accounts.platform_user_id; 
+        console.log(`[Repository] IG linked FB page found → using FB Page ID ${effectivePageId} for IG messaging`);
       } else if (!latestToken) {
         // Strategy 2: IG account has its own token stored directly (could be an FB Page token saved against IG)
         console.log(`[Repository] IG account ${account.platform_user_id}: no linked FB page found, using own token`);

@@ -227,10 +227,28 @@ function createWebhookWorker() {
             return { status: 'failed_auto_send_no_token', eventId: webhookEventId, suggestionId: aiLog.id };
           }
 
+          let effectivePageId = externalPageId;
+
+          // For Instagram, we must use the linked Facebook Page ID as the sender to avoid error #3 (Capability)
+          if (platform === 'instagram') {
+            const linkedFb = await db.platformAccount.findFirst({
+              where: {
+                platform: 'facebook',
+                workspaceId: account.workspaceId,
+                metadata: { path: ['instagram_id'], equals: externalPageId }
+              },
+              select: { platform_user_id: true }
+            });
+            if (linkedFb) {
+              effectivePageId = linkedFb.platform_user_id;
+              console.log(`[Worker] [${job.id}] Resolved linked FB Page ${effectivePageId} for IG account ${externalPageId}`);
+            }
+          }
+
           const { data: sendResult, error: sendErr } = await metaSendService.sendText({
-            platform: platform === 'instagram' ? 'instagram' : 'messenger', // facebook → messenger
+            platform: platform === 'instagram' ? 'instagram' : 'messenger',
             recipientId: externalSenderId,
-            pageId: externalPageId,
+            pageId: effectivePageId,
             text: replyText,
             encryptedToken: tokenRecord.encrypted_access_token
           });
