@@ -244,10 +244,10 @@ export async function getMessages(
       id: m.id,
       content: m.content,
       senderId: m.senderId,
-      senderType: (m.senderType as any) || 'user',
+      senderType: (m.senderType as MessageWithSender['senderType']) || 'user',
       createdAt: m.createdAt,
       is_read: m.is_read,
-      is_delivered: (m as any).is_delivered || false,
+      is_delivered: m.is_delivered,
     }));
 
     return { data: formatted, nextCursor, error: null };
@@ -296,10 +296,10 @@ export async function getUnifiedHistory(
       id: m.id,
       content: m.content,
       senderId: m.senderId,
-      senderType: (m.senderType as any) || 'user',
+      senderType: (m.senderType as MessageWithSender['senderType']) || 'user',
       createdAt: m.createdAt,
       is_read: m.is_read,
-      is_delivered: (m as any).is_delivered || false,
+      is_delivered: m.is_delivered,
     }));
 
     return { data: formatted, nextCursor, error: null };

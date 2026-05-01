@@ -26,6 +26,8 @@ export interface MetaMessagingEvent {
     text?: string;
     attachments?: any[];
     reply_to?: { mid: string };
+    is_echo?: boolean;
+    app_id?: number;
   };
   postback?: {
     title: string;
