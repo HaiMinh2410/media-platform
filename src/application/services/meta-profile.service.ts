@@ -32,15 +32,25 @@ export const metaProfileService = {
       // 2. Fetch profile from Meta
       const graphClient = getMetaGraphClient();
       
-      // We try with a broad set of fields, but handle partial failures
-      const fields = platform === 'instagram' ? 'name,profile_pic' : 'name,first_name,last_name,profile_pic';
+      // Fields for profile fetch:
+      // Facebook: name, first_name, last_name, profile_pic, picture
+      // Instagram: name, profile_pic
+      const fields = platform === 'instagram' 
+        ? 'name,profile_pic' 
+        : 'name,first_name,last_name,profile_pic,picture.type(large)';
       
       let result = await graphClient.request<any>(externalSenderId, plainToken, { fields });
       
-      if (result.error && result.error.includes('profile_pic')) {
-        console.log(`[MetaProfileService] Retrying without profile_pic for ${externalSenderId}...`);
+      // Heuristic: If it fails with certain fields, try a safer subset
+      if (result.error && (result.error.includes('profile_pic') || result.error.includes('picture'))) {
+        console.warn(`[MetaProfileService] Avatar fetch failed for ${externalSenderId}, retrying without avatar fields...`);
         const fallbackFields = platform === 'instagram' ? 'name' : 'name,first_name,last_name';
         result = await graphClient.request<any>(externalSenderId, plainToken, { fields: fallbackFields });
+      }
+
+      if (result.error || !result.data) {
+        console.warn(`[MetaProfileService] Fetch failed for ${externalSenderId}:`, result.error);
+        return;
       }
 
       const profile = result.data || {};
@@ -51,8 +61,11 @@ export const metaProfileService = {
                    (profile.first_name || profile.last_name ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : null) || 
                    `User ${externalSenderId.slice(-4)}`;
       
+      // Avatar resolution order: 
+      // 1. profile_pic (Direct URL - works for both FB/IG messaging profiles)
+      // 2. picture.data.url (FB specific legacy/broad format)
       const avatar = profile.profile_pic || 
-                     (profile.picture?.data?.url) || 
+                     profile.picture?.data?.url || 
                      null;
 
       // 4. Update Conversation
