@@ -13,11 +13,15 @@ import {
   TrendingUp,
   Target,
   Users,
-  MessageSquare
+  MessageSquare,
+  ArrowLeft
 } from 'lucide-react';
+import Link from 'next/link';
+import { useInboxStore } from '../store/inbox.store';
 import clsx from 'clsx';
 
 export default function FlowPage() {
+  const { setViewMode } = useInboxStore();
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
 
   const missions = [
@@ -38,7 +42,16 @@ export default function FlowPage() {
   return (
     <div className={styles.flowContainer}>
       <header className={styles.header}>
-        <h1>Daily Flow</h1>
+        <div className={styles.titleWithBack}>
+          <Link 
+            href="/dashboard/inbox" 
+            className={styles.backButton}
+            onClick={() => setViewMode('all')}
+          >
+            <ArrowLeft size={24} />
+          </Link>
+          <h1>Daily Flow</h1>
+        </div>
         <p>Focus on what matters. Your mission-critical tasks for today.</p>
       </header>
 

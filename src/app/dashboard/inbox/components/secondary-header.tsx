@@ -5,7 +5,8 @@ import styles from './secondary-header.module.css';
 import { useInboxStore } from '../store/inbox.store';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { Inbox, Zap, ChevronDown, Check, Users } from 'lucide-react';
+import { Inbox, Zap, ChevronDown, Check, Users, Plus } from 'lucide-react';
+import { CreateClusterModal } from './modals/create-cluster-modal';
 import { useUnreadRealtime } from '../hooks/use-unread-realtime';
 
 
@@ -24,6 +25,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   } = useInboxStore();
   const router = useRouter();
   const [isOpen, setIsOpen] = React.useState(false);
+  const [showCreateModal, setShowCreateModal] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const [unreadCounts, setUnreadCounts] = React.useState<UnreadCounts>({ all: 0, facebook: 0, instagram: 0 });
@@ -71,6 +73,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const formatCount = (count: number) => count > 99 ? '99+' : count;
 
   return (
+    <>
     <div className={styles.container}>
       <div className={styles.tabs}>
 
@@ -97,12 +100,27 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
 
           {isOpen && (
             <div className={styles.dropdownMenu}>
-              <div className={styles.menuHeader}>Chọn cụm tài khoản</div>
+              <div className={styles.menuHeader}>
+                <span>Chọn cụm tài khoản</span>
+                <button 
+                  className={styles.addClusterBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowCreateModal(true);
+                    setIsOpen(false);
+                  }}
+                  title="Tạo cụm mới"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
               <button 
                 className={clsx(styles.menuItem, !selectedGroupId && styles.activeItem)}
                 onClick={() => {
                   setGroupId(null);
                   setIsOpen(false);
+                  setViewMode('all');
+                  router.push('/dashboard/inbox');
                 }}
               >
                 <div className={styles.placeholderIcon}>
@@ -121,6 +139,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                   onClick={() => {
                     setGroupId(group.id);
                     setIsOpen(false);
+                    setViewMode('all');
                     router.push('/dashboard/inbox');
                   }}
                 >
@@ -136,7 +155,15 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
 
         <button 
           className={clsx(styles.tab, styles.flowTab, viewMode === 'daily_flow' && styles.active)}
-          onClick={() => { setViewMode('daily_flow'); router.push('/dashboard/inbox/flow'); }}
+          onClick={() => { 
+            if (viewMode === 'daily_flow') {
+              setViewMode('all');
+              router.push('/dashboard/inbox');
+            } else {
+              setViewMode('daily_flow'); 
+              router.push('/dashboard/inbox/flow'); 
+            }
+          }}
         >
           <Zap size={16} className={styles.icon} />
           <span>Daily Flow</span>
@@ -179,6 +206,15 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
         </div>
       </div>
     </div>
+
+      {showCreateModal && (
+        <CreateClusterModal 
+          workspaceId={workspaceId}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={fetchCounts}
+        />
+      )}
+    </>
   );
 }
 

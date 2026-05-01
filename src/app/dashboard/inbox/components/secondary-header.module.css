@@ -263,6 +263,29 @@
   color: var(--fg-muted, #666);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.addClusterBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--fg-secondary);
+  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addClusterBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--fg-primary);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .menuItem {
