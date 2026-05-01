@@ -93,14 +93,14 @@ function createWebhookWorker() {
           select: { customer_name: true }
         });
 
-        if (!convo?.customer_name && account.meta_tokens[0]) {
+        if (!convo?.customer_name) {
           console.log(`[Worker] [${job.id}] Missing customer profile, triggering sync...`);
           metaProfileService.syncCustomerProfile({
             conversationId: persistResult.conversationId,
             platform,
             externalSenderId: externalSenderId,
             externalPageId: externalPageId,
-            encryptedToken: account.meta_tokens[0].encrypted_access_token
+            encryptedToken: account.meta_tokens[0]?.encrypted_access_token
           }).catch(err => console.error(`[Worker] [${job.id}] Profile sync failed:`, err));
         }
 

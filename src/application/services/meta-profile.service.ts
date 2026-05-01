@@ -15,12 +15,39 @@ export const metaProfileService = {
     platform: string;
     externalSenderId: string;
     externalPageId: string;
-    encryptedToken: string;
+    encryptedToken?: string; // Optional: will try to resolve from DB if missing
   }) {
-    const { conversationId, platform, externalSenderId, externalPageId, encryptedToken } = params;
+    const { conversationId, platform, externalSenderId, externalPageId } = params;
+    let encryptedToken = params.encryptedToken;
 
     try {
-      // 1. Decrypt token
+      // 1. Resolve Token if missing (common for Instagram accounts linked to FB)
+      if (!encryptedToken) {
+        let tokenRecord = await db.meta_tokens.findFirst({
+          where: { platform_accounts: { platform, platform_user_id: externalPageId } },
+          orderBy: { updated_at: 'desc' }
+        });
+
+        // Fallback for Instagram: Try to find token from the linked Facebook Page
+        if (!tokenRecord && platform === 'instagram') {
+          const linkedFbAccount = await db.platformAccount.findFirst({
+            where: {
+              platform: 'facebook',
+              metadata: { path: ['instagram_id'], equals: externalPageId }
+            },
+            include: { meta_tokens: { orderBy: { updated_at: 'desc' }, take: 1 } }
+          });
+          tokenRecord = linkedFbAccount?.meta_tokens[0] || null;
+        }
+
+        if (!tokenRecord) {
+          console.warn(`[MetaProfileService] No token found for ${platform} account ${externalPageId}. Cannot sync profile.`);
+          return;
+        }
+        encryptedToken = tokenRecord.encrypted_access_token;
+      }
+
+      // 2. Decrypt token
       const encryptionService = getTokenEncryptionService();
       const { data: plainToken, error: decryptError } = await encryptionService.decrypt(encryptedToken);
 
@@ -29,46 +56,46 @@ export const metaProfileService = {
         return;
       }
 
-      // 2. Fetch profile from Meta
+      // 3. Fetch profile from Meta
       const graphClient = getMetaGraphClient();
       
       // Fields for profile fetch:
-      // Facebook: name, first_name, last_name, profile_pic, picture
-      // Instagram: name, profile_pic
+      // Facebook (PSID): first_name, last_name, name, profile_pic
+      // Instagram (IGSID): name, profile_pic, username
       const fields = platform === 'instagram' 
-        ? 'name,profile_pic' 
+        ? 'name,username,profile_pic' 
         : 'name,first_name,last_name,profile_pic,picture.type(large)';
       
       let result = await graphClient.request<any>(externalSenderId, plainToken, { fields });
       
-      // Heuristic: If it fails with certain fields, try a safer subset
-      if (result.error && (result.error.includes('profile_pic') || result.error.includes('picture'))) {
+      // Fallback: If it fails with certain fields (e.g. profile_pic requires extra permissions sometimes), 
+      // try a safer subset to at least get the name.
+      if (result.error && (result.error.toLowerCase().includes('profile_pic') || result.error.toLowerCase().includes('picture'))) {
         console.warn(`[MetaProfileService] Avatar fetch failed for ${externalSenderId}, retrying without avatar fields...`);
-        const fallbackFields = platform === 'instagram' ? 'name' : 'name,first_name,last_name';
+        const fallbackFields = platform === 'instagram' ? 'name,username' : 'name,first_name,last_name';
         result = await graphClient.request<any>(externalSenderId, plainToken, { fields: fallbackFields });
       }
 
-      if (result.error || !result.data) {
-        console.warn(`[MetaProfileService] Fetch failed for ${externalSenderId}:`, result.error);
-        return;
-      }
-
       const profile = result.data || {};
+      const error = result.error;
 
-      // 3. Normalize Name and Avatar
-      // Fallback: If Meta fetch fails (e.g. no permission), use "User XXXX" to avoid showing raw IDs in UI
+      // 4. Normalize Name and Avatar
+      // Priority: 
+      // 1. Full name from API
+      // 2. Combined first/last name
+      // 3. Username (Instagram specific)
+      // 4. Fallback "User XXXX"
       const name = profile.name || 
                    (profile.first_name || profile.last_name ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : null) || 
+                   profile.username ||
                    `User ${externalSenderId.slice(-4)}`;
       
       // Avatar resolution order: 
-      // 1. profile_pic (Direct URL - works for both FB/IG messaging profiles)
-      // 2. picture.data.url (FB specific legacy/broad format)
       const avatar = profile.profile_pic || 
                      profile.picture?.data?.url || 
                      null;
 
-      // 4. Update Conversation
+      // 5. Update Conversation
       await db.conversation.update({
         where: { id: conversationId },
         data: {
@@ -77,27 +104,22 @@ export const metaProfileService = {
         }
       });
 
-      if (result.error || !result.data) {
-        console.warn(`[MetaProfileService] Fetch failed for ${externalSenderId}, using fallback name "${name}". Error:`, result.error);
-        // We continue to duplicate detection even with fallback name
+      if (error) {
+        console.warn(`[MetaProfileService] Fetch had issues for ${externalSenderId}, used fallback name "${name}". Error:`, error);
       } else {
-        console.log(`[MetaProfileService] Successfully synced profile for ${name} (${externalSenderId})`);
+        console.log(`[MetaProfileService] Successfully synced profile for ${name} (${externalSenderId}) on ${platform}`);
       }
 
-      // 5. Trigger Duplicate Detection now that we have a name!
-      // This is the most reliable time to link cross-channel identities.
-      const account = await db.platformAccount.findFirst({
-        where: { platform, platform_user_id: externalPageId }
-      });
-      // Actually, we can get workspaceId from the conversation's account
-      const conversation = await db.conversation.findUnique({
+      // 6. Trigger Duplicate Detection & Identity Registration
+      // This is crucial for linking the same person across platforms
+      const convoWithAccount = await db.conversation.findUnique({
         where: { id: conversationId },
         include: { platform_accounts: true }
       });
 
-      if (conversation) {
+      if (convoWithAccount) {
         duplicateDetectionService.detect({
-          workspaceId: conversation.platform_accounts.workspaceId,
+          workspaceId: convoWithAccount.platform_accounts.workspaceId,
           platform,
           externalSenderId,
           conversationId,
@@ -106,7 +128,7 @@ export const metaProfileService = {
         }).catch(err => console.error(`[MetaProfileService] Duplicate detection failed:`, err));
       }
     } catch (err) {
-      console.error(`[MetaProfileService] Unexpected error syncing profile:`, err);
+      console.error(`[MetaProfileService] Unexpected error syncing profile for ${conversationId}:`, err);
     }
-  }
+  },
 };
