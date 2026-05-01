@@ -51,11 +51,12 @@ export async function getUnreadCountsAction(
     };
 
     conversations.forEach(conv => {
-      counts.all += 1;
+      const unreadCount = conv._count.messages;
+      counts.all += unreadCount;
       if (conv.platform_accounts.platform === 'facebook') {
-        counts.facebook += 1;
+        counts.facebook += unreadCount;
       } else if (conv.platform_accounts.platform === 'instagram') {
-        counts.instagram += 1;
+        counts.instagram += unreadCount;
       }
     });
 

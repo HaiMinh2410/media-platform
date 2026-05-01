@@ -117,15 +117,23 @@
 
 .badge {
   position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 10px;
-  height: 10px;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
   background: #ff4757;
-  border-radius: 50%;
-  border: 2px solid var(--surface-primary, #0f0f0f);
+  color: #fff;
+  border-radius: 8px;
+  border: 1.5px solid var(--surface-primary, #0f0f0f);
   z-index: 4;
-  box-shadow: 0 0 8px rgba(255, 71, 87, 0.5);
+  box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4);
+  font-size: 0.625rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .groupName {

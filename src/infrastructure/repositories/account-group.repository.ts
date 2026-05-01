@@ -16,21 +16,34 @@ export class AccountGroupRepository {
         orderBy: { createdAt: 'desc' },
       });
 
-      const mappedGroups: AccountGroup[] = groups.map((g) => ({
-        id: g.id,
-        workspaceId: g.workspace_id,
-        name: g.name,
-        description: g.description,
-        createdAt: g.createdAt,
-        updatedAt: g.updatedAt,
-        members: g.members.map((m) => ({
-          id: m.account.id,
-          workspaceId: m.account.workspaceId,
-          platform: m.account.platform as any,
-          externalId: m.account.platform_user_id,
-          name: m.account.platform_user_name,
-          metadata: m.account.metadata,
-        })),
+      const mappedGroups: AccountGroup[] = await Promise.all(groups.map(async (g) => {
+        // Sum unread messages across all conversations in this group
+        const unreadMessagesCount = await db.message.count({
+          where: {
+            is_read: false,
+            conversation: {
+              account_id: { in: g.members.map(m => m.account_id) }
+            }
+          }
+        });
+
+        return {
+          id: g.id,
+          workspaceId: g.workspace_id,
+          name: g.name,
+          description: g.description,
+          createdAt: g.createdAt,
+          updatedAt: g.updatedAt,
+          unreadCount: unreadMessagesCount,
+          members: g.members.map((m) => ({
+            id: m.account.id,
+            workspaceId: m.account.workspaceId,
+            platform: m.account.platform as any,
+            externalId: m.account.platform_user_id,
+            name: m.account.platform_user_name,
+            metadata: m.account.metadata,
+          })),
+        };
       }));
 
       return { data: mappedGroups, error: null };

@@ -8,6 +8,7 @@ export type AccountGroup = {
   createdAt: Date;
   updatedAt: Date;
   members: PlatformAccount[];
+  unreadCount?: number;
 };
 
 export type AccountGroupMembership = {

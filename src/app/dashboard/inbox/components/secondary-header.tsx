@@ -6,6 +6,7 @@ import { useInboxStore } from '../store/inbox.store';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { Inbox, Zap, ChevronDown, Check, Users } from 'lucide-react';
+import { useUnreadRealtime } from '../hooks/use-unread-realtime';
 
 
 
@@ -39,27 +40,33 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  React.useEffect(() => {
-    if (workspaceId && accountGroups.length === 0) {
-      getAccountGroupsAction(workspaceId).then(res => {
-        if (res.data) setAccountGroups(res.data);
-      });
-    }
-  }, [workspaceId, accountGroups.length, setAccountGroups]);
+
+
+  const fetchCounts = React.useCallback(() => {
+    if (!workspaceId) return;
+    
+    getUnreadCountsAction(workspaceId, selectedGroupId).then(res => {
+      if (res.data) setUnreadCounts(res.data);
+    });
+    
+    getAccountGroupsAction(workspaceId).then(res => {
+      if (res.data) setAccountGroups(res.data);
+    });
+  }, [workspaceId, selectedGroupId, setAccountGroups]);
+
+  // Real-time updates via Supabase
+  useUnreadRealtime({ 
+    workspaceId, 
+    onRefresh: fetchCounts 
+  });
 
   React.useEffect(() => {
     if (workspaceId) {
-      const fetchCounts = () => {
-        getUnreadCountsAction(workspaceId, selectedGroupId).then(res => {
-          if (res.data) setUnreadCounts(res.data);
-        });
-      };
-
       fetchCounts();
-      const interval = setInterval(fetchCounts, 15000); // Refresh every 15s
+      const interval = setInterval(fetchCounts, 15000); // Polling fallback every 15s
       return () => clearInterval(interval);
     }
-  }, [workspaceId, selectedGroupId]);
+  }, [workspaceId, fetchCounts]);
 
   const formatCount = (count: number) => count > 9 ? '9+' : count;
 
@@ -74,12 +81,19 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           >
             {selectedGroup ? (
               <div className={styles.activeSelection}>
-                <CombinedAvatar group={selectedGroup} />
+                <CombinedAvatar group={selectedGroup} unreadCount={selectedGroup.unreadCount} />
                 <span className={styles.triggerName}>{selectedGroup.name}</span>
               </div>
             ) : (
               <div className={styles.activeSelection}>
-                <div className={styles.placeholderIcon}><Users size={14} /></div>
+                <div className={styles.placeholderIcon}>
+                  <Users size={14} />
+                  {unreadCounts.all > 0 && (
+                    <div className={styles.badge}>
+                      {unreadCounts.all > 9 ? '9+' : unreadCounts.all}
+                    </div>
+                  )}
+                </div>
                 <span className={styles.placeholderText}>Tất cả cụm</span>
               </div>
             )}
@@ -96,7 +110,14 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                   setIsOpen(false);
                 }}
               >
-                <div className={styles.placeholderIcon}><Users size={14} /></div>
+                <div className={styles.placeholderIcon}>
+                  <Users size={14} />
+                  {unreadCounts.all > 0 && (
+                    <div className={styles.badge}>
+                      {unreadCounts.all > 9 ? '9+' : unreadCounts.all}
+                    </div>
+                  )}
+                </div>
                 <span className={styles.menuItemName}>Tất cả cụm</span>
                 {!selectedGroupId && <Check size={14} className={styles.checkIcon} />}
               </button>
@@ -113,7 +134,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                     router.push('/dashboard/inbox');
                   }}
                 >
-                  <CombinedAvatar group={group} />
+                  <CombinedAvatar group={group} unreadCount={group.unreadCount} />
                   <span className={styles.menuItemName}>{group.name}</span>
                   {selectedGroupId === group.id && <Check size={14} className={styles.checkIcon} />}
                 </button>
@@ -171,7 +192,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   );
 }
 
-function CombinedAvatar({ group }: { group: AccountGroup }) {
+function CombinedAvatar({ group, unreadCount }: { group: AccountGroup; unreadCount?: number }) {
   const fbAccount = group.members.find(m => m.platform === 'facebook');
   const igAccount = group.members.find(m => m.platform === 'instagram');
 
@@ -196,7 +217,11 @@ function CombinedAvatar({ group }: { group: AccountGroup }) {
     <div className={styles.avatarGroup}>
       {fbAccount && renderAvatar(fbAccount)}
       {igAccount && renderAvatar(igAccount, true)}
-      <div className={styles.badge} />
+      {unreadCount !== undefined && unreadCount > 0 && (
+        <div className={styles.badge}>
+          {unreadCount > 9 ? '9+' : unreadCount}
+        </div>
+      )}
     </div>
   );
 }
