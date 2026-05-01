@@ -127,6 +127,21 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
     });
   }, []);
 
+  // Realtime: handle message updates (like read status)
+  const handleUpdateMessage = useCallback((updated: any) => {
+    setMessages(prev => prev.map(m => {
+      if (m.id === updated.id) {
+        return {
+          ...m,
+          // Support both camelCase and snake_case from DB/Realtime
+          is_read: updated.is_read ?? updated.isRead ?? m.is_read,
+          is_delivered: updated.is_delivered ?? updated.isDelivered ?? m.is_delivered,
+        };
+      }
+      return m;
+    }));
+  }, []);
+
   // Expose addMessage to parent so ReplyBox can trigger optimistic updates
   useImperativeHandle(ref, () => ({
     addMessage: (message: MessageWithSender) => {
@@ -134,7 +149,11 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
     }
   }), [handleNewMessage]);
 
-  useMessageRealtime({ conversationId, onNewMessage: handleNewMessage });
+  useMessageRealtime({ 
+    conversationId, 
+    onNewMessage: handleNewMessage,
+    onMessageUpdate: handleUpdateMessage 
+  });
 
   return (
     <div className={styles.messagesArea} ref={scrollRef}>

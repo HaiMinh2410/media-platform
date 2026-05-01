@@ -51,6 +51,7 @@ export class WebhookIngestionService {
           return queueService.enqueueWebhookProcessing({
             webhookEventId: dbEvent.id,
             platform: event.platform,
+            eventType: event.eventType,
             externalSenderId: event.externalSenderId,
             externalPageId: event.externalPageId,
             platformMessageId: event.platformMessageId,

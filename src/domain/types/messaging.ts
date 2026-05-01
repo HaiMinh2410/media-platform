@@ -130,6 +130,8 @@ export type MessageWithSender = {
   senderId: string;
   senderType: 'user' | 'agent' | 'ai';
   createdAt: Date;
+  is_read?: boolean;
+  is_delivered?: boolean;
 };
 
 /**

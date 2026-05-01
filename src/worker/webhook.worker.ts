@@ -1,7 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { redisConnection } from '@/infrastructure/queue/bullmq.provider';
 import { QueueName, WebhookJobPayload } from '@/domain/types/queue';
-import { idempotentPersistMessage } from '@/infrastructure/repositories/message.repository';
+import { idempotentPersistMessage, markAsRead, markAsDelivered } from '@/infrastructure/repositories/message.repository';
 import { classifyService } from '@/application/ai/classify.service';
 import { generateService } from '@/application/ai/generate.service';
 import { metaSendService } from '@/application/services/meta-send.service';
@@ -34,13 +34,45 @@ function createWebhookWorker() {
   const worker = new Worker<WebhookJobPayload>(
     QueueName.WEBHOOK_EVENTS,
     async (job: Job<WebhookJobPayload>) => {
-      const { webhookEventId, platform, externalSenderId, externalPageId, platformMessageId, timestamp } = job.data;
+      const { webhookEventId, platform, eventType, externalSenderId, externalPageId, platformMessageId, timestamp } = job.data;
       const messageText = job.data.messageText || '';
 
-      console.log(`[Worker] [${job.id}] Processing event ${webhookEventId} from ${platform}`);
+      console.log(`[Worker] [${job.id}] Processing ${eventType} event ${webhookEventId} from ${platform}`);
 
       try {
-        // --- 1. Persist Incoming Message ---
+        // --- Handle Read Receipt ---
+        if (eventType === 'read') {
+          let watermark = new Date(timestamp);
+          try {
+            const parsed = JSON.parse(messageText);
+            if (parsed.watermark) watermark = new Date(parsed.watermark);
+          } catch (e) {}
+
+          await markAsRead(platform, externalPageId, externalSenderId, watermark);
+          console.log(`[Worker] [${job.id}] Processed read receipt up to ${watermark.toISOString()}`);
+          return { status: 'success_read', eventId: webhookEventId };
+        }
+
+        // --- Handle Delivery Receipt ---
+        if (eventType === 'delivery') {
+          let watermark = new Date(timestamp);
+          try {
+            const parsed = JSON.parse(messageText);
+            if (parsed.watermark) watermark = new Date(parsed.watermark);
+          } catch (e) {}
+
+          await markAsDelivered(platform, externalPageId, externalSenderId, watermark);
+          console.log(`[Worker] [${job.id}] Processed delivery receipt up to ${watermark.toISOString()}`);
+          return { status: 'success_delivery', eventId: webhookEventId };
+        }
+
+        // --- Handle Other Events (safeguard) ---
+        if (eventType === 'other' && !messageText.trim()) {
+          console.log(`[Worker] [${job.id}] Ignoring empty 'other' event.`);
+          return { status: 'ignored_other_empty', eventId: webhookEventId };
+        }
+
+        // --- Handle Standard Message ---
         const { data: persistResult, error: persistErr } = await idempotentPersistMessage({
           platform,
           externalPageId,

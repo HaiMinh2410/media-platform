@@ -4,12 +4,17 @@
 
 export type WebhookPlatform = 'meta' | 'tiktok' | 'whatsapp' | 'facebook' | 'instagram' | 'other';
 
+export type WebhookEventType = 'message' | 'read' | 'delivery' | 'other';
+
 /**
  * Represents a normalized webhook event after being parsed from platform-specific payloads.
  */
 export interface ParsedWebhookEvent {
   /** The platform that sent the webhook */
   platform: WebhookPlatform;
+
+  /** The type of event (message, read receipt, etc.) */
+  eventType: WebhookEventType;
 
   /** The ID of the user who sent the message (from the platform's perspective) */
   externalSenderId: string;

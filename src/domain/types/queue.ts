@@ -1,4 +1,4 @@
-import { WebhookPlatform } from './webhooks';
+import { WebhookPlatform, WebhookEventType } from './webhooks';
 
 /**
  * Payload for a webhook processing job in the queue.
@@ -10,6 +10,9 @@ export interface WebhookJobPayload {
   
   /** The platform source */
   platform: WebhookPlatform;
+
+  /** The type of event (message, read receipt, etc.) */
+  eventType: WebhookEventType;
   
   /** The platform's internal ID for the sender */
   externalSenderId: string;

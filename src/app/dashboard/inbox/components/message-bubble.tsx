@@ -20,17 +20,27 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
 
   return (
     <div className={`${styles.messageRow} ${rowClass}`}>
-      <div className={`${styles.bubble} ${bubbleClass}`}>
-        {isAi && (
-          <div className={styles.aiBadge}>
-            <Sparkles size={12} className="text-purple-400" />
-            <span>AI Auto-Reply</span>
+      <div className={styles.bubbleContainer}>
+        <div className={`${styles.bubble} ${bubbleClass}`}>
+          {isAi && (
+            <div className={styles.aiBadge}>
+              <Sparkles size={12} className="text-purple-400" />
+              <span>AI Auto-Reply</span>
+            </div>
+          )}
+          <div className={styles.messageContent}>
+            {message.content}
           </div>
-        )}
-        <div className={styles.messageContent}>
-          {message.content}
         </div>
-        <div className={styles.messageTime}>{timeString}</div>
+
+        <div className={styles.messageMeta}>
+          <span className={styles.messageTime}>{timeString}</span>
+          {(isAi || isAgent) && (
+            <span className={styles.messageStatus}>
+              {message.is_read ? 'Đã xem' : (message.is_delivered ? 'Đã gửi' : 'Đang gửi...')}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

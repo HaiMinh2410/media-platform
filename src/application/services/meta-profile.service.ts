@@ -17,19 +17,18 @@ export const metaProfileService = {
     externalPageId: string;
     encryptedToken?: string; // Optional: will try to resolve from DB if missing
   }) {
-    const { conversationId, platform, externalSenderId, externalPageId } = params;
+    const { conversationId, externalSenderId, externalPageId } = params;
+    const platform = params.platform === 'messenger' ? 'facebook' : params.platform;
     let encryptedToken = params.encryptedToken;
 
     try {
-      // 1. Resolve Token if missing (common for Instagram accounts linked to FB)
+      // 1. Resolve Token if missing or for better permissions
       if (!encryptedToken) {
-        let tokenRecord = await db.meta_tokens.findFirst({
-          where: { platform_accounts: { platform, platform_user_id: externalPageId } },
-          orderBy: { updated_at: 'desc' }
-        });
+        let tokenRecord = null;
 
-        // Fallback for Instagram: Try to find token from the linked Facebook Page
-        if (!tokenRecord && platform === 'instagram') {
+        if (platform === 'instagram') {
+          // For Instagram: Always prefer the linked Facebook Page token if available
+          // as it typically carries the 'instagram_manage_messages' permission.
           const linkedFbAccount = await db.platformAccount.findFirst({
             where: {
               platform: 'facebook',
@@ -38,6 +37,20 @@ export const metaProfileService = {
             include: { meta_tokens: { orderBy: { updated_at: 'desc' }, take: 1 } }
           });
           tokenRecord = linkedFbAccount?.meta_tokens[0] || null;
+
+          // Fallback to Instagram's own token if no linked FB page found
+          if (!tokenRecord) {
+            tokenRecord = await db.meta_tokens.findFirst({
+              where: { platform_accounts: { platform: 'instagram', platform_user_id: externalPageId } },
+              orderBy: { updated_at: 'desc' }
+            });
+          }
+        } else {
+          // For Facebook/Messenger: Get the page access token
+          tokenRecord = await db.meta_tokens.findFirst({
+            where: { platform_accounts: { platform: 'facebook', platform_user_id: externalPageId } },
+            orderBy: { updated_at: 'desc' }
+          });
         }
 
         if (!tokenRecord) {
@@ -59,20 +72,28 @@ export const metaProfileService = {
       // 3. Fetch profile from Meta
       const graphClient = getMetaGraphClient();
       
+      // Prevent syncing if the sender is the page itself (rare but possible in some webhook configurations)
+      if (externalSenderId === externalPageId) {
+        console.log(`[MetaProfileService] Sender is the page itself (${externalPageId}). Skipping profile sync.`);
+        return;
+      }
+
       // Fields for profile fetch:
-      // Facebook (PSID): first_name, last_name, name, profile_pic
+      // Facebook (PSID): first_name, last_name, profile_pic (sometimes), picture
       // Instagram (IGSID): name, profile_pic, username
+      // Note: 'name' is often restricted for Facebook PSIDs, prefer first/last name.
       const fields = platform === 'instagram' 
         ? 'name,username,profile_pic' 
-        : 'name,first_name,last_name,profile_pic,picture.type(large)';
+        : 'first_name,last_name,picture.type(large)';
       
       let result = await graphClient.request<any>(externalSenderId, plainToken, { fields });
       
-      // Fallback: If it fails with certain fields (e.g. profile_pic requires extra permissions sometimes), 
-      // try a safer subset to at least get the name.
-      if (result.error && (result.error.toLowerCase().includes('profile_pic') || result.error.toLowerCase().includes('picture'))) {
-        console.warn(`[MetaProfileService] Avatar fetch failed for ${externalSenderId}, retrying without avatar fields...`);
-        const fallbackFields = platform === 'instagram' ? 'name,username' : 'name,first_name,last_name';
+      // Fallback: If it fails with certain fields, try a safer subset.
+      if (result.error) {
+        console.warn(`[MetaProfileService] Primary profile fetch failed for ${externalSenderId} on ${platform}:`, result.error);
+        
+        // Retry with minimal fields (just name or first/last name)
+        const fallbackFields = platform === 'instagram' ? 'name,username' : 'first_name,last_name';
         result = await graphClient.request<any>(externalSenderId, plainToken, { fields: fallbackFields });
       }
 
@@ -80,19 +101,23 @@ export const metaProfileService = {
       const error = result.error;
 
       // 4. Normalize Name and Avatar
-      // Priority: 
-      // 1. Full name from API
-      // 2. Combined first/last name
+      // Priority for Name:
+      // 1. Combined first/last name (especially for Facebook)
+      // 2. Full name from API (if provided)
       // 3. Username (Instagram specific)
       // 4. Fallback "User XXXX"
-      const name = profile.name || 
-                   (profile.first_name || profile.last_name ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : null) || 
+      const combinedName = (profile.first_name || profile.last_name) 
+        ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() 
+        : null;
+      
+      const name = combinedName || 
+                   profile.name || 
                    profile.username ||
                    `User ${externalSenderId.slice(-4)}`;
       
       // Avatar resolution order: 
-      const avatar = profile.profile_pic || 
-                     profile.picture?.data?.url || 
+      const avatar = profile.picture?.data?.url || 
+                     profile.profile_pic || 
                      null;
 
       // 5. Update Conversation

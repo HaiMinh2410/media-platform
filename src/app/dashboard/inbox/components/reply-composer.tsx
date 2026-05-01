@@ -113,6 +113,7 @@ export function ReplyComposer({
             senderId: 'agent',
             senderType: 'agent',
             createdAt: new Date(),
+            is_delivered: true,
           });
         }
       } else {

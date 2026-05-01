@@ -10,7 +10,7 @@ import {
  * Base URL: https://graph.facebook.com/v19.0
  */
 export class MetaGraphClient {
-  private readonly baseUrl = 'https://graph.facebook.com/v19.0';
+  private readonly baseUrl = 'https://graph.facebook.com/v25.0';
   private readonly appId: string;
   private readonly appSecret: string;
 

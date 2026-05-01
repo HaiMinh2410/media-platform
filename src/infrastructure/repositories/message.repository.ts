@@ -121,15 +121,99 @@ export async function idempotentPersistMessage(
 }
 
 /**
+ * Marks messages in a conversation as read up to a certain timestamp (watermark).
+ */
+export async function markAsRead(
+  platform: string,
+  externalPageId: string,
+  externalSenderId: string,
+  watermark: Date
+): Promise<{ error: string | null }> {
+  try {
+    // Find the conversation first
+    const account = await db.platformAccount.findFirst({
+      where: { platform, platform_user_id: externalPageId },
+      select: { id: true }
+    });
+
+    if (!account) return { error: 'Account not found' };
+
+    const conversation = await db.conversation.findFirst({
+      where: { account_id: account.id, platform_conversation_id: externalSenderId },
+      select: { id: true }
+    });
+
+    if (!conversation) return { error: 'Conversation not found' };
+
+    // Update all outgoing messages sent before or at the watermark
+    await db.message.updateMany({
+      where: {
+        conversationId: conversation.id,
+        senderType: { in: ['ai', 'agent'] },
+        createdAt: { lte: watermark },
+        is_read: false
+      },
+      data: { is_read: true, is_delivered: true }
+    });
+
+    return { error: null };
+  } catch (error: any) {
+    console.error('❌ [MessageRepository] Error marking as read:', error);
+    return { error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * Marks messages in a conversation as delivered up to a certain timestamp (watermark).
+ */
+export async function markAsDelivered(
+  platform: string,
+  externalPageId: string,
+  externalSenderId: string,
+  watermark: Date
+): Promise<{ error: string | null }> {
+  try {
+    const account = await db.platformAccount.findFirst({
+      where: { platform, platform_user_id: externalPageId },
+      select: { id: true }
+    });
+
+    if (!account) return { error: 'Account not found' };
+
+    const conversation = await db.conversation.findFirst({
+      where: { account_id: account.id, platform_conversation_id: externalSenderId },
+      select: { id: true }
+    });
+
+    if (!conversation) return { error: 'Conversation not found' };
+
+    await db.message.updateMany({
+      where: {
+        conversationId: conversation.id,
+        senderType: { in: ['ai', 'agent'] },
+        createdAt: { lte: watermark },
+        is_delivered: false
+      },
+      data: { is_delivered: true }
+    });
+
+    return { error: null };
+  } catch (error: any) {
+    console.error('❌ [MessageRepository] Error marking as delivered:', error);
+    return { error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
  * Fetches message history for a specific conversation with cursor-based pagination.
  */
 export async function getMessages(
   conversationId: string,
   pagination: PaginationParams
-): Promise<{ 
-  data: MessageWithSender[] | null; 
-  nextCursor: string | null; 
-  error: string | null 
+): Promise<{
+  data: MessageWithSender[] | null;
+  nextCursor: string | null;
+  error: string | null
 }> {
   try {
     const limit = pagination.limit || 50;
@@ -154,7 +238,9 @@ export async function getMessages(
       content: m.content,
       senderId: m.senderId,
       senderType: (m.senderType as any) || 'user',
-      createdAt: m.createdAt
+      createdAt: m.createdAt,
+      is_read: m.is_read,
+      is_delivered: (m as any).is_delivered || false,
     }));
 
     return { data: formatted, nextCursor, error: null };
@@ -170,10 +256,10 @@ export async function getMessages(
 export async function getUnifiedHistory(
   identityId: string,
   pagination: PaginationParams
-): Promise<{ 
-  data: MessageWithSender[] | null; 
-  nextCursor: string | null; 
-  error: string | null 
+): Promise<{
+  data: MessageWithSender[] | null;
+  nextCursor: string | null;
+  error: string | null
 }> {
   try {
     const limit = pagination.limit || 50;
@@ -204,7 +290,9 @@ export async function getUnifiedHistory(
       content: m.content,
       senderId: m.senderId,
       senderType: (m.senderType as any) || 'user',
-      createdAt: m.createdAt
+      createdAt: m.createdAt,
+      is_read: m.is_read,
+      is_delivered: (m as any).is_delivered || false,
     }));
 
     return { data: formatted, nextCursor, error: null };

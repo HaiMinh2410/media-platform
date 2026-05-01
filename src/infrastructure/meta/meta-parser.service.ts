@@ -29,7 +29,7 @@ export class MetaParserService {
     for (const entry of payload.entry) {
       const pageId = entry.id; // The ID of the Page or IG account
 
-      // Handle 'messaging' events (standard messages, postbacks, etc.)
+      // Handle 'messaging' events (standard messages, postbacks, reads, deliveries)
       if (entry.messaging && Array.isArray(entry.messaging)) {
         for (const msg of entry.messaging) {
           // Skip echo messages (replies sent by the bot/page itself)
@@ -37,16 +37,34 @@ export class MetaParserService {
             continue;
           }
 
+          let eventType: any = 'other';
+          let messageText = null;
+          let platformMessageId = `evt_${entry.time || Date.now()}_${msg.sender?.id || 'unknown'}`;
+
+          if (msg.read) {
+            eventType = 'read';
+            messageText = JSON.stringify({ watermark: msg.read.watermark });
+          } else if (msg.delivery) {
+            eventType = 'delivery';
+            messageText = JSON.stringify({
+              watermark: msg.delivery.watermark,
+              mids: msg.delivery.mids
+            });
+          } else if (msg.message?.text || msg.postback?.title) {
+            eventType = 'message';
+            messageText = msg.message?.text || msg.postback?.title || null;
+            platformMessageId = msg.message?.mid || platformMessageId;
+          }
+
           events.push({
-            platform: payload.object === 'instagram' ? 'instagram' : 'facebook',
-            externalSenderId: msg.sender.id,
+            platform: payload.object === 'instagram' ? 'instagram' : 'messenger',
+            eventType,
+            externalSenderId: msg.sender?.id || pageId, // Fallback to pageId if sender is missing (rare)
             externalPageId: pageId,
-            platformMessageId: msg.message?.mid || `evt_${entry.time}_${msg.sender.id}`,
-            // Capture text or postback title as primary message text
-            messageText: msg.message?.text || msg.postback?.title || null,
+            platformMessageId,
+            messageText,
             rawPayload: payload,
             headers: headers,
-            // Meta timestamps are in milliseconds
             receivedAt: this.parseTimestamp(msg.timestamp || entry.time),
           });
         }

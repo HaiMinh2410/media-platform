@@ -8,6 +8,8 @@ type UseMessageRealtimeOptions = {
   conversationId: string;
   /** Called when a new message arrives. */
   onNewMessage: (message: MessageWithSender) => void;
+  /** Called when an existing message is updated (e.g. read status). */
+  onMessageUpdate: (message: MessageWithSender) => void;
 };
 
 /**
@@ -17,11 +19,15 @@ type UseMessageRealtimeOptions = {
 export function useMessageRealtime({
   conversationId,
   onNewMessage,
+  onMessageUpdate,
 }: UseMessageRealtimeOptions): void {
   const onNewMessageRef = useRef(onNewMessage);
+  const onMessageUpdateRef = useRef(onMessageUpdate);
+
   useEffect(() => {
     onNewMessageRef.current = onNewMessage;
-  }, [onNewMessage]);
+    onMessageUpdateRef.current = onMessageUpdate;
+  }, [onNewMessage, onMessageUpdate]);
 
   useEffect(() => {
     if (!conversationId) return;
@@ -43,15 +49,34 @@ export function useMessageRealtime({
           const incomingConvId = row.conversation_id || row.conversationId;
           if (incomingConvId !== conversationId) return;
 
+          console.log('[Realtime] New message:', row.id);
+
           const message: MessageWithSender = {
             id: row.id,
             content: row.content,
-            senderId: row.sender_id,
-            senderType: (row.sender_type as MessageWithSender['senderType']) ?? 'user',
-            createdAt: new Date(row.created_at),
+            senderId: row.sender_id || row.senderId,
+            senderType: (row.sender_type || row.senderType) as MessageWithSender['senderType'] ?? 'user',
+            createdAt: new Date(row.created_at || row.createdAt),
+            is_read: row.is_read ?? false,
+            is_delivered: row.is_delivered ?? false,
           };
 
           onNewMessageRef.current(message);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const row = payload.new as any;
+          if (!row.id) return;
+
+          console.log('[Realtime] Message update received:', row.id, row);
+          onMessageUpdateRef.current(row);
         }
       )
       .subscribe();
