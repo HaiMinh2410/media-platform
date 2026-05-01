@@ -12,7 +12,7 @@ async function main() {
   const accountsCount = await db.platformAccount.count();
 
   const allAccounts = await db.platformAccount.findMany();
-  console.log('All Accounts:', allAccounts.map(a => ({ id: a.id, platform: a.platform, name: a.platform_user_name })));
+  console.log('All Accounts:', JSON.stringify(allAccounts, null, 2));
 
   console.log({ groupsCount, membersCount, accountsCount });
 
