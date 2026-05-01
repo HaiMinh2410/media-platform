@@ -10,6 +10,7 @@ import { Inbox, Zap, ChevronDown, Check, Users } from 'lucide-react';
 
 
 import { getAccountGroupsAction } from '@/application/actions/account-group.actions';
+import { getUnreadCountsAction, UnreadCounts } from '@/application/actions/unread-counts.actions';
 import { AccountGroup } from '@/domain/types/account-group';
 
 export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
@@ -23,6 +24,8 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const [unreadCounts, setUnreadCounts] = React.useState<UnreadCounts>({ all: 0, facebook: 0, instagram: 0 });
 
   const selectedGroup = accountGroups.find(g => g.id === selectedGroupId);
 
@@ -44,16 +47,25 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
     }
   }, [workspaceId, accountGroups.length, setAccountGroups]);
 
+  React.useEffect(() => {
+    if (workspaceId) {
+      const fetchCounts = () => {
+        getUnreadCountsAction(workspaceId, selectedGroupId).then(res => {
+          if (res.data) setUnreadCounts(res.data);
+        });
+      };
+
+      fetchCounts();
+      const interval = setInterval(fetchCounts, 15000); // Refresh every 15s
+      return () => clearInterval(interval);
+    }
+  }, [workspaceId, selectedGroupId]);
+
+  const formatCount = (count: number) => count > 9 ? '9+' : count;
+
   return (
     <div className={styles.container}>
       <div className={styles.tabs}>
-        <button 
-          className={clsx(styles.tab, !selectedGroupId && styles.active)}
-          onClick={() => { setGroupId(null); router.push('/dashboard/inbox'); }}
-        >
-          <Inbox size={16} className={styles.icon} />
-          <span>Tất cả tin nhắn</span>
-        </button>
 
         <div className={styles.dropdownContainer} ref={dropdownRef}>
           <button 
@@ -68,7 +80,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
             ) : (
               <div className={styles.activeSelection}>
                 <div className={styles.placeholderIcon}><Users size={14} /></div>
-                <span className={styles.placeholderText}>Cụm tài khoản</span>
+                <span className={styles.placeholderText}>Tất cả cụm</span>
               </div>
             )}
             <ChevronDown size={14} className={clsx(styles.chevron, isOpen && styles.chevronOpen)} />
@@ -77,6 +89,20 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           {isOpen && (
             <div className={styles.dropdownMenu}>
               <div className={styles.menuHeader}>Chọn cụm tài khoản</div>
+              <button 
+                className={clsx(styles.menuItem, !selectedGroupId && styles.activeItem)}
+                onClick={() => {
+                  setGroupId(null);
+                  setIsOpen(false);
+                }}
+              >
+                <div className={styles.placeholderIcon}><Users size={14} /></div>
+                <span className={styles.menuItemName}>Tất cả cụm</span>
+                {!selectedGroupId && <Check size={14} className={styles.checkIcon} />}
+              </button>
+
+              <div className={styles.menuDivider} />
+
               {accountGroups.map(group => (
                 <button 
                   key={group.id}
@@ -96,7 +122,6 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           )}
         </div>
 
-        <div className={styles.divider} />
 
         <button 
           className={clsx(styles.tab, styles.flowTab, viewMode === 'daily_flow' && styles.active)}
@@ -108,17 +133,25 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
       </div>
 
       <div className={styles.filters}>
-        <div className={styles.filterGroup}>
-          <select 
-            className={styles.filterSelect}
-            value={platform}
-            onChange={(e) => setPlatform(e.target.value as any)}
+        <div className={styles.platformButtons}>
+          <button 
+            className={clsx(styles.platformBtn, platform === 'all' && styles.activePlatform)}
+            onClick={() => setPlatform('all')}
           >
-            <option value="all">All Platforms</option>
-            <option value="facebook">Facebook Pages</option>
-            <option value="instagram">Instagram</option>
-            <option value="tiktok">TikTok</option>
-          </select>
+            Tất cả {unreadCounts.all > 0 && <span className={styles.countBadge}>{formatCount(unreadCounts.all)}</span>}
+          </button>
+          <button 
+            className={clsx(styles.platformBtn, platform === 'facebook' && styles.activePlatform)}
+            onClick={() => setPlatform('facebook')}
+          >
+            Messenger {unreadCounts.facebook > 0 && <span className={styles.countBadge}>{formatCount(unreadCounts.facebook)}</span>}
+          </button>
+          <button 
+            className={clsx(styles.platformBtn, platform === 'instagram' && styles.activePlatform)}
+            onClick={() => setPlatform('instagram')}
+          >
+            Instagram {unreadCounts.instagram > 0 && <span className={styles.countBadge}>{formatCount(unreadCounts.instagram)}</span>}
+          </button>
         </div>
         
         <div className={styles.filterGroup}>
