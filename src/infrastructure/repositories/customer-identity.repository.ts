@@ -57,6 +57,8 @@ export async function checkAndRegisterIdentity(
         const linkedConversationIds = existingMapping.identity.platform_mappings.map(
           (m) => m.conversation_id
         );
+        // Cross-channel = sender appears on DIFFERENT platform types (e.g. instagram + facebook)
+        // Same platform (e.g. instagram + instagram) is NOT cross-channel — just same user on 2 accounts
         const isCrossChannelMatch =
           existingMapping.identity.platform_mappings.some(
             (m) => normalizePlatform(m.platform) !== normalizedPlatform
@@ -73,7 +75,7 @@ export async function checkAndRegisterIdentity(
             (a, b) => a.created_at.getTime() - b.created_at.getTime()
           )[0]?.conversation_id ?? input.conversationId;
 
-        // If this conversation is a cross-channel duplicate, tag it
+        // Only hide as duplicate if it's truly cross-PLATFORM (not just cross-account on same platform)
         if (isCrossChannelMatch && canonicalConversationId !== input.conversationId) {
           await tx.conversation.update({
             where: { id: input.conversationId },
