@@ -68,6 +68,20 @@ async function main() {
     try {
       const encryptedToken = encryptToken(page.access_token);
 
+      // 1a. Discover linked Instagram account if any
+      let instagramId: string | null = null;
+      try {
+        const igUrl = `https://graph.facebook.com/v25.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`;
+        const igRes = await fetch(igUrl);
+        const igJson = await igRes.json() as any;
+        instagramId = igJson.instagram_business_account?.id || null;
+        if (instagramId) {
+          console.log(`  📸 Tìm thấy IG account linked: ${instagramId}`);
+        }
+      } catch (igErr) {
+        console.warn(`  ⚠️ Không thể lấy thông tin Instagram cho page ${page.id}:`, igErr);
+      }
+
       await db.$transaction(async (tx) => {
         // 2a. Upsert platform_account
         const account = await tx.platformAccount.upsert({
@@ -81,7 +95,10 @@ async function main() {
             platform_user_name: page.name,
             workspaceId: workspace.id,
             disconnected_at: null,
-            metadata: { category: page.category },
+            metadata: { 
+              category: page.category,
+              instagram_id: instagramId 
+            },
           },
           create: {
             workspaceId: workspace.id,
@@ -89,7 +106,10 @@ async function main() {
             platform: 'facebook',
             platform_user_id: page.id,
             platform_user_name: page.name,
-            metadata: { category: page.category },
+            metadata: { 
+              category: page.category,
+              instagram_id: instagramId 
+            },
           },
         });
 
