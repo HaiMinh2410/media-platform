@@ -5,13 +5,13 @@ import styles from './secondary-header.module.css';
 import { useInboxStore } from '../store/inbox.store';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { Inbox, Zap, ChevronDown, Check, Users, Plus } from 'lucide-react';
+import { Inbox, Zap, ChevronDown, Check, Users, Plus, MoreHorizontal, Trash2, Edit2, X as CloseIcon } from 'lucide-react';
 import { CreateClusterModal } from './modals/create-cluster-modal';
 import { useUnreadRealtime } from '../hooks/use-unread-realtime';
 
 
 
-import { getAccountGroupsAction } from '@/application/actions/account-group.actions';
+import { getAccountGroupsAction, deleteAccountGroupAction } from '@/application/actions/account-group.actions';
 import { getUnreadCountsAction, UnreadCounts } from '@/application/actions/unread-counts.actions';
 import { AccountGroup } from '@/domain/types/account-group';
 
@@ -26,6 +26,9 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = React.useState(false);
   const [showCreateModal, setShowCreateModal] = React.useState(false);
+  const [showManagementMenu, setShowManagementMenu] = React.useState(false);
+  const [isSelectionMode, setIsSelectionMode] = React.useState(false);
+  const [selectedIdsForAction, setSelectedIdsForAction] = React.useState<string[]>([]);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const [unreadCounts, setUnreadCounts] = React.useState<UnreadCounts>({ all: 0, facebook: 0, instagram: 0 });
@@ -101,18 +104,72 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           {isOpen && (
             <div className={styles.dropdownMenu}>
               <div className={styles.menuHeader}>
-                <span>Chọn cụm tài khoản</span>
-                <button 
-                  className={styles.addClusterBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowCreateModal(true);
-                    setIsOpen(false);
-                  }}
-                  title="Tạo cụm mới"
-                >
-                  <Plus size={14} />
-                </button>
+                <span>{isSelectionMode ? `Đã chọn ${selectedIdsForAction.length}` : 'Chọn cụm tài khoản'}</span>
+                
+                {!isSelectionMode ? (
+                  <div className={styles.headerActions}>
+                    <button 
+                      className={styles.iconBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowManagementMenu(!showManagementMenu);
+                      }}
+                    >
+                      <MoreHorizontal size={14} />
+                    </button>
+
+                    {showManagementMenu && (
+                      <div className={styles.managementPopup}>
+                        <button onClick={(e) => {
+                          e.stopPropagation();
+                          setShowCreateModal(true);
+                          setShowManagementMenu(false);
+                          setIsOpen(false);
+                        }}>
+                          <Plus size={14} /> Thêm cụm mới
+                        </button>
+                        <button onClick={(e) => {
+                          e.stopPropagation();
+                          setIsSelectionMode(true);
+                          setShowManagementMenu(false);
+                        }}>
+                          <Check size={14} /> Quản lý cụm
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className={styles.headerActions}>
+                    <button 
+                      className={clsx(styles.actionBtn, styles.deleteBtn)}
+                      disabled={selectedIdsForAction.length === 0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Xóa ${selectedIdsForAction.length} cụm đã chọn?`)) {
+                          // Handle bulk delete
+                          Promise.all(selectedIdsForAction.map(id => deleteAccountGroupAction(id)))
+                            .then(() => {
+                              fetchCounts();
+                              setIsSelectionMode(false);
+                              setSelectedIdsForAction([]);
+                            });
+                        }
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    <button 
+                      className={styles.actionBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsSelectionMode(false);
+                        setSelectedIdsForAction([]);
+                      }}
+                    >
+                      Xong
+                    </button>
+                  </div>
+                )}
               </div>
               <button 
                 className={clsx(styles.menuItem, !selectedGroupId && styles.activeItem)}
@@ -132,22 +189,48 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
 
               <div className={styles.menuDivider} />
 
-              {accountGroups.map(group => (
-                <button 
-                  key={group.id}
-                  className={clsx(styles.menuItem, selectedGroupId === group.id && styles.activeItem)}
-                  onClick={() => {
-                    setGroupId(group.id);
-                    setIsOpen(false);
-                    setViewMode('all');
-                    router.push('/dashboard/inbox');
-                  }}
-                >
-                  <CombinedAvatar group={group} unreadCount={group.unreadCount} />
-                  <span className={styles.menuItemName}>{group.name}</span>
-                  {selectedGroupId === group.id && <Check size={14} className={styles.checkIcon} />}
-                </button>
-              ))}
+              {accountGroups.map(group => {
+                const isSelected = selectedIdsForAction.includes(group.id);
+                return (
+                  <button 
+                    key={group.id}
+                    className={clsx(
+                      styles.menuItem, 
+                      selectedGroupId === group.id && !isSelectionMode && styles.activeItem,
+                      isSelectionMode && isSelected && styles.selectedItem
+                    )}
+                    onClick={() => {
+                      if (isSelectionMode) {
+                        setSelectedIdsForAction(prev => 
+                          isSelected ? prev.filter(id => id !== group.id) : [...prev, group.id]
+                        );
+                      } else {
+                        setGroupId(group.id);
+                        setIsOpen(false);
+                        setViewMode('all');
+                        router.push('/dashboard/inbox');
+                      }
+                    }}
+                  >
+                    {isSelectionMode && (
+                      <div className={clsx(styles.checkbox, isSelected && styles.checkboxChecked)}>
+                        {isSelected && <Check size={10} color="#fff" />}
+                      </div>
+                    )}
+                    <CombinedAvatar group={group} unreadCount={group.unreadCount} />
+                    <span className={styles.menuItemName}>{group.name}</span>
+                    {!isSelectionMode && selectedGroupId === group.id && <Check size={14} className={styles.checkIcon} />}
+                    {isSelectionMode && selectedIdsForAction.length === 1 && isSelected && (
+                      <button className={styles.editBtn} onClick={(e) => {
+                        e.stopPropagation();
+                        alert('Tính năng Sửa đang được phát triển');
+                      }}>
+                        <Edit2 size={12} />
+                      </button>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
