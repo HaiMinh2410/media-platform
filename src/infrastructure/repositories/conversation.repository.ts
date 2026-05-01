@@ -179,12 +179,10 @@ export async function getConversationWithAccount(
     let latestToken = account.meta_tokens[0] ?? null;
     let effectivePageId = account.platform_user_id;
 
-    // Preference: Instagram Messaging REQUIRES a Facebook Page Access Token and Page ID.
-    // If the account is Instagram AND has no token itself, look for the linked Facebook Page.
-    // IMPORTANT: We look for a FB page that's linked to this specific IG account via metadata,
-    // NOT just any random facebook page in the workspace.
-    if (account.platform === 'instagram' && !latestToken) {
-      // Strategy: Find a Facebook page in the same workspace that has metadata.instagram_id matching this account
+    // Preference: Instagram Messaging REQUIRES a Facebook Page Access Token.
+    // The send URL is /{ig-account-id}/messages but the token comes from the linked FB Page.
+    if (account.platform === 'instagram') {
+      // Strategy 1: Find FB page that has metadata.instagram_id matching this IG account
       const linkedFbToken = await db.meta_tokens.findFirst({
         where: {
           platform_accounts: {
@@ -201,14 +199,19 @@ export async function getConversationWithAccount(
       });
 
       if (linkedFbToken) {
+        // Use IG account ID as pageId (for the send URL), but use FB page token for auth
         latestToken = linkedFbToken;
-        effectivePageId = linkedFbToken.platform_accounts.platform_user_id;
-        console.log(`[Repository] Using linked Facebook Page (${effectivePageId}) for Instagram account ${account.id}`);
+        effectivePageId = account.platform_user_id; // Keep IG ID — not the FB page ID!
+        console.log(`[Repository] IG linked FB page found → using FB token for IG account ${account.platform_user_id}`);
+      } else if (!latestToken) {
+        // Strategy 2: IG account has its own token stored directly (could be an FB Page token saved against IG)
+        console.log(`[Repository] IG account ${account.platform_user_id}: no linked FB page found, using own token`);
+        // effectivePageId stays as account.platform_user_id (IG ID) — correct for send URL
       }
     }
 
-    // Secondary Fallback: Any Meta-compatible token in the workspace
-    if (!latestToken) {
+    // Secondary Fallback: Any Meta-compatible token in the workspace (for non-instagram accounts)
+    if (!latestToken && account.platform !== 'instagram') {
       const workspaceToken = await db.meta_tokens.findFirst({
         where: {
           platform_accounts: {
