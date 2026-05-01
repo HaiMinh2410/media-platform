@@ -864,3 +864,24 @@
   color: var(--fg-secondary);
   font-style: italic;
 }
+
+/* Timeline Separator */
+.timelineSeparator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 32px 0 16px;
+  width: 100%;
+}
+
+.timelineText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fg-tertiary);
+  opacity: 0.8;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}

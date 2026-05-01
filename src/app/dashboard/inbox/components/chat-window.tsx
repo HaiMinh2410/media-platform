@@ -6,6 +6,7 @@ import { MessageWithSender } from '@/domain/types/messaging';
 import { MessageBubble } from './message-bubble';
 import { ChatSkeleton } from './skeletons';
 import { useMessageRealtime } from '../hooks/use-inbox-realtime';
+import { formatChatSeparator } from '@/lib/utils';
 
 export type ChatWindowRef = {
   addMessage: (message: MessageWithSender) => void;
@@ -167,9 +168,44 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
       {/* Initial loading state */}
       {loading && messages.length === 0 && <ChatSkeleton />}
 
-      {messages.map(msg => (
-        <MessageBubble key={msg.id} message={msg} />
-      ))}
+      {messages.map((msg, index) => {
+        const prevMsg = index > 0 ? messages[index - 1] : null;
+        
+        // Logic for separator: different day OR same day but > 20 mins gap
+        let showSeparator = false;
+        if (!prevMsg) {
+          showSeparator = true;
+        } else {
+          const currDate = new Date(msg.createdAt);
+          const prevDate = new Date(prevMsg.createdAt);
+          const isSameDay = currDate.toDateString() === prevDate.toDateString();
+          const diffMins = (currDate.getTime() - prevDate.getTime()) / (1000 * 60);
+          
+          if (!isSameDay || diffMins > 20) {
+            showSeparator = true;
+          }
+        }
+
+        const isLastMessage = index === messages.length - 1;
+        const isOutgoing = msg.senderType === 'ai' || msg.senderType === 'agent';
+        const showStatus = isLastMessage && isOutgoing;
+
+        return (
+          <React.Fragment key={msg.id}>
+            {showSeparator && (
+              <div className={styles.timelineSeparator}>
+                <span className={styles.timelineText}>
+                  {formatChatSeparator(msg.createdAt)}
+                </span>
+              </div>
+            )}
+            <MessageBubble 
+              message={msg} 
+              showStatus={showStatus} 
+            />
+          </React.Fragment>
+        );
+      })}
       
       {!loading && messages.length === 0 && (
         <div className={styles.loadingTop}>No messages found for this conversation.</div>

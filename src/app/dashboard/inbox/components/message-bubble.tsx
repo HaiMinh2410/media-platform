@@ -5,7 +5,13 @@ import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { Sparkles } from 'lucide-react';
 
-export const MessageBubble = memo(function MessageBubble({ message }: { message: MessageWithSender }) {
+export const MessageBubble = memo(function MessageBubble({ 
+  message, 
+  showStatus = false 
+}: { 
+  message: MessageWithSender;
+  showStatus?: boolean;
+}) {
   const isUser = message.senderType === 'user';
   const isAi = message.senderType === 'ai';
   const isAgent = message.senderType === 'agent';
@@ -15,8 +21,6 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
   let bubbleClass = styles.bubbleUser;
   if (isAi) bubbleClass = styles.bubbleAi;
   if (isAgent) bubbleClass = styles.bubbleAgent;
-
-  const timeString = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
     <div className={`${styles.messageRow} ${rowClass}`}>
@@ -33,14 +37,13 @@ export const MessageBubble = memo(function MessageBubble({ message }: { message:
           </div>
         </div>
 
-        <div className={styles.messageMeta}>
-          <span className={styles.messageTime}>{timeString}</span>
-          {(isAi || isAgent) && (
+        {showStatus && (
+          <div className={styles.messageMeta}>
             <span className={styles.messageStatus}>
               {message.is_read ? 'Đã xem' : (message.is_delivered ? 'Đã gửi' : 'Đang gửi...')}
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
