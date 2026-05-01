@@ -4,7 +4,7 @@ import { createOutgoingMessage } from '@/infrastructure/repositories/message.rep
 import { metaSendService } from '@/application/services/meta-send.service';
 import type { MessagingPlatform } from '@/domain/types/messaging';
 
-const SUPPORTED_PLATFORMS = new Set<string>(['messenger', 'instagram']);
+const SUPPORTED_PLATFORMS = new Set<string>(['messenger', 'instagram', 'facebook']);
 
 /**
  * POST /api/conversations/[id]/reply

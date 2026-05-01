@@ -19,8 +19,9 @@ export const metaMessagingClient = {
     text: string,
     accessToken: string
   ): Promise<SendMessageResult> {
-    // Note: Using 'me/messages' for Instagram/Messenger allows the API to 
-    const url = `https://graph.facebook.com/v21.0/me/messages`;
+    // Using explicit Page ID in URL to ensure we send from the correct Page
+    // /me/messages works too but is ambiguous with System User tokens
+    const url = `https://graph.facebook.com/v21.0/${pageId}/messages`;
 
     const body = {
       recipient: { id: recipientId },

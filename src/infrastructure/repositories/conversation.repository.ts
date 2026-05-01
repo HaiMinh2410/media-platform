@@ -180,27 +180,30 @@ export async function getConversationWithAccount(
     let effectivePageId = account.platform_user_id;
 
     // Preference: Instagram Messaging REQUIRES a Facebook Page Access Token and Page ID.
-    // If the account is Instagram, we prioritize finding a Facebook token in the same workspace.
-    if (account.platform === 'instagram' || !latestToken) {
-      const fbToken = await db.meta_tokens.findFirst({
+    // If the account is Instagram AND has no token itself, look for the linked Facebook Page.
+    // IMPORTANT: We look for a FB page that's linked to this specific IG account via metadata,
+    // NOT just any random facebook page in the workspace.
+    if (account.platform === 'instagram' && !latestToken) {
+      // Strategy: Find a Facebook page in the same workspace that has metadata.instagram_id matching this account
+      const linkedFbToken = await db.meta_tokens.findFirst({
         where: {
           platform_accounts: {
             workspaceId: account.workspaceId,
-            platform: 'facebook'
+            platform: 'facebook',
+            metadata: {
+              path: ['instagram_id'],
+              equals: account.platform_user_id,
+            },
           }
         },
-        include: {
-          platform_accounts: true
-        },
+        include: { platform_accounts: true },
         orderBy: { updated_at: 'desc' }
       });
 
-      if (fbToken) {
-        latestToken = fbToken;
-        // CRITICAL FOR INSTAGRAM: Use the Instagram ID (account.platform_user_id) 
-        // in the URL, but use the Facebook Token (latestToken) for Auth.
-        effectivePageId = account.platform_user_id; 
-        console.log(`[Repository] Using Instagram ID (${effectivePageId}) with Facebook Token fallback for account ${account.id}`);
+      if (linkedFbToken) {
+        latestToken = linkedFbToken;
+        effectivePageId = linkedFbToken.platform_accounts.platform_user_id;
+        console.log(`[Repository] Using linked Facebook Page (${effectivePageId}) for Instagram account ${account.id}`);
       }
     }
 
