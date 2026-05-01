@@ -121,7 +121,9 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
         <div className={styles.itemBody}>
           <span className={styles.lastMessage}>{conversation.last_message_content || 'No messages'}</span>
           {isUnread && (
-            <span className={styles.unreadBadge}>{conversation.unread_count}</span>
+            <span className={styles.unreadBadge}>
+              {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+            </span>
           )}
         </div>
 

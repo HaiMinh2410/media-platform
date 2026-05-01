@@ -68,7 +68,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
     }
   }, [workspaceId, fetchCounts]);
 
-  const formatCount = (count: number) => count > 9 ? '9+' : count;
+  const formatCount = (count: number) => count > 99 ? '99+' : count;
 
   return (
     <div className={styles.container}>
@@ -88,11 +88,6 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
               <div className={styles.activeSelection}>
                 <div className={styles.placeholderIcon}>
                   <Users size={14} />
-                  {unreadCounts.all > 0 && (
-                    <div className={styles.badge}>
-                      {unreadCounts.all > 9 ? '9+' : unreadCounts.all}
-                    </div>
-                  )}
                 </div>
                 <span className={styles.placeholderText}>Tất cả cụm</span>
               </div>
@@ -112,11 +107,6 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
               >
                 <div className={styles.placeholderIcon}>
                   <Users size={14} />
-                  {unreadCounts.all > 0 && (
-                    <div className={styles.badge}>
-                      {unreadCounts.all > 9 ? '9+' : unreadCounts.all}
-                    </div>
-                  )}
                 </div>
                 <span className={styles.menuItemName}>Tất cả cụm</span>
                 {!selectedGroupId && <Check size={14} className={styles.checkIcon} />}
@@ -219,7 +209,7 @@ function CombinedAvatar({ group, unreadCount }: { group: AccountGroup; unreadCou
       {igAccount && renderAvatar(igAccount, true)}
       {unreadCount !== undefined && unreadCount > 0 && (
         <div className={styles.badge}>
-          {unreadCount > 9 ? '9+' : unreadCount}
+          {unreadCount > 99 ? '99+' : unreadCount}
         </div>
       )}
     </div>

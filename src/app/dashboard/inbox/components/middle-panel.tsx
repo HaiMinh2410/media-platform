@@ -298,9 +298,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
         <div className={styles.headerTop}>
           <div className="flex items-center gap-2">
             <h2 className={styles.title}>{activeGroupName}</h2>
-            {totalUnread > 0 && (
-              <span className={styles.totalBadge}>{totalUnread}</span>
-            )}
           </div>
 
           <div className="flex gap-2">
