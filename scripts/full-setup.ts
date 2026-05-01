@@ -22,27 +22,7 @@ const db = new PrismaClient({ adapter });
 
 const GV = 'v21.0'; // Graph API version
 
-// ── 3 Facebook Pages cần setup ────────────────────────────────────────────
-const FB_PAGES = [
-  {
-    id: '1122137857642529',
-    name: 'Kathryn',
-    access_token: 'EABAX69avEfIBRVYXFUCIW2rd3GkvM3MszNzRtU9ZA8E5ygD8CMOGa13ZCXDeErxGL1HZBLmYGDRC07564Vm4lXe8nezuejBiXRFqZA75nPvqyK33yklSJJyFMSmpgZAwZCweaiJZALivm3nKqQh273wkPpym2hOwAZCw03V3c2MeMuwEz4e73SoXJ92drTRW2ZAAjwTideQcNc4qqZAhTsSMmxBiIh',
-    category: 'Người sáng tạo nội dung số',
-  },
-  {
-    id: '1044468135423441',
-    name: 'Minh Anh',
-    access_token: 'EABAX69avEfIBRSunEJSliu6MRde3MZAFRSjTT4COfkwwQICZB9uTXnI1ZAZBor9CaDviE6dWc6UkhP7h0XJy0YHcBCY2chQDLpKbPxwmIL2kTcaQDDSMXi6P9KH0lMXoR7wDHTrJpQPQ1cA25ZBsl4FmzuOdH2e0h7d2SinxxlCzDyJbCfuMtlpOkitEZCqtDjRJ8wUWK5PkLXavbQf6aXO7Sn',
-    category: 'Người sáng tạo nội dung số',
-  },
-  {
-    id: '1142742645581562',
-    name: 'Nguyễn An Thư',
-    access_token: 'EABAX69avEfIBRTukuDZAALm2CasjQ1sYS73lMXivOZCu7QIa9sv4tzVk7lV8IlEZCo1o2aWUlFZCPLT9bmHYKtVAZBEkAAIFYZAJ9SVq1BJfhjL5lHtjbGDtUtEIxibNZASZC6fZAYfyRbKSnuoWYYmLwh6ZCPTsuBmrwBhmestcOWzPyZAhJJjAMLVc1aNEpFrSXmZB4HLEoak0XZAjtZCZBE0r54jFErG',
-    category: 'Người sáng tạo nội dung số',
-  },
-];
+import { getTargetPages } from './utils/meta-config';
 
 // Fields cho Facebook Page Messenger
 const FB_SUBSCRIBED_FIELDS = ['messages', 'messaging_postbacks', 'messaging_referrals', 'message_reads'];
@@ -102,7 +82,13 @@ async function main() {
 
   console.log(`✅ Workspace: ${workspace.name}\n`);
 
-  for (const page of FB_PAGES) {
+  const fbPages = await getTargetPages();
+  if (fbPages.length === 0) {
+    console.warn('⚠️ No FB pages found to setup. Check your environment variables.');
+    return;
+  }
+
+  for (const page of fbPages) {
     console.log(`\n${'─'.repeat(50)}`);
     console.log(`📄 ${page.name} (FB Page ID: ${page.id})`);
     console.log(`${'─'.repeat(50)}`);

@@ -14,9 +14,10 @@ export const metaProfileService = {
     conversationId: string;
     platform: string;
     externalSenderId: string;
+    externalPageId: string;
     encryptedToken: string;
   }) {
-    const { conversationId, platform, externalSenderId, encryptedToken } = params;
+    const { conversationId, platform, externalSenderId, externalPageId, encryptedToken } = params;
 
     try {
       // 1. Decrypt token
@@ -42,14 +43,10 @@ export const metaProfileService = {
         result = await graphClient.request<any>(externalSenderId, plainToken, { fields: fallbackFields });
       }
 
-      if (result.error || !result.data) {
-        console.warn(`[MetaProfileService] Fetch failed for ${externalSenderId}:`, result.error);
-        return;
-      }
-
-      const profile = result.data;
+      const profile = result.data || {};
 
       // 3. Normalize Name and Avatar
+      // Fallback: If Meta fetch fails (e.g. no permission), use "User XXXX" to avoid showing raw IDs in UI
       const name = profile.name || 
                    (profile.first_name || profile.last_name ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : null) || 
                    `User ${externalSenderId.slice(-4)}`;
@@ -67,12 +64,17 @@ export const metaProfileService = {
         }
       });
 
-      console.log(`[MetaProfileService] Successfully synced profile for ${name} (${externalSenderId})`);
+      if (result.error || !result.data) {
+        console.warn(`[MetaProfileService] Fetch failed for ${externalSenderId}, using fallback name "${name}". Error:`, result.error);
+        // We continue to duplicate detection even with fallback name
+      } else {
+        console.log(`[MetaProfileService] Successfully synced profile for ${name} (${externalSenderId})`);
+      }
 
       // 5. Trigger Duplicate Detection now that we have a name!
       // This is the most reliable time to link cross-channel identities.
       const account = await db.platformAccount.findFirst({
-        where: { platform, platform_user_id: externalSenderId } // This might be wrong, need externalPageId
+        where: { platform, platform_user_id: externalPageId }
       });
       // Actually, we can get workspaceId from the conversation's account
       const conversation = await db.conversation.findUnique({

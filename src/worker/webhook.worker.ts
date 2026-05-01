@@ -99,6 +99,7 @@ function createWebhookWorker() {
             conversationId: persistResult.conversationId,
             platform,
             externalSenderId: externalSenderId,
+            externalPageId: externalPageId,
             encryptedToken: account.meta_tokens[0].encrypted_access_token
           }).catch(err => console.error(`[Worker] [${job.id}] Profile sync failed:`, err));
         }

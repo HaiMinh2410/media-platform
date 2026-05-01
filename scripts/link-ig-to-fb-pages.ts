@@ -15,23 +15,7 @@ const adapter = new PrismaPg(pool);
 const db = new PrismaClient({ adapter });
 
 // FB Page tokens (mới, còn hạn) — lấy từ các pages đã được upsert
-const FB_PAGES = [
-  {
-    pageId: '1122137857642529',
-    name: 'Kathryn',
-    accessToken: 'EABAX69avEfIBRVYXFUCIW2rd3GkvM3MszNzRtU9ZA8E5ygD8CMOGa13ZCXDeErxGL1HZBLmYGDRC07564Vm4lXe8nezuejBiXRFqZA75nPvqyK33yklSJJyFMSmpgZAwZCweaiJZALivm3nKqQh273wkPpym2hOwAZCw03V3c2MeMuwEz4e73SoXJ92drTRW2ZAAjwTideQcNc4qqZAhTsSMmxBiIh',
-  },
-  {
-    pageId: '1044468135423441',
-    name: 'Minh Anh',
-    accessToken: 'EABAX69avEfIBRSunEJSliu6MRde3MZAFRSjTT4COfkwwQICZB9uTXnI1ZAZBor9CaDviE6dWc6UkhP7h0XJy0YHcBCY2chQDLpKbPxwmIL2kTcaQDDSMXi6P9KH0lMXoR7wDHTrJpQPQ1cA25ZBsl4FmzuOdH2e0h7d2SinxxlCzDyJbCfuMtlpOkitEZCqtDjRJ8wUWK5PkLXavbQf6aXO7Sn',
-  },
-  {
-    pageId: '1142742645581562',
-    name: 'Nguyễn An Thư',
-    accessToken: 'EABAX69avEfIBRTukuDZAALm2CasjQ1sYS73lMXivOZCu7QIa9sv4tzVk7lV8IlEZCo1o2aWUlFZCPLT9bmHYKtVAZBEkAAIFYZAJ9SVq1BJfhjL5lHtjbGDtUtEIxibNZASZC6fZAYfyRbKSnuoWYYmLwh6ZCPTsuBmrwBhmestcOWzPyZAhJJjAMLVc1aNEpFrSXmZB4HLEoak0XZAjtZCZBE0r54jFErG',
-  },
-];
+import { getTargetPages } from './utils/meta-config';
 
 function encryptToken(text: string): string {
   const keyHex = process.env.META_TOKEN_ENCRYPTION_KEY!;
@@ -59,7 +43,19 @@ async function getLinkedIGAccount(pageId: string, pageToken: string): Promise<{ 
 async function main() {
   console.log('🔗 Link Instagram Accounts to Facebook Pages\n');
 
-  for (const page of FB_PAGES) {
+  const fbPages = await getTargetPages();
+  if (fbPages.length === 0) {
+    console.warn('⚠️ No FB pages found to link. Check your environment variables.');
+    return;
+  }
+
+  for (const pageData of fbPages) {
+    // Map property names from getTargetPages to what this script expects
+    const page = {
+      pageId: pageData.id,
+      name: pageData.name,
+      accessToken: pageData.access_token
+    };
     console.log(`── ${page.name} (FB Page: ${page.pageId}) ──`);
 
     // 1. Tìm linked IG account từ Graph API
