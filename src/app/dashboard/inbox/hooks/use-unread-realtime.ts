@@ -25,7 +25,8 @@ export function useUnreadRealtime({ workspaceId, onRefresh }: UseUnreadRealtimeO
     if (!workspaceId) return;
 
     const supabase = createClient();
-    const channelName = `unread-counts:${workspaceId}`;
+    // Use a unique channel name per instance to avoid "after subscribe" errors
+    const channelName = `unread-counts:${workspaceId}:${Math.random().toString(36).slice(2, 11)}`;
 
     const channel = supabase
       .channel(channelName)

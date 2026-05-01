@@ -33,7 +33,7 @@ export function useMessageRealtime({
     if (!conversationId) return;
 
     const supabase = createClient();
-    const channelName = `messages:conversation:${conversationId}`;
+    const channelName = `messages:conversation:${conversationId}:${Math.random().toString(36).slice(2, 11)}`;
 
     const channel = supabase
       .channel(channelName)
@@ -110,7 +110,7 @@ export function useMetadataRealtime({
     if (!conversationId) return;
 
     const supabase = createClient();
-    const channelName = `metadata:conversation:${conversationId}`;
+    const channelName = `metadata:conversation:${conversationId}:${Math.random().toString(36).slice(2, 11)}`;
 
     const channel = supabase
       .channel(channelName)

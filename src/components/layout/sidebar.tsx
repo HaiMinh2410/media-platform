@@ -16,52 +16,63 @@ import {
   ChevronRight
 } from 'lucide-react';
 import clsx from 'clsx';
-
-const NAV_ITEMS = [
-  {
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: <LayoutDashboard size={20} />,
-    exact: true
-  },
-  {
-    label: 'Analytics',
-    href: '/dashboard/analytics',
-    icon: <BarChart3 size={20} />,
-  },
-  {
-    label: 'Inbox',
-    href: '/dashboard/inbox',
-    icon: <Inbox size={20} />,
-    badge: '3'
-  },
-  {
-    label: 'Accounts',
-    href: '/dashboard/settings/accounts',
-    icon: <Users size={20} />,
-  },
-  {
-    label: 'Composer',
-    href: '/dashboard/composer',
-    icon: <PenTool size={20} />,
-  },
-  {
-    label: 'Posts',
-    href: '/dashboard/posts',
-    icon: <Files size={20} />,
-  },
-  {
-    label: 'Settings',
-    href: '/dashboard/settings',
-    icon: <Settings size={20} />,
-    exact: true
-  },
-];
+import { getCurrentWorkspaceIdAction, getCurrentWorkspaceUnreadCountAction, getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
+import { useUnreadRealtime } from '@/app/dashboard/inbox/hooks/use-unread-realtime';
 
 export function Sidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [userData, setUserData] = useState<{ name: string; avatar?: string | null; role: string; workspaceName: string } | null>(null);
+
+  const NAV_ITEMS = [
+    {
+      label: 'Dashboard',
+      href: '/dashboard',
+      icon: <LayoutDashboard size={20} />,
+      exact: true
+    },
+    {
+      label: 'Analytics',
+      href: '/dashboard/analytics',
+      icon: <BarChart3 size={20} />,
+    },
+    {
+      label: 'Inbox',
+      href: '/dashboard/inbox',
+      icon: <Inbox size={20} />,
+      badge: unreadCount > 0 ? (unreadCount > 99 ? '99+' : String(unreadCount)) : undefined
+    },
+    {
+      label: 'Accounts',
+      href: '/dashboard/settings/accounts',
+      icon: <Users size={20} />,
+    },
+    {
+      label: 'Composer',
+      href: '/dashboard/composer',
+      icon: <PenTool size={20} />,
+    },
+    {
+      label: 'Posts',
+      href: '/dashboard/posts',
+      icon: <Files size={20} />,
+    },
+    {
+      label: 'Settings',
+      href: '/dashboard/settings',
+      icon: <Settings size={20} />,
+      exact: true
+    },
+  ];
+
+  const refreshUnreadCount = React.useCallback(() => {
+    getCurrentWorkspaceUnreadCountAction().then(res => {
+      if (res.data !== null) setUnreadCount(res.data);
+    });
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
@@ -69,7 +80,27 @@ export function Sidebar() {
       setIsCollapsed(true);
     }
     setMounted(true);
-  }, []);
+    
+    // Get workspace ID and user data
+    getCurrentUserWorkspaceAction().then(res => {
+      if (res.data) {
+        setWorkspaceId(res.data.workspace.id);
+        setUserData({
+          name: res.data.user.name,
+          avatar: res.data.user.avatar,
+          role: res.data.user.role,
+          workspaceName: res.data.workspace.name
+        });
+      }
+    });
+    refreshUnreadCount();
+  }, [refreshUnreadCount]);
+
+  // Real-time updates
+  useUnreadRealtime({
+    workspaceId: workspaceId || '',
+    onRefresh: refreshUnreadCount
+  });
 
   useEffect(() => {
     if (mounted) {
@@ -85,8 +116,8 @@ export function Sidebar() {
   return (
     <aside className={clsx(styles.sidebar, isCollapsed && styles.collapsed)}>
       <div className={clsx(styles.brand, isCollapsed && styles.collapsed)}>
-        <div className={styles.logo}>M</div>
-        {!isCollapsed && <span className={styles.brandName}>Media</span>}
+        <div className={styles.logo}>{userData?.workspaceName?.charAt(0) || 'M'}</div>
+        {!isCollapsed && <span className={styles.brandName}>{userData?.workspaceName || 'Media'}</span>}
       </div>
 
       <nav className={styles.nav}>
@@ -119,11 +150,13 @@ export function Sidebar() {
 
       <div className={clsx(styles.footer, isCollapsed && styles.collapsed)}>
         <div className={clsx(styles.user, isCollapsed && styles.collapsed)}>
-          <div className={styles.avatar}>U</div>
+          <div className={styles.avatar}>
+            {userData?.avatar ? <img src={userData.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : (userData?.name?.charAt(0) || 'U')}
+          </div>
           {!isCollapsed && (
             <div className={styles.userInfo}>
-              <p className={styles.userName}>Active User</p>
-              <p className={styles.userRole}>Workspace Member</p>
+              <p className={styles.userName}>{userData?.name || 'Active User'}</p>
+              <p className={styles.userRole}>{userData?.role || 'Workspace Member'}</p>
             </div>
           )}
         </div>
@@ -139,3 +172,4 @@ export function Sidebar() {
     </aside>
   );
 }
+

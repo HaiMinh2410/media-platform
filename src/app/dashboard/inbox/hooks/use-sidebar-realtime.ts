@@ -82,7 +82,8 @@ export function useSidebarRealtime({
     if (!workspaceId) return;
 
     const supabase = createClient();
-    const channelName = `conversations:workspace:${workspaceId}`;
+    // Use a unique channel name per instance to avoid "after subscribe" errors
+    const channelName = `conversations:workspace:${workspaceId}:${Math.random().toString(36).slice(2, 11)}`;
 
     const channel = supabase
       .channel(channelName)
@@ -149,6 +150,31 @@ export function useSidebarRealtime({
               content,
               createdAt,
             });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const oldRow = payload.old as any;
+          const newRow = payload.new as any;
+          
+          if (oldRow && newRow && oldRow.is_read !== newRow.is_read) {
+            console.log('[Realtime:Sidebar] Message read status changed:', newRow.id);
+            // Trigger a refresh of the conversation to get fresh unread count
+            const conversationId = newRow.conversation_id || newRow.conversationId;
+            if (conversationId) {
+              // We reuse onConversationUpdated to signal a change in unread count
+              callbackRef.current('UPDATE', {
+                id: conversationId,
+                // We don't have the rest of the fields here, but the handler in MiddlePanel should handle partials
+              } as any);
+            }
           }
         }
       )

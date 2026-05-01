@@ -8,9 +8,12 @@ import { ConversationWithLastMessage } from '@/domain/types/messaging';
 import { ThreadCard } from './thread-card';
 import { ConversationSkeleton } from './skeletons';
 import { useSidebarRealtime } from '../hooks/use-sidebar-realtime';
+import { useUnreadRealtime } from '../hooks/use-unread-realtime';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { Filter, MoreHorizontal, Settings, Plus } from 'lucide-react';
+import { MoreHorizontal, Settings, Plus, Filter } from 'lucide-react';
 import { useInboxStore } from '../store/inbox.store';
+import { getConversationAction } from '@/application/actions/inbox.actions';
+import { getCurrentWorkspaceUnreadCountAction } from '@/application/actions/workspace.actions';
 
 export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const [conversations, setConversations] = useState<ConversationWithLastMessage[]>([]);
@@ -29,6 +32,8 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     middlePanelWidth, setMiddlePanelWidth, 
     selectedGroupId, accountGroups 
   } = useInboxStore();
+  
+  const [totalUnread, setTotalUnread] = useState(0);
 
 
   
@@ -164,7 +169,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   }, [virtualItems, conversations.length, nextCursor, loading, fetchConversations]);
 
   const handleConversationUpdated = useCallback(
-    (
+    async (
       eventType: 'INSERT' | 'UPDATE',
       partial: Pick<ConversationWithLastMessage, 'id' | 'platform_conversation_id' | 'last_message_at' | 'status' | 'priority' | 'sentiment'>
     ) => {
@@ -173,15 +178,19 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
         return;
       }
 
+      // Re-fetch the full conversation data to ensure accurate unread count and state
+      const { data: updatedConv } = await getConversationAction(partial.id);
+      if (!updatedConv) return;
+
       setConversations(prev => {
         const existing = prev.find(c => c.id === partial.id);
         if (!existing) return prev;
 
-        const isNewer = new Date(partial.last_message_at).getTime() > new Date(existing.last_message_at).getTime();
+        const isNewer = new Date(updatedConv.last_message_at).getTime() > new Date(existing.last_message_at).getTime();
         
-        if (isNewer && partial.id !== activeIdRef.current) {
+        if (isNewer && updatedConv.id !== activeIdRef.current) {
           toast(`New message from ${existing.sender_name}`, {
-            description: new Date(partial.last_message_at).toLocaleTimeString()
+            description: new Date(updatedConv.last_message_at).toLocaleTimeString()
           });
         }
 
@@ -189,12 +198,8 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
           c.id === partial.id
             ? {
                 ...c,
-                last_message_at: partial.last_message_at,
-                status: partial.status,
-                priority: partial.priority,
-                sentiment: partial.sentiment,
-                unread_count: (isNewer && partial.id !== activeIdRef.current) ? c.unread_count + 1 : c.unread_count,
-              }
+                ...updatedConv,
+              } as ConversationWithLastMessage
             : c
         );
 
@@ -239,6 +244,22 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     onMessageReceived: handleMessageReceived
   });
 
+  // Fetch total unread for header
+  const refreshTotalUnread = useCallback(() => {
+    getCurrentWorkspaceUnreadCountAction().then(res => {
+      if (res.data !== null) setTotalUnread(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    refreshTotalUnread();
+  }, [workspaceId, refreshTotalUnread]);
+
+  useUnreadRealtime({
+    workspaceId,
+    onRefresh: refreshTotalUnread
+  });
+
   if (pathname?.includes('/flow')) return null;
 
   const activeGroupName = selectedGroupId 
@@ -275,7 +296,12 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
 
       <div className={styles.header}>
         <div className={styles.headerTop}>
-          <h2 className={styles.title}>{activeGroupName}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={styles.title}>{activeGroupName}</h2>
+            {totalUnread > 0 && (
+              <span className={styles.totalBadge}>{totalUnread}</span>
+            )}
+          </div>
 
           <div className="flex gap-2">
             <button className="p-1.5 hover:bg-white/5 rounded-md text-slate-400 hover:text-white transition-colors">

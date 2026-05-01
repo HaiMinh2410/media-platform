@@ -80,6 +80,22 @@
   color: var(--fg-primary);
 }
 
+.totalBadge {
+  background: var(--accent-primary);
+  color: white;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+
 .searchBox {
   width: 100%;
   padding: 10px 16px;
