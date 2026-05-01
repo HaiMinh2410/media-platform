@@ -32,7 +32,7 @@ export type ClassifyResult = {
  */
 export type ClassifyInput = {
   text: string;       // Raw message text to classify
-  platform?: string;  // Optional context: 'messenger' | 'instagram'
+  platform?: string;  // Optional context: 'facebook' | 'instagram' | 'messenger'
 };
 
 /**
@@ -55,7 +55,7 @@ export type GenerateInput = {
   text: string;                    // Original user message
   classifyResult: ClassifyResult;  // Routing context from classify step
   history?: string[];              // Optional: last N conversation turns
-  platform?: string;               // Optional: 'messenger' | 'instagram'
+  platform?: string;               // Optional: 'facebook' | 'instagram' | 'messenger'
   systemPrompt?: string;           // Optional: Custom system prompt from bot config
   model?: AIModel;                  // Optional: Specific model ID to use
 };

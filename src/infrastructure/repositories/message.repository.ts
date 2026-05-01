@@ -18,9 +18,11 @@ export async function idempotentPersistMessage(
   try {
     const result = await db.$transaction(async (tx) => {
       // 1. Locate the platform account
+      const normalizedPlatform = input.platform === 'messenger' ? 'facebook' : input.platform;
+      
       const account = await tx.platformAccount.findFirst({
         where: {
-          platform: input.platform,
+          platform: normalizedPlatform,
           platform_user_id: input.externalPageId,
         },
       });
@@ -131,8 +133,9 @@ export async function markAsRead(
 ): Promise<{ error: string | null }> {
   try {
     // Find the conversation first
+    const normalizedPlatform = platform === 'messenger' ? 'facebook' : platform;
     const account = await db.platformAccount.findFirst({
-      where: { platform, platform_user_id: externalPageId },
+      where: { platform: normalizedPlatform, platform_user_id: externalPageId },
       select: { id: true }
     });
 
@@ -178,8 +181,9 @@ export async function markAsDelivered(
   watermark: Date
 ): Promise<{ error: string | null }> {
   try {
+    const normalizedPlatform = platform === 'messenger' ? 'facebook' : platform;
     const account = await db.platformAccount.findFirst({
-      where: { platform, platform_user_id: externalPageId },
+      where: { platform: normalizedPlatform, platform_user_id: externalPageId },
       select: { id: true }
     });
 

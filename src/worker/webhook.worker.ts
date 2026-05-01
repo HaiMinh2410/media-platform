@@ -279,7 +279,7 @@ function createWebhookWorker() {
           }
 
           const { data: sendResult, error: sendErr } = await metaSendService.sendText({
-            platform: platform === 'instagram' ? 'instagram' : 'messenger',
+            platform: platform === 'instagram' ? 'instagram' : 'facebook',
             recipientId: externalSenderId,
             pageId: effectivePageId,
             text: replyText,

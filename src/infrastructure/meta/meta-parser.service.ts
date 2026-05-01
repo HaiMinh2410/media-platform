@@ -57,7 +57,7 @@ export class MetaParserService {
           }
 
           events.push({
-            platform: payload.object === 'instagram' ? 'instagram' : 'messenger',
+            platform: payload.object === 'instagram' ? 'instagram' : 'facebook',
             eventType,
             externalSenderId: msg.sender?.id || pageId, // Fallback to pageId if sender is missing (rare)
             externalPageId: pageId,

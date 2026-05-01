@@ -3,7 +3,7 @@
 /**
  * Supported messaging platforms.
  */
-export type MessagingPlatform = 'messenger' | 'instagram';
+export type MessagingPlatform = 'facebook' | 'instagram' | 'messenger';
 
 /**
  * Input for a send-message operation.
