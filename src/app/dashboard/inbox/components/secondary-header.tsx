@@ -68,19 +68,35 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
     });
   }, [workspaceId, selectedGroupId, setAccountGroups]);
 
+  // Sync reorder to server with debounce
+  const [isReordering, setIsReordering] = React.useState(false);
+  const syncTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleReorder = (newOrder: AccountGroup[]) => {
+    setAccountGroups(newOrder);
+    setIsReordering(true);
+
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    
+    syncTimerRef.current = setTimeout(() => {
+      updateAccountGroupsOrderAction(workspaceId, newOrder.map(g => g.id))
+        .finally(() => setIsReordering(false));
+    }, 1000);
+  };
+
   // Real-time updates via Supabase
   useUnreadRealtime({ 
     workspaceId, 
-    onRefresh: fetchCounts 
+    onRefresh: () => !isReordering && fetchCounts()
   });
 
   React.useEffect(() => {
-    if (workspaceId) {
+    if (workspaceId && !isReordering) {
       fetchCounts();
-      const interval = setInterval(fetchCounts, 15000); // Polling fallback every 15s
+      const interval = setInterval(fetchCounts, 15000); 
       return () => clearInterval(interval);
     }
-  }, [workspaceId, fetchCounts]);
+  }, [workspaceId, fetchCounts, isReordering]);
 
   const formatCount = (count: number) => count > 99 ? '99+' : count;
 
@@ -201,10 +217,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
               <Reorder.Group 
                 axis="y" 
                 values={accountGroups} 
-                onReorder={(newOrder) => {
-                  setAccountGroups(newOrder);
-                  updateAccountGroupsOrderAction(workspaceId, newOrder.map(g => g.id));
-                }}
+                onReorder={handleReorder}
                 className={styles.reorderGroup}
               >
                 {accountGroups.map(group => (
