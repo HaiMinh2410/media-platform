@@ -145,12 +145,17 @@ export async function markAsRead(
 
     if (!conversation) return { error: 'Conversation not found' };
 
-    // Update all outgoing messages sent before or at the watermark
+    // Add a 1-minute buffer to account for clock skew between Meta and our server.
+    // If a message is sent and read immediately, the server's createdAt might be slightly 
+    // ahead of Meta's watermark timestamp.
+    const bufferedWatermark = new Date(watermark.getTime() + 60000);
+
+    // Update all outgoing messages sent before or at the buffered watermark
     await db.message.updateMany({
       where: {
         conversationId: conversation.id,
         senderType: { in: ['ai', 'agent'] },
-        createdAt: { lte: watermark },
+        createdAt: { lte: bufferedWatermark },
         is_read: false
       },
       data: { is_read: true, is_delivered: true }
@@ -187,11 +192,13 @@ export async function markAsDelivered(
 
     if (!conversation) return { error: 'Conversation not found' };
 
+    const bufferedWatermark = new Date(watermark.getTime() + 60000);
+
     await db.message.updateMany({
       where: {
         conversationId: conversation.id,
         senderType: { in: ['ai', 'agent'] },
-        createdAt: { lte: watermark },
+        createdAt: { lte: bufferedWatermark },
         is_delivered: false
       },
       data: { is_delivered: true }
@@ -327,7 +334,8 @@ export async function createOutgoingMessage(
         content: text,
         platform_message_id: platformMessageId,
         senderType: 'agent',
-        is_read: true,
+        is_read: false,
+        is_delivered: false,
       },
     });
 

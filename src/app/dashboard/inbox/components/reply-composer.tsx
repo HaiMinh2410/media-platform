@@ -114,6 +114,7 @@ export function ReplyComposer({
             senderType: 'agent',
             createdAt: new Date(),
             is_delivered: true,
+            is_read: false,
           });
         }
       } else {
