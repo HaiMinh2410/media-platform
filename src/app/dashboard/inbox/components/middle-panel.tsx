@@ -24,7 +24,13 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   // Power user feature: Multi-thread tabs
   const [activeThreads, setActiveThreads] = useState<ConversationWithLastMessage[]>([]);
 
-  const { viewMode, platform, segmentFilter, middlePanelWidth, setMiddlePanelWidth } = useInboxStore();
+  const { 
+    viewMode, platform, segmentFilter, 
+    middlePanelWidth, setMiddlePanelWidth, 
+    selectedGroupId, accountGroups 
+  } = useInboxStore();
+
+
   
   const params = useParams();
   const router = useRouter();
@@ -107,9 +113,11 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
       if (activeBucket === 'vip') url.searchParams.set('is_vip', 'true');
       if (activeBucket === 'need_reply') url.searchParams.set('status', 'open'); // Approximate
       
-      // Apply global scopes from LeftPanel
+      // Apply global scopes from LeftPanel/SecondaryHeader
+      if (selectedGroupId) url.searchParams.set('groupId', selectedGroupId);
       if (platform !== 'all') url.searchParams.set('platform', platform);
       if (segmentFilter === 'hot_lead') url.searchParams.set('priority', 'high');
+
       
       // Sort
       if (sortBy !== 'newest') url.searchParams.set('sort', sortBy);
@@ -126,7 +134,8 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, searchQuery, activeBucket, sortBy, platform, segmentFilter]);
+  }, [workspaceId, searchQuery, activeBucket, sortBy, platform, segmentFilter, selectedGroupId]);
+
 
   useEffect(() => {
     fetchRef.current = () => fetchConversations(null, true);
@@ -232,6 +241,10 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
 
   if (pathname?.includes('/flow')) return null;
 
+  const activeGroupName = selectedGroupId 
+    ? accountGroups.find(g => g.id === selectedGroupId)?.name 
+    : 'Unified Feed';
+
   return (
     <aside 
       className={styles.middlePanel} 
@@ -262,7 +275,8 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
 
       <div className={styles.header}>
         <div className={styles.headerTop}>
-          <h2 className={styles.title}>Unified Feed</h2>
+          <h2 className={styles.title}>{activeGroupName}</h2>
+
           <div className="flex gap-2">
             <button className="p-1.5 hover:bg-white/5 rounded-md text-slate-400 hover:text-white transition-colors">
               <Filter size={16} />

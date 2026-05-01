@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { AccountGroup } from '@/domain/types/account-group';
+
 
 export type ViewMode = 'all' | 'by_account' | 'by_contacts' | 'ai_priority' | 'daily_flow';
 export type Platform = 'all' | 'facebook' | 'instagram' | 'tiktok' | 'custom';
@@ -18,6 +20,9 @@ interface InboxState {
   
   selectedGroupId: string | null;
   setGroupId: (id: string | null) => void;
+  
+  accountGroups: AccountGroup[];
+  setAccountGroups: (groups: AccountGroup[]) => void;
   
   setScope: (scope: string) => void;
   setViewMode: (mode: ViewMode) => void;
@@ -41,6 +46,8 @@ export const useInboxStore = create<InboxState>((set) => ({
   platform: 'all',
   segmentFilter: 'all',
   selectedGroupId: null,
+  accountGroups: [],
+
   
   selectedTone: 'professional',
   replyAsId: null,
@@ -51,6 +58,8 @@ export const useInboxStore = create<InboxState>((set) => ({
   setPlatform: (platform) => set({ platform }),
   setSegmentFilter: (filter) => set({ segmentFilter: filter }),
   setGroupId: (id) => set({ selectedGroupId: id }),
+  setAccountGroups: (groups) => set({ accountGroups: groups }),
+
   
   setTone: (tone) => set({ selectedTone: tone }),
   setReplyAsId: (id) => set({ replyAsId: id }),

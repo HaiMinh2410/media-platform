@@ -7,51 +7,84 @@ import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { Inbox, Zap, MessageCircle, Users, Sparkles } from 'lucide-react';
 
-export function SecondaryHeader() {
+import { getAccountGroupsAction } from '@/application/actions/account-group.actions';
+import { AccountGroup } from '@/domain/types/account-group';
+
+export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const { 
     viewMode, setViewMode,
     platform, setPlatform,
-    segmentFilter, setSegmentFilter
+    segmentFilter, setSegmentFilter,
+    selectedGroupId, setGroupId,
+    accountGroups, setAccountGroups
   } = useInboxStore();
   const router = useRouter();
+
+  React.useEffect(() => {
+    if (workspaceId && accountGroups.length === 0) {
+      getAccountGroupsAction(workspaceId).then(res => {
+        if (res.data) setAccountGroups(res.data);
+      });
+    }
+  }, [workspaceId, accountGroups.length, setAccountGroups]);
 
   return (
     <div className={styles.container}>
       <div className={styles.tabs}>
         <button 
-          className={clsx(styles.tab, viewMode === 'all' && styles.active)}
-          onClick={() => { setViewMode('all'); router.push('/dashboard/inbox'); }}
+          className={clsx(styles.tab, !selectedGroupId && styles.active)}
+          onClick={() => { setGroupId(null); router.push('/dashboard/inbox'); }}
         >
           <Inbox size={16} className={styles.icon} />
-          <span>Unified Inbox</span>
+          <span>Tất cả tin nhắn</span>
         </button>
+
+        {accountGroups.map(group => {
+
+          const fbAccount = group.members.find(m => m.platform === 'facebook');
+          const igAccount = group.members.find(m => m.platform === 'instagram');
+          
+          return (
+            <button 
+              key={group.id}
+              className={clsx(styles.tab, selectedGroupId === group.id && styles.active)}
+              onClick={() => { setGroupId(group.id); router.push('/dashboard/inbox'); }}
+            >
+              <div className={styles.avatarGroup}>
+                {fbAccount && (
+                  <div className={styles.mainAvatar}>
+                    {fbAccount.metadata?.avatar_url ? (
+                      <img src={fbAccount.metadata.avatar_url} alt="" />
+                    ) : (
+                      <div className={styles.avatarPlaceholder}>{fbAccount.name[0]}</div>
+                    )}
+                  </div>
+                )}
+                {igAccount && (
+                  <div className={styles.subAvatar}>
+                    {igAccount.metadata?.avatar_url ? (
+                      <img src={igAccount.metadata.avatar_url} alt="" />
+                    ) : (
+                      <div className={styles.avatarPlaceholder}>{igAccount.name[0]}</div>
+                    )}
+                  </div>
+                )}
+                {/* Badge simulation */}
+                <div className={styles.badge} />
+              </div>
+              <span className={styles.groupName}>{group.name}</span>
+            </button>
+          );
+        })}
+
+        <div className={styles.divider} />
+
         <button 
           className={clsx(styles.tab, styles.flowTab, viewMode === 'daily_flow' && styles.active)}
           onClick={() => { setViewMode('daily_flow'); router.push('/dashboard/inbox/flow'); }}
         >
           <Zap size={16} className={styles.icon} />
           <span>Daily Flow</span>
-        </button>
-        <button 
-          className={clsx(styles.tab, viewMode === 'by_account' && styles.active)}
-          onClick={() => { setViewMode('by_account'); router.push('/dashboard/inbox'); }}
-        >
-          <MessageCircle size={16} className={styles.icon} />
-          <span>By Account</span>
-        </button>
-        <button 
-          className={clsx(styles.tab, viewMode === 'by_contacts' && styles.active)}
-          onClick={() => { setViewMode('by_contacts'); router.push('/dashboard/inbox'); }}
-        >
-          <Users size={16} className={styles.icon} />
-          <span>By Contacts</span>
-        </button>
-        <button 
-          className={clsx(styles.tab, viewMode === 'ai_priority' && styles.active)}
-          onClick={() => { setViewMode('ai_priority'); router.push('/dashboard/inbox'); }}
-        >
-          <Sparkles size={16} className={styles.icon} />
-          <span>AI Priority</span>
         </button>
       </div>
 

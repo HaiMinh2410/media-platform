@@ -23,7 +23,9 @@ export async function GET(request: NextRequest) {
     const show_duplicates = searchParams.get('show_duplicates') === 'true';
     const search = searchParams.get('search') || undefined;
     const unread = searchParams.get('unread') === 'true';
+    const groupId = searchParams.get('groupId') || undefined;
     const cursor = searchParams.get('cursor') || undefined;
+
     const limit = parseInt(searchParams.get('limit') || '20', 10);
 
     const sortBy = searchParams.get('sortBy') as any || 'lastMessageAt';
@@ -31,6 +33,7 @@ export async function GET(request: NextRequest) {
 
     const filter: ConversationFilter = {
       workspaceId,
+      groupId,
       platform,
       status,
       priority,
