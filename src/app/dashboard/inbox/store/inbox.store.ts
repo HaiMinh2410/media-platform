@@ -16,6 +16,9 @@ interface InboxState {
   replyAsId: string | null;
   replyOnChannel: string | null;
   
+  selectedGroupId: string | null;
+  setGroupId: (id: string | null) => void;
+  
   setScope: (scope: string) => void;
   setViewMode: (mode: ViewMode) => void;
   setPlatform: (platform: Platform) => void;
@@ -37,6 +40,7 @@ export const useInboxStore = create<InboxState>((set) => ({
   viewMode: 'all',
   platform: 'all',
   segmentFilter: 'all',
+  selectedGroupId: null,
   
   selectedTone: 'professional',
   replyAsId: null,
@@ -46,6 +50,7 @@ export const useInboxStore = create<InboxState>((set) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
   setPlatform: (platform) => set({ platform }),
   setSegmentFilter: (filter) => set({ segmentFilter: filter }),
+  setGroupId: (id) => set({ selectedGroupId: id }),
   
   setTone: (tone) => set({ selectedTone: tone }),
   setReplyAsId: (id) => set({ replyAsId: id }),

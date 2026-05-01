@@ -31,7 +31,7 @@ export default async function InboxLayout({
 
   return (
     <div className={styles.inboxContainer}>
-      <SecondaryHeader />
+      <SecondaryHeader workspaceId={workspace.id} />
       <div className={styles.inboxContent}>
         <MiddlePanel workspaceId={workspace.id} />
         <main className={styles.chatArea}>

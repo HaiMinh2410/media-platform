@@ -1,0 +1,17 @@
+import { PlatformAccount } from './platform-account';
+
+export type AccountGroup = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  members: PlatformAccount[];
+};
+
+export type AccountGroupMembership = {
+  groupId: string;
+  accountId: string;
+  createdAt: Date;
+};
