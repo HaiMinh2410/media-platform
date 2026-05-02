@@ -16,6 +16,7 @@ type ChatHeaderProps = {
   platform: string;
   platformUserName: string;
   tags?: string[];
+  onUpdateTags?: (tags: string[]) => void;
 };
 
 export function ChatHeader({
@@ -25,6 +26,7 @@ export function ChatHeader({
   platform,
   platformUserName,
   tags = [],
+  onUpdateTags,
 }: ChatHeaderProps) {
   const router = useRouter();
   const triggerRefresh = useInboxStore((state) => state.triggerRefresh);
@@ -55,13 +57,18 @@ export function ChatHeader({
         body: JSON.stringify({ status: 'spam' }),
       });
 
-      // 2. Assign "Bị chặn" tag (replace all others as per constraints)
-      const tagRes = await fetch(`/api/conversations/${conversationId}/tags`, {
-        method: 'PUT',
-        body: JSON.stringify({ tags: ['Bị chặn::#ef4444'] }),
-      });
+      // 2. Assign "Bị chặn" tag
+      const newTags = ['Bị chặn::#ef4444'];
+      if (onUpdateTags) {
+        onUpdateTags(newTags);
+      } else {
+        await fetch(`/api/conversations/${conversationId}/tags`, {
+          method: 'PUT',
+          body: JSON.stringify({ tags: newTags }),
+        });
+      }
 
-      if (metaRes.ok && tagRes.ok) {
+      if (metaRes.ok) {
         toast.success('Hội thoại đã được chuyển vào mục spam và bị chặn');
         triggerRefresh();
         router.push('/dashboard/inbox');
@@ -84,12 +91,16 @@ export function ChatHeader({
 
       // 2. Remove "Bị chặn" tag
       const newTags = tags.filter(t => !t.startsWith('Bị chặn::'));
-      const tagRes = await fetch(`/api/conversations/${conversationId}/tags`, {
-        method: 'PUT',
-        body: JSON.stringify({ tags: newTags }),
-      });
+      if (onUpdateTags) {
+        onUpdateTags(newTags);
+      } else {
+        await fetch(`/api/conversations/${conversationId}/tags`, {
+          method: 'PUT',
+          body: JSON.stringify({ tags: newTags }),
+        });
+      }
 
-      if (metaRes.ok && tagRes.ok) {
+      if (metaRes.ok) {
         toast.success('Đã bỏ chặn hội thoại');
         triggerRefresh();
       } else {

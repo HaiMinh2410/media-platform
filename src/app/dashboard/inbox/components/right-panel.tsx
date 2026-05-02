@@ -130,6 +130,7 @@ export function RightPanel({
           platform={platform}
           platformUserName={pageName}
           tags={tags}
+          onUpdateTags={handleUpdateTags}
         />
         <ChatWindow ref={chatRef} conversationId={conversationId} />
         <ReplyComposer
