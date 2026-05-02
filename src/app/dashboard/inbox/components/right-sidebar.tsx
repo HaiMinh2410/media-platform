@@ -16,6 +16,14 @@ import clsx from 'clsx';
 
 type TabType = 'detail' | 'ai' | 'search';
 
+const leadStages = [
+  { id: 'new', label: 'Tiếp nhận', description: 'Khách hàng tiềm năng mới hoặc mới đây đã tương tác với Trang của bạn.', badge: 'blue' },
+  { id: 'qualified', label: 'Đủ tiêu chuẩn', description: 'Khách hàng tiềm năng thực sự quan tâm đến sản phẩm hoặc dịch vụ của bạn.', badge: 'green' },
+  { id: 'converted', label: 'Đã chuyển đổi', description: 'Khách hàng tiềm năng đã thỏa thuận hoặc giao dịch với doanh nghiệp của bạn.', badge: 'purple' },
+  { id: 'lost', label: 'Bị mất đi', description: 'Khách hàng tiềm năng không quan tâm nhưng có thể đáng để thu hút lại trong tương lai.', badge: 'gray' },
+  { id: 'unqualified', label: 'Không đủ tiêu chuẩn', description: 'Khách hàng tiềm năng không phù hợp với doanh nghiệp của bạn.', badge: 'red' },
+];
+
 type RightSidebarProps = {
   conversationId: string;
   customerName?: string;
@@ -80,7 +88,16 @@ export function RightSidebar({
   const [newTag, setNewTag] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [noteContent, setNoteContent] = useState('');
-  const [leadStatus, setLeadStatus] = useState(priority || 'medium');
+  const getInitialStatus = (p: string | null) => {
+    if (!p) return 'new';
+    if (p === 'low') return 'new';
+    if (p === 'medium') return 'qualified';
+    if (p === 'high') return 'converted';
+    return p;
+  };
+
+  const [leadStatus, setLeadStatus] = useState(getInitialStatus(priority));
+  const [isLeadStatusOpen, setIsLeadStatusOpen] = useState(false);
   const [orderStatus, setOrderStatus] = useState('none');
   const [isEditingContact, setIsEditingContact] = useState(false);
 
@@ -400,55 +417,61 @@ export function RightSidebar({
               </div>
             </div>
 
-            {platform === 'instagram' && (
-              <div className={styles.detailItem}>
-                <h3 className={styles.detailTitle}>
-                  Trang cá nhân trên Instagram <Info size={14} className={styles.infoIcon} />
-                </h3>
-                <div className={styles.socialRow}>
-                  <Camera size={18} className={styles.socialIcon} />
-                  <div className={styles.socialContent}>
-                    <span className={styles.socialHandle}>@{customerName?.toLowerCase().replace(/\s+/g, '_') || 'user'}</span>
-                    <span>Thông tin từ Instagram profile sẽ được tự động cập nhật khi có quyền truy cập.</span>
-                    <span className={styles.socialName}>{customerName}</span>
-                    <a href="#" target="_blank" rel="noreferrer" className={styles.profileLink}>
-                      Xem trên Instagram
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div className={styles.detailItem}>
               <div className={styles.statusHeader}>
                 <h3 className={styles.detailTitle}>Hoạt động</h3>
                 <span className={styles.tagBadge}>Khuyên dùng</span>
               </div>
-            </div>
-
-            <div className={styles.detailItem}>
-              <h3 className={styles.detailTitle}>
+              
+              <h3 className={styles.detailTitle} style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>
                 Giai đoạn khách hàng tiềm năng <Info size={14} className={styles.infoIcon} />
               </h3>
-              <div className={styles.leadStatusGroups}>
-                <button 
-                  className={clsx(styles.statusBtn, leadStatus === 'low' && styles.statusActive)}
-                  onClick={() => handleUpdateLeadStatus('low')}
+
+              <div className={styles.leadStatusDropdown}>
+                <div 
+                  className={styles.dropdownTrigger} 
+                  onClick={() => setIsLeadStatusOpen(!isLeadStatusOpen)}
                 >
-                  Mới
-                </button>
-                <button 
-                  className={clsx(styles.statusBtn, leadStatus === 'medium' && styles.statusActive)}
-                  onClick={() => handleUpdateLeadStatus('medium')}
-                >
-                  Tiềm năng
-                </button>
-                <button 
-                  className={clsx(styles.statusBtn, leadStatus === 'high' && styles.statusActive)}
-                  onClick={() => handleUpdateLeadStatus('high')}
-                >
-                  Ưu tiên
-                </button>
+                  <span>{
+                    leadStages.find(s => s.id === leadStatus)?.label || 'Chọn giai đoạn'
+                  }</span>
+                  <ChevronDown size={16} className={clsx(isLeadStatusOpen && styles.rotate180)} />
+                </div>
+
+                {isLeadStatusOpen && (
+                  <div className={styles.dropdownMenu}>
+                    <div className={styles.menuList}>
+                      {leadStages.map((stage) => (
+                        <div 
+                          key={stage.id} 
+                          className={clsx(styles.menuItem, leadStatus === stage.id && styles.menuItemActive)}
+                          onClick={() => {
+                            handleUpdateLeadStatus(stage.id);
+                            setIsLeadStatusOpen(false);
+                          }}
+                        >
+                          <div className={styles.itemRadio}>
+                            <div className={clsx(styles.radioOuter, leadStatus === stage.id && styles.radioActive)}>
+                              {leadStatus === stage.id && <div className={styles.radioInner} />}
+                            </div>
+                          </div>
+                          <div className={styles.itemContent}>
+                            <div className={styles.itemHeader}>
+                              <span className={styles.itemLabel}>{stage.label}</span>
+                              <span className={clsx(styles.statusBadge, styles[`badge${stage.badge.charAt(0).toUpperCase() + stage.badge.slice(1)}`])}>
+                                {stage.label}
+                              </span>
+                            </div>
+                            <p className={styles.itemDesc}>{stage.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className={styles.menuFooter}>
+                      <span>Bạn có thể tạo giai đoạn tùy chỉnh trong <a href="#">Leads Center</a>.</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

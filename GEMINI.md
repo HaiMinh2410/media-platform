@@ -86,4 +86,4 @@ Details: `.antigravity/runtime/session-modes.md`
 3. Memory is truth — always load before executing
 4. Intent over syntax — infer from natural language
 5. Minimal friction — system adapts to user
-6. Persistence is law — always sync `memory_state.json` and `decisions.log.jsonl` per `memory.agent.md` after every task.
+6. Persistence is law — always sync `memory/memory_state.json` and `memory/decisions.log.jsonl` per `memory.agent.md` after every task.

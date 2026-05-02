@@ -1720,3 +1720,148 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* Lead Status Dropdown */
+.leadStatusDropdown {
+  position: relative;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.dropdownTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--fg-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dropdownTrigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent-primary);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 8px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  overflow: hidden;
+  color: #333;
+}
+
+.menuList {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.menuItem {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.menuItem:hover {
+  background: #f8fafc;
+}
+
+.menuItemActive {
+  background: #eff6ff !important;
+}
+
+.itemRadio {
+  padding-top: 2px;
+}
+
+.radioOuter {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.radioActive {
+  border-color: #3b82f6;
+}
+
+.radioInner {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3b82f6;
+}
+
+.itemContent {
+  flex: 1;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.itemLabel {
+  font-weight: 600;
+  font-size: 15px;
+  color: #1e293b;
+}
+
+.itemDesc {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.statusBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: none;
+}
+
+.badgeBlue { background: #dbeafe; color: #2563eb; }
+.badgeGreen { background: #dcfce7; color: #16a34a; }
+.badgePurple { background: #f3e8ff; color: #9333ea; }
+.badgeGray { background: #f1f5f9; color: #475569; }
+.badgeRed { background: #fee2e2; color: #dc2626; }
+
+.menuFooter {
+  padding: 12px 16px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafafa;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.menuFooter a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.rotate180 {
+  transform: rotate(180deg);
+}
