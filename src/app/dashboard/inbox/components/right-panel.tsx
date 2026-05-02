@@ -13,6 +13,7 @@ import { useInboxStore } from '../store/inbox.store';
 import clsx from 'clsx';
 
 type RightPanelProps = {
+  workspaceId: string;
   conversationId: string;
   platform: string;
   externalId: string;
@@ -37,6 +38,7 @@ type RightPanelProps = {
 };
 
 export function RightPanel({
+  workspaceId,
   conversationId,
   platform,
   externalId,
@@ -127,6 +129,7 @@ export function RightPanel({
           customerAvatar={customerAvatar}
           platform={platform}
           platformUserName={pageName}
+          tags={tags}
         />
         <ChatWindow ref={chatRef} conversationId={conversationId} />
         <ReplyComposer
@@ -140,6 +143,7 @@ export function RightPanel({
 
       <div className={clsx(styles.rightSidebarWrapper, !isRightPanelVisible && styles.collapsedWrapper)}>
         <RightSidebar
+          workspaceId={workspaceId}
           conversationId={conversationId}
           customerName={customerName}
           customerAvatar={customerAvatar}

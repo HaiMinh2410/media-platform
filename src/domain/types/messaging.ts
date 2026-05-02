@@ -87,6 +87,7 @@ export type ConversationFilter = {
   sentiment?: string;
   is_vip?: boolean;
   show_duplicates?: boolean;
+  tag?: string;
 };
 
 /**

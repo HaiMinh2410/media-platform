@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './chat.module.css';
 import { PlatformIcon } from '@/components/ui/inbox-shared';
-import { MoreHorizontal, ShieldAlert, Trash2, Search, X } from 'lucide-react';
+import { MoreHorizontal, ShieldAlert, ShieldCheck, Trash2, Search, X } from 'lucide-react';
 import { useInboxStore } from '../store/inbox.store';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ type ChatHeaderProps = {
   customerAvatar?: string;
   platform: string;
   platformUserName: string;
+  tags?: string[];
 };
 
 export function ChatHeader({
@@ -23,6 +24,7 @@ export function ChatHeader({
   customerAvatar,
   platform,
   platformUserName,
+  tags = [],
 }: ChatHeaderProps) {
   const router = useRouter();
   const setRightSidebarTab = useInboxStore((state) => state.setRightSidebarTab);
@@ -46,18 +48,53 @@ export function ChatHeader({
   const handleMoveToSpam = async () => {
     setIsDropdownOpen(false);
     try {
-      const res = await fetch(`/api/conversations/${conversationId}/metadata`, {
+      // 1. Update status to spam
+      const metaRes = await fetch(`/api/conversations/${conversationId}/metadata`, {
         method: 'PUT',
         body: JSON.stringify({ status: 'spam' }),
       });
-      if (res.ok) {
-        toast.success('Conversation moved to spam');
+
+      // 2. Assign "Bị chặn" tag (replace all others as per constraints)
+      const tagRes = await fetch(`/api/conversations/${conversationId}/tags`, {
+        method: 'PUT',
+        body: JSON.stringify({ tags: ['Bị chặn::#ef4444'] }),
+      });
+
+      if (metaRes.ok && tagRes.ok) {
+        toast.success('Hội thoại đã được chuyển vào mục spam và bị chặn');
         router.push('/dashboard/inbox');
       } else {
-        toast.error('Failed to move conversation to spam');
+        toast.error('Không thể chuyển hội thoại vào mục spam');
       }
     } catch (err) {
-      toast.error('Error connecting to server');
+      toast.error('Lỗi kết nối máy chủ');
+    }
+  };
+
+  const handleUnblock = async () => {
+    setIsDropdownOpen(false);
+    try {
+      // 1. Update status to open
+      const metaRes = await fetch(`/api/conversations/${conversationId}/metadata`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'open' }),
+      });
+
+      // 2. Remove "Bị chặn" tag
+      const newTags = tags.filter(t => !t.startsWith('Bị chặn::'));
+      const tagRes = await fetch(`/api/conversations/${conversationId}/tags`, {
+        method: 'PUT',
+        body: JSON.stringify({ tags: newTags }),
+      });
+
+      if (metaRes.ok && tagRes.ok) {
+        toast.success('Đã bỏ chặn hội thoại');
+        router.refresh(); // Refresh to update UI if staying on page
+      } else {
+        toast.error('Không thể bỏ chặn hội thoại');
+      }
+    } catch (err) {
+      toast.error('Lỗi kết nối máy chủ');
     }
   };
 
@@ -132,10 +169,17 @@ export function ChatHeader({
                 <Search size={16} />
                 <span>Search conversation</span>
               </button>
-              <button className={styles.dropdownItem} onClick={handleMoveToSpam}>
-                <ShieldAlert size={16} />
-                <span>Move to spam</span>
-              </button>
+              {tags.some(t => t.startsWith('Bị chặn::')) ? (
+                <button className={styles.dropdownItem} onClick={handleUnblock}>
+                  <ShieldCheck size={16} />
+                  <span>Unblock</span>
+                </button>
+              ) : (
+                <button className={styles.dropdownItem} onClick={handleMoveToSpam}>
+                  <ShieldAlert size={16} />
+                  <span>Move to spam</span>
+                </button>
+              )}
               <button 
                 className={clsx(styles.dropdownItem, styles.dropdownItemDanger)} 
                 onClick={handleDeleteConversation}

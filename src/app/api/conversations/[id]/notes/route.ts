@@ -31,3 +31,26 @@ export async function POST(
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+/**
+ * GET /api/conversations/[id]/notes
+ * Fetches all notes for a conversation.
+ */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: conversationId } = await params;
+
+    const notes = await db.conversationNote.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return NextResponse.json({ data: notes });
+  } catch (error) {
+    console.error('[NOTES_GET]', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

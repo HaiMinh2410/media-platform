@@ -1688,7 +1688,7 @@
   text-decoration: underline;
 }
 
-.addNoteForm {
+.addNoteForm, .editNoteForm {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1734,6 +1734,32 @@
   color: var(--fg-primary);
   margin: 0;
   line-height: 1.5;
+}
+
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.loadingNotes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  color: var(--fg-tertiary);
+  font-size: 0.8125rem;
+}
+
+.emptyNotes {
+  font-size: 0.8125rem;
+  color: var(--fg-tertiary);
+  font-style: italic;
+  text-align: center;
+  padding: 16px 0;
+  margin: 0;
 }
 
 /* Collapsed Sidebar Styles */

@@ -21,7 +21,8 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterBy, setFilterBy] = useState<'all' | 'unread' | 'priority'>('all');
+  const [filterBy, setFilterBy] = useState<string>('all');
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [sortField, setSortField] = useState<'date' | 'name'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
@@ -129,7 +130,10 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
       if (filterBy === 'unread') {
         url.searchParams.set('unread', 'true');
       } else if (filterBy === 'priority') {
-        url.searchParams.set('priority', 'high'); // Or custom priority logic
+        url.searchParams.set('priority', 'high');
+      } else if (filterBy !== 'all') {
+        // Assume it's a tag
+        url.searchParams.set('tag', filterBy);
       }
 
       // Handle Sort Field & Order
@@ -269,6 +273,20 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     onRefresh: refreshTotalUnread
   });
 
+  // Fetch available tags
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const res = await fetch(`/api/tags?workspaceId=${workspaceId}`);
+        const json = await res.json();
+        if (json.data) setAvailableTags(json.data);
+      } catch (err) {
+        console.error('Failed to fetch tags:', err);
+      }
+    };
+    fetchTags();
+  }, [workspaceId]);
+
   if (pathname?.includes('/flow')) return null;
 
   const activeGroupName = selectedGroupId 
@@ -340,11 +358,19 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
               <select 
                 className={styles.miniSelect}
                 value={filterBy}
-                onChange={(e) => setFilterBy(e.target.value as 'all' | 'unread' | 'priority')}
+                onChange={(e) => setFilterBy(e.target.value)}
               >
-                <option value="all">All</option>
-                <option value="unread">Unread</option>
-                <option value="priority">Priority</option>
+                <option value="all">Tất cả</option>
+                <option value="unread">Chưa đọc</option>
+                <option value="priority">Ưu tiên</option>
+                <optgroup label="Lọc theo nhãn">
+                  {availableTags.map(tag => {
+                    const name = tag.split('::')[0];
+                    return (
+                      <option key={tag} value={tag}>Nhãn: {name}</option>
+                    );
+                  })}
+                </optgroup>
               </select>
             </div>
 

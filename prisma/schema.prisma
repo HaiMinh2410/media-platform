@@ -20,8 +20,23 @@ model Workspace {
   invitations         invitations[]
   platformAccounts    PlatformAccount[]
   workspace_members   workspace_members[]
+  workspace_tags      WorkspaceTag[]
 
   @@map("workspaces")
+  @@schema("public")
+}
+
+model WorkspaceTag {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_id String    @db.Uuid
+  name         String
+  color        String    @default("#6366f1")
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  workspace    Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+
+  @@unique([workspace_id, name])
+  @@map("workspace_tags")
   @@schema("public")
 }
 

@@ -25,6 +25,17 @@ export async function getConversations(
     const limit = pagination.limit || 20;
     const cursor = pagination.cursor;
 
+    // Fetch tags named "Bị chặn" to handle exclusion logic
+    const blockedTags = await db.workspaceTag.findMany({
+      where: {
+        workspace_id: filter.workspaceId,
+        name: 'Bị chặn'
+      },
+      select: { name: true, color: true }
+    });
+    const blockedTagStrings = blockedTags.map(t => `${t.name}::${t.color}`);
+    const isFilteringByBlocked = filter.tag && blockedTagStrings.includes(filter.tag);
+
     const conversations = await db.conversation.findMany({
       where: {
         platform_accounts: {
@@ -58,6 +69,8 @@ export async function getConversations(
         ...(filter.show_duplicates ? {} : { canonical_conversation_id: null }),
         // Filter by unread if provided
         ...(filter.unread ? { messages: { some: { is_read: false } } } : {}),
+        // Filter by tags if provided
+        ...(filter.tag ? { tags: { has: filter.tag } } : {}),
         // Search in platform ID or message content or customer name
         ...(filter.search ? {
           OR: [
@@ -65,7 +78,15 @@ export async function getConversations(
             { customer_name: { contains: filter.search, mode: 'insensitive' } },
             { messages: { some: { content: { contains: filter.search, mode: 'insensitive' } } } }
           ]
-        } : {})
+        } : {}),
+        // Global exclusion logic for "Bị chặn" tag
+        ...(isFilteringByBlocked ? {} : {
+          NOT: {
+            tags: {
+              hasSome: blockedTagStrings
+            }
+          }
+        })
       },
       // Take one extra to determine if there's a next page
       take: limit + 1,

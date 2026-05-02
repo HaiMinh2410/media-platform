@@ -30,6 +30,7 @@ export default async function ConversationPage({
   return (
     <div className={styles.chatContainer}>
       <RightPanel
+        workspaceId={conversation.platform_accounts.workspaceId}
         conversationId={id}
         platform={platform}
         externalId={conversation.platform_conversation_id}

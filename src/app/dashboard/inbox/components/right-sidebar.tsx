@@ -13,7 +13,8 @@ import {
   Phone, Mail, Cake, Home, RefreshCw, Check
 } from 'lucide-react';
 import { MessageWithSender } from '@/domain/types/messaging';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow, isToday } from 'date-fns';
+import { vi } from 'date-fns/locale';
 import clsx from 'clsx';
 
 const PRESET_COLORS = [
@@ -31,6 +32,7 @@ const leadStages = [
 ];
 
 type RightSidebarProps = {
+  workspaceId: string;
   conversationId: string;
   customerName?: string;
   customerAvatar?: string;
@@ -62,6 +64,7 @@ type RightSidebarProps = {
 };
 
 export function RightSidebar({
+  workspaceId,
   conversationId,
   customerName,
   customerAvatar,
@@ -96,6 +99,11 @@ export function RightSidebar({
   const [isTagColorPickerOpen, setIsTagColorPickerOpen] = useState(false);
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [noteContent, setNoteContent] = useState('');
+  const [notes, setNotes] = useState<any[]>([]);
+  const [workspaceTags, setWorkspaceTags] = useState<string[]>([]);
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingNoteContent, setEditingNoteContent] = useState('');
   const getInitialStatus = (p: string | null) => {
     if (!p) return 'new';
     if (p === 'low') return 'new';
@@ -111,9 +119,43 @@ export function RightSidebar({
   const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
+  const fetchWorkspaceTags = async () => {
+    try {
+      const res = await fetch(`/api/tags?workspaceId=${workspaceId}`);
+      const json = await res.json();
+      if (json.data) setWorkspaceTags(json.data);
+    } catch (err) {
+      console.error('Failed to fetch workspace tags:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (workspaceId) fetchWorkspaceTags();
+  }, [workspaceId]);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const fetchNotes = async () => {
+    if (!conversationId) return;
+    setIsLoadingNotes(true);
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/notes`);
+      const json = await res.json();
+      if (json.data) {
+        setNotes(json.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notes:', err);
+    } finally {
+      setIsLoadingNotes(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotes();
+  }, [conversationId]);
 
   // Đóng dropdown khi cuộn trang lớn (ví dụ cuộn chính của sidebar)
   useEffect(() => {
@@ -193,9 +235,18 @@ export function RightSidebar({
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && newTag.trim()) {
       const tagName = newTag.trim();
-      if (!tags.some(t => parseTag(t).name === tagName)) {
-        onUpdateTags([...tags, `${tagName}::${selectedTagColor}`]);
+      
+      if (tagName === 'Bị chặn') {
+        alert('Nhãn "Bị chặn" chỉ được gán khi chuyển hội thoại vào mục spam.');
+        setNewTag('');
+        return;
       }
+
+      // Check if it matches an existing suggestion to get the color
+      const suggestion = suggestedTags.find(t => parseTag(t).name === tagName);
+      const tagString = suggestion || `${tagName}::${selectedTagColor}`;
+      
+      toggleTag(tagString);
       setNewTag('');
     }
   };
@@ -203,23 +254,63 @@ export function RightSidebar({
   const handleQuickAddTag = () => {
     if (newTag.trim()) {
       const tagName = newTag.trim();
-      if (!tags.some(t => parseTag(t).name === tagName)) {
-        onUpdateTags([...tags, `${tagName}::${selectedTagColor}`]);
+      
+      if (tagName === 'Bị chặn') {
+        alert('Nhãn "Bị chặn" chỉ được gán khi chuyển hội thoại vào mục spam.');
+        setNewTag('');
+        return;
       }
+
+      const suggestion = suggestedTags.find(t => parseTag(t).name === tagName);
+      const tagString = suggestion || `${tagName}::${selectedTagColor}`;
+      
+      toggleTag(tagString);
       setNewTag('');
     }
   };
 
   const toggleTag = (tag: string) => {
-    const { name } = parseTag(tag);
-    if (tags.some(t => parseTag(t).name === name)) {
-      onUpdateTags(tags.filter(t => parseTag(t).name !== name));
-    } else {
-      onUpdateTags([...tags, tag]);
+    const { name: newTagName } = parseTag(tag);
+    const hasBlocked = tags.some(t => parseTag(t).name === 'Bị chặn');
+    const hasPriority = tags.some(t => parseTag(t).name === 'Ưu tiên');
+    const hasRestricted = tags.some(t => parseTag(t).name === 'Hạn chế');
+
+    // If tag is already there, we are removing it - always allowed
+    if (tags.some(t => parseTag(t).name === newTagName)) {
+      onUpdateTags(tags.filter(t => parseTag(t).name !== newTagName));
+      return;
     }
+
+    // Constraints for adding a new tag
+    if (hasBlocked) {
+      alert('Tài khoản đã bị chặn, không thể thêm nhãn khác.');
+      return;
+    }
+
+    if (newTagName === 'Bị chặn' && tags.length > 0) {
+      // If adding blocked, we should probably remove all others? 
+      // User said "đã có nhãn bị chặn thì không thêm được các nhãn khác".
+      // This implies if we add blocked, it should probably be the only one.
+      if (confirm('Khi gắn nhãn "Bị chặn", các nhãn khác sẽ bị gỡ bỏ. Tiếp tục?')) {
+        onUpdateTags([tag]);
+      }
+      return;
+    }
+
+    if (newTagName === 'Ưu tiên' && hasRestricted) {
+      alert('Không thể gắn nhãn "Ưu tiên" khi đã có nhãn "Hạn chế".');
+      return;
+    }
+
+    if (newTagName === 'Hạn chế' && hasPriority) {
+      alert('Không thể gắn nhãn "Hạn chế" khi đã có nhãn "Ưu tiên".');
+      return;
+    }
+
+    onUpdateTags([...tags, tag]);
   };
 
-  // Suggestion tags with colors
+  // Suggestion tags with colors as requested
   const suggestedTags = [
     'Ưu tiên::#3b82f6',
     'Hạn chế::#ef4444',
@@ -227,7 +318,7 @@ export function RightSidebar({
     `Ngày hôm nay (${format(new Date(), 'MM/d')})::#f59e0b`,
   ];
 
-  // Filter out tags that are already selected (match by name)
+  // availableSuggestions should use suggestedTags
   const availableSuggestions = suggestedTags.filter(suggested => 
     !tags.some(t => parseTag(t).name === parseTag(suggested).name)
   );
@@ -255,16 +346,60 @@ export function RightSidebar({
   const handleSaveNote = async () => {
     if (!noteContent.trim()) return;
     try {
-      await fetch(`/api/conversations/${conversationId}/notes`, {
+      const res = await fetch(`/api/conversations/${conversationId}/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: noteContent }),
       });
-      setNoteContent('');
-      window.location.reload(); 
+      if (res.ok) {
+        setNoteContent('');
+        setIsAddingNote(false);
+        fetchNotes();
+      }
     } catch (err) {
       console.error('Failed to save note:', err);
     }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa ghi chú này?')) return;
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/notes/${noteId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        fetchNotes();
+      }
+    } catch (err) {
+      console.error('Failed to delete note:', err);
+    }
+  };
+
+  const handleUpdateNote = async (noteId: string) => {
+    if (!editingNoteContent.trim()) return;
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/notes/${noteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editingNoteContent }),
+      });
+      if (res.ok) {
+        setEditingNoteId(null);
+        setEditingNoteContent('');
+        fetchNotes();
+      }
+    } catch (err) {
+      console.error('Failed to update note:', err);
+    }
+  };
+
+  const formatNoteDate = (date: string | Date) => {
+    const d = new Date(date);
+    if (isToday(d)) {
+      const distance = formatDistanceToNow(d, { addSuffix: true, locale: vi });
+      return distance.replace('dưới 1 phút trước', 'vài giây trước');
+    }
+    return format(d, 'HH:mm dd/MM/yyyy');
   };
 
   const handleSyncProfile = async () => {
@@ -672,15 +807,55 @@ export function RightSidebar({
                 </div>
               )}
 
-              <div className={styles.noteItem}>
-                <div className={styles.noteMeta}>
-                  <span>vài giây trước</span>
-                  <div className={styles.noteActions}>
-                    <span>Chỉnh sửa</span>
-                    <span>Xóa</span>
+              <div className={styles.notesList}>
+                {isLoadingNotes ? (
+                  <div className={styles.loadingNotes}>
+                    <Loader2 size={16} className={styles.spin} />
+                    <span>Đang tải ghi chú...</span>
                   </div>
-                </div>
-                <p className={styles.noteText}>test</p>
+                ) : notes.length > 0 ? (
+                  notes.map((note) => (
+                    <div key={note.id} className={styles.noteItem}>
+                      <div className={styles.noteMeta}>
+                        <span>{formatNoteDate(note.createdAt)}</span>
+                        <div className={styles.noteActions}>
+                          {editingNoteId === note.id ? (
+                            <span onClick={() => setEditingNoteId(null)}>Hủy</span>
+                          ) : (
+                            <>
+                              <span onClick={() => {
+                                setEditingNoteId(note.id);
+                                setEditingNoteContent(note.content);
+                              }}>Chỉnh sửa</span>
+                              <span onClick={() => handleDeleteNote(note.id)}>Xóa</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {editingNoteId === note.id ? (
+                        <div className={styles.editNoteForm}>
+                          <textarea 
+                            className={styles.noteInput}
+                            value={editingNoteContent}
+                            onChange={(e) => setEditingNoteContent(e.target.value)}
+                            autoFocus
+                          />
+                          <button 
+                            className={styles.saveNoteBtn}
+                            onClick={() => handleUpdateNote(note.id)}
+                          >
+                            Cập nhật
+                          </button>
+                        </div>
+                      ) : (
+                        <p className={styles.noteText}>{note.content}</p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className={styles.emptyNotes}>Chưa có ghi chú nào.</p>
+                )}
               </div>
             </div>
           </div>
@@ -797,10 +972,12 @@ export function RightSidebar({
         }}
       />
       <ManageTagsModal 
+        workspaceId={workspaceId}
         isOpen={isManageTagsOpen}
-        onClose={() => setIsManageTagsOpen(false)}
-        tags={tags}
-        onUpdateTags={onUpdateTags}
+        onClose={() => {
+          setIsManageTagsOpen(false);
+          fetchWorkspaceTags();
+        }}
       />
     </aside>
   );

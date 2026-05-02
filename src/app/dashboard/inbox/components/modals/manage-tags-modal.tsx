@@ -6,10 +6,9 @@ import styles from './manage-tags-modal.module.css';
 import clsx from 'clsx';
 
 interface ManageTagsModalProps {
+  workspaceId: string;
   isOpen: boolean;
   onClose: () => void;
-  tags: string[];
-  onUpdateTags: (tags: string[]) => void;
 }
 
 const PRESET_COLORS = [
@@ -17,11 +16,11 @@ const PRESET_COLORS = [
 ];
 
 export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
+  workspaceId,
   isOpen,
   onClose,
-  tags,
-  onUpdateTags
 }) => {
+  const [tags, setTags] = useState<string[]>([]);
   const [newTagName, setNewTagName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
@@ -31,6 +30,22 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
   const [editValue, setEditValue] = useState('');
   const [editColor, setEditColor] = useState('');
 
+  const fetchTags = async () => {
+    try {
+      const res = await fetch(`/api/tags?workspaceId=${workspaceId}`);
+      const json = await res.json();
+      if (json.data) setTags(json.data);
+    } catch (err) {
+      console.error('Failed to fetch workspace tags:', err);
+    }
+  };
+
+  React.useEffect(() => {
+    if (isOpen && workspaceId) {
+      fetchTags();
+    }
+  }, [isOpen, workspaceId]);
+
   if (!isOpen) return null;
 
   const parseTag = (tag: string) => {
@@ -38,18 +53,35 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
     return { name, color: color || '#6366f1' };
   };
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     if (newTagName.trim()) {
       const tagName = newTagName.trim();
       if (!tags.some(t => parseTag(t).name === tagName)) {
-        onUpdateTags([...tags, `${tagName}::${selectedColor}`]);
-        setNewTagName('');
+        try {
+          await fetch('/api/tags', {
+            method: 'POST',
+            body: JSON.stringify({ workspaceId, name: tagName, color: selectedColor }),
+          });
+          fetchTags();
+          setNewTagName('');
+        } catch (err) {
+          console.error('Failed to add tag:', err);
+        }
       }
     }
   };
 
-  const handleDeleteTag = (tagName: string) => {
-    onUpdateTags(tags.filter(t => t !== tagName));
+  const handleDeleteTag = async (tagString: string) => {
+    const { name } = parseTag(tagString);
+    if (!confirm(`Bạn có chắc chắn muốn xóa nhãn "${name}" khỏi toàn hệ thống?`)) return;
+    try {
+      await fetch(`/api/tags?workspaceId=${workspaceId}&name=${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+      });
+      fetchTags();
+    } catch (err) {
+      console.error('Failed to delete tag:', err);
+    }
   };
 
   const handleStartEdit = (tag: string) => {
@@ -59,11 +91,24 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
     setEditColor(color);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingTag && editValue.trim()) {
-      const newTag = `${editValue.trim()}::${editColor}`;
-      onUpdateTags(tags.map(t => t === editingTag ? newTag : t));
-      setEditingTag(null);
+      const { name: oldName } = parseTag(editingTag);
+      try {
+        await fetch('/api/tags', {
+          method: 'PATCH',
+          body: JSON.stringify({ 
+            workspaceId, 
+            oldName, 
+            newName: editValue.trim(), 
+            color: editColor 
+          }),
+        });
+        fetchTags();
+        setEditingTag(null);
+      } catch (err) {
+        console.error('Failed to update tag:', err);
+      }
     } else {
       setEditingTag(null);
     }
