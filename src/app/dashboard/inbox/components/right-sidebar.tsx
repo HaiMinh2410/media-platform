@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import styles from './chat.module.css';
 import { AiSuggestionPanel } from './ai-suggestion-panel';
 import { ContactEditModal } from './modals/contact-edit-modal';
+import { ManageTagsModal } from './modals/manage-tags-modal';
 import { useInboxStore } from '../store/inbox.store';
 import { 
   Search, X, User, Calendar, MessageSquare, Loader2, 
@@ -137,6 +138,7 @@ export function RightSidebar({
 
   const [orderStatus, setOrderStatus] = useState('none');
   const [isEditingContact, setIsEditingContact] = useState(false);
+  const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);
 
   // Debounced search logic
   React.useEffect(() => {
@@ -477,14 +479,18 @@ export function RightSidebar({
 
                 {isLeadStatusOpen && isMounted && createPortal(
                   <div 
-                    className={clsx(styles.dropdownMenu, dropdownDirection === 'up' && styles.dropdownMenuUp)}
+                    className={clsx(styles.leadStatusMenu, dropdownDirection === 'up' && styles.leadStatusMenuUp)}
                     style={{
                       position: 'fixed',
                       top: dropdownDirection === 'down' ? dropdownPos.top + 42 : 'auto',
                       bottom: dropdownDirection === 'up' ? window.innerHeight - dropdownPos.top + 2 : 'auto',
                       left: dropdownPos.left,
+                      right: 'auto',
                       width: dropdownPos.width,
                       zIndex: 10000,
+                      maxHeight: dropdownDirection === 'down' 
+                        ? window.innerHeight - dropdownPos.top - 60 
+                        : dropdownPos.top - 20
                     }}
                   >
                     <div className={styles.menuList}>
@@ -528,12 +534,24 @@ export function RightSidebar({
                 <h3 className={styles.detailTitle}>
                   Nhãn <Info size={14} className={styles.infoIcon} />
                 </h3>
-                <span className={styles.statusAction}>Quản lý nhãn</span>
+                <span 
+                  className={styles.statusAction}
+                  onClick={() => setIsManageTagsOpen(true)}
+                >
+                  Quản lý nhãn
+                </span>
               </div>
               <div className={styles.tagsContainer}>
                 {tags.length > 0 ? (
                   tags.map(tag => (
-                    <span key={tag} className={styles.tagBadge}>{tag}</span>
+                    <span key={tag} className={styles.tagBadge}>
+                      {tag}
+                      <X 
+                        size={12} 
+                        className={styles.removeTagIcon} 
+                        onClick={() => toggleTag(tag)}
+                      />
+                    </span>
                   ))
                 ) : (
                   <span className={styles.tagBadge}>Ưu tiên</span>
@@ -552,22 +570,31 @@ export function RightSidebar({
               <div className={styles.suggestedTags}>
                 <p className={styles.suggestTitle}>Nhãn gợi ý</p>
                 <div className={styles.suggestList}>
-                  <label className={styles.suggestItem}>
-                    <input 
-                      type="checkbox" 
-                      checked={tags.includes('Khách hàng mới')}
-                      onChange={() => toggleTag('Khách hàng mới')}
-                    />
-                    <span className={styles.suggestBadgeGreen}>Khách hàng mới</span>
-                  </label>
-                  <label className={styles.suggestItem}>
-                    <input 
-                      type="checkbox" 
-                      checked={tags.includes('Ngày hôm nay (5/02)')}
-                      onChange={() => toggleTag('Ngày hôm nay (5/02)')}
-                    />
-                    <span className={styles.suggestBadgeBlue}>Ngày hôm nay (5/02)</span>
-                  </label>
+                  {!tags.includes('Khách hàng mới') && (
+                    <label className={styles.suggestItem}>
+                      <input 
+                        type="checkbox" 
+                        checked={false}
+                        onChange={() => toggleTag('Khách hàng mới')}
+                      />
+                      <span className={styles.suggestBadgeGreen}>Khách hàng mới</span>
+                    </label>
+                  )}
+                  {!tags.includes('Ngày hôm nay (5/02)') && (
+                    <label className={styles.suggestItem}>
+                      <input 
+                        type="checkbox" 
+                        checked={false}
+                        onChange={() => toggleTag('Ngày hôm nay (5/02)')}
+                      />
+                      <span className={styles.suggestBadgeBlue}>Ngày hôm nay (5/02)</span>
+                    </label>
+                  )}
+                  {tags.includes('Khách hàng mới') && tags.includes('Ngày hôm nay (5/02)') && (
+                    <p style={{ fontSize: '12px', color: 'var(--fg-tertiary)', fontStyle: 'italic' }}>
+                      Không còn nhãn gợi ý
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -721,6 +748,12 @@ export function RightSidebar({
           ...contactInfo
         }}
       />
+      <ManageTagsModal 
+        isOpen={isManageTagsOpen}
+        onClose={() => setIsManageTagsOpen(false)}
+        tags={tags}
+        onUpdateTags={onUpdateTags}
+      />
     </aside>
   );
-}
+};

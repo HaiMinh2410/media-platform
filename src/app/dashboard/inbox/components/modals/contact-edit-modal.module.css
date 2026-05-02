@@ -4,61 +4,64 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .modalContent {
-  background: #ffffff;
+  background: #1a1a1e;
   width: 100%;
   max-width: 500px;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   max-height: 90vh;
 }
 
 .modalHeader {
-  padding: 16px 20px;
+  padding: 20px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .modalTitle {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #111827;
+  color: #ffffff;
   margin: 0;
 }
 
 .closeBtn {
   background: transparent;
   border: none;
-  color: #6b7280;
+  color: #9ca3af;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .closeBtn:hover {
-  background: #f3f4f6;
-  color: #111827;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
 }
 
 .modalBody {
-  padding: 24px 20px;
+  padding: 24px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -72,16 +75,16 @@
 }
 
 .avatarCircle {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #2d2d30;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 4px solid #ffffff;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 3px solid #3f3f46;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
 .avatarImg {
@@ -93,56 +96,59 @@
 .formField {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: #e5e7eb;
 }
 
 .labelNote {
   font-weight: 400;
   color: #9ca3af;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   margin-left: 4px;
 }
 
 .inputGroup {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .input {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
   font-size: 0.9375rem;
-  color: #111827;
+  color: #ffffff;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
 }
 
 .input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #0ea5e9;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
 }
 
 .select {
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
   font-size: 0.9375rem;
-  color: #111827;
-  background-color: #ffffff;
+  color: #ffffff;
   outline: none;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .select:focus {
-  border-color: #2563eb;
+  border-color: #0ea5e9;
 }
 
 .halfField {
@@ -155,42 +161,51 @@
 }
 
 .modalFooter {
-  padding: 16px 20px;
-  border-top: 1px solid #f3f4f6;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  background: #f9fafb;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .cancelBtn {
-  padding: 8px 24px;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #374151;
+  padding: 10px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #d1d5db;
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .cancelBtn:hover {
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .saveBtn {
-  padding: 8px 32px;
+  padding: 10px 32px;
   border: none;
-  background: #0ea5e9;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
   color: #ffffff;
   font-size: 0.875rem;
-  font-weight: 500;
-  border-radius: 6px;
+  font-weight: 600;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
 }
 
 .saveBtn:hover {
-  background: #0284c7;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
+  filter: brightness(1.1);
+}
+
+.saveBtn:active {
+  transform: translateY(0);
 }
