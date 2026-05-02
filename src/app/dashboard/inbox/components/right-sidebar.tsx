@@ -41,6 +41,8 @@ type RightSidebarProps = {
     state?: string;
     zipCode?: string;
   };
+  customerUsername?: string;
+  customerLink?: string;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
 };
@@ -64,6 +66,8 @@ export function RightSidebar({
   contactInfo,
   isCollapsed,
   onToggleCollapse,
+  customerUsername,
+  customerLink,
 }: RightSidebarProps) {
   const activeTab = useInboxStore((state) => state.rightSidebarTab) as TabType;
   const setActiveTab = useInboxStore((state) => state.setRightSidebarTab);
@@ -264,9 +268,37 @@ export function RightSidebar({
               </div>
               <div className={styles.profileInfo}>
                 <h4 className={styles.profileName}>{customerName || 'Unknown'}</h4>
-                <a href="#" className={styles.profileLink}>
-                  Xem trang cá nhân
-                </a>
+                {platform === 'instagram' ? (
+                  customerUsername ? (
+                    <a 
+                      href={`https://www.instagram.com/${customerUsername}/`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className={styles.profileLink}
+                    >
+                      Xem trang cá nhân
+                    </a>
+                  ) : (
+                    <span className={styles.profileLinkDisabled} title="Chưa đồng bộ được username Instagram">
+                      Chưa có liên kết
+                    </span>
+                  )
+                ) : (
+                  customerLink ? (
+                    <a 
+                      href={customerLink} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      className={styles.profileLink}
+                    >
+                      Xem trang cá nhân
+                    </a>
+                  ) : (
+                    <span className={styles.profileLinkDisabled} title="Facebook hạn chế link trang cá nhân qua API nếu không có quyền user_link">
+                      Chưa có liên kết
+                    </span>
+                  )
+                )}
               </div>
               <div className={styles.headerActions}>
                 <button className={styles.iconBtn} onClick={onToggleCollapse}>

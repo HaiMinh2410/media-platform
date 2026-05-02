@@ -84,7 +84,7 @@ export const metaProfileService = {
       // Note: 'name' is often restricted for Facebook PSIDs, prefer first/last name.
       const fields = platform === 'instagram' 
         ? 'name,username,profile_pic' 
-        : 'first_name,last_name,picture.type(large)';
+        : 'first_name,last_name,link,picture.type(large)';
       
       let result = await graphClient.request<any>(externalSenderId, plainToken, { fields });
       
@@ -125,7 +125,9 @@ export const metaProfileService = {
         where: { id: conversationId },
         data: {
           customer_name: name,
-          customer_avatar: avatar
+          customer_avatar: avatar,
+          customer_username: profile.username || null,
+          customer_link: profile.link || null
         }
       });
 

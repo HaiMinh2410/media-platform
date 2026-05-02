@@ -49,6 +49,8 @@ export default async function ConversationPage({
           state: (conversation as any).state,
           zipCode: (conversation as any).zip_code,
         }}
+        customerUsername={(conversation as any).customer_username}
+        customerLink={(conversation as any).customer_link}
       />
     </div>
   );

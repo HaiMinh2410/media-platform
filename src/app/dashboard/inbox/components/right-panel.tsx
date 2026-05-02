@@ -32,6 +32,8 @@ type RightPanelProps = {
     state?: string;
     zipCode?: string;
   };
+  customerUsername?: string;
+  customerLink?: string;
 };
 
 export function RightPanel({
@@ -46,6 +48,8 @@ export function RightPanel({
   sentiment: initialSentiment,
   initialTags,
   contactInfo,
+  customerUsername,
+  customerLink,
 }: RightPanelProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [priority, setPriority] = useState<string | null>(initialPriority);
@@ -152,6 +156,8 @@ export function RightPanel({
           onUpdateSentiment={handleUpdateSentiment}
           onJumpToMessage={(id) => chatRef.current?.scrollToMessage(id)}
           contactInfo={contactInfo}
+          customerUsername={customerUsername}
+          customerLink={customerLink}
           isCollapsed={!isRightPanelVisible}
           onToggleCollapse={() => setRightPanelVisible(!isRightPanelVisible)}
         />

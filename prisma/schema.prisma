@@ -62,6 +62,8 @@ model Conversation {
   status                     String?                   @default("open")
   customer_avatar            String?
   customer_name              String?
+  customer_username          String?
+  customer_link              String?
   is_vip                     Boolean                   @default(false)
   /// Added in T073: Advanced Inbox Schema
   priority                   String?                   @default("medium")
