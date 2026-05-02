@@ -25,7 +25,8 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
   const [newTagName, setNewTagName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
-  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [isAddColorPickerOpen, setIsAddColorPickerOpen] = useState(false);
+  const [isEditColorPickerOpen, setIsEditColorPickerOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [editColor, setEditColor] = useState('');
@@ -92,13 +93,13 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
               <div 
                 className={styles.colorPicker} 
                 style={{ borderColor: selectedColor, background: `${selectedColor}10` }}
-                onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+                onClick={() => setIsAddColorPickerOpen(!isAddColorPickerOpen)}
               >
                 <div className={styles.colorDot} style={{ backgroundColor: selectedColor }} />
                 <ChevronDown size={14} style={{ color: selectedColor }} />
               </div>
               
-              {isColorPickerOpen && (
+              {isAddColorPickerOpen && (
                 <div className={styles.colorPopover}>
                   {PRESET_COLORS.map(color => (
                     <div 
@@ -107,9 +108,11 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                       style={{ backgroundColor: color }}
                       onClick={() => {
                         setSelectedColor(color);
-                        setIsColorPickerOpen(false);
+                        setIsAddColorPickerOpen(false);
                       }}
-                    />
+                    >
+                      {selectedColor === color && <Check size={14} color="#fff" />}
+                    </div>
                   ))}
                 </div>
               )}
@@ -158,9 +161,9 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                             <div 
                               className={styles.colorPickerSmall} 
                               style={{ backgroundColor: editColor }}
-                              onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+                              onClick={() => setIsEditColorPickerOpen(!isEditColorPickerOpen)}
                             />
-                            {isColorPickerOpen && editingTag === tag && (
+                            {isEditColorPickerOpen && editingTag === tag && (
                               <div className={styles.colorPopoverSmall}>
                                 {PRESET_COLORS.map(c => (
                                   <div 
@@ -169,9 +172,11 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                                     style={{ backgroundColor: c }}
                                     onClick={() => {
                                       setEditColor(c);
-                                      setIsColorPickerOpen(false);
+                                      setIsEditColorPickerOpen(false);
                                     }}
-                                  />
+                                  >
+                                    {editColor === c && <Check size={12} color="#fff" />}
+                                  </div>
                                 ))}
                               </div>
                             )}
@@ -186,17 +191,8 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                         </div>
                       ) : (
                         <>
-                          <div className={styles.colorDot} style={{ backgroundColor: color }} />
-                          <span 
-                            className={styles.tagBadge}
-                            style={{ 
-                              backgroundColor: `${color}15`, 
-                              color: color,
-                              border: `1px solid ${color}30`
-                            }}
-                          >
-                            {name}
-                          </span>
+                          <div className={styles.colorDot} style={{ backgroundColor: color, width: '20px', height: '20px' }} />
+                          <span className={styles.tagName}>{name}</span>
                         </>
                       )}
                     </div>

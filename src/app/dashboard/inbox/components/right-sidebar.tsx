@@ -10,11 +10,15 @@ import { useInboxStore } from '../store/inbox.store';
 import { 
   Search, X, User, Calendar, MessageSquare, Loader2, 
   MoreHorizontal, ChevronRight, Camera, Info, Plus, Trash2, ChevronDown,
-  Phone, Mail, Cake, Home, RefreshCw
+  Phone, Mail, Cake, Home, RefreshCw, Check
 } from 'lucide-react';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { format } from 'date-fns';
 import clsx from 'clsx';
+
+const PRESET_COLORS = [
+  '#3b82f6', '#22c55e', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#10b981'
+];
 
 type TabType = 'detail' | 'ai' | 'search';
 
@@ -88,6 +92,8 @@ export function RightSidebar({
   const [senderFilter, setSenderFilter] = useState<'user' | 'agent' | ''>('');
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | ''>('');
   const [newTag, setNewTag] = useState('');
+  const [selectedTagColor, setSelectedTagColor] = useState(PRESET_COLORS[0]);
+  const [isTagColorPickerOpen, setIsTagColorPickerOpen] = useState(false);
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [noteContent, setNoteContent] = useState('');
   const getInitialStatus = (p: string | null) => {
@@ -188,7 +194,17 @@ export function RightSidebar({
     if (e.key === 'Enter' && newTag.trim()) {
       const tagName = newTag.trim();
       if (!tags.some(t => parseTag(t).name === tagName)) {
-        onUpdateTags([...tags, `${tagName}::#6366f1`]);
+        onUpdateTags([...tags, `${tagName}::${selectedTagColor}`]);
+      }
+      setNewTag('');
+    }
+  };
+
+  const handleQuickAddTag = () => {
+    if (newTag.trim()) {
+      const tagName = newTag.trim();
+      if (!tags.some(t => parseTag(t).name === tagName)) {
+        onUpdateTags([...tags, `${tagName}::${selectedTagColor}`]);
       }
       setNewTag('');
     }
@@ -205,10 +221,10 @@ export function RightSidebar({
 
   // Suggestion tags with colors
   const suggestedTags = [
-    'Ưu tiên (VIP)::#3b82f6',
+    'Ưu tiên::#3b82f6',
     'Hạn chế::#ef4444',
     'Khách hàng mới::#22c55e',
-    'Ngày hôm nay (5/02)::#f59e0b',
+    `Ngày hôm nay (${format(new Date(), 'MM/d')})::#f59e0b`,
   ];
 
   // Filter out tags that are already selected (match by name)
@@ -593,7 +609,7 @@ export function RightSidebar({
               <div className={styles.tagInputWrapper}>
                 <input 
                   type="text" 
-                  placeholder="Thêm nhãn nhanh..." 
+                  placeholder="Thêm nhãn" 
                   className={styles.tagInput} 
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
@@ -608,18 +624,22 @@ export function RightSidebar({
                     {availableSuggestions.map((suggested, index) => {
                       const { name, color } = parseTag(suggested);
                       return (
-                        <span 
+                        <div 
                           key={index} 
-                          className={styles.suggestBadge}
-                          style={{ 
-                            backgroundColor: `${color}10`, 
-                            color: color,
-                            borderColor: `${color}20`
-                          }}
+                          className={styles.suggestItem}
                           onClick={() => toggleTag(suggested)}
                         >
-                          {name}
-                        </span>
+                          <div className={styles.suggestCheckbox} />
+                          <span 
+                            className={styles.suggestBadge}
+                            style={{ 
+                              backgroundColor: `${color}10`, 
+                              color: color
+                            }}
+                          >
+                            {name}
+                          </span>
+                        </div>
                       );
                     })}
                   </div>

@@ -16,18 +16,19 @@
 .modalContent {
   background: #1a1a1e;
   width: 100%;
-  max-width: 500px;
-  border-radius: 16px;
+  max-width: 520px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   max-height: 90vh;
+  color: #ffffff;
 }
 
 .modalHeader {
-  padding: 20px 24px;
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -60,11 +61,11 @@
 }
 
 .modalBody {
-  padding: 24px;
+  padding: 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .description {
@@ -77,8 +78,8 @@
 .addTagSection {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 8px;
+  padding: 12px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -91,13 +92,21 @@
 .colorPicker {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 8px;
+  padding: 4px 8px;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.colorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .colorPicker:hover {
@@ -107,15 +116,15 @@
 
 .colorPopover {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 4px);
   left: 0;
   background: #26262a;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px;
+  border-radius: 8px;
+  padding: 8px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 6px;
   z-index: 100;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   min-width: 120px;
@@ -128,6 +137,9 @@
   cursor: pointer;
   transition: transform 0.2s;
   border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .colorOption:hover {
@@ -142,12 +154,11 @@
   flex: 1;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 8px 12px;
   color: #ffffff;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   outline: none;
-  transition: border-color 0.2s;
 }
 
 .tagInput:focus {
@@ -166,19 +177,20 @@
 }
 
 .addBtn {
-  padding: 8px 16px;
+  padding: 8px 20px;
   background: #3b82f6;
   color: #ffffff;
   border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9375rem;
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
 .addBtn:disabled {
-  opacity: 0.5;
+  background: rgba(59, 130, 246, 0.3);
+  color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
 }
 
@@ -198,10 +210,10 @@
   width: 100%;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px 12px 10px 40px;
+  border-radius: 6px;
+  padding: 8px 12px 8px 40px;
   color: #ffffff;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   outline: none;
 }
 
@@ -216,23 +228,33 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  padding: 12px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tagItem:last-child {
+  border-bottom: none;
 }
 
 .tagContent {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  flex: 1;
+}
+
+.tagName {
+  font-size: 0.9375rem;
+  color: #ffffff;
+  font-weight: 400;
 }
 
 .tagBadge {
-  padding: 2px 10px;
+  padding: 4px 12px;
   border-radius: 12px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .tagActions {
@@ -279,16 +301,27 @@
   height: 18px;
   border-radius: 4px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .actionBtn {
   background: transparent;
-  border: none;
-  color: #6b7280;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 8px;
+  border-radius: 6px;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
 }
 
 .actionBtnActive {
@@ -314,7 +347,7 @@
 }
 
 .modalFooter {
-  padding: 16px 24px;
+  padding: 12px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   justify-content: flex-end;
@@ -326,9 +359,9 @@
   background: #ffffff;
   color: #1a1a1e;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   cursor: pointer;
   transition: opacity 0.2s;
 }
