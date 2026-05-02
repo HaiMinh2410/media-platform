@@ -229,9 +229,25 @@ export async function getMessages(
   try {
     const limit = pagination.limit || 50;
     const cursor = pagination.cursor;
+    const search = pagination.search;
+    const senderType = (pagination as any).senderType;
+    const fromDate = (pagination as any).fromDate;
+
+    const where: any = { 
+      conversationId,
+      content: search ? { contains: search, mode: 'insensitive' } : undefined
+    };
+
+    if (senderType) {
+      where.senderType = senderType;
+    }
+
+    if (fromDate) {
+      where.createdAt = { gte: new Date(fromDate) };
+    }
 
     const messages = await db.message.findMany({
-      where: { conversationId },
+      where,
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,

@@ -35,6 +35,10 @@ interface InboxState {
 
   isRightPanelVisible: boolean;
   toggleRightPanel: () => void;
+  setRightPanelVisible: (visible: boolean) => void;
+
+  rightSidebarTab: string;
+  setRightSidebarTab: (tab: string) => void;
 
   middlePanelWidth: number;
   setMiddlePanelWidth: (width: number) => void;
@@ -67,6 +71,10 @@ export const useInboxStore = create<InboxState>((set) => ({
 
   isRightPanelVisible: true,
   toggleRightPanel: () => set((state) => ({ isRightPanelVisible: !state.isRightPanelVisible })),
+  setRightPanelVisible: (visible) => set({ isRightPanelVisible: visible }),
+
+  rightSidebarTab: 'conversation',
+  setRightSidebarTab: (tab) => set({ rightSidebarTab: tab }),
 
   middlePanelWidth: 360,
   setMiddlePanelWidth: (width) => set({ middlePanelWidth: width }),

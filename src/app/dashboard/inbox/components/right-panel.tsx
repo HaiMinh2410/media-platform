@@ -108,6 +108,7 @@ export function RightPanel({
     <div className={styles.mainContent}>
       <div className={styles.chatMain}>
         <ChatHeader 
+          conversationId={conversationId}
           customerName={customerName || externalId}
           customerAvatar={customerAvatar}
           platform={platform}
@@ -136,6 +137,7 @@ export function RightPanel({
           onUpdateTags={handleUpdateTags}
           onUpdatePriority={handleUpdatePriority}
           onUpdateSentiment={handleUpdateSentiment}
+          onJumpToMessage={(id) => chatRef.current?.scrollToMessage(id)}
         />
       </div>
     </div>

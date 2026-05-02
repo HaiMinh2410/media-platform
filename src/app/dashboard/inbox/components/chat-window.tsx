@@ -10,6 +10,7 @@ import { formatChatSeparator } from '@/lib/utils';
 
 export type ChatWindowRef = {
   addMessage: (message: MessageWithSender) => void;
+  scrollToMessage: (messageId: string) => void;
 };
 
 export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
@@ -143,10 +144,23 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
     }));
   }, []);
 
-  // Expose addMessage to parent so ReplyBox can trigger optimistic updates
+  // Expose methods to parent
   useImperativeHandle(ref, () => ({
     addMessage: (message: MessageWithSender) => {
       handleNewMessage(message);
+    },
+    scrollToMessage: (messageId: string) => {
+      const element = document.getElementById(`msg-${messageId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Add a temporary highlight effect
+        element.classList.add(styles.highlightMessage);
+        setTimeout(() => {
+          element.classList.remove(styles.highlightMessage);
+        }, 2000);
+      } else {
+        console.warn(`[ChatWindow] Message ${messageId} not found in current window`);
+      }
     }
   }), [handleNewMessage]);
 

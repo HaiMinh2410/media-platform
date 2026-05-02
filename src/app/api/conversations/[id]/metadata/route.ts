@@ -7,11 +7,12 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const { priority, sentiment } = await req.json();
+    const { priority, sentiment, status } = await req.json();
 
     const data: any = {};
     if (priority !== undefined) data.priority = priority;
     if (sentiment !== undefined) data.sentiment = sentiment;
+    if (status !== undefined) data.status = status;
 
     const updated = await db.conversation.update({
       where: { id },

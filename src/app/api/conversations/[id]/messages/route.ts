@@ -17,10 +17,16 @@ export async function GET(
     const cursor = searchParams.get('cursor') || undefined;
     const limitParams = searchParams.get('limit');
     const limit = limitParams ? parseInt(limitParams, 10) : 50;
+    const search = searchParams.get('q') || undefined;
+    const senderType = searchParams.get('senderType') || undefined;
+    const fromDate = searchParams.get('fromDate') || undefined;
 
-    const pagination: PaginationParams = {
+    const pagination: PaginationParams & { senderType?: string; fromDate?: string } = {
       limit,
       cursor,
+      search,
+      senderType,
+      fromDate,
     };
 
     const { data, nextCursor, error } = await getMessages(id, pagination);

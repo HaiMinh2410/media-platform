@@ -23,7 +23,7 @@ export const MessageBubble = memo(function MessageBubble({
   if (isAgent) bubbleClass = styles.bubbleAgent;
 
   return (
-    <div className={`${styles.messageRow} ${rowClass}`}>
+    <div id={`msg-${message.id}`} className={`${styles.messageRow} ${rowClass}`}>
       <div className={styles.bubbleContainer}>
         <div className={`${styles.bubble} ${bubbleClass}`}>
           {isAi && (

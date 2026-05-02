@@ -68,6 +68,7 @@ export type PersistMessageResult = {
 export type PaginationParams = {
   limit?: number;
   cursor?: string;
+  search?: string;
 };
 
 /**
