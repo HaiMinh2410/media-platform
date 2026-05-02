@@ -25,16 +25,28 @@ export async function getConversations(
     const limit = pagination.limit || 20;
     const cursor = pagination.cursor;
 
-    // Fetch tags named "Bị chặn" to handle exclusion logic
+    // Fetch tags named "Bị chặn" or "bị chặn" to handle exclusion logic
     const blockedTags = await db.workspaceTag.findMany({
       where: {
         workspace_id: filter.workspaceId,
-        name: 'Bị chặn'
+        name: {
+          in: ['Bị chặn', 'bị chặn'],
+          mode: 'insensitive'
+        }
       },
       select: { name: true, color: true }
     });
-    const blockedTagStrings = blockedTags.map(t => `${t.name}::${t.color}`);
-    const isFilteringByBlocked = filter.tag && blockedTagStrings.includes(filter.tag);
+    
+    // Always include the hardcoded default to handle legacy/manual assignments
+    const blockedTagStrings = Array.from(new Set([
+      ...blockedTags.map((t: { name: string; color: string }) => `${t.name}::${t.color}`),
+      'Bị chặn::#ef4444'
+    ]));
+
+    const isFilteringByBlocked = filter.tag && (
+      blockedTagStrings.includes(filter.tag) || 
+      filter.tag.toLowerCase().startsWith('bị chặn::')
+    );
 
     const conversations = await db.conversation.findMany({
       where: {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './chat.module.css';
 import { AiSuggestionPanel } from './ai-suggestion-panel';
@@ -114,10 +114,13 @@ export function RightSidebar({
 
   const [leadStatus, setLeadStatus] = useState(getInitialStatus(priority));
   const [isLeadStatusOpen, setIsLeadStatusOpen] = useState(false);
-  const [dropdownDirection, setDropdownDirection] = useState<'up' | 'down'>('down');
+  const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const tagDropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownDirection, setDropdownDirection] = useState<'down' | 'up'>('down');
+  const availableTags = useInboxStore(state => state.availableTags);
   const [isMounted, setIsMounted] = useState(false);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const fetchWorkspaceTags = async () => {
     try {
@@ -157,17 +160,18 @@ export function RightSidebar({
     fetchNotes();
   }, [conversationId]);
 
-  // Đóng dropdown khi cuộn trang lớn (ví dụ cuộn chính của sidebar)
   useEffect(() => {
-    const handleScroll = (e: any) => {
-      // Chỉ đóng nếu cuộn bên trong sidebar (tránh các sự kiện nhỏ nhặt)
-      if (isLeadStatusOpen && e.target.closest && e.target.closest('[data-sidebar="right"]')) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsLeadStatusOpen(false);
       }
+      if (tagDropdownRef.current && !tagDropdownRef.current.contains(event.target as Node)) {
+        setIsTagDropdownOpen(false);
+      }
     };
-    window.addEventListener('scroll', handleScroll, true);
-    return () => window.removeEventListener('scroll', handleScroll, true);
-  }, [isLeadStatusOpen]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const toggleLeadStatus = () => {
     if (!isLeadStatusOpen && dropdownRef.current) {
@@ -232,43 +236,6 @@ export function RightSidebar({
     return { name, color: color || '#6366f1' };
   };
 
-  const handleAddTag = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newTag.trim()) {
-      const tagName = newTag.trim();
-      
-      if (tagName === 'Bị chặn') {
-        alert('Nhãn "Bị chặn" chỉ được gán khi chuyển hội thoại vào mục spam.');
-        setNewTag('');
-        return;
-      }
-
-      // Check if it matches an existing suggestion to get the color
-      const suggestion = suggestedTags.find(t => parseTag(t).name === tagName);
-      const tagString = suggestion || `${tagName}::${selectedTagColor}`;
-      
-      toggleTag(tagString);
-      setNewTag('');
-    }
-  };
-
-  const handleQuickAddTag = () => {
-    if (newTag.trim()) {
-      const tagName = newTag.trim();
-      
-      if (tagName === 'Bị chặn') {
-        alert('Nhãn "Bị chặn" chỉ được gán khi chuyển hội thoại vào mục spam.');
-        setNewTag('');
-        return;
-      }
-
-      const suggestion = suggestedTags.find(t => parseTag(t).name === tagName);
-      const tagString = suggestion || `${tagName}::${selectedTagColor}`;
-      
-      toggleTag(tagString);
-      setNewTag('');
-    }
-  };
-
   const toggleTag = (tag: string) => {
     const triggerRefresh = useInboxStore.getState().triggerRefresh;
     const { name: newTagName } = parseTag(tag);
@@ -276,23 +243,18 @@ export function RightSidebar({
     const hasPriority = tags.some(t => parseTag(t).name === 'Ưu tiên');
     const hasRestricted = tags.some(t => parseTag(t).name === 'Hạn chế');
 
-    // If tag is already there, we are removing it - always allowed
     if (tags.some(t => parseTag(t).name === newTagName)) {
       onUpdateTags(tags.filter(t => parseTag(t).name !== newTagName));
       triggerRefresh();
       return;
     }
 
-    // Constraints for adding a new tag
     if (hasBlocked) {
       alert('Tài khoản đã bị chặn, không thể thêm nhãn khác.');
       return;
     }
 
     if (newTagName === 'Bị chặn' && tags.length > 0) {
-      // If adding blocked, we should probably remove all others? 
-      // User said "đã có nhãn bị chặn thì không thêm được các nhãn khác".
-      // This implies if we add blocked, it should probably be the only one.
       if (confirm('Khi gắn nhãn "Bị chặn", các nhãn khác sẽ bị gỡ bỏ. Tiếp tục?')) {
         onUpdateTags([tag]);
         triggerRefresh();
@@ -314,17 +276,10 @@ export function RightSidebar({
     triggerRefresh();
   };
 
-  // Suggestion tags with colors as requested
-  const suggestedTags = [
-    'Ưu tiên::#3b82f6',
-    'Hạn chế::#ef4444',
-    'Khách hàng mới::#22c55e',
-    `Ngày hôm nay (${format(new Date(), 'MM/d')})::#f59e0b`,
-  ];
-
-  // availableSuggestions should use suggestedTags
-  const availableSuggestions = suggestedTags.filter(suggested => 
-    !tags.some(t => parseTag(t).name === parseTag(suggested).name)
+  // Tags not yet applied to this conversation
+  const unappliedTags = availableTags.filter(at => 
+    !tags.some(t => parseTag(t).name === parseTag(at).name) &&
+    parseTag(at).name !== 'Bị chặn' // 'Bị chặn' is automated
   );
 
   const handleUpdateLeadStatus = async (status: string) => {
@@ -745,45 +700,46 @@ export function RightSidebar({
                   </p>
                 )}
               </div>
-              <div className={styles.tagInputWrapper}>
-                <input 
-                  type="text" 
-                  placeholder="Thêm nhãn" 
-                  className={styles.tagInput} 
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyDown={handleAddTag}
-                />
-              </div>
-              
-              {availableSuggestions.length > 0 && (
-                <div className={styles.suggestedTags}>
-                  <p className={styles.suggestTitle}>Nhãn gợi ý</p>
-                  <div className={styles.suggestList}>
-                    {availableSuggestions.map((suggested, index) => {
-                      const { name, color } = parseTag(suggested);
-                      return (
-                        <div 
-                          key={index} 
-                          className={styles.suggestItem}
-                          onClick={() => toggleTag(suggested)}
-                        >
-                          <div className={styles.suggestCheckbox} />
-                          <span 
-                            className={styles.suggestBadge}
-                            style={{ 
-                              backgroundColor: `${color}10`, 
-                              color: color
-                            }}
-                          >
-                            {name}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
+
+              <div className={styles.tagInputWrapper} ref={tagDropdownRef}>
+                <div 
+                  className={styles.dropdownTrigger} 
+                  onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
+                >
+                  <span>Thêm nhãn</span>
+                  <Plus size={16} />
                 </div>
-              )}
+
+                {isTagDropdownOpen && (
+                  <div className={clsx(styles.leadStatusMenu, styles.tagSelectMenu)}>
+                    <div className={styles.menuList}>
+                      {unappliedTags.length > 0 ? (
+                        unappliedTags.map((tag) => {
+                          const { name, color } = parseTag(tag);
+                          return (
+                            <div 
+                              key={tag} 
+                              className={styles.menuItem}
+                              onClick={() => {
+                                toggleTag(tag);
+                                setIsTagDropdownOpen(false);
+                              }}
+                            >
+                              <div 
+                                className={styles.colorDot} 
+                                style={{ backgroundColor: color }} 
+                              />
+                              <span className={styles.itemLabel}>{name}</span>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className={styles.emptyText}>Không còn nhãn nào để thêm</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className={styles.detailItem}>

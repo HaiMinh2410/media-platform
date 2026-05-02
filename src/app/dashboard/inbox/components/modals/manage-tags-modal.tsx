@@ -32,12 +32,16 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
   const [editColor, setEditColor] = useState('');
   
   const triggerRefresh = useInboxStore((state) => state.triggerRefresh);
+  const setAvailableTags = useInboxStore((state) => state.setAvailableTags);
 
   const fetchTags = async () => {
     try {
       const res = await fetch(`/api/tags?workspaceId=${workspaceId}`);
       const json = await res.json();
-      if (json.data) setTags(json.data);
+      if (json.data) {
+        setTags(json.data);
+        setAvailableTags(json.data); // Sync with global store
+      }
     } catch (err) {
       console.error('Failed to fetch workspace tags:', err);
     }

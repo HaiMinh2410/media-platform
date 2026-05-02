@@ -1517,6 +1517,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  position: relative;
 }
 
 .colorPickerWrapper {
@@ -2038,4 +2039,10 @@
   margin-top: 0 !important;
   margin-bottom: 8px !important;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+.tagSelectMenu {
+  width: 100%;
+  left: 0;
+  right: 0;
 }
