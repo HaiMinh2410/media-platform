@@ -1865,3 +1865,11 @@
 .rotate180 {
   transform: rotate(180deg);
 }
+
+.dropdownMenuUp {
+  top: auto !important;
+  bottom: 100% !important;
+  margin-top: 0 !important;
+  margin-bottom: 8px !important;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2) !important;
+}

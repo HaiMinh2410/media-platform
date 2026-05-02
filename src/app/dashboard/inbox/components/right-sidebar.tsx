@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './chat.module.css';
 import { AiSuggestionPanel } from './ai-suggestion-panel';
 import { ContactEditModal } from './modals/contact-edit-modal';
@@ -98,6 +99,42 @@ export function RightSidebar({
 
   const [leadStatus, setLeadStatus] = useState(getInitialStatus(priority));
   const [isLeadStatusOpen, setIsLeadStatusOpen] = useState(false);
+  const [dropdownDirection, setDropdownDirection] = useState<'up' | 'down'>('down');
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+  const [isMounted, setIsMounted] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Đóng dropdown khi cuộn trang lớn (ví dụ cuộn chính của sidebar)
+  useEffect(() => {
+    const handleScroll = (e: any) => {
+      // Chỉ đóng nếu cuộn bên trong sidebar (tránh các sự kiện nhỏ nhặt)
+      if (isLeadStatusOpen && e.target.closest && e.target.closest('[data-sidebar="right"]')) {
+        setIsLeadStatusOpen(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, [isLeadStatusOpen]);
+
+  const toggleLeadStatus = () => {
+    if (!isLeadStatusOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      
+      setDropdownDirection(spaceBelow < 400 ? 'up' : 'down');
+      setDropdownPos({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+    setIsLeadStatusOpen(!isLeadStatusOpen);
+  };
+
   const [orderStatus, setOrderStatus] = useState('none');
   const [isEditingContact, setIsEditingContact] = useState(false);
 
@@ -263,7 +300,7 @@ export function RightSidebar({
   }
 
   return (
-    <aside className={styles.rightSidebar}>
+    <aside className={styles.rightSidebar} data-sidebar="right">
       <div className={styles.workspaceTabs}>
         <button 
           className={`${styles.tabBtn} ${activeTab === 'detail' ? styles.tabActive : ''}`}
@@ -427,10 +464,10 @@ export function RightSidebar({
                 Giai đoạn khách hàng tiềm năng <Info size={14} className={styles.infoIcon} />
               </h3>
 
-              <div className={styles.leadStatusDropdown}>
+              <div className={styles.leadStatusDropdown} ref={dropdownRef}>
                 <div 
                   className={styles.dropdownTrigger} 
-                  onClick={() => setIsLeadStatusOpen(!isLeadStatusOpen)}
+                  onClick={toggleLeadStatus}
                 >
                   <span>{
                     leadStages.find(s => s.id === leadStatus)?.label || 'Chọn giai đoạn'
@@ -438,8 +475,18 @@ export function RightSidebar({
                   <ChevronDown size={16} className={clsx(isLeadStatusOpen && styles.rotate180)} />
                 </div>
 
-                {isLeadStatusOpen && (
-                  <div className={styles.dropdownMenu}>
+                {isLeadStatusOpen && isMounted && createPortal(
+                  <div 
+                    className={clsx(styles.dropdownMenu, dropdownDirection === 'up' && styles.dropdownMenuUp)}
+                    style={{
+                      position: 'fixed',
+                      top: dropdownDirection === 'down' ? dropdownPos.top + 42 : 'auto',
+                      bottom: dropdownDirection === 'up' ? window.innerHeight - dropdownPos.top + 2 : 'auto',
+                      left: dropdownPos.left,
+                      width: dropdownPos.width,
+                      zIndex: 10000,
+                    }}
+                  >
                     <div className={styles.menuList}>
                       {leadStages.map((stage) => (
                         <div 
@@ -470,7 +517,8 @@ export function RightSidebar({
                     <div className={styles.menuFooter}>
                       <span>Bạn có thể tạo giai đoạn tùy chỉnh trong <a href="#">Leads Center</a>.</span>
                     </div>
-                  </div>
+                  </div>,
+                  document.body
                 )}
               </div>
             </div>
