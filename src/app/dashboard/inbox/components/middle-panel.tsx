@@ -242,6 +242,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     [filterBy, sortField, sortOrder]
   );
 
+
   const handleMessageReceived = useCallback((payload: { conversationId: string; content: string; createdAt: Date }) => {
     setConversations(prev => {
       const existing = prev.find(c => c.id === payload.conversationId);
@@ -266,9 +267,20 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     });
   }, [filterBy, sortField, sortOrder]);
 
+  const handleConversationDeleted = useCallback((conversationId: string) => {
+    setConversations(prev => prev.filter(c => c.id !== conversationId));
+    
+    // If the currently viewed conversation is deleted, navigate away
+    if (activeIdRef.current === conversationId) {
+      router.push('/dashboard/inbox');
+      toast.info('Conversation was deleted');
+    }
+  }, [router]);
+
   useSidebarRealtime({ 
     workspaceId, 
     onConversationUpdated: handleConversationUpdated,
+    onConversationDeleted: handleConversationDeleted,
     onMessageReceived: handleMessageReceived
   });
 

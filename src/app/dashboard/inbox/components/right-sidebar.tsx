@@ -112,10 +112,9 @@ export function RightSidebar({
   const [editingNoteContent, setEditingNoteContent] = useState('');
   const getInitialStatus = (p: string | null) => {
     if (!p) return 'new';
-    if (p === 'low') return 'new';
-    if (p === 'medium') return 'qualified';
-    if (p === 'high') return 'converted';
-    return p;
+    // Chỉ trả về p nếu nó nằm trong danh sách leadStages.id, nếu không thì mặc định là 'new'
+    if (leadStages.some(s => s.id === p)) return p;
+    return 'new';
   };
 
   const [leadStatus, setLeadStatus] = useState(getInitialStatus(priority));

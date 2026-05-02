@@ -48,15 +48,6 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
     }
   };
 
-  const getSentimentEmoji = (sentiment?: string | null) => {
-    switch (sentiment?.toLowerCase()) {
-      case 'positive': return '😊';
-      case 'frustrated': return '😠';
-      case 'negative': return '😟';
-      case 'neutral': return '😐';
-      default: return null;
-    }
-  };
 
   return (
     <Link 
@@ -96,12 +87,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
                 <Star size={12} fill="currentColor" />
               </span>
             )}
-            
-            {getSentimentEmoji(conversation.sentiment) && (
-              <span className={styles.sentimentIcon} title={`Sentiment: ${conversation.sentiment}`}>
-                {getSentimentEmoji(conversation.sentiment)}
-              </span>
-            )}
+
 
             {conversation.priority === 'high' && (
               <span className={styles.hotLeadBadge} title="Hot Lead">

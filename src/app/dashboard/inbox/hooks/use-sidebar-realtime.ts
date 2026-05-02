@@ -35,6 +35,10 @@ type UseSidebarRealtimeOptions = {
     >
   ) => void;
   /**
+   * Called when a conversation is deleted.
+   */
+  onConversationDeleted?: (conversationId: string) => void;
+  /**
    * Called when a new message is inserted.
    * Use this to update the preview text in the sidebar.
    */
@@ -67,16 +71,19 @@ type UseSidebarRealtimeOptions = {
 export function useSidebarRealtime({
   workspaceId,
   onConversationUpdated,
+  onConversationDeleted,
   onMessageReceived,
 }: UseSidebarRealtimeOptions): void {
   // Stable ref to the latest callback — avoids re-subscribing on callback identity change
   const callbackRef = useRef(onConversationUpdated);
+  const deleteCallbackRef = useRef(onConversationDeleted);
   const messageCallbackRef = useRef(onMessageReceived);
 
   useEffect(() => {
     callbackRef.current = onConversationUpdated;
+    deleteCallbackRef.current = onConversationDeleted;
     messageCallbackRef.current = onMessageReceived;
-  }, [onConversationUpdated, onMessageReceived]);
+  }, [onConversationUpdated, onConversationDeleted, onMessageReceived]);
 
   useEffect(() => {
     if (!workspaceId) return;
@@ -128,6 +135,21 @@ export function useSidebarRealtime({
             priority: row.priority,
             sentiment: row.sentiment,
           });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'conversations',
+        },
+        (payload) => {
+          console.log('[Realtime:Sidebar] 🗑️ Conversation delete event:', payload);
+          const row = payload.old as any;
+          if (row.id) {
+            deleteCallbackRef.current?.(row.id);
+          }
         }
       )
       .on(
