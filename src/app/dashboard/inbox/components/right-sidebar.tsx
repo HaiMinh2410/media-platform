@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import styles from './chat.module.css';
 import { AiSuggestionPanel } from './ai-suggestion-panel';
@@ -89,6 +90,10 @@ export function RightSidebar({
 }: RightSidebarProps) {
   const activeTab = useInboxStore((state) => state.rightSidebarTab) as TabType;
   const setActiveTab = useInboxStore((state) => state.setRightSidebarTab);
+  const { activeThreads, removeActiveThread, addActiveThread } = useInboxStore();
+  const router = useRouter();
+  const params = useParams();
+  const activeConversationId = params?.id as string | undefined;
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<MessageWithSender[]>([]);
@@ -125,6 +130,7 @@ export function RightSidebar({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const tagDropdownRef = useRef<HTMLDivElement>(null);
+  const tagMenuRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
   const [dropdownDirection, setDropdownDirection] = useState<'down' | 'up'>('down');
   const availableTags = useInboxStore(state => state.availableTags);
@@ -147,6 +153,18 @@ export function RightSidebar({
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Sync current conversation to activeThreads in store
+  useEffect(() => {
+    if (conversationId && (customerName || customerAvatar)) {
+      addActiveThread({
+        id: conversationId,
+        sender_name: customerName,
+        customer_avatar: customerAvatar,
+        // These are enough for the sidebar tabs
+      } as any);
+    }
+  }, [conversationId, customerName, customerAvatar, addActiveThread]);
 
   const fetchNotes = async () => {
     if (!conversationId) return;
@@ -177,7 +195,11 @@ export function RightSidebar({
       ) {
         setIsLeadStatusOpen(false);
       }
-      if (tagDropdownRef.current && !tagDropdownRef.current.contains(event.target as Node)) {
+      if (
+        tagDropdownRef.current && 
+        !tagDropdownRef.current.contains(event.target as Node) &&
+        (!tagMenuRef.current || !tagMenuRef.current.contains(event.target as Node))
+      ) {
         setIsTagDropdownOpen(false);
       }
     };
@@ -198,6 +220,21 @@ export function RightSidebar({
       });
     }
     setIsLeadStatusOpen(!isLeadStatusOpen);
+  };
+
+  const toggleTagDropdown = () => {
+    if (!isTagDropdownOpen && tagDropdownRef.current) {
+      const rect = tagDropdownRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      
+      setDropdownDirection(spaceBelow < 300 ? 'up' : 'down');
+      setDropdownPos({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+    setIsTagDropdownOpen(!isTagDropdownOpen);
   };
 
   const [orderStatus, setOrderStatus] = useState('none');
@@ -446,10 +483,17 @@ export function RightSidebar({
   const hasContactInfo = !!(contactInfo?.phone || contactInfo?.email || contactInfo?.address || contactInfo?.birthday);
 
   if (isCollapsed) {
+    const otherThreads = activeThreads.filter(t => t.id !== conversationId);
+    
     return (
       <aside className={clsx(styles.rightSidebar, styles.collapsed)}>
         <div className={styles.collapsedContent}>
-          <div className={styles.collapsedAvatar} onClick={onToggleCollapse}>
+          {/* Active Conversation Avatar - Toggles Sidebar */}
+          <div 
+            className={clsx(styles.collapsedAvatar, styles.activeTabCollapsed)} 
+            onClick={onToggleCollapse}
+            title={customerName || 'Active Conversation'}
+          >
             {customerAvatar ? (
               <img src={customerAvatar} alt={customerName} className={styles.avatarImg} />
             ) : (
@@ -459,6 +503,40 @@ export function RightSidebar({
               <Camera size={10} />
             </div>
           </div>
+
+          {/* Divider */}
+          {otherThreads.length > 0 && <div className={styles.collapsedDivider} />}
+
+          {/* Other Active Threads */}
+          {otherThreads.length > 0 && (
+            <div className={styles.multiThreadList}>
+              {otherThreads.map(t => (
+                <div 
+                  key={t.id} 
+                  className={styles.threadTabCollapsed}
+                  onClick={() => router.push(`/dashboard/inbox/${t.id}`)}
+                  title={t.sender_name || 'Switch conversation'}
+                >
+                  {t.customer_avatar ? (
+                    <img src={t.customer_avatar} alt="" className={styles.avatarImg} style={{ borderRadius: '50%' }} />
+                  ) : (
+                    <span>{t.sender_name?.charAt(0) || '?'}</span>
+                  )}
+                  
+                  <button 
+                    className={styles.removeThreadBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeActiveThread(t.id);
+                    }}
+                    title="Remove from tabs"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </aside>
     );
@@ -766,14 +844,26 @@ export function RightSidebar({
               <div className={styles.tagInputWrapper} ref={tagDropdownRef}>
                 <div 
                   className={styles.dropdownTrigger} 
-                  onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
+                  onClick={toggleTagDropdown}
                 >
                   <span>Thêm nhãn</span>
                   <Plus size={16} />
                 </div>
 
-                {isTagDropdownOpen && (
-                  <div className={clsx(styles.leadStatusMenu, styles.tagSelectMenu)}>
+                {isTagDropdownOpen && isMounted && createPortal(
+                  <div 
+                    ref={tagMenuRef}
+                    className={clsx(styles.leadStatusMenu, styles.tagSelectMenu, dropdownDirection === 'up' && styles.leadStatusMenuUp)}
+                    style={{
+                      position: 'fixed',
+                      top: dropdownDirection === 'down' ? dropdownPos.top + 42 : 'auto',
+                      bottom: dropdownDirection === 'up' ? window.innerHeight - dropdownPos.top + 2 : 'auto',
+                      left: dropdownPos.left,
+                      right: 'auto',
+                      width: dropdownPos.width,
+                      zIndex: 10000,
+                    }}
+                  >
                     <div className={styles.menuList}>
                       {unappliedTags.length > 0 ? (
                         unappliedTags.map((tag) => {
@@ -799,7 +889,8 @@ export function RightSidebar({
                         <div className={styles.emptyText}>Không còn nhãn nào để thêm</div>
                       )}
                     </div>
-                  </div>
+                  </div>,
+                  document.body
                 )}
               </div>
             </div>

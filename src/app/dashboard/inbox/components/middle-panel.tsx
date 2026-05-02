@@ -10,7 +10,7 @@ import { ConversationSkeleton } from './skeletons';
 import { useSidebarRealtime } from '../hooks/use-sidebar-realtime';
 import { useUnreadRealtime } from '../hooks/use-unread-realtime';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { MoreHorizontal, Settings, Plus, Filter, TrendingUp, TrendingDown, ChevronDown, Check } from 'lucide-react';
+import { Search, MoreHorizontal, Settings, Plus, Filter, TrendingUp, TrendingDown, ChevronDown, Check } from 'lucide-react';
 import { useInboxStore } from '../store/inbox.store';
 import { getConversationAction } from '@/application/actions/inbox.actions';
 import { getCurrentWorkspaceUnreadCountAction } from '@/application/actions/workspace.actions';
@@ -31,14 +31,14 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const filterRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
   
-  // Power user feature: Multi-thread tabs
-  const [activeThreads, setActiveThreads] = useState<ConversationWithLastMessage[]>([]);
+  // Power user feature: Multi-thread tabs managed via useInboxStore
 
   const { 
     viewMode, platform, segmentFilter, 
     middlePanelWidth, setMiddlePanelWidth, 
     selectedGroupId, accountGroups,
-    refreshCounter, availableTags, setAvailableTags
+    refreshCounter, availableTags, setAvailableTags,
+    activeThreads, addActiveThread
   } = useInboxStore();
   
   const [totalUnread, setTotalUnread] = useState(0);
@@ -92,16 +92,11 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     // Add to active threads if not present
     if (activeIdRef.current) {
       const conv = conversations.find(c => c.id === activeIdRef.current);
-      if (conv && !activeThreads.some(t => t.id === conv.id)) {
-        setActiveThreads(prev => {
-          // Keep max 5 tabs
-          const next = [...prev, conv];
-          if (next.length > 5) return next.slice(next.length - 5);
-          return next;
-        });
+      if (conv) {
+        addActiveThread(conv);
       }
     }
-  }, [params?.id, conversations]);
+  }, [params?.id, conversations, addActiveThread]);
   
   const parentRef = useRef<HTMLDivElement>(null);
   const fetchRef = useRef<(() => void) | null>(null);
@@ -315,10 +310,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
 
   if (pathname?.includes('/flow')) return null;
 
-  const activeGroupName = selectedGroupId 
-    ? accountGroups.find(g => g.id === selectedGroupId)?.name 
-    : 'Unified Feed';
-
   return (
     <aside 
       className={styles.middlePanel} 
@@ -329,47 +320,18 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
         className={styles.resizeHandle} 
         onMouseDown={startResizing}
       />
-      {/* Multi-thread Tabs for Power Users */}
-      {activeThreads.length > 0 && (
-        <div className={styles.multiThreadBar}>
-          {activeThreads.map(t => (
-            <div 
-              key={t.id} 
-              className={`${styles.threadTab} ${t.id === activeIdRef.current ? styles.activeTab : ''}`}
-              onClick={() => router.push(`/dashboard/inbox/${t.id}`)}
-            >
-              <div className={styles.avatar} style={{ width: 16, height: 16, fontSize: 8 }}>
-                {t.customer_avatar ? <img src={t.customer_avatar} alt="" className={styles.avatarImg}/> : '?'}
-              </div>
-              <span>{t.sender_name?.split(' ')[0] || 'Unknown'}</span>
-            </div>
-          ))}
-        </div>
-      )}
 
       <div className={styles.header}>
-        <div className={styles.headerTop}>
-          <div className="flex items-center gap-2">
-            <h2 className={styles.title}>{activeGroupName}</h2>
-          </div>
-
-          <div className="flex gap-2">
-            <button className="p-1.5 hover:bg-white/5 rounded-md text-slate-400 hover:text-white transition-colors">
-              <Filter size={16} />
-            </button>
-            <button className="p-1.5 hover:bg-white/5 rounded-md text-slate-400 hover:text-white transition-colors">
-              <Plus size={16} />
-            </button>
-          </div>
+        <div className={styles.searchWrapper}>
+          <Search className={styles.searchIcon} size={16} />
+          <input 
+            type="text" 
+            placeholder="Search conversations..." 
+            className={styles.searchBox}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
         </div>
-        
-        <input 
-          type="text" 
-          placeholder="Search conversations..." 
-          className={styles.searchBox}
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
         
         {/* Filters are now managed in the SecondaryHeader */}
 

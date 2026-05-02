@@ -113,7 +113,9 @@ export async function checkAndRegisterIdentity(
       if (existingIdentity) {
         // Cross-channel match via name heuristic!
         identity = existingIdentity;
-        isCrossChannelMatch = true;
+        isCrossChannelMatch = existingIdentity.platform_mappings.some(
+          (m) => normalizePlatform(m.platform) !== normalizedPlatform
+        );
 
         // Update name/avatar if the existing is missing them
         if (!existingIdentity.customer_name && input.customerName) {
@@ -156,11 +158,16 @@ export async function checkAndRegisterIdentity(
       const linkedConversationIds = allMappings.map((m) => m.conversation_id);
       const canonicalConversationId = allMappings[0]?.conversation_id ?? input.conversationId;
 
-      // Tag this conversation as a duplicate if it's a cross-channel match
       if (isCrossChannelMatch && canonicalConversationId !== input.conversationId) {
         await tx.conversation.update({
           where: { id: input.conversationId },
           data: { canonical_conversation_id: canonicalConversationId },
+        });
+
+        // Surface the canonical conversation by updating its timestamp
+        await tx.conversation.update({
+          where: { id: canonicalConversationId },
+          data: { lastMessageAt: new Date() },
         });
       }
 

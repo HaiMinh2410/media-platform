@@ -96,9 +96,24 @@
 }
 
 
+.searchWrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--fg-tertiary);
+  pointer-events: none;
+}
+
 .searchBox {
   width: 100%;
-  padding: 10px 16px;
+  padding: 10px 16px 10px 38px;
   border-radius: var(--radius-md);
   border: 1px solid var(--glass-border);
   background: rgba(0, 0, 0, 0.2);
@@ -106,7 +121,6 @@
   font-size: 0.9375rem;
   outline: none;
   transition: all 0.2s ease;
-  margin-bottom: 12px;
 }
 
 .searchBox:focus {
@@ -394,7 +408,7 @@
   flex-shrink: 0;
   position: relative;
   border: 1px solid var(--glass-border);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .avatarImg {
@@ -406,16 +420,19 @@
 
 .platformIcon {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 16px;
-  height: 16px;
+  bottom: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: var(--bg-secondary);
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
+  padding: 3px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1.5px solid #1a1a1e;
+  z-index: 10;
 }
 
 .textContent {

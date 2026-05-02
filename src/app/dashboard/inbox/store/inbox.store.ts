@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { AccountGroup } from '@/domain/types/account-group';
-
+import { ConversationWithLastMessage } from '@/domain/types/messaging';
 
 export type ViewMode = 'all' | 'by_account' | 'by_contacts' | 'ai_priority' | 'daily_flow';
 export type Platform = 'all' | 'facebook' | 'instagram' | 'tiktok' | 'custom';
@@ -50,6 +50,11 @@ interface InboxState {
   // Shared tags state
   availableTags: string[];
   setAvailableTags: (tags: string[]) => void;
+
+  // Multi-thread state
+  activeThreads: ConversationWithLastMessage[];
+  addActiveThread: (thread: ConversationWithLastMessage) => void;
+  removeActiveThread: (threadId: string) => void;
 }
 
 export const useInboxStore = create<InboxState>((set) => ({
@@ -92,4 +97,18 @@ export const useInboxStore = create<InboxState>((set) => ({
 
   availableTags: [],
   setAvailableTags: (tags) => set({ availableTags: tags }),
+
+  activeThreads: [],
+  addActiveThread: (thread) => set((state) => {
+    // Remove if already exists (to move it to front/most recent)
+    const filtered = state.activeThreads.filter(t => t.id !== thread.id);
+    // Add to front (index 0 is most recent)
+    const next = [thread, ...filtered];
+    // Keep max 5 tabs
+    if (next.length > 5) return { activeThreads: next.slice(0, 5) };
+    return { activeThreads: next };
+  }),
+  removeActiveThread: (threadId) => set((state) => ({
+    activeThreads: state.activeThreads.filter(t => t.id !== threadId)
+  })),
 }));
