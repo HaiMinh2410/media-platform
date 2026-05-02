@@ -111,17 +111,17 @@ export function RightSidebar({
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingNoteContent, setEditingNoteContent] = useState('');
   const getInitialStatus = (p: string | null) => {
-    if (!p) return 'new';
-    // Chỉ trả về p nếu nó nằm trong danh sách leadStages.id, nếu không thì mặc định là 'new'
+    if (!p) return 'none';
+    // Chỉ trả về p nếu nó nằm trong danh sách leadStages.id, nếu không thì trả về 'none'
     if (leadStages.some(s => s.id === p)) return p;
-    return 'new';
+    return 'none';
   };
 
   const [leadStatus, setLeadStatus] = useState(getInitialStatus(priority));
-  const [isLead, setIsLead] = useState(priority !== null && priority !== 'none');
+  const [isLead, setIsLead] = useState(priority !== null && leadStages.some(s => s.id === priority));
 
   useEffect(() => {
-    setIsLead(priority !== null && priority !== 'none');
+    setIsLead(priority !== null && leadStages.some(s => s.id === priority));
     setLeadStatus(getInitialStatus(priority));
   }, [priority]);
   const [isLeadStatusOpen, setIsLeadStatusOpen] = useState(false);

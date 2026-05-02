@@ -49,6 +49,14 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
   };
 
 
+  const LEAD_STAGE_LABELS: Record<string, string> = {
+    'new': 'Tiếp nhận',
+    'qualified': 'Đủ tiêu chuẩn',
+    'converted': 'Đã chuyển đổi',
+    'lost': 'Bị mất đi',
+    'unqualified': 'Không đủ tiêu chuẩn'
+  };
+
   return (
     <Link 
       href={`/dashboard/inbox/${conversation.id}`} 
@@ -114,9 +122,9 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
         </div>
 
         <div className={styles.itemInfo}>
-          {conversation.priority && conversation.priority !== 'none' && conversation.priority !== 'high' && (
+          {conversation.priority && LEAD_STAGE_LABELS[conversation.priority] && (
             <span className={cn(styles.priorityBadge, getPriorityClass(conversation.priority))}>
-              {conversation.priority}
+              {LEAD_STAGE_LABELS[conversation.priority]}
             </span>
           )}
           {conversation.canonical_conversation_id && (
