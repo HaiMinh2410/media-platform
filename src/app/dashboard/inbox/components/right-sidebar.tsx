@@ -270,6 +270,7 @@ export function RightSidebar({
   };
 
   const toggleTag = (tag: string) => {
+    const triggerRefresh = useInboxStore.getState().triggerRefresh;
     const { name: newTagName } = parseTag(tag);
     const hasBlocked = tags.some(t => parseTag(t).name === 'Bị chặn');
     const hasPriority = tags.some(t => parseTag(t).name === 'Ưu tiên');
@@ -278,6 +279,7 @@ export function RightSidebar({
     // If tag is already there, we are removing it - always allowed
     if (tags.some(t => parseTag(t).name === newTagName)) {
       onUpdateTags(tags.filter(t => parseTag(t).name !== newTagName));
+      triggerRefresh();
       return;
     }
 
@@ -293,6 +295,7 @@ export function RightSidebar({
       // This implies if we add blocked, it should probably be the only one.
       if (confirm('Khi gắn nhãn "Bị chặn", các nhãn khác sẽ bị gỡ bỏ. Tiếp tục?')) {
         onUpdateTags([tag]);
+        triggerRefresh();
       }
       return;
     }
@@ -308,6 +311,7 @@ export function RightSidebar({
     }
 
     onUpdateTags([...tags, tag]);
+    triggerRefresh();
   };
 
   // Suggestion tags with colors as requested

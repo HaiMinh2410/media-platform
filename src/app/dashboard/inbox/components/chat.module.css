@@ -1468,6 +1468,9 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .tagBadge {
@@ -1608,6 +1611,20 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.tagsContainer::-webkit-scrollbar,
+.suggestList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.tagsContainer::-webkit-scrollbar-thumb,
+.suggestList::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 2px;
 }
 
 .suggestItem {

@@ -27,6 +27,7 @@ export function ChatHeader({
   tags = [],
 }: ChatHeaderProps) {
   const router = useRouter();
+  const triggerRefresh = useInboxStore((state) => state.triggerRefresh);
   const setRightSidebarTab = useInboxStore((state) => state.setRightSidebarTab);
   const setRightPanelVisible = useInboxStore((state) => state.setRightPanelVisible);
   const isRightPanelVisible = useInboxStore((state) => state.isRightPanelVisible);
@@ -62,6 +63,7 @@ export function ChatHeader({
 
       if (metaRes.ok && tagRes.ok) {
         toast.success('Hội thoại đã được chuyển vào mục spam và bị chặn');
+        triggerRefresh();
         router.push('/dashboard/inbox');
       } else {
         toast.error('Không thể chuyển hội thoại vào mục spam');
@@ -89,7 +91,7 @@ export function ChatHeader({
 
       if (metaRes.ok && tagRes.ok) {
         toast.success('Đã bỏ chặn hội thoại');
-        router.refresh(); // Refresh to update UI if staying on page
+        triggerRefresh();
       } else {
         toast.error('Không thể bỏ chặn hội thoại');
       }

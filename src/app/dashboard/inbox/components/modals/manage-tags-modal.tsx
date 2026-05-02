@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Search, Plus, Trash2, ChevronDown, Edit2, Check } from 'lucide-react';
 import styles from './manage-tags-modal.module.css';
 import clsx from 'clsx';
+import { useInboxStore } from '../../store/inbox.store';
 
 interface ManageTagsModalProps {
   workspaceId: string;
@@ -29,6 +30,8 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
   const [editingTag, setEditingTag] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [editColor, setEditColor] = useState('');
+  
+  const triggerRefresh = useInboxStore((state) => state.triggerRefresh);
 
   const fetchTags = async () => {
     try {
@@ -63,6 +66,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
             body: JSON.stringify({ workspaceId, name: tagName, color: selectedColor }),
           });
           fetchTags();
+          triggerRefresh();
           setNewTagName('');
         } catch (err) {
           console.error('Failed to add tag:', err);
@@ -79,6 +83,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
         method: 'DELETE',
       });
       fetchTags();
+      triggerRefresh();
     } catch (err) {
       console.error('Failed to delete tag:', err);
     }
@@ -105,6 +110,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
           }),
         });
         fetchTags();
+        triggerRefresh();
         setEditingTag(null);
       } catch (err) {
         console.error('Failed to update tag:', err);

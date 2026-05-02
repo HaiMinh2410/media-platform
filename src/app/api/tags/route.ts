@@ -14,48 +14,51 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing workspaceId' }, { status: 400 });
     }
 
-    let tags = await db.workspaceTag.findMany({
+    let systemTags = await db.workspaceTag.findMany({
       where: { workspace_id: workspaceId },
       orderBy: { name: 'asc' }
     });
 
-    // Fallback: If no system tags defined, scan conversations to find existing ones
-    // This provides a smoother transition and ensures filters aren't empty
-    if (tags.length === 0) {
-      console.log(`[API Tags] No system tags for workspace ${workspaceId}, falling back to conversation scan.`);
-      const conversations = await db.conversation.findMany({
-        where: {
-          platform_accounts: {
-            workspaceId: workspaceId
-          }
-        },
-        select: {
-          tags: true
-        }
+    // 4 standard default tags that should always be available
+    const defaultTags = [
+      'Ưu tiên::#3b82f6',
+      'Hạn chế::#ef4444',
+      'Khách hàng mới::#22c55e',
+      `Ngày hôm nay (${new Date().toLocaleDateString('en-US', { month: '2-digit', day: 'numeric' })})::#f59e0b`
+    ];
+
+    // Format system tags as name::color
+    const formattedSystem = systemTags.map(t => `${t.name}::${t.color}`);
+
+    // Merge and ensure uniqueness by name
+    const allTagsMap = new Map<string, string>();
+    
+    // 1. Add defaults first
+    defaultTags.forEach(t => {
+      const [name] = t.split('::');
+      allTagsMap.set(name, t);
+    });
+
+    // 2. Add system tags (overwrite defaults if they have same name to use system color/config)
+    formattedSystem.forEach(t => {
+      const [name] = t.split('::');
+      allTagsMap.set(name, t);
+    });
+
+    // 3. Optional: Scan conversations to find any other tags (limit for performance)
+    const conversations = await db.conversation.findMany({
+      where: { platform_accounts: { workspaceId } },
+      select: { tags: true },
+      take: 20 
+    });
+    conversations.forEach(c => {
+      c.tags.forEach(t => {
+        const [name] = t.split('::');
+        if (!allTagsMap.has(name)) allTagsMap.set(name, t);
       });
+    });
 
-      const allTags = new Set<string>();
-      conversations.forEach(c => {
-        c.tags.forEach(t => allTags.add(t));
-      });
-
-      // If still empty, add some defaults to encourage usage
-      if (allTags.size === 0) {
-        return NextResponse.json({ data: [
-          'Ưu tiên::#3b82f6',
-          'Hạn chế::#ef4444',
-          'Khách hàng mới::#22c55e'
-        ] });
-      }
-
-      // Return the scanned tags directly
-      return NextResponse.json({ data: Array.from(allTags) });
-    }
-
-    // Format as name::color for compatibility with current frontend logic
-    const formatted = tags.map(t => `${t.name}::${t.color}`);
-
-    return NextResponse.json({ data: formatted });
+    return NextResponse.json({ data: Array.from(allTagsMap.values()) });
   } catch (error: any) {
     console.error('[API Tags GET] Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

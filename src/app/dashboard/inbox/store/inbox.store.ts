@@ -42,6 +42,14 @@ interface InboxState {
 
   middlePanelWidth: number;
   setMiddlePanelWidth: (width: number) => void;
+
+  // Real-time UI refresh triggers
+  refreshCounter: number;
+  triggerRefresh: () => void;
+
+  // Shared tags state
+  availableTags: string[];
+  setAvailableTags: (tags: string[]) => void;
 }
 
 export const useInboxStore = create<InboxState>((set) => ({
@@ -78,4 +86,10 @@ export const useInboxStore = create<InboxState>((set) => ({
 
   middlePanelWidth: 360,
   setMiddlePanelWidth: (width) => set({ middlePanelWidth: width }),
+
+  refreshCounter: 0,
+  triggerRefresh: () => set((state) => ({ refreshCounter: state.refreshCounter + 1 })),
+
+  availableTags: [],
+  setAvailableTags: (tags) => set({ availableTags: tags }),
 }));

@@ -10,10 +10,11 @@ import { ConversationSkeleton } from './skeletons';
 import { useSidebarRealtime } from '../hooks/use-sidebar-realtime';
 import { useUnreadRealtime } from '../hooks/use-unread-realtime';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { MoreHorizontal, Settings, Plus, Filter, TrendingUp, TrendingDown } from 'lucide-react';
+import { MoreHorizontal, Settings, Plus, Filter, TrendingUp, TrendingDown, ChevronDown, Check } from 'lucide-react';
 import { useInboxStore } from '../store/inbox.store';
 import { getConversationAction } from '@/application/actions/inbox.actions';
 import { getCurrentWorkspaceUnreadCountAction } from '@/application/actions/workspace.actions';
+import clsx from 'clsx';
 
 export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const [conversations, setConversations] = useState<ConversationWithLastMessage[]>([]);
@@ -22,9 +23,12 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBy, setFilterBy] = useState<string>('all');
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [sortField, setSortField] = useState<'date' | 'name'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
   
   // Power user feature: Multi-thread tabs
   const [activeThreads, setActiveThreads] = useState<ConversationWithLastMessage[]>([]);
@@ -32,7 +36,8 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const { 
     viewMode, platform, segmentFilter, 
     middlePanelWidth, setMiddlePanelWidth, 
-    selectedGroupId, accountGroups 
+    selectedGroupId, accountGroups,
+    refreshCounter, availableTags, setAvailableTags
   } = useInboxStore();
   
   const [totalUnread, setTotalUnread] = useState(0);
@@ -161,7 +166,21 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
 
   useEffect(() => {
     fetchConversations(null, true);
-  }, [fetchConversations]);
+  }, [fetchConversations, refreshCounter]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
+      }
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setIsSortOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Infinite Scroll via Virtualizer
   const virtualizer = useVirtualizer({
@@ -273,7 +292,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     onRefresh: refreshTotalUnread
   });
 
-  // Fetch available tags
+  // Fetch available tags and sync to global store
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -285,7 +304,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
       }
     };
     fetchTags();
-  }, [workspaceId]);
+  }, [workspaceId, setAvailableTags, refreshCounter]); // Also refresh tags when counter changes
 
   if (pathname?.includes('/flow')) return null;
 
@@ -354,35 +373,90 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
           </div>
           
           <div className={styles.controls}>
-            <div className={styles.controlGroup}>
-              <select 
-                className={styles.miniSelect}
-                value={filterBy}
-                onChange={(e) => setFilterBy(e.target.value)}
+            <div className={styles.controlGroup} ref={filterRef}>
+              <div 
+                className={styles.customFilterTrigger} 
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
               >
-                <option value="all">Tất cả</option>
-                <option value="unread">Chưa đọc</option>
-                <option value="priority">Ưu tiên</option>
-                <optgroup label="Lọc theo nhãn">
-                  {availableTags.map(tag => {
-                    const name = tag.split('::')[0];
-                    return (
-                      <option key={tag} value={tag}>Nhãn: {name}</option>
-                    );
-                  })}
-                </optgroup>
-              </select>
+                <span>
+                  {filterBy === 'all' ? 'Tất cả' : 
+                   filterBy === 'unread' ? 'Chưa đọc' : 
+                   filterBy === 'priority' ? 'Ưu tiên' : 
+                   filterBy.split('::')[0]}
+                </span>
+                <ChevronDown size={12} className={clsx(styles.chevron, isFilterOpen && styles.chevronRotate)} />
+              </div>
+
+              {isFilterOpen && (
+                <div className={styles.customFilterMenu}>
+                  <div 
+                    className={clsx(styles.filterOption, filterBy === 'all' && styles.filterOptionActive)}
+                    onClick={() => { setFilterBy('all'); setIsFilterOpen(false); }}
+                  >
+                    Tất cả
+                  </div>
+                  <div 
+                    className={clsx(styles.filterOption, filterBy === 'unread' && styles.filterOptionActive)}
+                    onClick={() => { setFilterBy('unread'); setIsFilterOpen(false); }}
+                  >
+                    Chưa đọc
+                  </div>
+                  <div 
+                    className={clsx(styles.filterOption, filterBy === 'priority' && styles.filterOptionActive)}
+                    onClick={() => { setFilterBy('priority'); setIsFilterOpen(false); }}
+                  >
+                    Ưu tiên
+                  </div>
+                  
+                  <div className={styles.filterGroupTitle}>Lọc theo nhãn</div>
+                  <div className={styles.filterScrollArea}>
+                    {availableTags.map(tag => {
+                      const name = tag.split('::')[0];
+                      const isActive = filterBy === tag;
+                      return (
+                        <div 
+                          key={tag} 
+                          className={clsx(styles.filterOption, isActive && styles.filterOptionActive)}
+                          onClick={() => { setFilterBy(tag); setIsFilterOpen(false); }}
+                        >
+                          {name}
+                          {isActive && <Check size={10} />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className={styles.controlGroup}>
-              <select 
-                className={styles.miniSelect}
-                value={sortField}
-                onChange={(e) => setSortField(e.target.value as 'date' | 'name')}
+            <div className={styles.controlGroup} ref={sortRef}>
+              <div 
+                className={styles.customSortTrigger} 
+                onClick={() => setIsSortOpen(!isSortOpen)}
               >
-                <option value="date">Date</option>
-                <option value="name">Name</option>
-              </select>
+                <span>
+                  {sortField === 'date' ? 'Date' : 'Name'}
+                </span>
+                <ChevronDown size={12} className={clsx(styles.chevron, isSortOpen && styles.chevronRotate)} />
+              </div>
+
+              {isSortOpen && (
+                <div className={styles.customSortMenu}>
+                  <div 
+                    className={clsx(styles.filterOption, sortField === 'date' && styles.filterOptionActive)}
+                    onClick={() => { setSortField('date'); setIsSortOpen(false); }}
+                  >
+                    Date
+                  </div>
+                  <div 
+                    className={clsx(styles.filterOption, sortField === 'name' && styles.filterOptionActive)}
+                    onClick={() => { setSortField('name'); setIsSortOpen(false); }}
+                  >
+                    Name
+                  </div>
+                </div>
+              )}
+
               <button 
                 className={styles.orderBtn}
                 onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
