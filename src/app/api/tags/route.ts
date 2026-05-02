@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
+    const onlyUsed = searchParams.get('onlyUsed') === 'true';
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'Missing workspaceId' }, { status: 400 });
@@ -45,20 +46,38 @@ export async function GET(request: NextRequest) {
       allTagsMap.set(name, t);
     });
 
-    // 3. Optional: Scan conversations to find any other tags (limit for performance)
-    const conversations = await db.conversation.findMany({
-      where: { platform_accounts: { workspaceId } },
-      select: { tags: true },
-      take: 20 
+    // 3. Scan conversations to find any other tags
+    // If onlyUsed is true, we will filter the map to only include these tags
+    const usedTagsSet = new Set<string>();
+    const conversationsWithTags = await db.conversation.findMany({
+      where: { 
+        platform_accounts: { workspaceId },
+        tags: { isEmpty: false }
+      },
+      select: { tags: true }
     });
-    conversations.forEach(c => {
+
+    conversationsWithTags.forEach(c => {
       c.tags.forEach(t => {
         const [name] = t.split('::');
-        if (!allTagsMap.has(name)) allTagsMap.set(name, t);
+        usedTagsSet.add(name);
+        // Also add to map if not present (custom tags not in systemTags)
+        if (!allTagsMap.has(name)) {
+          allTagsMap.set(name, t);
+        }
       });
     });
 
-    return NextResponse.json({ data: Array.from(allTagsMap.values()) });
+    let resultTags = Array.from(allTagsMap.values());
+
+    if (onlyUsed) {
+      resultTags = resultTags.filter(t => {
+        const [name] = t.split('::');
+        return usedTagsSet.has(name);
+      });
+    }
+
+    return NextResponse.json({ data: resultTags });
   } catch (error: any) {
     console.error('[API Tags GET] Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

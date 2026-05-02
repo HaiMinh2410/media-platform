@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Search, Plus, Trash2, ChevronDown, Edit2, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import styles from './manage-tags-modal.module.css';
 import clsx from 'clsx';
 import { useInboxStore } from '../../store/inbox.store';
@@ -39,8 +40,20 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
       const res = await fetch(`/api/tags?workspaceId=${workspaceId}`);
       const json = await res.json();
       if (json.data) {
-        setTags(json.data);
-        setAvailableTags(json.data); // Sync with global store
+        const currentDate = new Date().toLocaleDateString('en-US', { month: '2-digit', day: 'numeric' });
+        const currentTodayTag = `Ngày hôm nay (${currentDate})`;
+        
+        const filtered = (json.data as string[]).filter(t => {
+          const name = t.split('::')[0];
+          // Exclude "Bị chặn"
+          if (name === 'Bị chặn') return false;
+          // Exclude old "Today" tags (keep only the current one)
+          if (name.startsWith('Ngày hôm nay (') && name !== currentTodayTag) return false;
+          return true;
+        });
+        
+        setTags(filtered);
+        setAvailableTags(json.data); // Sync all tags with global store including 'Bị chặn' and old 'Today' for filtering elsewhere
       }
     } catch (err) {
       console.error('Failed to fetch workspace tags:', err);
@@ -61,21 +74,34 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
   };
 
   const handleAddTag = async () => {
-    if (newTagName.trim()) {
-      const tagName = newTagName.trim();
-      if (!tags.some(t => parseTag(t).name === tagName)) {
-        try {
-          await fetch('/api/tags', {
-            method: 'POST',
-            body: JSON.stringify({ workspaceId, name: tagName, color: selectedColor }),
-          });
-          fetchTags();
-          triggerRefresh();
-          setNewTagName('');
-        } catch (err) {
-          console.error('Failed to add tag:', err);
-        }
-      }
+    const tagName = newTagName.trim();
+    if (!tagName) return;
+
+    if (tagName === 'Bị chặn') {
+      toast.error('Không thể tạo nhãn hệ thống "Bị chặn" thủ công.');
+      return;
+    }
+
+    // Check for duplicates (case-insensitive)
+    const isDuplicate = tags.some(t => parseTag(t).name.toLowerCase() === tagName.toLowerCase());
+    
+    if (isDuplicate) {
+      toast.error('Nhãn đã tồn tại');
+      return;
+    }
+
+    try {
+      await fetch('/api/tags', {
+        method: 'POST',
+        body: JSON.stringify({ workspaceId, name: tagName, color: selectedColor }),
+      });
+      fetchTags();
+      triggerRefresh();
+      setNewTagName('');
+      toast.success('Đã thêm nhãn mới');
+    } catch (err) {
+      console.error('Failed to add tag:', err);
+      toast.error('Không thể thêm nhãn. Vui lòng thử lại.');
     }
   };
 
@@ -88,8 +114,10 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
       });
       fetchTags();
       triggerRefresh();
+      toast.success('Đã xóa nhãn');
     } catch (err) {
       console.error('Failed to delete tag:', err);
+      toast.error('Không thể xóa nhãn.');
     }
   };
 
@@ -101,23 +129,43 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
   };
 
   const handleSaveEdit = async () => {
-    if (editingTag && editValue.trim()) {
+    const newName = editValue.trim();
+    if (editingTag && newName) {
       const { name: oldName } = parseTag(editingTag);
+      
+      if (newName === 'Bị chặn') {
+        toast.error('Không thể đổi tên thành nhãn hệ thống "Bị chặn".');
+        return;
+      }
+
+      // Check if new name already exists (excluding the current tag being edited)
+      const isDuplicate = tags.some(t => {
+        const { name } = parseTag(t);
+        return t !== editingTag && name.toLowerCase() === newName.toLowerCase();
+      });
+
+      if (isDuplicate) {
+        toast.error('Nhãn đã tồn tại');
+        return;
+      }
+
       try {
         await fetch('/api/tags', {
           method: 'PATCH',
           body: JSON.stringify({ 
             workspaceId, 
             oldName, 
-            newName: editValue.trim(), 
+            newName, 
             color: editColor 
           }),
         });
         fetchTags();
         triggerRefresh();
         setEditingTag(null);
+        toast.success('Đã cập nhật nhãn');
       } catch (err) {
         console.error('Failed to update tag:', err);
+        toast.error('Không thể cập nhật nhãn.');
       }
     } else {
       setEditingTag(null);

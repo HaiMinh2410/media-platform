@@ -27,6 +27,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [usedTags, setUsedTags] = useState<string[]>([]);
   const filterRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
   
@@ -296,9 +297,15 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   useEffect(() => {
     const fetchTags = async () => {
       try {
+        // Fetch all tags for general use (sidebar, etc)
         const res = await fetch(`/api/tags?workspaceId=${workspaceId}`);
         const json = await res.json();
         if (json.data) setAvailableTags(json.data);
+
+        // Fetch only used tags for the filter bar
+        const usedRes = await fetch(`/api/tags?workspaceId=${workspaceId}&onlyUsed=true`);
+        const usedJson = await usedRes.json();
+        if (usedJson.data) setUsedTags(usedJson.data);
       } catch (err) {
         console.error('Failed to fetch tags:', err);
       }
@@ -381,7 +388,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
                 <span>
                   {filterBy === 'all' ? 'Tất cả' : 
                    filterBy === 'unread' ? 'Chưa đọc' : 
-                   filterBy === 'priority' ? 'Ưu tiên' : 
                    filterBy.split('::')[0]}
                 </span>
                 <ChevronDown size={12} className={clsx(styles.chevron, isFilterOpen && styles.chevronRotate)} />
@@ -401,16 +407,10 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
                   >
                     Chưa đọc
                   </div>
-                  <div 
-                    className={clsx(styles.filterOption, filterBy === 'priority' && styles.filterOptionActive)}
-                    onClick={() => { setFilterBy('priority'); setIsFilterOpen(false); }}
-                  >
-                    Ưu tiên
-                  </div>
                   
                   <div className={styles.filterGroupTitle}>Lọc theo nhãn</div>
                   <div className={styles.filterScrollArea}>
-                    {availableTags.map(tag => {
+                    {usedTags.map(tag => {
                       const name = tag.split('::')[0];
                       const isActive = filterBy === tag;
                       return (

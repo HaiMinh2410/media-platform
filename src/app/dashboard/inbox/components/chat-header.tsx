@@ -103,6 +103,7 @@ export function ChatHeader({
       if (metaRes.ok) {
         toast.success('Đã bỏ chặn hội thoại');
         triggerRefresh();
+        router.push('/dashboard/inbox');
       } else {
         toast.error('Không thể bỏ chặn hội thoại');
       }
