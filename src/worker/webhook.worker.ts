@@ -34,7 +34,7 @@ function createWebhookWorker() {
   const worker = new Worker<WebhookJobPayload>(
     QueueName.WEBHOOK_EVENTS,
     async (job: Job<WebhookJobPayload>) => {
-      const { webhookEventId, platform, eventType, externalSenderId, externalPageId, platformMessageId, timestamp } = job.data;
+      const { webhookEventId, platform, eventType, externalSenderId, externalPageId, platformMessageId, timestamp, isEcho } = job.data;
       const messageText = job.data.messageText || '';
 
       console.log(`[Worker] [${job.id}] Processing ${eventType} event ${webhookEventId} from ${platform}`);
@@ -78,7 +78,7 @@ function createWebhookWorker() {
           externalPageId,
           externalSenderId,
           platformMessageId,
-          senderType: 'user',
+          senderType: isEcho ? 'agent' : 'user',
           messageText,
           timestamp: new Date(timestamp),
         });
@@ -92,7 +92,14 @@ function createWebhookWorker() {
           return { status: 'deduplicated', eventId: webhookEventId };
         }
 
-        console.log(`[Worker] [${job.id}] Persisted new user message ${persistResult.messageId}`);
+        console.log(`[Worker] [${job.id}] Persisted new ${isEcho ? 'echo' : 'user'} message ${persistResult.messageId}`);
+
+        // --- 1.5 Early Exit for Echoes ---
+        // If it's an echo (sent from native app), we stop here. 
+        // We don't want AI to reply to our own native app messages.
+        if (isEcho) {
+          return { status: 'success_echo_persisted', eventId: webhookEventId };
+        }
 
         // Skip bot processing if there's no actual text (e.g. just an image without text)
         if (!messageText.trim()) {

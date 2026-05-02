@@ -160,33 +160,6 @@ export function ReplyComposer({
         </div>
       )}
       
-      <div className={styles.replyToolbar}>
-        <div className={styles.composerSelectors}>
-          <div className={styles.selectorItem}>
-            <span className={styles.selectorLabel}>Reply as:</span>
-            <select 
-              className={styles.composerSelect} 
-              value={replyAsId || ''} 
-              onChange={(e) => setReplyAsId(e.target.value)}
-            >
-              <option value={platformUserName}>{platformUserName}</option>
-              <option value="system">AI Assistant</option>
-            </select>
-          </div>
-          
-          <div className={styles.selectorItem}>
-            <span className={styles.selectorLabel}>Reply on:</span>
-            <select 
-              className={styles.composerSelect} 
-              value={replyOnChannel || ''}
-              onChange={(e) => setReplyOnChannel(e.target.value)}
-            >
-              <option value={platform}>{platform.toUpperCase()}</option>
-              <option value="internal">Internal Note</option>
-            </select>
-          </div>
-        </div>
-        
         <div className={styles.aiTones}>
           {(['professional', 'sales', 'warm', 'flirty'] as ToneMode[]).map((t) => (
             <button 
@@ -202,8 +175,7 @@ export function ReplyComposer({
             AI Rewrite
           </button>
         </div>
-      </div>
-
+      
       <div className={styles.replyFormContainer}>
         <form className={styles.replyForm} onSubmit={handleSubmit}>
           <div className={styles.inputWrapper}>

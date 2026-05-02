@@ -326,17 +326,18 @@ export async function getUnifiedHistory(
 export async function createOutgoingMessage(
   conversationId: string,
   text: string,
-  agentId: string
+  agentId: string,
+  platformMessageId?: string
 ): Promise<{ data: { messageId: string; platformMessageId: string } | null; error: string | null }> {
   try {
-    const platformMessageId = `agent-reply-${randomUUID()}`;
+    const finalPlatformMessageId = platformMessageId || `agent-reply-${randomUUID()}`;
 
     const message = await db.message.create({
       data: {
         conversationId,
         senderId: agentId,
         content: text,
-        platform_message_id: platformMessageId,
+        platform_message_id: finalPlatformMessageId,
         senderType: 'agent',
         is_read: false,
         is_delivered: false,
@@ -349,7 +350,7 @@ export async function createOutgoingMessage(
       data: { lastMessageAt: message.createdAt },
     });
 
-    return { data: { messageId: message.id, platformMessageId }, error: null };
+    return { data: { messageId: message.id, platformMessageId: finalPlatformMessageId }, error: null };
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Unknown database error';
     console.error('❌ [MessageRepository] Error creating outgoing message:', error);

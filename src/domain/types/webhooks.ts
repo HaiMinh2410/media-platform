@@ -36,6 +36,9 @@ export interface ParsedWebhookEvent {
 
   /** When the event occurred (from platform timestamp or current time) */
   receivedAt: Date;
+
+  /** Whether this is an echo of a message sent by the page/account itself */
+  isEcho?: boolean;
 }
 
 /**

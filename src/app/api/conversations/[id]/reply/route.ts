@@ -98,7 +98,8 @@ export async function POST(
     const { data: created, error: dbError } = await createOutgoingMessage(
       conversationId,
       text,
-      account.platform_user_id
+      account.platform_user_id,
+      sendData.messageId
     );
 
     if (dbError || !created) {

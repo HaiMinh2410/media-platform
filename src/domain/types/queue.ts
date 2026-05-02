@@ -28,6 +28,9 @@ export interface WebhookJobPayload {
   
   /** Timestamp of when the event was received */
   timestamp: string;
+
+  /** Whether this is an echo message */
+  isEcho?: boolean;
 }
 
 /**

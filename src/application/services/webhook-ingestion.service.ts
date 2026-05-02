@@ -57,6 +57,7 @@ export class WebhookIngestionService {
             platformMessageId: event.platformMessageId,
             messageText: event.messageText,
             timestamp: event.receivedAt.toISOString(),
+            isEcho: event.isEcho,
           });
         })
       );

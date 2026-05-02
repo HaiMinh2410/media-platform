@@ -32,10 +32,8 @@ export class MetaParserService {
       // Handle 'messaging' events (standard messages, postbacks, reads, deliveries)
       if (entry.messaging && Array.isArray(entry.messaging)) {
         for (const msg of entry.messaging) {
-          // Skip echo messages (replies sent by the bot/page itself)
-          if (msg.message?.is_echo) {
-            continue;
-          }
+          // Capture echo status
+          const isEcho = !!msg.message?.is_echo;
 
           let eventType: any = 'other';
           let messageText = null;
@@ -59,13 +57,14 @@ export class MetaParserService {
           events.push({
             platform: payload.object === 'instagram' ? 'instagram' : 'facebook',
             eventType,
-            externalSenderId: msg.sender?.id || pageId, // Fallback to pageId if sender is missing (rare)
+            externalSenderId: isEcho ? (msg.recipient?.id || 'unknown') : (msg.sender?.id || pageId),
             externalPageId: pageId,
             platformMessageId,
             messageText,
             rawPayload: payload,
             headers: headers,
             receivedAt: this.parseTimestamp(msg.timestamp || entry.time),
+            isEcho,
           });
         }
       }
