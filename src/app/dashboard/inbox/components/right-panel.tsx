@@ -127,6 +127,8 @@ export function RightPanel({
       <div className={clsx(styles.rightSidebarWrapper, !isRightPanelVisible && styles.hidden)}>
         <RightSidebar
           conversationId={conversationId}
+          customerName={customerName}
+          customerAvatar={customerAvatar}
           tags={tags}
           priority={priority}
           sentiment={sentiment}

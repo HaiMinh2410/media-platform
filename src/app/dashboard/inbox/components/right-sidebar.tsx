@@ -4,15 +4,20 @@ import React, { useState } from 'react';
 import styles from './chat.module.css';
 import { AiSuggestionPanel } from './ai-suggestion-panel';
 import { useInboxStore } from '../store/inbox.store';
-import { Search, X, User, Calendar, MessageSquare, Loader2 } from 'lucide-react';
+import { 
+  Search, X, User, Calendar, MessageSquare, Loader2, 
+  MoreHorizontal, ChevronRight, Camera, Info, Plus, Trash2, ChevronDown 
+} from 'lucide-react';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { format } from 'date-fns';
 import clsx from 'clsx';
 
-type TabType = 'conversation' | 'notes' | 'ai' | 'profile' | 'search';
+type TabType = 'detail' | 'ai' | 'search';
 
 type RightSidebarProps = {
   conversationId: string;
+  customerName?: string;
+  customerAvatar?: string;
   tags: string[];
   priority: string | null;
   sentiment: string | null;
@@ -28,6 +33,8 @@ type RightSidebarProps = {
 
 export function RightSidebar({
   conversationId,
+  customerName,
+  customerAvatar,
   tags,
   priority,
   sentiment,
@@ -92,28 +99,16 @@ export function RightSidebar({
     <aside className={styles.rightSidebar}>
       <div className={styles.workspaceTabs}>
         <button 
-          className={`${styles.tabBtn} ${activeTab === 'conversation' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('conversation')}
+          className={`${styles.tabBtn} ${activeTab === 'detail' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('detail')}
         >
-          Details
+          Detail
         </button>
         <button 
           className={`${styles.tabBtn} ${activeTab === 'ai' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('ai')}
         >
           AI Assist
-        </button>
-        <button 
-          className={`${styles.tabBtn} ${activeTab === 'notes' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('notes')}
-        >
-          Notes
-        </button>
-        <button 
-          className={`${styles.tabBtn} ${activeTab === 'profile' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('profile')}
-        >
-          Profile
         </button>
         {activeTab === 'search' && (
           <button 
@@ -126,33 +121,129 @@ export function RightSidebar({
       </div>
 
       <div className={styles.tabContent}>
-        {activeTab === 'conversation' && (
-          <div className={styles.intelSidebar}>
-            <div className={styles.intelSection}>
-              <h3>Contact Intel</h3>
-              <div className={styles.intelGrid}>
-                <div className={styles.intelCard}>
-                  <span className={styles.intelLabel}>Lead Score</span>
-                  <span className={styles.intelValue}>85/100</span>
-                </div>
-                <div className={styles.intelCard}>
-                  <span className={styles.intelLabel}>Sentiment</span>
-                  <span className={styles.intelValue}>{sentiment || 'Neutral'}</span>
+        {activeTab === 'detail' && (
+          <div className={styles.detailSection}>
+            <div className={styles.profileHeader}>
+              <div className={styles.avatar}>
+                {customerAvatar ? (
+                  <img src={customerAvatar} alt={customerName} className={styles.avatarImg} />
+                ) : (
+                  customerName?.charAt(0) || 'U'
+                )}
+              </div>
+              <div className={styles.profileInfo}>
+                <h4 className={styles.profileName}>{customerName || 'Unknown'}</h4>
+                <a href="#" className={styles.profileLink}>
+                  Xem trang cá nhân
+                </a>
+              </div>
+              <div className={styles.headerActions}>
+                <button className={styles.iconBtn}><MoreHorizontal size={18} /></button>
+                <button className={styles.iconBtn}><ChevronRight size={18} /></button>
+              </div>
+            </div>
+
+            <div className={styles.detailItem}>
+              <h3 className={styles.detailTitle}>Chi tiết liên hệ</h3>
+              <p className={styles.detailDesc}>Bổ sung chi tiết về người liên hệ này.</p>
+              <button className={styles.addDetailBtn}>
+                <Plus size={16} /> Thêm chi tiết
+              </button>
+            </div>
+
+            <div className={styles.detailItem}>
+              <h3 className={styles.detailTitle}>
+                Trang cá nhân trên Instagram <Info size={14} className={styles.infoIcon} />
+              </h3>
+              <div className={styles.socialRow}>
+                <Camera size={18} className={styles.socialIcon} />
+                <div className={styles.socialContent}>
+                  <span className={styles.socialHandle}>minhhigh_</span>
+                  <span>Sweat Today, Smile Tomorrow! Another @highminh_</span>
+                  <span>Hai Minh</span>
+                  <a href="https://highminh.vercel.app/" target="_blank" rel="noreferrer" className={styles.profileLink}>
+                    https://highminh.vercel.app/
+                  </a>
                 </div>
               </div>
             </div>
-            
-            <div className={styles.intelSection}>
-              <h3>Channel Activity</h3>
-              <div className={styles.activityStats}>
-                <div className={styles.statRow}>
-                  <span>Total Messages</span>
-                  <strong>24</strong>
+
+            <div className={styles.detailItem}>
+              <div className={styles.statusHeader}>
+                <h3 className={styles.detailTitle}>Hoạt động</h3>
+                <span className={styles.tagBadge}>Khuyên dùng</span>
+              </div>
+            </div>
+
+            <div className={styles.detailItem}>
+              <h3 className={styles.detailTitle}>
+                Giai đoạn khách hàng tiềm năng <Info size={14} className={styles.infoIcon} />
+              </h3>
+              <button className={styles.primaryBtn}>
+                Đánh dấu là khách hàng tiềm năng
+              </button>
+            </div>
+
+            <div className={styles.detailItem}>
+              <div className={styles.statusHeader}>
+                <h3 className={styles.detailTitle}>Trạng thái đơn đặt hàng</h3>
+                <span className={styles.statusAction}>Xóa trạng thái</span>
+              </div>
+              <div className={styles.selectWrapper}>
+                <select className={styles.customSelect}>
+                  <option>Chọn 1 mục</option>
+                </select>
+                <ChevronDown size={16} className={styles.selectIcon} />
+              </div>
+            </div>
+            <div className={styles.detailItem}>
+              <div className={styles.statusHeader}>
+                <h3 className={styles.detailTitle}>
+                  Nhãn <Info size={14} className={styles.infoIcon} />
+                </h3>
+                <span className={styles.statusAction}>Quản lý nhãn</span>
+              </div>
+              <div className={styles.tagsContainer}>
+                {tags.length > 0 ? (
+                  tags.map(tag => (
+                    <span key={tag} className={styles.tagBadge}>{tag}</span>
+                  ))
+                ) : (
+                  <span className={styles.tagBadge}>Ưu tiên</span>
+                )}
+              </div>
+              <div className={styles.tagInputWrapper}>
+                <input type="text" placeholder="Thêm nhãn" className={styles.tagInput} />
+              </div>
+              <div className={styles.suggestedTags}>
+                <p className={styles.suggestTitle}>Nhãn gợi ý</p>
+                <div className={styles.suggestList}>
+                  <label className={styles.suggestItem}>
+                    <input type="checkbox" />
+                    <span className={styles.suggestBadgeGreen}>Khách hàng mới</span>
+                  </label>
+                  <label className={styles.suggestItem}>
+                    <input type="checkbox" />
+                    <span className={styles.suggestBadgeBlue}>Ngày hôm nay (5/02)</span>
+                  </label>
                 </div>
-                <div className={styles.statRow}>
-                  <span>Avg Response Time</span>
-                  <strong>15m</strong>
+              </div>
+            </div>
+
+            <div className={styles.detailItem}>
+              <div className={styles.statusHeader}>
+                <h3 className={styles.detailTitle}>Ghi chú</h3>
+                <span className={styles.statusAction}>Thêm ghi chú</span>
+              </div>
+              <div className={styles.noteItem}>
+                <div className={styles.noteMeta}>
+                  <span>vài giây trước</span>
+                  <div className={styles.noteActions}>
+                    <span>Chỉnh sửa</span>
+                    <span>Xóa</span>
+                  </div>
                 </div>
+                <p className={styles.noteText}>test</p>
               </div>
             </div>
           </div>
@@ -173,36 +264,12 @@ export function RightSidebar({
           />
         )}
 
-        {activeTab === 'notes' && (
-          <div className={styles.notesSection}>
-            <p className={styles.emptyText}>No notes yet. Add a note to collaborate with your team.</p>
-            <textarea 
-              className={styles.notesArea} 
-              placeholder="Add internal note..."
-            ></textarea>
-            <button className={styles.saveNoteBtn}>Save Note</button>
-          </div>
-        )}
-
-        {activeTab === 'profile' && (
-          <div className={styles.profileSection}>
-            <div className={styles.profileField}>
-              <label>Email</label>
-              <input type="email" placeholder="customer@example.com" className={styles.profileInput} />
-            </div>
-            <div className={styles.profileField}>
-              <label>Phone</label>
-              <input type="tel" placeholder="+1234567890" className={styles.profileInput} />
-            </div>
-            <button className={styles.saveNoteBtn}>Update CRM</button>
-          </div>
-        )}
 
         {activeTab === 'search' && (
           <div className={styles.searchSection}>
             <div className={styles.searchHeader}>
               <h3>Search in Conversation</h3>
-              <button className={styles.closeSearch} onClick={() => setActiveTab('conversation')}>
+              <button className={styles.closeSearch} onClick={() => setActiveTab('detail')}>
                 <X size={16} />
               </button>
             </div>

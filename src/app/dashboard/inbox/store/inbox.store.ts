@@ -73,7 +73,7 @@ export const useInboxStore = create<InboxState>((set) => ({
   toggleRightPanel: () => set((state) => ({ isRightPanelVisible: !state.isRightPanelVisible })),
   setRightPanelVisible: (visible) => set({ isRightPanelVisible: visible }),
 
-  rightSidebarTab: 'conversation',
+  rightSidebarTab: 'detail',
   setRightSidebarTab: (tab) => set({ rightSidebarTab: tab }),
 
   middlePanelWidth: 360,
