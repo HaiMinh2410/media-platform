@@ -41,6 +41,8 @@ type RightSidebarProps = {
     state?: string;
     zipCode?: string;
   };
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 };
 
 export function RightSidebar({
@@ -60,6 +62,8 @@ export function RightSidebar({
   onUpdateSentiment,
   onJumpToMessage,
   contactInfo,
+  isCollapsed,
+  onToggleCollapse,
 }: RightSidebarProps) {
   const activeTab = useInboxStore((state) => state.rightSidebarTab) as TabType;
   const setActiveTab = useInboxStore((state) => state.setRightSidebarTab);
@@ -203,6 +207,25 @@ export function RightSidebar({
 
   const hasContactInfo = !!(contactInfo?.phone || contactInfo?.email || contactInfo?.address || contactInfo?.birthday);
 
+  if (isCollapsed) {
+    return (
+      <aside className={clsx(styles.rightSidebar, styles.collapsed)}>
+        <div className={styles.collapsedContent}>
+          <div className={styles.collapsedAvatar} onClick={onToggleCollapse}>
+            {customerAvatar ? (
+              <img src={customerAvatar} alt={customerName} className={styles.avatarImg} />
+            ) : (
+              customerName?.charAt(0) || 'U'
+            )}
+            <div className={styles.platformIndicator}>
+              <Camera size={10} />
+            </div>
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside className={styles.rightSidebar}>
       <div className={styles.workspaceTabs}>
@@ -246,8 +269,9 @@ export function RightSidebar({
                 </a>
               </div>
               <div className={styles.headerActions}>
-                <button className={styles.iconBtn}><MoreHorizontal size={18} /></button>
-                <button className={styles.iconBtn}><ChevronRight size={18} /></button>
+                <button className={styles.iconBtn} onClick={onToggleCollapse}>
+                  <ChevronRight size={18} />
+                </button>
               </div>
             </div>
 

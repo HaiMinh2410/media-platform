@@ -112,7 +112,7 @@ export function RightPanel({
     onMetadataUpdate: handleRealtimeMetadata,
   });
 
-  const isRightPanelVisible = useInboxStore((state) => state.isRightPanelVisible);
+  const { isRightPanelVisible, setRightPanelVisible } = useInboxStore();
 
   return (
     <div className={styles.mainContent}>
@@ -134,7 +134,7 @@ export function RightPanel({
         />
       </div>
 
-      <div className={clsx(styles.rightSidebarWrapper, !isRightPanelVisible && styles.hidden)}>
+      <div className={clsx(styles.rightSidebarWrapper, !isRightPanelVisible && styles.collapsedWrapper)}>
         <RightSidebar
           conversationId={conversationId}
           customerName={customerName}
@@ -152,6 +152,8 @@ export function RightPanel({
           onUpdateSentiment={handleUpdateSentiment}
           onJumpToMessage={(id) => chatRef.current?.scrollToMessage(id)}
           contactInfo={contactInfo}
+          isCollapsed={!isRightPanelVisible}
+          onToggleCollapse={() => setRightPanelVisible(!isRightPanelVisible)}
         />
       </div>
     </div>

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './chat.module.css';
 import { PlatformIcon } from '@/components/ui/inbox-shared';
-import { PanelRight, MoreHorizontal, ShieldAlert, Trash2, Search, X } from 'lucide-react';
+import { MoreHorizontal, ShieldAlert, Trash2, Search, X } from 'lucide-react';
 import { useInboxStore } from '../store/inbox.store';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -116,13 +116,6 @@ export function ChatHeader({
         </div>
       </div>
       <div className={styles.headerActions}>
-        <button 
-          className={clsx(styles.actionBtn, isRightPanelVisible && styles.activeActionBtn)}
-          onClick={() => setRightPanelVisible(!isRightPanelVisible)}
-          title="Toggle Right Panel"
-        >
-          <PanelRight size={20} />
-        </button>
         
         <div className={styles.moreMenuContainer} ref={dropdownRef}>
           <button 
