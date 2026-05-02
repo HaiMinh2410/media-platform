@@ -46,6 +46,11 @@ export function Sidebar() {
       badge: unreadCount > 0 ? (unreadCount > 99 ? '99+' : String(unreadCount)) : undefined
     },
     {
+      label: 'Leads',
+      href: '/dashboard/leads',
+      icon: <Users size={20} />,
+    },
+    {
       label: 'Accounts',
       href: '/dashboard/settings/accounts',
       icon: <Users size={20} />,

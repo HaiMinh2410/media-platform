@@ -16,6 +16,7 @@ import { MessageWithSender } from '@/domain/types/messaging';
 import { format, formatDistanceToNow, isToday } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import clsx from 'clsx';
+import { toast } from 'sonner';
 
 const PRESET_COLORS = [
   '#3b82f6', '#22c55e', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#10b981'
@@ -113,9 +114,16 @@ export function RightSidebar({
   };
 
   const [leadStatus, setLeadStatus] = useState(getInitialStatus(priority));
+  const [isLead, setIsLead] = useState(priority !== null && priority !== 'none');
+
+  useEffect(() => {
+    setIsLead(priority !== null && priority !== 'none');
+    setLeadStatus(getInitialStatus(priority));
+  }, [priority]);
   const [isLeadStatusOpen, setIsLeadStatusOpen] = useState(false);
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const tagDropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
   const [dropdownDirection, setDropdownDirection] = useState<'down' | 'up'>('down');
@@ -162,7 +170,11 @@ export function RightSidebar({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target as Node) &&
+        (!menuRef.current || !menuRef.current.contains(event.target as Node))
+      ) {
         setIsLeadStatusOpen(false);
       }
       if (tagDropdownRef.current && !tagDropdownRef.current.contains(event.target as Node)) {
@@ -285,6 +297,27 @@ export function RightSidebar({
   const handleUpdateLeadStatus = async (status: string) => {
     setLeadStatus(status);
     onUpdatePriority(status); // Using priority as a proxy for lead status for now
+    
+    // Show specific toast message based on status
+    switch (status) {
+      case 'new':
+        toast.success('Đã chuyển sang giai đoạn Tiếp nhận');
+        break;
+      case 'qualified':
+        toast.success('Khách hàng đã đủ tiêu chuẩn');
+        break;
+      case 'converted':
+        toast.success('Tuyệt vời! Đã chốt đơn thành công');
+        break;
+      case 'lost':
+        toast.info('Đã đánh dấu khách hàng bị mất đi');
+        break;
+      case 'unqualified':
+        toast.error('Khách hàng không đủ tiêu chuẩn');
+        break;
+      default:
+        toast.success('Đã cập nhật giai đoạn khách hàng');
+    }
   };
 
   const handleUpdateOrderStatus = async (status: string) => {
@@ -589,7 +622,21 @@ export function RightSidebar({
             <div className={styles.detailItem}>
               <div className={styles.statusHeader}>
                 <h3 className={styles.detailTitle}>Hoạt động</h3>
-                <span className={styles.tagBadge}>Khuyên dùng</span>
+                <div className={styles.headerActions}>
+                  {isLead && (
+                    <span 
+                      className={styles.statusAction} 
+                      onClick={() => {
+                        setIsLead(false);
+                        handleUpdateLeadStatus('none');
+                        toast.info('Đã bỏ đánh dấu khách hàng tiềm năng');
+                      }}
+                    >
+                      Bỏ đánh dấu
+                    </span>
+                  )}
+                  <span className={styles.tagBadge}>Khuyên dùng</span>
+                </div>
               </div>
               
               <h3 className={styles.detailTitle} style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -597,18 +644,33 @@ export function RightSidebar({
               </h3>
 
               <div className={styles.leadStatusDropdown} ref={dropdownRef}>
-                <div 
-                  className={styles.dropdownTrigger} 
-                  onClick={toggleLeadStatus}
-                >
-                  <span>{
-                    leadStages.find(s => s.id === leadStatus)?.label || 'Chọn giai đoạn'
-                  }</span>
-                  <ChevronDown size={16} className={clsx(isLeadStatusOpen && styles.rotate180)} />
-                </div>
+                {!isLead ? (
+                  <div 
+                    className={styles.dropdownTrigger} 
+                    style={{ justifyContent: 'center', color: 'var(--fg-secondary)' }}
+                    onClick={() => {
+                      setIsLead(true);
+                      handleUpdateLeadStatus('new');
+                      toast.success('Đã đánh dấu là khách hàng tiềm năng');
+                    }}
+                  >
+                    <span>Đánh dấu là khách hàng tiềm năng</span>
+                  </div>
+                ) : (
+                  <div 
+                    className={styles.dropdownTrigger} 
+                    onClick={toggleLeadStatus}
+                  >
+                    <span>{
+                      leadStages.find(s => s.id === leadStatus)?.label || 'Chọn giai đoạn'
+                    }</span>
+                    <ChevronDown size={16} className={clsx(isLeadStatusOpen && styles.rotate180)} />
+                  </div>
+                )}
 
                 {isLeadStatusOpen && isMounted && createPortal(
                   <div 
+                    ref={menuRef}
                     className={clsx(styles.leadStatusMenu, dropdownDirection === 'up' && styles.leadStatusMenuUp)}
                     style={{
                       position: 'fixed',
