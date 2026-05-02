@@ -179,22 +179,42 @@ export function RightSidebar({
     return () => clearTimeout(timer);
   }, [searchQuery, conversationId, senderFilter, dateFilter]);
 
+  const parseTag = (tag: string) => {
+    const [name, color] = tag.split('::');
+    return { name, color: color || '#6366f1' };
+  };
+
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && newTag.trim()) {
-      if (!tags.includes(newTag.trim())) {
-        onUpdateTags([...tags, newTag.trim()]);
+      const tagName = newTag.trim();
+      if (!tags.some(t => parseTag(t).name === tagName)) {
+        onUpdateTags([...tags, `${tagName}::#6366f1`]);
       }
       setNewTag('');
     }
   };
 
-  const toggleTag = (tagName: string) => {
-    if (tags.includes(tagName)) {
-      onUpdateTags(tags.filter(t => t !== tagName));
+  const toggleTag = (tag: string) => {
+    const { name } = parseTag(tag);
+    if (tags.some(t => parseTag(t).name === name)) {
+      onUpdateTags(tags.filter(t => parseTag(t).name !== name));
     } else {
-      onUpdateTags([...tags, tagName]);
+      onUpdateTags([...tags, tag]);
     }
   };
+
+  // Suggestion tags with colors
+  const suggestedTags = [
+    'Ưu tiên (VIP)::#3b82f6',
+    'Hạn chế::#ef4444',
+    'Khách hàng mới::#22c55e',
+    'Ngày hôm nay (5/02)::#f59e0b',
+  ];
+
+  // Filter out tags that are already selected (match by name)
+  const availableSuggestions = suggestedTags.filter(suggested => 
+    !tags.some(t => parseTag(t).name === parseTag(suggested).name)
+  );
 
   const handleUpdateLeadStatus = async (status: string) => {
     setLeadStatus(status);
@@ -543,60 +563,68 @@ export function RightSidebar({
               </div>
               <div className={styles.tagsContainer}>
                 {tags.length > 0 ? (
-                  tags.map(tag => (
-                    <span key={tag} className={styles.tagBadge}>
-                      {tag}
-                      <X 
-                        size={12} 
-                        className={styles.removeTagIcon} 
-                        onClick={() => toggleTag(tag)}
-                      />
-                    </span>
-                  ))
+                  tags.map(tag => {
+                    const { name, color } = parseTag(tag);
+                    return (
+                      <span 
+                        key={tag} 
+                        className={styles.tagBadge}
+                        style={{ 
+                          backgroundColor: `${color}15`, 
+                          color: color,
+                          border: `1px solid ${color}30`
+                        }}
+                      >
+                        {name}
+                        <X 
+                          size={12} 
+                          className={styles.removeTagIcon} 
+                          onClick={() => toggleTag(tag)}
+                        />
+                      </span>
+                    );
+                  })
                 ) : (
-                  <span className={styles.tagBadge}>Ưu tiên</span>
+                  <p style={{ fontSize: '12px', color: 'var(--fg-tertiary)', fontStyle: 'italic', margin: '8px 0' }}>
+                    Chưa có nhãn nào được gắn
+                  </p>
                 )}
               </div>
               <div className={styles.tagInputWrapper}>
                 <input 
                   type="text" 
-                  placeholder="Thêm nhãn" 
+                  placeholder="Thêm nhãn nhanh..." 
                   className={styles.tagInput} 
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   onKeyDown={handleAddTag}
                 />
               </div>
-              <div className={styles.suggestedTags}>
-                <p className={styles.suggestTitle}>Nhãn gợi ý</p>
-                <div className={styles.suggestList}>
-                  {!tags.includes('Khách hàng mới') && (
-                    <label className={styles.suggestItem}>
-                      <input 
-                        type="checkbox" 
-                        checked={false}
-                        onChange={() => toggleTag('Khách hàng mới')}
-                      />
-                      <span className={styles.suggestBadgeGreen}>Khách hàng mới</span>
-                    </label>
-                  )}
-                  {!tags.includes('Ngày hôm nay (5/02)') && (
-                    <label className={styles.suggestItem}>
-                      <input 
-                        type="checkbox" 
-                        checked={false}
-                        onChange={() => toggleTag('Ngày hôm nay (5/02)')}
-                      />
-                      <span className={styles.suggestBadgeBlue}>Ngày hôm nay (5/02)</span>
-                    </label>
-                  )}
-                  {tags.includes('Khách hàng mới') && tags.includes('Ngày hôm nay (5/02)') && (
-                    <p style={{ fontSize: '12px', color: 'var(--fg-tertiary)', fontStyle: 'italic' }}>
-                      Không còn nhãn gợi ý
-                    </p>
-                  )}
+              
+              {availableSuggestions.length > 0 && (
+                <div className={styles.suggestedTags}>
+                  <p className={styles.suggestTitle}>Nhãn gợi ý</p>
+                  <div className={styles.suggestList}>
+                    {availableSuggestions.map((suggested, index) => {
+                      const { name, color } = parseTag(suggested);
+                      return (
+                        <span 
+                          key={index} 
+                          className={styles.suggestBadge}
+                          style={{ 
+                            backgroundColor: `${color}10`, 
+                            color: color,
+                            borderColor: `${color}20`
+                          }}
+                          onClick={() => toggleTag(suggested)}
+                        >
+                          {name}
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className={styles.detailItem}>

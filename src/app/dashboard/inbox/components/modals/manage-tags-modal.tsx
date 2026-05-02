@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Search, Plus, Trash2, ChevronDown, Edit2 } from 'lucide-react';
+import { X, Search, Plus, Trash2, ChevronDown, Edit2, Check } from 'lucide-react';
 import styles from './manage-tags-modal.module.css';
 import clsx from 'clsx';
 
@@ -12,6 +12,10 @@ interface ManageTagsModalProps {
   onUpdateTags: (tags: string[]) => void;
 }
 
+const PRESET_COLORS = [
+  '#3b82f6', '#22c55e', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#10b981'
+];
+
 export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
   isOpen,
   onClose,
@@ -20,14 +24,26 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
 }) => {
   const [newTagName, setNewTagName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedColor, setSelectedColor] = useState('#3b82f6');
+  const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [editingTag, setEditingTag] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [editColor, setEditColor] = useState('');
 
   if (!isOpen) return null;
 
+  const parseTag = (tag: string) => {
+    const [name, color] = tag.split('::');
+    return { name, color: color || '#6366f1' };
+  };
+
   const handleAddTag = () => {
-    if (newTagName.trim() && !tags.includes(newTagName.trim())) {
-      onUpdateTags([...tags, newTagName.trim()]);
-      setNewTagName('');
+    if (newTagName.trim()) {
+      const tagName = newTagName.trim();
+      if (!tags.some(t => parseTag(t).name === tagName)) {
+        onUpdateTags([...tags, `${tagName}::${selectedColor}`]);
+        setNewTagName('');
+      }
     }
   };
 
@@ -35,8 +51,25 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
     onUpdateTags(tags.filter(t => t !== tagName));
   };
 
+  const handleStartEdit = (tag: string) => {
+    const { name, color } = parseTag(tag);
+    setEditingTag(tag);
+    setEditValue(name);
+    setEditColor(color);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingTag && editValue.trim()) {
+      const newTag = `${editValue.trim()}::${editColor}`;
+      onUpdateTags(tags.map(t => t === editingTag ? newTag : t));
+      setEditingTag(null);
+    } else {
+      setEditingTag(null);
+    }
+  };
+
   const filteredTags = tags.filter(tag => 
-    tag.toLowerCase().includes(searchQuery.toLowerCase())
+    parseTag(tag).name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -55,9 +88,31 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
           </p>
 
           <div className={styles.addTagSection}>
-            <div className={styles.colorPicker}>
-              <div className={styles.colorDot} style={{ backgroundColor: selectedColor }} />
-              <ChevronDown size={14} color="#6b7280" />
+            <div className={styles.colorPickerWrapper}>
+              <div 
+                className={styles.colorPicker} 
+                style={{ borderColor: selectedColor, background: `${selectedColor}10` }}
+                onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+              >
+                <div className={styles.colorDot} style={{ backgroundColor: selectedColor }} />
+                <ChevronDown size={14} style={{ color: selectedColor }} />
+              </div>
+              
+              {isColorPickerOpen && (
+                <div className={styles.colorPopover}>
+                  {PRESET_COLORS.map(color => (
+                    <div 
+                      key={color}
+                      className={clsx(styles.colorOption, selectedColor === color && styles.colorOptionActive)}
+                      style={{ backgroundColor: color }}
+                      onClick={() => {
+                        setSelectedColor(color);
+                        setIsColorPickerOpen(false);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             <input 
               type="text" 
@@ -70,7 +125,8 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
             <button 
               className={styles.addBtn}
               onClick={handleAddTag}
-              disabled={!newTagName.trim() || tags.includes(newTagName.trim())}
+              disabled={!newTagName.trim()}
+              style={{ backgroundColor: selectedColor }}
             >
               Thêm nhãn
             </button>
@@ -89,34 +145,87 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
 
           <div className={styles.tagList}>
             {filteredTags.length > 0 ? (
-              filteredTags.map(tag => (
-                <div key={tag} className={styles.tagItem}>
-                  <div className={styles.tagContent}>
-                    <div className={styles.colorDot} style={{ backgroundColor: '#6366f1' }} />
-                    <span 
-                      className={styles.tagBadge}
-                      style={{ 
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)', 
-                        color: '#a5b4fc',
-                        border: '1px solid rgba(99, 102, 241, 0.2)'
-                      }}
-                    >
-                      {tag}
-                    </span>
+              filteredTags.map(tag => {
+                const { name, color } = parseTag(tag);
+                const isEditing = editingTag === tag;
+                
+                return (
+                  <div key={tag} className={styles.tagItem}>
+                    <div className={styles.tagContent}>
+                      {isEditing ? (
+                        <div className={styles.editControls}>
+                          <div className={styles.colorPickerWrapper}>
+                            <div 
+                              className={styles.colorPickerSmall} 
+                              style={{ backgroundColor: editColor }}
+                              onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+                            />
+                            {isColorPickerOpen && editingTag === tag && (
+                              <div className={styles.colorPopoverSmall}>
+                                {PRESET_COLORS.map(c => (
+                                  <div 
+                                    key={c}
+                                    className={clsx(styles.colorOptionSmall, editColor === c && styles.colorOptionActive)}
+                                    style={{ backgroundColor: c }}
+                                    onClick={() => {
+                                      setEditColor(c);
+                                      setIsColorPickerOpen(false);
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <input 
+                            className={styles.editInput}
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
+                            autoFocus
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <div className={styles.colorDot} style={{ backgroundColor: color }} />
+                          <span 
+                            className={styles.tagBadge}
+                            style={{ 
+                              backgroundColor: `${color}15`, 
+                              color: color,
+                              border: `1px solid ${color}30`
+                            }}
+                          >
+                            {name}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div className={styles.tagActions}>
+                      {isEditing ? (
+                        <button 
+                          className={styles.actionBtnActive}
+                          onClick={handleSaveEdit}
+                        >
+                          <Check size={16} />
+                        </button>
+                      ) : (
+                        <button 
+                          className={styles.actionBtn}
+                          onClick={() => handleStartEdit(tag)}
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                      )}
+                      <button 
+                        className={clsx(styles.actionBtn, styles.deleteBtn)}
+                        onClick={() => handleDeleteTag(tag)}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
-                  <div className={styles.tagActions}>
-                    <button className={styles.actionBtn}>
-                      <Edit2 size={14} />
-                    </button>
-                    <button 
-                      className={clsx(styles.actionBtn, styles.deleteBtn)}
-                      onClick={() => handleDeleteTag(tag)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '14px', marginTop: '20px' }}>
                 {searchQuery ? 'Không tìm thấy nhãn phù hợp' : 'Chưa có nhãn nào'}

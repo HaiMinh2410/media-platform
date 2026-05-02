@@ -1533,23 +1533,25 @@
 
 .suggestList {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.suggestItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  color: var(--fg-secondary);
+.suggestBadge {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
   cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.suggestItem input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent-primary);
+.suggestBadge:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.2);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .suggestBadgeGreen {
