@@ -66,12 +66,21 @@ model Conversation {
   /// Added in T073: Advanced Inbox Schema
   priority                   String?                   @default("medium")
   sentiment                  String?                   @default("neutral")
+  lead_status                String?                   @default("new")
+  phone                      String?
+  email                      String?
+  birthday                   DateTime?
+  address                    String?
+  city                       String?
+  state                      String?
+  zip_code                   String?
   /// Points to the primary/canonical conversation when this convo is a cross-channel duplicate (T077)
   canonical_conversation_id  String?                   @db.Uuid
   tags                       String[]                  @default([])
   platform_accounts          PlatformAccount           @relation(fields: [account_id], references: [id], onDelete: Cascade)
   customer_platform_mappings CustomerPlatformMapping[]
   messages                   Message[]
+  notes                      ConversationNote[]
 
   @@unique([account_id, platform_conversation_id])
   @@map("conversations")
@@ -106,6 +115,19 @@ model AIReplyLog {
   message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@map("ai_reply_logs")
+  @@schema("public")
+}
+
+model ConversationNote {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String       @map("conversation_id") @db.Uuid
+  content        String
+  authorId       String?      @map("author_id") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("conversation_notes")
   @@schema("public")
 }
 

@@ -1129,6 +1129,7 @@
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1232,6 +1233,69 @@
   gap: 8px;
 }
 
+.contactDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.contactItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.contactLabel {
+  color: var(--fg-tertiary);
+}
+
+.contactValue {
+  color: var(--fg-primary);
+  font-weight: 500;
+}
+
+.contactActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.deleteAction {
+  font-size: 0.8125rem;
+  color: var(--fg-tertiary);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.deleteAction:hover {
+  color: #ef4444;
+  text-decoration: underline;
+}
+
+.addedLabel {
+  font-size: 0.8125rem;
+  color: var(--fg-tertiary);
+  margin: 0;
+}
+
+.contactRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.contactIcon {
+  color: var(--fg-tertiary);
+}
+
+.contactValue {
+  font-size: 0.875rem;
+  color: var(--fg-secondary);
+}
+
 .detailDesc {
   font-size: 0.8125rem;
   color: var(--fg-tertiary);
@@ -1310,6 +1374,42 @@
 
 .statusAction:hover {
   text-decoration: underline;
+}
+
+.leadStatusGroups {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.statusBtn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--fg-secondary);
+  padding: 8px;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.statusBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--fg-primary);
+}
+
+.statusActive {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+}
+
+.statusActive:hover {
+  background: var(--accent-primary);
+  color: white;
+  opacity: 0.9;
 }
 
 .selectWrapper {
@@ -1459,6 +1559,47 @@
 .noteActions span:hover {
   color: var(--fg-primary);
   text-decoration: underline;
+}
+
+.addNoteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.noteInput {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  color: var(--fg-primary);
+  font-size: 0.875rem;
+  min-height: 80px;
+  resize: vertical;
+  outline: none;
+}
+
+.noteInput:focus {
+  border-color: var(--accent-primary);
+}
+
+.saveNoteBtn {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+  align-self: flex-end;
+}
+
+.saveNoteBtn:hover {
+  opacity: 0.9;
 }
 
 .noteText {

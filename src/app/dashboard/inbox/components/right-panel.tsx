@@ -23,6 +23,15 @@ type RightPanelProps = {
   priority: string | null;
   sentiment: string | null;
   initialTags: string[];
+  contactInfo?: {
+    phone?: string;
+    email?: string;
+    birthday?: string | Date;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+  };
 };
 
 export function RightPanel({
@@ -36,6 +45,7 @@ export function RightPanel({
   priority: initialPriority,
   sentiment: initialSentiment,
   initialTags,
+  contactInfo,
 }: RightPanelProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [priority, setPriority] = useState<string | null>(initialPriority);
@@ -129,6 +139,7 @@ export function RightPanel({
           conversationId={conversationId}
           customerName={customerName}
           customerAvatar={customerAvatar}
+          platform={platform}
           tags={tags}
           priority={priority}
           sentiment={sentiment}
@@ -140,6 +151,7 @@ export function RightPanel({
           onUpdatePriority={handleUpdatePriority}
           onUpdateSentiment={handleUpdateSentiment}
           onJumpToMessage={(id) => chatRef.current?.scrollToMessage(id)}
+          contactInfo={contactInfo}
         />
       </div>
     </div>

@@ -40,6 +40,15 @@ export default async function ConversationPage({
         priority={(conversation as any).priority || null}
         sentiment={(conversation as any).sentiment || null}
         initialTags={(conversation as any).tags || []}
+        contactInfo={{
+          phone: (conversation as any).phone,
+          email: (conversation as any).email,
+          birthday: (conversation as any).birthday,
+          address: (conversation as any).address,
+          city: (conversation as any).city,
+          state: (conversation as any).state,
+          zipCode: (conversation as any).zip_code,
+        }}
       />
     </div>
   );
