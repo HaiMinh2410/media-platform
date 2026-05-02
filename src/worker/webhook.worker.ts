@@ -129,10 +129,18 @@ function createWebhookWorker() {
         // We do this asynchronously to avoid delaying the AI response
         const convo = await db.conversation.findUnique({
           where: { id: persistResult.conversationId },
-          select: { customer_name: true }
+          select: { 
+            customer_name: true,
+            customer_username: true,
+            customer_link: true
+          }
         });
 
-        if (!convo?.customer_name) {
+        const needsSync = !convo?.customer_name || 
+                          (platform === 'instagram' && !convo?.customer_username) ||
+                          (platform === 'facebook' && !convo?.customer_link);
+
+        if (needsSync) {
           console.log(`[Worker] [${job.id}] Missing customer profile, triggering sync...`);
           metaProfileService.syncCustomerProfile({
             conversationId: persistResult.conversationId,

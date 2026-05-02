@@ -8,7 +8,7 @@ import { useInboxStore } from '../store/inbox.store';
 import { 
   Search, X, User, Calendar, MessageSquare, Loader2, 
   MoreHorizontal, ChevronRight, Camera, Info, Plus, Trash2, ChevronDown,
-  Phone, Mail, Cake, Home
+  Phone, Mail, Cake, Home, RefreshCw
 } from 'lucide-react';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { format } from 'date-fns';
@@ -158,6 +158,8 @@ export function RightSidebar({
     }
   };
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
   const handleSaveNote = async () => {
     if (!noteContent.trim()) return;
     try {
@@ -166,11 +168,24 @@ export function RightSidebar({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: noteContent }),
       });
-      setIsAddingNote(false);
       setNoteContent('');
-      window.location.reload();
+      window.location.reload(); 
     } catch (err) {
       console.error('Failed to save note:', err);
+    }
+  };
+
+  const handleSyncProfile = async () => {
+    setIsSyncing(true);
+    try {
+      await fetch(`/api/conversations/${conversationId}/sync-profile`, {
+        method: 'POST',
+      });
+      window.location.reload();
+    } catch (err) {
+      console.error('Failed to sync profile:', err);
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -279,9 +294,22 @@ export function RightSidebar({
                       Xem trang cá nhân
                     </a>
                   ) : (
-                    <span className={styles.profileLinkDisabled} title="Chưa đồng bộ được username Instagram">
-                      Chưa có liên kết
-                    </span>
+                    <>
+                      <span 
+                        className={styles.profileLinkDisabled} 
+                        title="Chưa đồng bộ được username Instagram. Nhấn 'Làm mới' để thử lại."
+                      >
+                        Chưa có liên kết
+                      </span>
+                      <button 
+                        className={styles.syncBtn} 
+                        onClick={handleSyncProfile}
+                        disabled={isSyncing}
+                      >
+                        <RefreshCw size={12} className={clsx(isSyncing && styles.spin)} />
+                        Làm mới
+                      </button>
+                    </>
                   )
                 ) : (
                   customerLink ? (
@@ -294,9 +322,22 @@ export function RightSidebar({
                       Xem trang cá nhân
                     </a>
                   ) : (
-                    <span className={styles.profileLinkDisabled} title="Facebook hạn chế link trang cá nhân qua API nếu không có quyền user_link">
-                      Chưa có liên kết
-                    </span>
+                    <>
+                      <span 
+                        className={styles.profileLinkDisabled} 
+                        title="Facebook hạn chế link trang cá nhân qua API nếu không có quyền user_link. Nhấn 'Làm mới' để thử lại."
+                      >
+                        Chưa có liên kết
+                      </span>
+                      <button 
+                        className={styles.syncBtn} 
+                        onClick={handleSyncProfile}
+                        disabled={isSyncing}
+                      >
+                        <RefreshCw size={12} className={clsx(isSyncing && styles.spin)} />
+                        Làm mới
+                      </button>
+                    </>
                   )
                 )}
               </div>
