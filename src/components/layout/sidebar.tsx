@@ -15,7 +15,6 @@ import {
   ChevronRight,
   Palette
 } from 'lucide-react';
-import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 import { cn } from '@/lib/utils';
 import { getCurrentWorkspaceUnreadCountAction, getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
 import { useUnreadRealtime } from '@/app/dashboard/inbox/hooks/use-unread-realtime';
@@ -173,22 +172,9 @@ export function Sidebar() {
       </nav>
 
       <div className={cn(
-        "mt-auto p-4 bg-white/5 rounded-lg border border-white/10 flex flex-col gap-4 transition-all duration-300 mb-4",
-        isCollapsed && "p-3 items-center"
+        "mt-auto p-2 bg-white/5 rounded-lg border border-white/10 flex flex-col gap-4 transition-all duration-300 mb-4",
+        isCollapsed && "p-2 items-center"
       )}>
-        <ThemeSwitcher />
-        <div className={cn("flex items-center gap-3 w-full transition-all duration-300", isCollapsed && "justify-center")}>
-          <div className="w-9 h-9 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground-secondary border border-white/10 shrink-0">
-            {userData?.avatar ? <img src={userData.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : (userData?.name?.charAt(0) || 'U')}
-          </div>
-          {!isCollapsed && (
-            <div className="overflow-hidden">
-              <p className="text-sm font-semibold m-0 whitespace-nowrap overflow-hidden text-ellipsis">{userData?.name || 'Active User'}</p>
-              <p className="text-[0.75rem] text-foreground-tertiary m-0 whitespace-nowrap">{userData?.role || 'Workspace Member'}</p>
-            </div>
-          )}
-        </div>
-        
         <button 
           className={cn(
             "w-full h-8 bg-white/5 border border-white/10 rounded-sm text-foreground-tertiary flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-white/10 hover:text-foreground",

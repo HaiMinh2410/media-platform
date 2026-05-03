@@ -5,6 +5,7 @@ import { createClient } from '@/infrastructure/supabase/server';
 import { redirect } from 'next/navigation';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
 import { cn } from '@/lib/utils';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -109,9 +110,17 @@ export default async function DashboardPage() {
 
   return (
     <div className="p-10 max-w-[1400px] mx-auto">
-      <header className="mb-10">
-        <h1 className="text-[2.5rem] mb-1 font-brand font-bold text-gradient">Dashboard</h1>
-        <p className="text-foreground-secondary text-[1.1rem]">Welcome back! Here's what's happening with your accounts today.</p>
+      <header className="mb-10 flex justify-between items-start">
+        <div>
+          <h1 className="text-[2.5rem] mb-1 font-brand font-bold text-gradient">Dashboard</h1>
+          <p className="text-foreground-secondary text-[1.1rem]">Welcome back! Here's what's happening with your accounts today.</p>
+        </div>
+        <div className="flex items-center gap-4 mt-4">
+          <ThemeSwitcher />
+          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold text-white overflow-hidden shrink-0 border border-white/10 shadow-lg">
+             {user.user_metadata?.avatar_url ? <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" /> : (user.email?.charAt(0).toUpperCase() || 'U')}
+          </div>
+        </div>
       </header>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 mb-10">

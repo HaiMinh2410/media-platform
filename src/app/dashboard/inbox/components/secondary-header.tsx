@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Zap, ChevronDown, Check, Users, Plus, 
   MoreHorizontal, Trash2, Edit2,
@@ -20,15 +20,15 @@ import {
   updateAccountGroupsOrderAction
 } from '@/application/actions/account-group.actions';
 import { getUnreadCountsAction, UnreadCounts } from '@/application/actions/unread-counts.actions';
+import { getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
 import { AccountGroup } from '@/domain/types/account-group';
-
 import { PlatformAccount } from '@/domain/types/platform-account';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const { 
     viewMode, setViewMode,
     platform, setPlatform,
-
     selectedGroupId, setGroupId,
     accountGroups, setAccountGroups 
   } = useInboxStore();
@@ -41,8 +41,20 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const [unreadCounts, setUnreadCounts] = React.useState<UnreadCounts>({ all: 0, facebook: 0, instagram: 0 });
+  const [userData, setUserData] = useState<{ name: string; avatar?: string | null } | null>(null);
 
   const selectedGroup = accountGroups.find((g: AccountGroup) => g.id === selectedGroupId);
+
+  useEffect(() => {
+    getCurrentUserWorkspaceAction().then(res => {
+      if (res.data) {
+        setUserData({
+          name: res.data.user.name,
+          avatar: res.data.user.avatar
+        });
+      }
+    });
+  }, []);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -102,7 +114,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
-    <div className="flex items-center justify-between px-6 h-[56px] border-b border-foreground/10 bg-background/80 backdrop-blur-xl sticky top-0 z-20 w-full">
+    <div className="flex items-center justify-between px-6 h-[56px] border-b border-foreground/10 bg-background/80 backdrop-blur-xl sticky top-0 z-20 w-full gap-4">
       <div className="flex items-center gap-3 h-full">
 
         <div className="relative flex items-center" ref={dropdownRef}>
@@ -309,6 +321,17 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           >
             Instagram {unreadCounts.instagram > 0 && <span className="bg-[#ff4757] text-white text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-[0_0_10px_rgba(255,71,87,0.4)] ml-1">{formatCount(unreadCounts.instagram)}</span>}
           </button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 pl-4 border-l border-foreground/10 h-8">
+        <ThemeSwitcher />
+        <div className="w-9 h-9 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground-secondary border border-white/10 shrink-0 overflow-hidden shadow-md">
+          {userData?.avatar ? (
+            <img src={userData.avatar} alt="" className="w-full h-full object-cover" />
+          ) : (
+            userData?.name?.charAt(0) || 'U'
+          )}
         </div>
       </div>
     </div>

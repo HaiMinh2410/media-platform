@@ -16,6 +16,8 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
+import { getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
 
 const LEAD_STAGES = [
   { id: 'new', label: 'Tiếp nhận', count: 3, icon: '🔵' },
@@ -65,6 +67,18 @@ const MOCK_LEADS = [
 export default function LeadsCenter() {
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [searchQuery, setSearchQuery] = useState('');
+  const [userData, setUserData] = useState<{ name: string; avatar?: string | null } | null>(null);
+
+  React.useEffect(() => {
+    getCurrentUserWorkspaceAction().then(res => {
+      if (res.data) {
+        setUserData({
+          name: res.data.user.name,
+          avatar: res.data.user.avatar
+        });
+      }
+    });
+  }, []);
   
   return (
     <div className="flex flex-col gap-6 h-full p-8 overflow-y-auto bg-background-primary text-foreground">
@@ -86,6 +100,13 @@ export default function LeadsCenter() {
             <Plus size={16} />
             Thêm khách hàng tiềm năng
           </button>
+          
+          <div className="flex items-center gap-4 pl-4 border-l border-white/10 ml-2">
+            <ThemeSwitcher />
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-white overflow-hidden shrink-0 border border-white/10">
+               {userData?.avatar ? <img src={userData.avatar} alt="" className="w-full h-full object-cover" /> : (userData?.name?.charAt(0) || 'U')}
+            </div>
+          </div>
         </div>
       </div>
 

@@ -66,10 +66,11 @@ RULE: DEBUG auto-upgrades REVIEW → FULL if severity = major.
 | ai | llm, groq, prompt, classify, generate | architect, builder, reviewer |
 | webhook | webhook, meta, tiktok, callback | builder, reviewer |
 | tailwind-best-practices | ui, component, page, style, tailwind, css | builder, reviewer |
+| daisy-theme | ui, component, page, theme, daisyui, css | builder, reviewer |
 
 RULE: Missing skill file → warning only, never block.
 RULE: Inject skills only to Target Agents listed above.
-RULE: Mọi tác vụ tạo hoặc chỉnh sửa UI (ui, component, page) BẮT BUỘC phải tuân thủ skill 'tailwind-best-practices'.
+RULE: Mọi tác vụ tạo hoặc chỉnh sửa UI (ui, component, page) BẮT BUỘC phải tuân thủ skill 'tailwind-best-practices' và 'daisy-theme'.
 
 ---
 
@@ -88,4 +89,4 @@ Details: `.antigravity/runtime/session-modes.md`
 3. Memory is truth — always load before executing
 4. Intent over syntax — infer from natural language
 5. Minimal friction — system adapts to user
-6. Persistence is law — always sync `memory/memory_state.json` and `memory/decisions.log.jsonl` per `memory.agent.md` after every task.
+6. Persistence is law — always sync `.antigravity/memory/memory_state.json` and `.antigravity/memory/decisions.log.jsonl` per `memory.agent.md` after every task.
