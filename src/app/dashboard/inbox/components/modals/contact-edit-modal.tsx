@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import styles from './contact-edit-modal.module.css';
+import { cn } from '@/lib/utils';
 
 interface ContactEditModalProps {
   isOpen: boolean;
@@ -59,39 +59,48 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>Chỉnh sửa thông tin liên hệ</h2>
-          <button className={styles.closeBtn} onClick={onClose}>
+    <div 
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] backdrop-blur-md"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-[#1a1a1e] w-full max-w-[500px] rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex flex-col max-h-[90vh]"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="px-6 py-5 flex justify-between items-center border-b border-white/10 bg-white/[0.02]">
+          <h2 className="text-lg font-semibold text-white m-0">Chỉnh sửa thông tin liên hệ</h2>
+          <button 
+            className="p-1.5 rounded-lg text-foreground-tertiary hover:bg-white/5 hover:text-white transition-all"
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
 
-        <div className={styles.modalBody}>
-          <div className={styles.avatarSection}>
-            <div className={styles.avatarCircle}>
+        <div className="p-6 overflow-y-auto flex flex-col gap-5">
+          <div className="flex justify-center mb-2">
+            <div className="w-[100px] h-[100px] rounded-full overflow-hidden bg-[#2d2d30] flex items-center justify-center border-3 border-[#3f3f46] shadow-xl">
               {initialData.avatar ? (
-                <img src={initialData.avatar} alt="Avatar" className={styles.avatarImg} />
+                <img src={initialData.avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span style={{ fontSize: '2rem', color: '#9ca3af' }}>{initialData.name?.charAt(0)}</span>
+                <span className="text-[2rem] text-foreground-tertiary">{initialData.name?.charAt(0)}</span>
               )}
             </div>
           </div>
 
-          <div className={styles.formField}>
-            <label className={styles.label}>
-              Số điện thoại <span className={styles.labelNote}>· Không bắt buộc</span>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-gray-200">
+              Số điện thoại <span className="font-normal text-foreground-tertiary text-xs ml-1">· Không bắt buộc</span>
             </label>
-            <div className={styles.inputGroup}>
-              <select className={styles.select} style={{ width: '120px' }}>
+            <div className="flex gap-3">
+              <select className="w-[120px] px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none cursor-pointer focus:border-sky-500 transition-all">
                 <option value="+1">+1</option>
                 <option value="+84">+84</option>
               </select>
               <input
                 type="text"
                 name="phone"
-                className={styles.input}
+                className="flex-1 px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
                 placeholder=""
                 value={formData.phone}
                 onChange={handleChange}
@@ -99,29 +108,28 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
             </div>
           </div>
 
-          <div className={styles.formField}>
-            <label className={styles.label}>
-              Email <span className={styles.labelNote}>· Không bắt buộc</span>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-gray-200">
+              Email <span className="font-normal text-foreground-tertiary text-xs ml-1">· Không bắt buộc</span>
             </label>
             <input
               type="email"
               name="email"
-              className={styles.input}
+              className="w-full px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
               placeholder=""
               value={formData.email}
               onChange={handleChange}
             />
           </div>
 
-          <div className={styles.formField}>
-            <label className={styles.label}>
-              Ngày sinh <span className={styles.labelNote}>· Không bắt buộc</span>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-gray-200">
+              Ngày sinh <span className="font-normal text-foreground-tertiary text-xs ml-1">· Không bắt buộc</span>
             </label>
-            <div className={styles.row}>
+            <div className="flex gap-3">
               <select
                 name="birthdayMonth"
-                className={styles.select}
-                style={{ flex: 1 }}
+                className="flex-1 px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none cursor-pointer focus:border-sky-500 transition-all"
                 value={formData.birthdayMonth}
                 onChange={handleChange}
               >
@@ -132,8 +140,7 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
               </select>
               <select
                 name="birthdayDay"
-                className={styles.select}
-                style={{ flex: 1 }}
+                className="flex-1 px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none cursor-pointer focus:border-sky-500 transition-all"
                 value={formData.birthdayDay}
                 onChange={handleChange}
               >
@@ -145,56 +152,56 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
             </div>
           </div>
 
-          <div className={styles.formField}>
-            <label className={styles.label}>
-              Địa chỉ <span className={styles.labelNote}>· Không bắt buộc</span>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-gray-200">
+              Địa chỉ <span className="font-normal text-foreground-tertiary text-xs ml-1">· Không bắt buộc</span>
             </label>
             <input
               type="text"
               name="address"
-              className={styles.input}
+              className="w-full px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
               placeholder=""
               value={formData.address}
               onChange={handleChange}
             />
           </div>
 
-          <div className={styles.formField}>
-            <label className={styles.label}>
-              Tỉnh/Thành phố <span className={styles.labelNote}>· Không bắt buộc</span>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-gray-200">
+              Tỉnh/Thành phố <span className="font-normal text-foreground-tertiary text-xs ml-1">· Không bắt buộc</span>
             </label>
             <input
               type="text"
               name="city"
-              className={styles.input}
+              className="w-full px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
               placeholder=""
               value={formData.city}
               onChange={handleChange}
             />
           </div>
 
-          <div className={styles.row}>
-            <div className={styles.formField} style={{ flex: 1 }}>
-              <label className={styles.label}>
-                Tiểu bang <span className={styles.labelNote}>· Không bắt buộc</span>
+          <div className="flex gap-3">
+            <div className="flex flex-col gap-2 flex-1">
+              <label className="text-sm font-semibold text-gray-200">
+                Tiểu bang <span className="font-normal text-foreground-tertiary text-xs ml-1">· Không bắt buộc</span>
               </label>
               <input
                 type="text"
                 name="state"
-                className={styles.input}
+                className="w-full px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
                 placeholder=""
                 value={formData.state}
                 onChange={handleChange}
               />
             </div>
-            <div className={styles.formField} style={{ flex: 1 }}>
-              <label className={styles.label}>
-                Mã zip/Mã bưu chính <span className={styles.labelNote}>· Không bắt buộc</span>
+            <div className="flex flex-col gap-2 flex-1">
+              <label className="text-sm font-semibold text-gray-200">
+                Mã zip/Mã bưu chính <span className="font-normal text-foreground-tertiary text-xs ml-1">· Không bắt buộc</span>
               </label>
               <input
                 type="text"
                 name="zipCode"
-                className={styles.input}
+                className="w-full px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
                 placeholder=""
                 value={formData.zipCode}
                 onChange={handleChange}
@@ -203,9 +210,19 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
           </div>
         </div>
 
-        <div className={styles.modalFooter}>
-          <button className={styles.cancelBtn} onClick={onClose}>Hủy</button>
-          <button className={styles.saveBtn} onClick={handleSave}>Lưu</button>
+        <div className="px-6 py-4 border-t border-white/10 flex justify-end gap-3 bg-black/20">
+          <button 
+            className="px-6 py-2.5 border border-white/10 bg-transparent text-gray-300 text-sm font-medium rounded-xl cursor-pointer transition-all hover:bg-white/5 hover:text-white hover:border-white/20 active:scale-[0.98]" 
+            onClick={onClose}
+          >
+            Hủy
+          </button>
+          <button 
+            className="px-8 py-2.5 border-none bg-gradient-to-br from-sky-500 to-sky-600 text-white text-sm font-semibold rounded-xl cursor-pointer transition-all shadow-lg shadow-sky-500/20 hover:-translate-y-px hover:shadow-sky-500/30 hover:brightness-110 active:translate-y-0" 
+            onClick={handleSave}
+          >
+            Lưu
+          </button>
         </div>
       </div>
     </div>

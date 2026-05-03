@@ -2,7 +2,6 @@ import React from 'react';
 import { db } from '@/lib/db';
 import { notFound } from 'next/navigation';
 import { RightPanel } from '../components/right-panel';
-import styles from '../components/chat.module.css';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -28,7 +27,7 @@ export default async function ConversationPage({
   const userAvatar = (conversation as any).customer_avatar;
 
   return (
-    <div className={styles.chatContainer}>
+    <div className="flex flex-col h-full flex-1 overflow-hidden">
       <RightPanel
         workspaceId={conversation.platform_accounts.workspaceId}
         conversationId={id}

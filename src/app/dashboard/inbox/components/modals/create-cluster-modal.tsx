@@ -1,13 +1,12 @@
 'use client';
 
 import React from 'react';
-import styles from './create-cluster-modal.module.css';
 import { X, Check, Users } from 'lucide-react';
 import { getPlatformAccountsAction } from '@/application/actions/platform-account.actions';
 import { createAccountGroupAction } from '@/application/actions/account-group.actions';
 import { PlatformAccount } from '@/domain/types/platform-account';
 import { useInboxStore } from '../../store/inbox.store';
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 
 interface CreateClusterModalProps {
   workspaceId: string;
@@ -51,20 +50,29 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
   };
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
-        <div className={styles.header}>
-          <h2>Tạo cụm tài khoản mới</h2>
-          <button className={styles.closeButton} onClick={onClose}>
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[9999] animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-[#121212] border border-white/10 rounded-[24px] w-[480px] max-w-[95vw] max-h-[90vh] flex flex-col shadow-[0_32px_64px_rgba(0,0,0,0.6)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 relative"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="p-6 border-b border-white/[0.05] flex items-center justify-between">
+          <h2 className="m-0 text-[1.25rem] font-semibold text-white">Tạo cụm tài khoản mới</h2>
+          <button 
+            className="p-1 rounded-lg text-[#666] hover:bg-white/5 hover:text-white transition-all"
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
 
-        <div className={styles.content}>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Tên cụm</label>
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className="mb-6">
+            <label className="block text-[0.875rem] font-semibold text-[#888] mb-2.5 uppercase tracking-wider">Tên cụm</label>
             <input 
-              className={styles.input}
+              className="w-full bg-white/5 border border-white/10 rounded-[14px] p-3.5 text-white text-base outline-none focus:border-violet-500 focus:bg-violet-500/[0.08] focus:ring-4 focus:ring-violet-500/10 transition-all duration-200"
               placeholder="Ví dụ: Cụm Influencers, Cụm Instagram..."
               value={name}
               onChange={e => setName(e.target.value)}
@@ -72,32 +80,40 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
             />
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Chọn tài khoản ({selectedIds.length})</label>
-            <div className={styles.accountList}>
+          <div className="mb-6">
+            <label className="block text-[0.875rem] font-semibold text-[#888] mb-2.5 uppercase tracking-wider">
+              Chọn tài khoản ({selectedIds.length})
+            </label>
+            <div className="flex flex-col gap-2.5 pr-1 scrollbar-thin scrollbar-thumb-white/10">
               {isLoading ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Đang tải danh sách...</div>
+                <div className="p-5 text-center text-[#666]">Đang tải danh sách...</div>
               ) : accounts.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>Không tìm thấy tài khoản nào.</div>
+                <div className="p-5 text-center text-[#666]">Không tìm thấy tài khoản nào.</div>
               ) : (
                 accounts.map(acc => (
                   <div 
                     key={acc.id}
-                    className={clsx(styles.accountItem, selectedIds.includes(acc.id) && styles.selectedAccount)}
+                    className={cn(
+                      "flex items-center p-3 bg-white/[0.02] border border-white/[0.05] rounded-[12px] cursor-pointer transition-all hover:bg-white/[0.05] hover:border-white/10 select-none",
+                      selectedIds.includes(acc.id) && "bg-violet-500/10 border-violet-500"
+                    )}
                     onClick={() => toggleAccount(acc.id)}
                   >
-                    <div className={styles.avatar}>
+                    <div className="w-8 h-8 rounded-full mr-3 shrink-0 flex items-center justify-center bg-[#333] text-white text-[0.75rem] overflow-hidden">
                       {acc.metadata?.avatar_url ? (
-                        <img src={acc.metadata.avatar_url} alt="" className={styles.avatar} style={{ margin: 0 }} />
+                        <img src={acc.metadata.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         acc.name?.[0] || '?'
                       )}
                     </div>
-                    <div className={styles.accountInfo}>
-                      <span className={styles.accountName}>{acc.name || acc.externalId}</span>
-                      <span className={styles.platform}>{acc.platform}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="block text-[0.9375rem] font-medium text-white truncate">{acc.name || acc.externalId}</span>
+                      <span className="text-[0.75rem] text-[#666] capitalize">{acc.platform}</span>
                     </div>
-                    <div className={styles.checkbox}>
+                    <div className={cn(
+                      "w-5 h-5 rounded-md border-2 border-white/10 flex items-center justify-center ml-3 transition-all shrink-0",
+                      selectedIds.includes(acc.id) && "bg-violet-500 border-violet-500"
+                    )}>
                       {selectedIds.includes(acc.id) && <Check size={12} color="#fff" />}
                     </div>
                   </div>
@@ -107,10 +123,15 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
           </div>
         </div>
 
-        <div className={styles.footer}>
-          <button className={styles.cancelButton} onClick={onClose}>Hủy</button>
+        <div className="p-6 border-t border-white/[0.05] flex justify-end gap-3">
           <button 
-            className={styles.submitButton} 
+            className="px-5 py-2.5 rounded-[10px] text-[0.875rem] font-medium bg-transparent border border-white/10 text-white transition-all hover:bg-white/5 active:scale-[0.98]" 
+            onClick={onClose}
+          >
+            Hủy
+          </button>
+          <button 
+            className="px-5 py-2.5 rounded-[10px] text-[0.875rem] font-medium bg-violet-500 border-none text-white transition-all hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]" 
             disabled={!name || selectedIds.length === 0 || isSubmitting}
             onClick={handleSubmit}
           >

@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { X, Search, Plus, Trash2, ChevronDown, Edit2, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import styles from './manage-tags-modal.module.css';
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 import { useInboxStore } from '../../store/inbox.store';
 
 interface ManageTagsModalProps {
@@ -177,37 +176,49 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
   );
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>Quản lý nhãn tùy chỉnh</h2>
-          <button className={styles.closeBtn} onClick={onClose}>
+    <div 
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[2000] backdrop-blur-md"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-[#1a1a1e] w-full max-w-[520px] rounded-xl overflow-hidden shadow-2xl border border-white/10 flex flex-col max-h-[90vh] text-white"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="px-5 py-4 flex justify-between items-center border-b border-white/10">
+          <h2 className="text-lg font-semibold m-0">Quản lý nhãn tùy chỉnh</h2>
+          <button 
+            className="p-1.5 rounded-lg text-foreground-tertiary hover:bg-white/5 hover:text-white transition-all"
+            onClick={onClose}
+          >
             <X size={20} />
           </button>
         </div>
 
-        <div className={styles.modalBody}>
-          <p className={styles.description}>
+        <div className="p-5 overflow-y-auto flex flex-col gap-4">
+          <p className="text-sm text-foreground-tertiary leading-relaxed m-0">
             Dùng nhãn để mô tả và sắp xếp mọi người theo bất kỳ cách nào bạn muốn, chẳng hạn như kiểu khách hàng hoặc các đơn đặt hàng trước đó. Chỉ những người quản lý Trang của bạn mới có thể nhìn thấy nhãn.
           </p>
 
-          <div className={styles.addTagSection}>
-            <div className={styles.colorPickerWrapper}>
+          <div className="bg-white/[0.02] border border-white/5 rounded-lg p-3 flex items-center gap-3">
+            <div className="relative">
               <div 
-                className={styles.colorPicker} 
-                style={{ borderColor: selectedColor, background: `${selectedColor}10` }}
+                className="flex items-center justify-center gap-1 px-2 py-1 bg-black/20 border border-white/10 rounded-md cursor-pointer transition-all hover:border-white/20 hover:bg-white/5" 
+                style={{ borderColor: `${selectedColor}40`, background: `${selectedColor}10` }}
                 onClick={() => setIsAddColorPickerOpen(!isAddColorPickerOpen)}
               >
-                <div className={styles.colorDot} style={{ backgroundColor: selectedColor }} />
+                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: selectedColor }} />
                 <ChevronDown size={14} style={{ color: selectedColor }} />
               </div>
               
               {isAddColorPickerOpen && (
-                <div className={styles.colorPopover}>
+                <div className="absolute top-[calc(100%+4px)] left-0 bg-[#26262a] border border-white/10 rounded-lg p-2 grid grid-cols-4 gap-1.5 z-[100] shadow-2xl min-w-[120px]">
                   {PRESET_COLORS.map(color => (
                     <div 
                       key={color}
-                      className={clsx(styles.colorOption, selectedColor === color && styles.colorOptionActive)}
+                      className={cn(
+                        "w-6 h-6 rounded-md cursor-pointer transition-transform hover:scale-110 flex items-center justify-center border-2 border-transparent",
+                        selectedColor === color && "border-white"
+                      )}
                       style={{ backgroundColor: color }}
                       onClick={() => {
                         setSelectedColor(color);
@@ -222,14 +233,14 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
             </div>
             <input 
               type="text" 
-              className={styles.tagInput}
+              className="flex-1 bg-black/20 border border-white/10 rounded-md px-3 py-2 text-[0.9375rem] text-white outline-none focus:border-accent-primary transition-all"
               placeholder="Đặt tên nhãn..."
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
             />
             <button 
-              className={styles.addBtn}
+              className="px-5 py-2 bg-accent-primary text-white border-none rounded-md font-semibold text-[0.9375rem] cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-110 active:scale-[0.98]"
               onClick={handleAddTag}
               disabled={!newTagName.trim()}
               style={{ backgroundColor: selectedColor }}
@@ -238,40 +249,43 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
             </button>
           </div>
 
-          <div className={styles.searchWrapper}>
-            <Search size={18} className={styles.searchIcon} />
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary" />
             <input 
               type="text" 
-              className={styles.searchInput}
+              className="w-full bg-black/20 border border-white/10 rounded-md py-2 pl-10 pr-3 text-white text-[0.9375rem] outline-none focus:border-accent-primary transition-all"
               placeholder="Tìm kiếm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
-          <div className={styles.tagList}>
+          <div className="flex flex-col gap-2 mt-2">
             {filteredTags.length > 0 ? (
               filteredTags.map(tag => {
                 const { name, color } = parseTag(tag);
                 const isEditing = editingTag === tag;
                 
                 return (
-                  <div key={tag} className={styles.tagItem}>
-                    <div className={styles.tagContent}>
+                  <div key={tag} className="flex justify-between items-center py-3 px-1 border-b border-white/[0.05] last:border-0 group">
+                    <div className="flex items-center gap-4 flex-1">
                       {isEditing ? (
-                        <div className={styles.editControls}>
-                          <div className={styles.colorPickerWrapper}>
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
                             <div 
-                              className={styles.colorPickerSmall} 
+                              className="w-4 h-4 rounded-md cursor-pointer border border-white/20 transition-transform hover:scale-110" 
                               style={{ backgroundColor: editColor }}
                               onClick={() => setIsEditColorPickerOpen(!isEditColorPickerOpen)}
                             />
                             {isEditColorPickerOpen && editingTag === tag && (
-                              <div className={styles.colorPopoverSmall}>
+                              <div className="absolute top-full left-0 bg-[#26262a] border border-white/10 rounded-lg p-2 grid grid-cols-4 gap-1.5 z-[110] shadow-2xl mt-1">
                                 {PRESET_COLORS.map(c => (
                                   <div 
                                     key={c}
-                                    className={clsx(styles.colorOptionSmall, editColor === c && styles.colorOptionActive)}
+                                    className={cn(
+                                      "w-[18px] h-[18px] rounded cursor-pointer flex items-center justify-center transition-transform hover:scale-110",
+                                      editColor === c && "ring-2 ring-white ring-offset-1 ring-offset-[#26262a]"
+                                    )}
                                     style={{ backgroundColor: c }}
                                     onClick={() => {
                                       setEditColor(c);
@@ -285,7 +299,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                             )}
                           </div>
                           <input 
-                            className={styles.editInput}
+                            className="bg-white/5 border border-accent-primary rounded px-2 py-1 text-white text-xs outline-none w-[120px]"
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
@@ -294,29 +308,29 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                         </div>
                       ) : (
                         <>
-                          <div className={styles.colorDot} style={{ backgroundColor: color, width: '20px', height: '20px' }} />
-                          <span className={styles.tagName}>{name}</span>
+                          <div className="w-5 h-5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                          <span className="text-[0.9375rem] text-white font-normal">{name}</span>
                         </>
                       )}
                     </div>
-                    <div className={styles.tagActions}>
+                    <div className="flex gap-2">
                       {isEditing ? (
                         <button 
-                          className={styles.actionBtnActive}
+                          className="flex items-center justify-center p-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-all"
                           onClick={handleSaveEdit}
                         >
                           <Check size={16} />
                         </button>
                       ) : (
                         <button 
-                          className={styles.actionBtn}
+                          className="flex items-center justify-center p-2 rounded-md bg-transparent border border-white/10 text-foreground-tertiary hover:bg-white/5 hover:text-white transition-all opacity-0 group-hover:opacity-100"
                           onClick={() => handleStartEdit(tag)}
                         >
                           <Edit2 size={14} />
                         </button>
                       )}
                       <button 
-                        className={clsx(styles.actionBtn, styles.deleteBtn)}
+                        className="flex items-center justify-center p-2 rounded-md bg-transparent border border-white/10 text-foreground-tertiary hover:bg-red-500/10 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
                         onClick={() => handleDeleteTag(tag)}
                       >
                         <Trash2 size={14} />
@@ -326,15 +340,20 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                 );
               })
             ) : (
-              <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '14px', marginTop: '20px' }}>
+              <p className="text-center text-foreground-tertiary text-sm mt-5">
                 {searchQuery ? 'Không tìm thấy nhãn phù hợp' : 'Chưa có nhãn nào'}
               </p>
             )}
           </div>
         </div>
 
-        <div className={styles.modalFooter}>
-          <button className={styles.doneBtn} onClick={onClose}>Xong</button>
+        <div className="px-4 py-3 border-t border-white/10 flex justify-end bg-black/20">
+          <button 
+            className="px-6 py-2 bg-white text-[#1a1a1e] border-none rounded-md font-bold text-[0.9375rem] cursor-pointer transition-all hover:opacity-90 active:scale-[0.98]" 
+            onClick={onClose}
+          >
+            Xong
+          </button>
         </div>
       </div>
     </div>

@@ -11,6 +11,9 @@ import { CreateClusterModal } from './modals/create-cluster-modal';
 import { useUnreadRealtime } from '../hooks/use-unread-realtime';
 import { Reorder, useDragControls } from 'framer-motion';
 
+import { useRouter } from 'next/navigation';
+import { useInboxStore } from '../store/inbox.store';
+
 import { 
   getAccountGroupsAction, 
   deleteAccountGroupAction,
@@ -39,7 +42,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
 
   const [unreadCounts, setUnreadCounts] = React.useState<UnreadCounts>({ all: 0, facebook: 0, instagram: 0 });
 
-  const selectedGroup = accountGroups.find(g => g.id === selectedGroupId);
+  const selectedGroup = accountGroups.find((g: AccountGroup) => g.id === selectedGroupId);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -98,6 +101,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const formatCount = (count: number) => count > 99 ? '99+' : count;
 
   return (
+    <>
     <div className="flex items-center justify-between px-6 h-[56px] border-b border-white/10 bg-[#0f0f0f]/80 backdrop-blur-xl sticky top-0 z-20 w-full">
       <div className="flex items-center gap-3 h-full">
 
@@ -230,7 +234,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                 onReorder={handleReorder}
                 className="list-none p-0 m-0 select-none"
               >
-                {accountGroups.map(group => (
+                {accountGroups.map((group: AccountGroup) => (
                   <ReorderItem 
                     key={group.id} 
                     group={group} 
@@ -392,8 +396,8 @@ function ReorderItem({
 }
 
 function CombinedAvatar({ group, unreadCount }: { group: AccountGroup; unreadCount?: number }) {
-  const fbAccount = group.members.find(m => m.platform === 'facebook');
-  const igAccount = group.members.find(m => m.platform === 'instagram');
+  const fbAccount = group.members.find((m: PlatformAccount) => m.platform === 'facebook');
+  const igAccount = group.members.find((m: PlatformAccount) => m.platform === 'instagram');
 
   const renderAvatar = (account: PlatformAccount | undefined, isSub = false) => {
     if (!account) return null;
