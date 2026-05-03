@@ -25,6 +25,9 @@ const SNIPPETS = [
   { id: '3', title: 'Bye', text: 'Cảm ơn bạn. Chúc bạn một ngày tốt lành!' },
 ];
 
+const MAX_TEXTAREA_HEIGHT = 320;
+
+
 export function ReplyComposer({ 
   conversationId, 
   fillText, 
@@ -68,9 +71,10 @@ export function ReplyComposer({
       const el = textareaRef.current;
       if (el) {
         el.style.height = 'auto';
-        el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+        el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
         el.focus();
       }
+
     });
   }, [fillText]);
 
@@ -138,8 +142,9 @@ export function ReplyComposer({
     const el = textareaRef.current;
     if (el) {
       el.style.height = 'auto';
-      el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+      el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
     }
+
     if (sendState === 'error') {
       setSendState('idle');
       setErrorMsg(null);
@@ -178,8 +183,9 @@ export function ReplyComposer({
         requestAnimationFrame(() => {
           if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
           }
+
         });
       } else {
         setErrorMsg(data.error || 'Failed to rewrite text.');
@@ -202,27 +208,29 @@ export function ReplyComposer({
         </div>
       )}
       
-        <div className={styles.aiTones}>
+      <div className={styles.aiTones}>
+        <div className={styles.toneList}>
           {(['professional', 'sales', 'warm', 'flirty'] as ToneMode[]).map((t) => (
             <button 
               key={t}
+              type="button"
               className={`${styles.toneBtn} ${selectedTone === t ? styles.toneActive : ''}`}
               onClick={() => setTone(t)}
             >
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
-          <button 
-            type="button"
-            className={clsx(styles.aiRewriteBtn, isRewriting && styles.isRewriting)}
-            onClick={handleRewrite}
-            disabled={isRewriting || !text.trim()}
-          >
-            <Wand2 size={14} className={isRewriting ? styles.spinning : ''} />
-            {isRewriting ? 'Rewriting...' : 'AI Rewrite'}
-          </button>
         </div>
-
+        <button 
+          type="button"
+          className={clsx(styles.aiRewriteBtn, isRewriting && styles.isRewriting)}
+          onClick={handleRewrite}
+          disabled={isRewriting || !text.trim()}
+        >
+          <Wand2 size={14} className={isRewriting ? styles.spinning : ''} />
+          {isRewriting ? 'Rewriting...' : 'AI Rewrite'}
+        </button>
+      </div>
       
       <div className={styles.replyFormContainer}>
         <form className={styles.replyForm} onSubmit={handleSubmit}>
@@ -244,56 +252,58 @@ export function ReplyComposer({
             />
             
             <div className={styles.composerActions}>
-              <div className={styles.snippetContainer} ref={snippetsRef}>
-                <button 
-                  type="button" 
-                  className={styles.actionIconButton}
-                  onClick={() => setShowSnippets(!showSnippets)}
-                  title="Saved Snippets"
-                >
-                  <BookOpen size={18} />
-                </button>
-                
-                {showSnippets && (
-                  <div className={styles.snippetsPopover}>
-                    <div className={styles.popoverHeader}>Saved Snippets</div>
-                    <div className={styles.popoverList}>
-                      {SNIPPETS.map(s => (
-                        <button 
-                          key={s.id} 
-                          type="button" 
-                          className={styles.popoverItem}
-                          onClick={() => handleSnippetClick(s.text)}
-                        >
-                          <span className={styles.snippetTitle}>{s.title}</span>
-                          <span className={styles.snippetPreview}>{s.text.substring(0, 30)}...</span>
-                        </button>
-                      ))}
+              <div className={styles.leftActions}>
+                <div className={styles.snippetContainer} ref={snippetsRef}>
+                  <button 
+                    type="button" 
+                    className={styles.actionIconButton}
+                    onClick={() => setShowSnippets(!showSnippets)}
+                    title="Saved Snippets"
+                  >
+                    <BookOpen size={18} />
+                  </button>
+                  
+                  {showSnippets && (
+                    <div className={styles.snippetsPopover}>
+                      <div className={styles.popoverHeader}>Saved Snippets</div>
+                      <div className={styles.popoverList}>
+                        {SNIPPETS.map(s => (
+                          <button 
+                            key={s.id} 
+                            type="button" 
+                            className={styles.popoverItem}
+                            onClick={() => handleSnippetClick(s.text)}
+                          >
+                            <span className={styles.snippetTitle}>{s.title}</span>
+                            <span className={styles.snippetPreview}>{s.text.substring(0, 30)}...</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+                
+                <button type="button" className={styles.actionIconButton} title="Attach file">
+                  <Paperclip size={18} />
+                </button>
               </div>
-              
-              <button type="button" className={styles.actionIconButton} title="Attach file">
-                <Paperclip size={18} />
+
+              <button
+                type="submit"
+                className={clsx(styles.sendButton, isSending && styles.sendButtonSending)}
+                disabled={!text.trim() || isSending}
+                aria-label="Send message"
+              >
+                {isSending ? (
+                  <div className="animate-spin">
+                    <Send size={16} style={{ opacity: 0.5 }} />
+                  </div>
+                ) : (
+                  <Send size={16} />
+                )}
               </button>
             </div>
           </div>
-          
-          <button
-            type="submit"
-            className={`${styles.sendButton} ${isSending ? styles.sendButtonSending : ''}`}
-            disabled={!text.trim() || isSending}
-            aria-label="Send message"
-          >
-            {isSending ? (
-              <div className="animate-spin">
-                <Send size={20} style={{ opacity: 0.5 }} />
-              </div>
-            ) : (
-              <Send size={20} />
-            )}
-          </button>
         </form>
       </div>
       

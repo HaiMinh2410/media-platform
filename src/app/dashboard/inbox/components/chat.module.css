@@ -254,13 +254,15 @@
   font-size: 0.9375rem;
   resize: none;
   outline: none;
-  max-height: 120px;
+  max-height: 160px;
   min-height: 24px;
+  overflow-y: auto;
 }
 
+
 .sendButton {
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-md);
   background: var(--accent-gradient);
   border: none;
@@ -272,6 +274,7 @@
   transition: transform 0.2s ease;
   flex-shrink: 0;
 }
+
 
 .sendButton:hover {
   transform: scale(1.05);
@@ -614,8 +617,17 @@
 .aiTones {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 8px;
 }
+
+.toneList {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 
 .toneBtn {
   background: transparent;
@@ -743,11 +755,19 @@
 
 .composerActions {
   display: flex;
-  gap: 8px;
-  padding-top: 8px;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   margin-top: 8px;
 }
+
+.leftActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 
 .actionIconButton {
   background: transparent;
