@@ -65,9 +65,11 @@ RULE: DEBUG auto-upgrades REVIEW → FULL if severity = major.
 | queue | worker, job, bullmq, redis, background | architect, builder, reviewer |
 | ai | llm, groq, prompt, classify, generate | architect, builder, reviewer |
 | webhook | webhook, meta, tiktok, callback | builder, reviewer |
+| tailwind-best-practices | ui, component, page, style, tailwind, css | builder, reviewer |
 
 RULE: Missing skill file → warning only, never block.
 RULE: Inject skills only to Target Agents listed above.
+RULE: Mọi tác vụ tạo hoặc chỉnh sửa UI (ui, component, page) BẮT BUỘC phải tuân thủ skill 'tailwind-best-practices'.
 
 ---
 

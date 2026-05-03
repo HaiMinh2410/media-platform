@@ -52,29 +52,32 @@
     --bg-secondary: #08080a;
     --bg-tertiary: #0f0f12;
     --bg-base: #141418;
-    
+
     /* Foreground - High Contrast & Hierarchy */
     --fg-primary: #fcfcfd;
     --fg-secondary: #a1a1aa;
     --fg-tertiary: #52525b;
-    
+
     /* Accents - Cyber Neon Palette */
-    --accent-primary: #6366f1; /* Indigo */
-    --accent-secondary: #d946ef; /* Fuchsia */
-    --accent-tertiary: #14b8a6; /* Teal */
+    --accent-primary: #6366f1;
+    /* Indigo */
+    --accent-secondary: #d946ef;
+    /* Fuchsia */
+    --accent-tertiary: #14b8a6;
+    /* Teal */
     --accent-gradient: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    
+
     /* Semantic Colors */
     --success: #10b981;
     --error: #ef4444;
     --warning: #f59e0b;
     --info: #3b82f6;
-    
+
     /* Glassmorphism Refined */
     --glass-bg: rgba(255, 255, 255, 0.03);
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5);
-    
+
     /* Radii */
     --radius-sm: 6px;
     --radius-md: 10px;
@@ -100,7 +103,12 @@
     height: 100%;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-brand font-extrabold tracking-tight;
   }
 
@@ -147,4 +155,3 @@
     display: none;
   }
 }
-

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { Wand2, BookOpen, Paperclip, Send } from 'lucide-react';
+import { Icon } from '@/components/ui/icon';
 import { useInboxStore, ToneMode } from '../store/inbox.store';
 import { cn } from '@/lib/utils';
 
@@ -191,9 +192,9 @@ export function ReplyComposer({
   const isSending = sendState === 'sending';
 
   return (
-    <div className="p-[16px_24px] border-t border-white/10 bg-[#0f0f10]/40">
+    <div className="p-md px-lg border-t border-white/10 bg-background-tertiary/40">
       {errorMsg && (
-        <div className="p-[8px_12px] mb-2 bg-red-500/10 border border-red-500/30 rounded-sm text-red-300 text-[0.8125rem] leading-normal" role="alert">
+        <div className="p-sm px-3 mb-2 bg-status-error/10 border border-status-error/30 rounded-sm text-status-error text-[0.8125rem]" role="alert">
           {errorMsg}
         </div>
       )}
@@ -205,7 +206,7 @@ export function ReplyComposer({
               key={t}
               type="button"
               className={cn(
-                "bg-transparent border-none text-foreground-tertiary text-[0.75rem] px-2 py-1 rounded-sm cursor-pointer transition-all hover:text-foreground-secondary hover:bg-white/5",
+                "bg-transparent border-none text-foreground-tertiary text-xs px-2 py-1 rounded-sm cursor-pointer transition-all hover:text-foreground-secondary hover:bg-white/5",
                 selectedTone === t && "text-accent-primary bg-accent-primary/10"
               )}
               onClick={() => setTone(t)}
@@ -217,7 +218,7 @@ export function ReplyComposer({
         <button 
           type="button"
           className={cn(
-            "flex items-center gap-1 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/40 text-purple-200 text-[0.75rem] font-semibold px-3 py-1.5 rounded-full cursor-pointer transition-all shadow-[0_2px_8px_rgba(168,85,247,0.1)] hover:from-purple-500/30 hover:to-indigo-500/30 hover:shadow-[0_4px_12px_rgba(168,85,247,0.2)] hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
+            "flex items-center gap-1.5 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/40 text-purple-200 text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer transition-all shadow-[0_2px_8px_rgba(168,85,247,0.1)] hover:from-purple-500/30 hover:to-indigo-500/30 hover:shadow-[0_4px_12px_rgba(168,85,247,0.2)] hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
             isRewriting && "opacity-80 cursor-wait"
           )}
           onClick={handleRewrite}
@@ -230,10 +231,10 @@ export function ReplyComposer({
       
       <div className="relative">
         <form className="flex gap-3 items-end" onSubmit={handleSubmit}>
-          <div className="flex-1 bg-black/30 border border-white/10 rounded-xl p-[12px_16px] transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] focus-within:border-indigo-500/50 focus-within:bg-black/40 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]">
+          <div className="flex-1 bg-black/30 border border-white/10 rounded-lg p-3 px-md transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] focus-within:border-accent-primary/50 focus-within:bg-black/40 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]">
             <textarea
               ref={textareaRef}
-              className="w-full bg-transparent border-none text-foreground text-[0.9375rem] resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto"
+              className="w-full bg-transparent border-none text-foreground text-[15px] resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto"
               placeholder={isSending ? 'Sending…' : 'Type a message…'}
               rows={1}
               value={text}
@@ -260,7 +261,7 @@ export function ReplyComposer({
                   </button>
                   
                   {showSnippets && (
-                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-[#1a1a1e] border border-white/10 rounded-lg shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-background-base border border-white/10 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
                       <div className="px-3 py-2 text-[0.7rem] font-bold text-foreground-tertiary uppercase tracking-wider border-b border-white/5">Saved Snippets</div>
                       <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
                         {SNIPPETS.map(s => (
@@ -270,8 +271,8 @@ export function ReplyComposer({
                             className="w-full px-3 py-2 flex flex-col gap-0.5 text-left hover:bg-white/5 transition-colors"
                             onClick={() => handleSnippetClick(s.text)}
                           >
-                            <span className="text-[0.8125rem] font-semibold text-foreground">{s.title}</span>
-                            <span className="text-[0.75rem] text-foreground-tertiary truncate">{s.text.substring(0, 30)}...</span>
+                            <span className="text-sm font-semibold text-foreground">{s.title}</span>
+                            <span className="text-xs text-foreground-tertiary truncate">{s.text.substring(0, 30)}...</span>
                           </button>
                         ))}
                       </div>
@@ -307,14 +308,12 @@ export function ReplyComposer({
       </div>
       
       {text.length > 0 && text.length < 5 && (
-        <div className="mt-2 p-2 bg-purple-500/5 rounded-md border border-purple-500/10 animate-pulse">
-          <div className="flex items-center gap-1.5 text-[0.7rem] font-bold text-purple-400 uppercase tracking-wide mb-1">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-            </svg>
+        <div className="mt-2 p-2 bg-accent-secondary/5 rounded-md border border-accent-secondary/10 animate-pulse">
+          <div className="flex items-center gap-1.5 text-[0.7rem] font-bold text-accent-secondary uppercase tracking-wide mb-1">
+            <Icon name="ai-sparkles" size={14} />
             AI Suggestion
           </div>
-          <p className="text-[0.75rem] text-foreground-tertiary">Continue typing to see AI-powered drafts...</p>
+          <p className="text-xs text-foreground-tertiary">Continue typing to see AI-powered drafts...</p>
         </div>
       )}
     </div>
