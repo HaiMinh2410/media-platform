@@ -12,8 +12,10 @@ import {
   Files, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Palette
 } from 'lucide-react';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 import { cn } from '@/lib/utils';
 import { getCurrentWorkspaceUnreadCountAction, getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
 import { useUnreadRealtime } from '@/app/dashboard/inbox/hooks/use-unread-realtime';
@@ -171,9 +173,10 @@ export function Sidebar() {
       </nav>
 
       <div className={cn(
-        "mt-auto p-4 bg-white/5 rounded-lg border border-white/10 flex flex-col gap-4 transition-all duration-300",
+        "mt-auto p-4 bg-white/5 rounded-lg border border-white/10 flex flex-col gap-4 transition-all duration-300 mb-4",
         isCollapsed && "p-3 items-center"
       )}>
+        <ThemeSwitcher />
         <div className={cn("flex items-center gap-3 w-full transition-all duration-300", isCollapsed && "justify-center")}>
           <div className="w-9 h-9 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground-secondary border border-white/10 shrink-0">
             {userData?.avatar ? <img src={userData.avatar} alt="" className="w-full h-full rounded-full object-cover" /> : (userData?.name?.charAt(0) || 'U')}

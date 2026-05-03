@@ -30,7 +30,7 @@ export const MessageBubble = memo(function MessageBubble({
       )}>
         <div className={cn(
           "w-fit p-[12px_18px] rounded-[20px] shadow-md flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-lg",
-          isUser && "bg-gradient-to-br from-[#2d2d34]/60 to-[#1e1e24]/80 border border-white/10 rounded-bl-sm text-foreground",
+          isUser && "bg-background-secondary border border-foreground/10 rounded-bl-sm text-foreground",
           isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-[0_4px_15px_rgba(99,102,241,0.3)]",
           isAi && "bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/40 rounded-br-sm text-foreground shadow-[0_4px_20px_rgba(168,85,247,0.15)] backdrop-blur-md"
         )}>

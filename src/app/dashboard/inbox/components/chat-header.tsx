@@ -142,9 +142,9 @@ export function ChatHeader({
   };
 
   return (
-    <header className="p-[16px_24px] border-b border-white/10 bg-[#0f0f10]/80 backdrop-blur-xl z-10 flex items-center justify-between">
+    <header className="p-[16px_24px] border-b border-foreground/10 bg-background/80 backdrop-blur-xl z-10 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center font-semibold text-foreground border border-white/10 overflow-hidden">
+        <div className="w-12 h-12 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground border border-foreground/10 overflow-hidden">
           {customerAvatar ? (
             <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover" />
           ) : (
@@ -155,7 +155,7 @@ export function ChatHeader({
           <h2 className="text-[1.125rem] font-semibold text-foreground mb-0.5">{customerName}</h2>
           <div className="flex items-center gap-2">
             <PlatformIcon platform={platform as any} size={14} />
-            <span className="bg-white/10 px-2 py-0.5 rounded-sm text-[0.75rem] capitalize text-foreground-secondary">{platform}</span>
+            <span className="bg-foreground/10 px-2 py-0.5 rounded-sm text-[0.75rem] capitalize text-foreground-secondary">{platform}</span>
             <span className="text-[0.8125rem] text-foreground-tertiary">via {platformUserName}</span>
           </div>
         </div>
@@ -165,7 +165,7 @@ export function ChatHeader({
         <div className="relative" ref={dropdownRef}>
           <button 
             className={cn(
-              "bg-transparent border border-white/10 text-foreground-secondary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-colors hover:bg-white/5 hover:text-foreground",
+              "bg-transparent border border-foreground/10 text-foreground-secondary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-colors hover:bg-foreground/5 hover:text-foreground",
               isDropdownOpen && "bg-accent-primary/15 border-accent-primary text-accent-primary"
             )}
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -175,18 +175,18 @@ export function ChatHeader({
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute top-full right-0 mt-2 w-56 bg-[#1a1a1e] border border-white/10 rounded-lg shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-              <button className="w-full px-4 py-2 flex items-center gap-3 text-[0.875rem] text-foreground-secondary hover:bg-white/5 hover:text-foreground transition-colors text-left" onClick={handleToggleSearch}>
+            <div className="absolute top-full right-0 mt-2 w-56 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <button className="w-full px-4 py-2 flex items-center gap-3 text-[0.875rem] text-foreground-secondary hover:bg-foreground/5 hover:text-foreground transition-colors text-left" onClick={handleToggleSearch}>
                 <Search size={16} />
                 <span>Search conversation</span>
               </button>
               {tags.some(t => t.startsWith('Bị chặn::')) ? (
-                <button className="w-full px-4 py-2 flex items-center gap-3 text-[0.875rem] text-foreground-secondary hover:bg-white/5 hover:text-foreground transition-colors text-left" onClick={handleUnblock}>
+                <button className="w-full px-4 py-2 flex items-center gap-3 text-[0.875rem] text-foreground-secondary hover:bg-foreground/5 hover:text-foreground transition-colors text-left" onClick={handleUnblock}>
                   <ShieldCheck size={16} />
                   <span>Unblock</span>
                 </button>
               ) : (
-                <button className="w-full px-4 py-2 flex items-center gap-3 text-[0.875rem] text-foreground-secondary hover:bg-white/5 hover:text-foreground transition-colors text-left" onClick={handleMoveToSpam}>
+                <button className="w-full px-4 py-2 flex items-center gap-3 text-[0.875rem] text-foreground-secondary hover:bg-foreground/5 hover:text-foreground transition-colors text-left" onClick={handleMoveToSpam}>
                   <ShieldAlert size={16} />
                   <span>Move to spam</span>
                 </button>

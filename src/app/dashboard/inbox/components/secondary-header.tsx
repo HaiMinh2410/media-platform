@@ -102,13 +102,13 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
-    <div className="flex items-center justify-between px-6 h-[56px] border-b border-white/10 bg-[#0f0f0f]/80 backdrop-blur-xl sticky top-0 z-20 w-full">
+    <div className="flex items-center justify-between px-6 h-[56px] border-b border-foreground/10 bg-background/80 backdrop-blur-xl sticky top-0 z-20 w-full">
       <div className="flex items-center gap-3 h-full">
 
         <div className="relative flex items-center" ref={dropdownRef}>
           <button 
             className={cn(
-              "flex items-center gap-3 px-3.5 h-10 bg-white/5 border border-white/5 rounded-lg text-foreground-secondary cursor-pointer transition-all duration-200 min-w-[180px] outline-none hover:bg-white/10 hover:border-white/10 hover:-translate-y-px",
+              "flex items-center gap-3 px-3.5 h-10 bg-background-secondary border border-foreground/10 rounded-lg text-foreground-secondary cursor-pointer transition-all duration-200 min-w-[180px] outline-none hover:bg-background-tertiary hover:border-foreground/20 hover:-translate-y-px",
               selectedGroupId && "bg-accent-primary/10 border-accent-primary/20 text-foreground"
             )}
             onClick={() => setIsOpen(!isOpen)}
@@ -120,7 +120,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
               </div>
             ) : (
               <div className="flex items-center gap-2.5 flex-1">
-                <div className="w-6 h-6 flex items-center justify-center bg-white/5 rounded-md text-foreground-tertiary">
+                <div className="w-6 h-6 flex items-center justify-center bg-background-tertiary rounded-md text-foreground-tertiary">
                   <Users size={14} />
                 </div>
                 <span className="text-sm opacity-60">Tất cả cụm</span>
@@ -130,14 +130,14 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           </button>
 
           {isOpen && (
-            <div className="absolute top-[calc(100%+8px)] left-0 w-[280px] bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.8)] z-[100] p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute top-[calc(100%+8px)] left-0 w-[280px] bg-base-200 border border-foreground/10 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] z-[100] p-2 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="p-[8px_12px_12px] text-[0.6875rem] font-bold text-foreground-tertiary uppercase tracking-[0.08em] flex items-center justify-between">
                 <span>{isSelectionMode ? `Đã chọn ${selectedIdsForAction.length}` : 'Chọn cụm tài khoản'}</span>
                 
                 {!isSelectionMode ? (
                   <div className="flex items-center gap-2 relative">
                     <button 
-                      className="bg-white/5 border border-white/10 text-foreground-secondary rounded-md w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-white/10 hover:text-foreground hover:border-white/20 transition-all"
+                      className="bg-background-tertiary border border-foreground/10 text-foreground-secondary rounded-md w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-background-secondary hover:text-foreground hover:border-foreground/20 transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowManagementMenu(!showManagementMenu);
@@ -147,9 +147,9 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                     </button>
 
                     {showManagementMenu && (
-                      <div className="absolute top-full right-0 mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl w-40 overflow-hidden z-[101] p-1">
+                      <div className="absolute top-full right-0 mt-2 bg-base-300 border border-foreground/10 rounded-xl shadow-2xl w-40 overflow-hidden z-[101] p-1">
                         <button 
-                          className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-[0.8125rem] font-medium cursor-pointer rounded-lg hover:bg-white/5 hover:text-foreground transition-all"
+                          className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-[0.8125rem] font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowCreateModal(true);
@@ -209,7 +209,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
               </div>
               <button 
                 className={cn(
-                  "flex items-center gap-3 w-full p-[10px_12px] rounded-xl border-none bg-transparent text-foreground-secondary cursor-pointer transition-all duration-150 text-left hover:bg-white/5 hover:text-foreground",
+                  "flex items-center gap-3 w-full p-[10px_12px] rounded-xl border-none bg-transparent text-foreground-secondary cursor-pointer transition-all duration-150 text-left hover:bg-foreground/5 hover:text-foreground",
                   !selectedGroupId && "bg-accent-primary/10 text-foreground"
                 )}
                 onClick={() => {
@@ -219,14 +219,14 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                   router.push('/dashboard/inbox');
                 }}
               >
-                <div className="w-6 h-6 flex items-center justify-center bg-white/5 rounded-md text-foreground-tertiary">
+                <div className="w-6 h-6 flex items-center justify-center bg-background-tertiary rounded-md text-foreground-tertiary">
                   <Users size={14} />
                 </div>
                 <span className="flex-1 text-[0.875rem] font-medium">Tất cả cụm</span>
                 {!selectedGroupId && <Check size={14} className="text-accent-primary" />}
               </button>
 
-              <div className="h-px bg-white/5 m-[4px_8px]" />
+              <div className="h-px bg-foreground/5 m-[4px_8px]" />
 
               <Reorder.Group 
                 axis="y" 
@@ -280,11 +280,11 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
         </button>
       </div>
 
-      <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-        <div className="flex items-center bg-white/5 p-1 rounded-[14px] border border-white/5">
+      <div className="flex items-center gap-3 pl-4 border-l border-foreground/10">
+        <div className="flex items-center bg-background-secondary p-1 rounded-[14px] border border-foreground/10">
           <button 
             className={cn(
-              "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-white/5",
+              "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
               platform === 'all' && "bg-accent-primary/10 text-accent-primary shadow-sm"
             )}
             onClick={() => setPlatform('all')}
@@ -293,7 +293,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           </button>
           <button 
             className={cn(
-              "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-white/5",
+              "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
               platform === 'facebook' && "bg-accent-primary/10 text-accent-primary shadow-sm"
             )}
             onClick={() => setPlatform('facebook')}
@@ -302,7 +302,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           </button>
           <button 
             className={cn(
-              "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-white/5",
+              "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
               platform === 'instagram' && "bg-accent-primary/10 text-accent-primary shadow-sm"
             )}
             onClick={() => setPlatform('instagram')}
@@ -405,11 +405,11 @@ function CombinedAvatar({ group, unreadCount }: { group: AccountGroup; unreadCou
     const initial = account.name?.[0] || '?';
 
     return (
-      <div className={isSub ? "w-[18px] h-[18px] rounded-sm overflow-hidden border-[1.5px] border-[#0f0f0f] bg-[#2a2a2a] z-[3] absolute -bottom-0.5 -right-0.5 shadow-md transition-transform duration-200 group-hover:translate-x-[2px] group-hover:translate-y-[2px]" : "w-6 h-6 rounded-md overflow-hidden border-[1.5px] border-[#0f0f0f] bg-[#1a1a1a] z-[2] absolute top-0 left-0 shadow-sm"}>
+      <div className={isSub ? "w-[18px] h-[18px] rounded-sm overflow-hidden border-[1.5px] border-background bg-background-tertiary z-[3] absolute -bottom-0.5 -right-0.5 shadow-md transition-transform duration-200 group-hover:translate-x-[2px] group-hover:translate-y-[2px]" : "w-6 h-6 rounded-md overflow-hidden border-[1.5px] border-background bg-background-secondary z-[2] absolute top-0 left-0 shadow-sm"}>
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-110" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/15 to-white/5 text-white font-bold text-[0.75rem] uppercase rounded-inherit" style={isSub ? { fontSize: '0.5rem' } : {}}>
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-foreground/15 to-foreground/5 text-foreground font-bold text-[0.75rem] uppercase rounded-inherit" style={isSub ? { fontSize: '0.5rem' } : {}}>
             {initial}
           </div>
         )}
@@ -422,7 +422,7 @@ function CombinedAvatar({ group, unreadCount }: { group: AccountGroup; unreadCou
       {fbAccount && renderAvatar(fbAccount)}
       {igAccount && renderAvatar(igAccount, true)}
       {unreadCount !== undefined && unreadCount > 0 && (
-        <div className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-[#ff4757] text-white rounded-full border-[1.5px] border-[#0f0f0f] z-[4] shadow-[0_2px_6px_rgba(255,71,87,0.4)] text-[0.625rem] font-extrabold flex items-center justify-center leading-none">
+        <div className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-[#ff4757] text-white rounded-full border-[1.5px] border-background z-[4] shadow-[0_2px_6px_rgba(255,71,87,0.4)] text-[0.625rem] font-extrabold flex items-center justify-center leading-none">
           {unreadCount > 99 ? '99+' : unreadCount}
         </div>
       )}

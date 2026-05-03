@@ -134,9 +134,9 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
       const element = document.getElementById(`msg-${messageId}`);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.classList.add("ring-2", "ring-accent-primary", "ring-offset-2", "ring-offset-[#1a1a1e]", "rounded-[20px]", "animate-pulse");
+        element.classList.add("ring-2", "ring-accent-primary", "ring-offset-2", "ring-offset-background", "rounded-[20px]", "animate-pulse");
         setTimeout(() => {
-          element.classList.remove("ring-2", "ring-accent-primary", "ring-offset-2", "ring-offset-[#1a1a1e]", "rounded-[20px]", "animate-pulse");
+          element.classList.remove("ring-2", "ring-accent-primary", "ring-offset-2", "ring-offset-background", "rounded-[20px]", "animate-pulse");
         }, 2000);
       } else {
         console.warn(`[ChatWindow] Message ${messageId} not found in current window`);
@@ -184,8 +184,8 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
         return (
           <React.Fragment key={msg.id}>
             {showSeparator && (
-              <div className="flex justify-center items-center my-6 relative before:content-[''] before:absolute before:left-0 before:right-0 before:top-1/2 before:h-px before:bg-white/5">
-                <span className="bg-[#1a1a1e] px-4 py-1 rounded-full text-[0.7rem] font-medium text-foreground-tertiary border border-white/10 relative z-10">
+              <div className="flex justify-center items-center my-6 relative before:content-[''] before:absolute before:left-0 before:right-0 before:top-1/2 before:h-px before:bg-foreground/5">
+                <span className="bg-base-200 px-4 py-1 rounded-full text-[0.7rem] font-medium text-foreground-tertiary border border-foreground/10 relative z-10">
                   {formatChatSeparator(msg.createdAt)}
                 </span>
               </div>

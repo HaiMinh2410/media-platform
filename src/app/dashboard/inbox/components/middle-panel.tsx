@@ -304,7 +304,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
 
   return (
     <aside 
-      className="relative min-w-[280px] max-w-[500px] border-r border-white/10 bg-white/[0.01] flex flex-col h-full shrink-0" 
+      className="relative min-w-[280px] max-w-[500px] border-r border-foreground/10 bg-background/5 flex flex-col h-full shrink-0" 
       ref={panelRef}
       style={{ width: middlePanelWidth }}
     >
@@ -319,19 +319,19 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
           <input 
             type="text" 
             placeholder="Search conversations..." 
-            className="w-full p-[10px_16px_10px_38px] rounded-md border border-white/10 bg-black/20 text-foreground text-[0.9375rem] outline-none transition-all focus:border-accent-primary focus:bg-black/40 focus:ring-3 focus:ring-accent-primary/20"
+            className="w-full p-[10px_16px_10px_38px] rounded-md border border-foreground/10 bg-background-secondary text-foreground text-[0.9375rem] outline-none transition-all focus:border-accent-primary focus:bg-background-tertiary focus:ring-3 focus:ring-accent-primary/20"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
         
-        <div className="flex justify-between items-center pb-2 border-b border-white/10 text-[0.75rem] text-foreground-tertiary">
+        <div className="flex justify-between items-center pb-2 border-b border-foreground/10 text-[0.75rem] text-foreground-tertiary">
           <div className="font-medium text-foreground-tertiary">
             <span>{conversations.length} items</span>
           </div>
           
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-white/5 p-[2px_6px] rounded-md border border-white/10 shrink-0 relative" ref={filterRef}>
+            <div className="flex items-center gap-1 bg-background-secondary p-[2px_6px] rounded-md border border-foreground/10 shrink-0 relative" ref={filterRef}>
               <div 
                 className="flex items-center justify-between gap-1 cursor-pointer text-[0.75rem] font-medium text-foreground-secondary w-[90px] min-w-0" 
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -345,9 +345,9 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
               </div>
 
               {isFilterOpen && (
-                <div className="absolute top-full left-0 mt-1 bg-[#1a1a1e] border border-white/10 rounded-lg shadow-2xl z-[100] w-[180px] overflow-hidden flex flex-col">
+                <div className="absolute top-full left-0 mt-1 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl z-[100] w-[180px] overflow-hidden flex flex-col">
                   <div 
-                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", filterBy === 'all' && "bg-accent-primary/10 text-accent-primary")}
+                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground", filterBy === 'all' && "bg-accent-primary/10 text-accent-primary")}
                     onClick={() => { setFilterBy('all'); setIsFilterOpen(false); }}
                   >
                     Tất cả
@@ -367,7 +367,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
                       return (
                         <div 
                           key={tag} 
-                          className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", isActive && "bg-accent-primary/10 text-accent-primary")}
+                          className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground", isActive && "bg-accent-primary/10 text-accent-primary")}
                           onClick={() => { setFilterBy(tag); setIsFilterOpen(false); }}
                         >
                           {name}
@@ -392,15 +392,15 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
               </div>
 
               {isSortOpen && (
-                <div className="absolute top-full left-0 mt-1 bg-[#1a1a1e] border border-white/10 rounded-lg shadow-2xl z-[100] w-[100px] overflow-hidden flex flex-col">
+                <div className="absolute top-full left-0 mt-1 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl z-[100] w-[100px] overflow-hidden flex flex-col">
                   <div 
-                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", sortField === 'date' && "bg-accent-primary/10 text-accent-primary")}
+                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground", sortField === 'date' && "bg-accent-primary/10 text-accent-primary")}
                     onClick={() => { setSortField('date'); setIsSortOpen(false); }}
                   >
                     Date
                   </div>
                   <div 
-                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", sortField === 'name' && "bg-accent-primary/10 text-accent-primary")}
+                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground", sortField === 'name' && "bg-accent-primary/10 text-accent-primary")}
                     onClick={() => { setSortField('name'); setIsSortOpen(false); }}
                   >
                     Name

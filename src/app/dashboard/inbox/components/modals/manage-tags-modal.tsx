@@ -181,13 +181,13 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
       onClick={onClose}
     >
       <div 
-        className="bg-[#1a1a1e] w-full max-w-[520px] rounded-xl overflow-hidden shadow-2xl border border-white/10 flex flex-col max-h-[90vh] text-white"
+        className="bg-base-200 w-full max-w-[520px] rounded-xl overflow-hidden shadow-2xl border border-foreground/10 flex flex-col max-h-[90vh] text-foreground"
         onClick={e => e.stopPropagation()}
       >
-        <div className="px-5 py-4 flex justify-between items-center border-b border-white/10">
+        <div className="px-5 py-4 flex justify-between items-center border-b border-foreground/10">
           <h2 className="text-lg font-semibold m-0">Quản lý nhãn tùy chỉnh</h2>
           <button 
-            className="p-1.5 rounded-lg text-foreground-tertiary hover:bg-white/5 hover:text-white transition-all"
+            className="p-1.5 rounded-lg text-foreground-tertiary hover:bg-foreground/5 hover:text-foreground transition-all"
             onClick={onClose}
           >
             <X size={20} />
@@ -199,10 +199,10 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
             Dùng nhãn để mô tả và sắp xếp mọi người theo bất kỳ cách nào bạn muốn, chẳng hạn như kiểu khách hàng hoặc các đơn đặt hàng trước đó. Chỉ những người quản lý Trang của bạn mới có thể nhìn thấy nhãn.
           </p>
 
-          <div className="bg-white/[0.02] border border-white/5 rounded-lg p-3 flex items-center gap-3">
+          <div className="bg-foreground/[0.02] border border-foreground/5 rounded-lg p-3 flex items-center gap-3">
             <div className="relative">
               <div 
-                className="flex items-center justify-center gap-1 px-2 py-1 bg-black/20 border border-white/10 rounded-md cursor-pointer transition-all hover:border-white/20 hover:bg-white/5" 
+                className="flex items-center justify-center gap-1 px-2 py-1 bg-background-secondary border border-foreground/10 rounded-md cursor-pointer transition-all hover:border-foreground/20 hover:bg-foreground/5" 
                 style={{ borderColor: `${selectedColor}40`, background: `${selectedColor}10` }}
                 onClick={() => setIsAddColorPickerOpen(!isAddColorPickerOpen)}
               >
@@ -211,7 +211,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
               </div>
               
               {isAddColorPickerOpen && (
-                <div className="absolute top-[calc(100%+4px)] left-0 bg-[#26262a] border border-white/10 rounded-lg p-2 grid grid-cols-4 gap-1.5 z-[100] shadow-2xl min-w-[120px]">
+                <div className="absolute top-[calc(100%+4px)] left-0 bg-base-300 border border-foreground/10 rounded-lg p-2 grid grid-cols-4 gap-1.5 z-[100] shadow-2xl min-w-[120px]">
                   {PRESET_COLORS.map(color => (
                     <div 
                       key={color}
@@ -233,7 +233,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
             </div>
             <input 
               type="text" 
-              className="flex-1 bg-black/20 border border-white/10 rounded-md px-3 py-2 text-[0.9375rem] text-white outline-none focus:border-accent-primary transition-all"
+              className="flex-1 bg-background-secondary border border-foreground/10 rounded-md px-3 py-2 text-[0.9375rem] text-foreground outline-none focus:border-accent-primary transition-all"
               placeholder="Đặt tên nhãn..."
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
@@ -253,7 +253,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary" />
             <input 
               type="text" 
-              className="w-full bg-black/20 border border-white/10 rounded-md py-2 pl-10 pr-3 text-white text-[0.9375rem] outline-none focus:border-accent-primary transition-all"
+              className="w-full bg-background-secondary border border-foreground/10 rounded-md py-2 pl-10 pr-3 text-foreground text-[0.9375rem] outline-none focus:border-accent-primary transition-all"
               placeholder="Tìm kiếm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -267,24 +267,24 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                 const isEditing = editingTag === tag;
                 
                 return (
-                  <div key={tag} className="flex justify-between items-center py-3 px-1 border-b border-white/[0.05] last:border-0 group">
+                  <div key={tag} className="flex justify-between items-center py-3 px-1 border-b border-foreground/[0.05] last:border-0 group">
                     <div className="flex items-center gap-4 flex-1">
                       {isEditing ? (
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             <div 
-                              className="w-4 h-4 rounded-md cursor-pointer border border-white/20 transition-transform hover:scale-110" 
+                              className="w-4 h-4 rounded-md cursor-pointer border border-foreground/20 transition-transform hover:scale-110" 
                               style={{ backgroundColor: editColor }}
                               onClick={() => setIsEditColorPickerOpen(!isEditColorPickerOpen)}
                             />
                             {isEditColorPickerOpen && editingTag === tag && (
-                              <div className="absolute top-full left-0 bg-[#26262a] border border-white/10 rounded-lg p-2 grid grid-cols-4 gap-1.5 z-[110] shadow-2xl mt-1">
+                              <div className="absolute top-full left-0 bg-base-300 border border-foreground/10 rounded-lg p-2 grid grid-cols-4 gap-1.5 z-[110] shadow-2xl mt-1">
                                 {PRESET_COLORS.map(c => (
                                   <div 
                                     key={c}
                                     className={cn(
                                       "w-[18px] h-[18px] rounded cursor-pointer flex items-center justify-center transition-transform hover:scale-110",
-                                      editColor === c && "ring-2 ring-white ring-offset-1 ring-offset-[#26262a]"
+                                      editColor === c && "ring-2 ring-white ring-offset-1 ring-offset-base-300"
                                     )}
                                     style={{ backgroundColor: c }}
                                     onClick={() => {
@@ -299,7 +299,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                             )}
                           </div>
                           <input 
-                            className="bg-white/5 border border-accent-primary rounded px-2 py-1 text-white text-xs outline-none w-[120px]"
+                            className="bg-foreground/5 border border-accent-primary rounded px-2 py-1 text-foreground text-xs outline-none w-[120px]"
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit()}
@@ -309,7 +309,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                       ) : (
                         <>
                           <div className="w-5 h-5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                          <span className="text-[0.9375rem] text-white font-normal">{name}</span>
+                          <span className="text-[0.9375rem] text-foreground font-normal">{name}</span>
                         </>
                       )}
                     </div>
@@ -323,14 +323,14 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                         </button>
                       ) : (
                         <button 
-                          className="flex items-center justify-center p-2 rounded-md bg-transparent border border-white/10 text-foreground-tertiary hover:bg-white/5 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                          className="flex items-center justify-center p-2 rounded-md bg-transparent border border-foreground/10 text-foreground-tertiary hover:bg-foreground/5 hover:text-foreground transition-all opacity-0 group-hover:opacity-100"
                           onClick={() => handleStartEdit(tag)}
                         >
                           <Edit2 size={14} />
                         </button>
                       )}
                       <button 
-                        className="flex items-center justify-center p-2 rounded-md bg-transparent border border-white/10 text-foreground-tertiary hover:bg-red-500/10 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                        className="flex items-center justify-center p-2 rounded-md bg-transparent border border-foreground/10 text-foreground-tertiary hover:bg-red-500/10 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
                         onClick={() => handleDeleteTag(tag)}
                       >
                         <Trash2 size={14} />
@@ -347,9 +347,9 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
           </div>
         </div>
 
-        <div className="px-4 py-3 border-t border-white/10 flex justify-end bg-black/20">
+        <div className="px-4 py-3 border-t border-foreground/10 flex justify-end bg-background-tertiary">
           <button 
-            className="px-6 py-2 bg-white text-[#1a1a1e] border-none rounded-md font-bold text-[0.9375rem] cursor-pointer transition-all hover:opacity-90 active:scale-[0.98]" 
+            className="px-6 py-2 bg-foreground text-background border-none rounded-md font-bold text-[0.9375rem] cursor-pointer transition-all hover:opacity-90 active:scale-[0.98]" 
             onClick={onClose}
           >
             Xong

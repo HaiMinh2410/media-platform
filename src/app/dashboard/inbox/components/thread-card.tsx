@@ -61,19 +61,19 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
     <Link 
       href={`/dashboard/inbox/${conversation.id}`} 
       className={cn(
-        "flex gap-3 p-3 rounded-xl cursor-pointer transition-all border border-transparent no-underline absolute left-3 w-[calc(100%-24px)] box-border hover:bg-white/5 group", 
-        isActive && "bg-white/5 border-white/10 shadow-sm", 
-        isUnread && "bg-white/[0.02]"
+        "flex gap-3 p-3 rounded-xl cursor-pointer transition-all border border-transparent no-underline absolute left-3 w-[calc(100%-24px)] box-border hover:bg-foreground/5 group", 
+        isActive && "bg-foreground/5 border-foreground/10 shadow-sm", 
+        isUnread && "bg-foreground/[0.03]"
       )}
       style={style}
     >
-      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center text-base font-semibold text-foreground-secondary shrink-0 relative border border-white/10 overflow-visible">
+      <div className="w-11 h-11 rounded-full bg-background-tertiary flex items-center justify-center text-base font-semibold text-foreground-secondary shrink-0 relative border border-foreground/10 overflow-visible">
         {conversation.customer_avatar ? (
           <img src={conversation.customer_avatar} alt={conversation.sender_name} className="w-full h-full rounded-full object-cover" />
         ) : (
           getInitials(conversation.sender_name)
         )}
-        <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] rounded-full bg-white flex items-center justify-center p-0.5 shadow-lg border-[1.5px] border-[#1a1a1e] z-10">
+        <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] rounded-full bg-background flex items-center justify-center p-0.5 shadow-lg border-[1.5px] border-background z-10">
           {conversation.platform === 'instagram' ? (
             <Icon name="instagram" size="100%" className="text-[#E1306C]" />
           ) : (
@@ -87,7 +87,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
           <div className="flex items-center gap-1 min-w-0 flex-1">
             <span className={cn(
               "font-medium text-foreground text-[0.9375rem] whitespace-nowrap overflow-hidden text-ellipsis",
-              isUnread && "font-semibold text-white"
+              isUnread && "font-semibold"
             )}>
               {conversation.sender_name || 'Unknown User'}
             </span>

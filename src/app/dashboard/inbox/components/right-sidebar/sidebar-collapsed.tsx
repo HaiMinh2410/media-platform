@@ -24,12 +24,12 @@ export function SidebarCollapsed({
   const otherThreads = activeThreads.filter(t => t.id !== conversationId);
   
   return (
-    <aside className="w-full h-full p-3 flex flex-col items-center gap-4 bg-[#1a1a1e] border-l border-white/5">
+    <aside className="w-full h-full p-3 flex flex-col items-center gap-4 bg-base-200 border-l border-foreground/5">
       <div className="flex flex-col items-center gap-4 w-full">
         {/* Active Conversation Avatar - Toggles Sidebar */}
         <div 
           className={cn(
-            "relative w-9 h-9 rounded-full bg-surface-primary border-2 border-white/10 flex items-center justify-center text-[0.875rem] font-bold text-foreground cursor-pointer transition-all hover:scale-105 hover:border-accent-primary shadow-lg",
+            "relative w-9 h-9 rounded-full bg-background-tertiary border-2 border-foreground/10 flex items-center justify-center text-[0.875rem] font-bold text-foreground cursor-pointer transition-all hover:scale-105 hover:border-accent-primary shadow-lg",
             "border-accent-primary bg-accent-primary/10 ring-2 ring-accent-primary/20"
           )}
           onClick={onToggleCollapse}
@@ -40,13 +40,13 @@ export function SidebarCollapsed({
           ) : (
             customerName?.charAt(0) || 'U'
           )}
-          <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] bg-white border-[1.5px] border-[#1a1a1e] rounded-full flex items-center justify-center text-[#E1306C] shadow-lg z-10">
+          <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] bg-background border-[1.5px] border-background rounded-full flex items-center justify-center text-[#E1306C] shadow-lg z-10">
             <Camera size={10} />
           </div>
         </div>
 
         {/* Divider */}
-        {otherThreads.length > 0 && <div className="w-6 h-px bg-white/10 opacity-50 my-2" />}
+        {otherThreads.length > 0 && <div className="w-6 h-px bg-foreground/10 opacity-50 my-2" />}
 
         {/* Other Active Threads */}
         {otherThreads.length > 0 && (
@@ -54,7 +54,7 @@ export function SidebarCollapsed({
             {otherThreads.map(t => (
               <div 
                 key={t.id} 
-                className="group relative w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/5 cursor-pointer transition-all hover:scale-110 hover:bg-white/10 hover:border-foreground-tertiary"
+                className="group relative w-8 h-8 rounded-full border border-foreground/10 flex items-center justify-center bg-foreground/5 cursor-pointer transition-all hover:scale-110 hover:bg-foreground/10 hover:border-foreground-tertiary"
                 onClick={() => router.push(`/dashboard/inbox/${t.id}`)}
                 title={t.sender_name || 'Switch conversation'}
               >
@@ -65,7 +65,7 @@ export function SidebarCollapsed({
                 )}
                 
                 <button 
-                  className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full hidden group-hover:flex items-center justify-center z-10 border-2 border-[#1a1a1e] transition-all hover:scale-110"
+                  className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full hidden group-hover:flex items-center justify-center z-10 border-2 border-background transition-all hover:scale-110"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeActiveThread(t.id);

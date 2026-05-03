@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: dark --default, light, all;
+}
+
 
 @theme {
   /* Fonts */
@@ -7,39 +11,39 @@
   --font-sans: "DM Sans", "sans-serif";
   --font-mono: "JetBrains Mono", "monospace";
 
-  /* Colors */
-  --color-background: var(--bg-primary);
-  --color-background-secondary: var(--bg-secondary);
-  --color-background-tertiary: var(--bg-tertiary);
-  --color-background-base: var(--bg-base);
+  /* Colors - Map to daisyUI variables */
+  --color-background: var(--color-base-100);
+  --color-background-secondary: var(--color-base-200);
+  --color-background-tertiary: var(--color-base-300);
+  --color-background-base: var(--color-base-300);
 
-  --color-foreground: var(--fg-primary);
-  --color-foreground-secondary: var(--fg-secondary);
-  --color-foreground-tertiary: var(--fg-tertiary);
+  --color-foreground: var(--color-base-content);
+  --color-foreground-secondary: color-mix(in srgb, var(--color-base-content), transparent 30%);
+  --color-foreground-tertiary: color-mix(in srgb, var(--color-base-content), transparent 60%);
 
-  --color-accent-primary: var(--accent-primary);
-  --color-accent-secondary: var(--accent-secondary);
-  --color-accent-tertiary: var(--accent-tertiary);
+  --color-accent-primary: var(--color-primary);
+  --color-accent-secondary: var(--color-secondary);
+  --color-accent-tertiary: var(--color-accent);
 
-  --color-status-success: var(--success);
-  --color-status-error: var(--error);
-  --color-status-warning: var(--warning);
-  --color-status-info: var(--info);
+  --color-status-success: var(--color-success);
+  --color-status-error: var(--color-error);
+  --color-status-warning: var(--color-warning);
+  --color-status-info: var(--color-info);
 
   /* Radii */
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-2xl: var(--radius-2xl);
+  --radius-sm: var(--radius-selector, 6px);
+  --radius-md: var(--radius-field, 10px);
+  --radius-lg: var(--radius-box, 16px);
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
 
   /* Spacing */
-  --spacing-xs: var(--spacing-xs);
-  --spacing-sm: var(--spacing-sm);
-  --spacing-md: var(--spacing-md);
-  --spacing-lg: var(--spacing-lg);
-  --spacing-xl: var(--spacing-xl);
-  --spacing-2xl: var(--spacing-2xl);
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
 
   /* Animations */
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -47,35 +51,29 @@
 
 @layer base {
   :root {
-    /* Core Backgrounds - Premium Dark Space */
-    --bg-primary: #020203;
-    --bg-secondary: #08080a;
-    --bg-tertiary: #0f0f12;
-    --bg-base: #141418;
+    /* Keep existing tokens for backward compatibility but link them to daisyUI */
+    --bg-primary: var(--color-base-100);
+    --bg-secondary: var(--color-base-200);
+    --bg-tertiary: var(--color-base-300);
+    --bg-base: var(--color-base-300);
 
-    /* Foreground - High Contrast & Hierarchy */
-    --fg-primary: #fcfcfd;
-    --fg-secondary: #a1a1aa;
-    --fg-tertiary: #52525b;
+    --fg-primary: var(--color-base-content);
+    --fg-secondary: color-mix(in srgb, var(--color-base-content), transparent 30%);
+    --fg-tertiary: color-mix(in srgb, var(--color-base-content), transparent 60%);
 
-    /* Accents - Cyber Neon Palette */
-    --accent-primary: #6366f1;
-    /* Indigo */
-    --accent-secondary: #d946ef;
-    /* Fuchsia */
-    --accent-tertiary: #14b8a6;
-    /* Teal */
-    --accent-gradient: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    --accent-primary: var(--color-primary);
+    --accent-secondary: var(--color-secondary);
+    --accent-tertiary: var(--color-accent);
+    --accent-gradient: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
 
-    /* Semantic Colors */
-    --success: #10b981;
-    --error: #ef4444;
-    --warning: #f59e0b;
-    --info: #3b82f6;
+    --success: var(--color-success);
+    --error: var(--color-error);
+    --warning: var(--color-warning);
+    --info: var(--color-info);
 
     /* Glassmorphism Refined */
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-bg: color-mix(in srgb, var(--color-base-content), transparent 97%);
+    --glass-border: color-mix(in srgb, var(--color-base-content), transparent 92%);
     --glass-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5);
 
     /* Radii */
@@ -139,7 +137,7 @@
   }
 
   .glass {
-    @apply backdrop-blur-xl border border-white/5 bg-white/[0.03];
+    @apply backdrop-blur-xl border border-foreground/10 bg-foreground/5;
   }
 
   .glass-shadow {

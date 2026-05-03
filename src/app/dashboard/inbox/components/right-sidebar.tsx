@@ -158,12 +158,12 @@ export function RightSidebar({
   }
 
   return (
-    <aside className="flex flex-col h-full bg-[#1a1a1e] border-l border-white/5" data-sidebar="right">
+    <aside className="flex flex-col h-full bg-base-200 border-l border-foreground/5" data-sidebar="right">
       {/* Tab Header */}
-      <div className="flex items-center gap-1 p-2 border-b border-white/10">
+      <div className="flex items-center gap-1 p-2 border-b border-foreground/10">
         <button 
           className={cn(
-            "flex-1 py-2 text-[0.8rem] font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-white/5",
+            "flex-1 py-2 text-[0.8rem] font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-foreground/5",
             activeTab === 'detail' && "text-accent-primary bg-accent-primary/10"
           )}
           onClick={() => setActiveTab('detail')}
@@ -172,7 +172,7 @@ export function RightSidebar({
         </button>
         <button 
           className={cn(
-            "flex-1 py-2 text-[0.8rem] font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-white/5",
+            "flex-1 py-2 text-[0.8rem] font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-foreground/5",
             activeTab === 'ai' && "text-accent-primary bg-accent-primary/10"
           )}
           onClick={() => setActiveTab('ai')}
@@ -189,7 +189,7 @@ export function RightSidebar({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
         {activeTab === 'detail' && (
           <div className="p-4 flex flex-col gap-6">
             <CustomerProfile 

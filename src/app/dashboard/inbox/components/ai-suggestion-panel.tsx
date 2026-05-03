@@ -42,7 +42,7 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
   onDismiss: (id: string) => void;
 }) {
   return (
-    <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4 flex flex-col gap-3 transition-all hover:bg-white/[0.05] hover:border-white/10 group">
+    <div className="bg-foreground/[0.03] border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 transition-all hover:bg-foreground/[0.05] hover:border-foreground/10 group">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[0.75rem] font-bold text-accent-primary">
           <Zap size={12} fill="currentColor" />
@@ -69,7 +69,7 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
           Sử dụng
         </button>
         <button
-          className="w-9 h-9 flex items-center justify-center bg-white/5 border border-white/10 rounded-lg text-foreground-tertiary transition-all hover:bg-white/10 hover:text-foreground"
+          className="w-9 h-9 flex items-center justify-center bg-foreground/5 border border-foreground/10 rounded-lg text-foreground-tertiary transition-all hover:bg-foreground/10 hover:text-foreground"
           onClick={() => onDismiss(suggestion.id)}
         >
           <X size={14} />
@@ -108,7 +108,7 @@ export function AiSuggestionPanel({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#1a1a1e] text-foreground">
+    <div className="flex flex-col h-full bg-base-200 text-foreground">
       {/* --- Insights Section --- */}
       <div className="p-4 flex flex-col gap-4">
         <div className="flex items-center justify-between mb-1">
@@ -123,7 +123,7 @@ export function AiSuggestionPanel({
             <span className="text-[0.7rem] font-bold text-foreground-tertiary uppercase tracking-wider">Độ ưu tiên</span>
             <select 
               className={cn(
-                "bg-black/20 border border-white/10 rounded-md p-2 text-[0.8125rem] text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer",
+                "bg-background-secondary border border-foreground/10 rounded-md p-2 text-[0.8125rem] text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer",
                 priority === 'high' && "text-red-400 border-red-500/30 bg-red-500/5",
                 priority === 'medium' && "text-amber-400 border-amber-500/30 bg-amber-500/5",
                 priority === 'low' && "text-blue-400 border-blue-500/30 bg-blue-500/5"
@@ -140,7 +140,7 @@ export function AiSuggestionPanel({
           <div className="flex flex-col gap-1.5">
             <span className="text-[0.7rem] font-bold text-foreground-tertiary uppercase tracking-wider">Sắc thái</span>
             <select 
-              className="bg-black/20 border border-white/10 rounded-md p-2 text-[0.8125rem] text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer"
+              className="bg-background-secondary border border-foreground/10 rounded-md p-2 text-[0.8125rem] text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer"
               value={sentiment || 'neutral'}
               onChange={(e) => onUpdateSentiment?.(e.target.value)}
             >
@@ -171,7 +171,7 @@ export function AiSuggestionPanel({
         </div>
       </div>
 
-      <div className="h-px bg-white/5 mx-4 my-2" />
+      <div className="h-px bg-foreground/5 mx-4 my-2" />
 
       {/* --- Suggestions Section --- */}
       <div className="px-4 py-2 flex items-center justify-between">
@@ -186,14 +186,14 @@ export function AiSuggestionPanel({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 scrollbar-thin scrollbar-thumb-white/10">
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 scrollbar-thin scrollbar-thumb-foreground/10">
         {loading && (
           <div className="flex flex-col gap-4">
             {[1, 2].map(i => (
-              <div key={i} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
-                <div className="h-3 bg-white/5 rounded w-1/3" />
-                <div className="h-4 bg-white/5 rounded w-full" />
-                <div className="h-4 bg-white/5 rounded w-4/5" />
+              <div key={i} className="bg-foreground/[0.02] border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
+                <div className="h-3 bg-foreground/5 rounded w-1/3" />
+                <div className="h-4 bg-foreground/5 rounded w-full" />
+                <div className="h-4 bg-foreground/5 rounded w-4/5" />
               </div>
             ))}
             <div className="flex items-center justify-center py-5 text-foreground-tertiary text-[0.8125rem] gap-2">

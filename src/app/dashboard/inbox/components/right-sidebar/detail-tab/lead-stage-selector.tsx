@@ -100,7 +100,7 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
               Bỏ đánh dấu
             </span>
           )}
-          <span className="text-[0.625rem] font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-foreground-tertiary">Khuyên dùng</span>
+          <span className="text-[0.625rem] font-bold px-2 py-0.5 rounded-full bg-background-secondary border border-foreground/10 text-foreground-tertiary">Khuyên dùng</span>
         </div>
       </div>
       
@@ -111,7 +111,7 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
       <div className="relative w-full mt-1" ref={dropdownRef}>
         {!isLead ? (
           <div 
-            className="flex items-center justify-center w-full p-2.5 bg-white/5 border border-white/10 rounded-lg text-[0.875rem] text-foreground-secondary cursor-pointer transition-all hover:bg-white/10 hover:border-accent-primary"
+            className="flex items-center justify-center w-full p-2.5 bg-background-secondary border border-foreground/10 rounded-lg text-[0.875rem] text-foreground-secondary cursor-pointer transition-all hover:bg-background-tertiary hover:border-accent-primary"
             onClick={() => {
               setIsLead(true);
               handleUpdateLeadStatus('new');
@@ -122,7 +122,7 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
           </div>
         ) : (
           <div 
-            className="flex items-center justify-between w-full p-2.5 bg-white/5 border border-white/10 rounded-lg text-[0.875rem] text-foreground cursor-pointer transition-all hover:bg-white/10 hover:border-accent-primary"
+            className="flex items-center justify-between w-full p-2.5 bg-background-secondary border border-foreground/10 rounded-lg text-[0.875rem] text-foreground cursor-pointer transition-all hover:bg-background-tertiary hover:border-accent-primary"
             onClick={toggleLeadStatus}
           >
             <span>{
@@ -136,7 +136,7 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
           <div 
             ref={menuRef}
             className={cn(
-              "fixed bg-[#1a1a1e] border border-white/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
+              "fixed bg-base-200 border border-foreground/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
               dropdownDirection === 'up' && "mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
             )}
             style={{
@@ -149,12 +149,12 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
                 : dropdownPos.top - 20
             }}
           >
-            <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-white/10">
+            <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-foreground/10">
               {leadStages.map((stage) => (
                 <div 
                   key={stage.id} 
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-white/5",
+                    "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-foreground/5",
                     leadStatus === stage.id && "bg-accent-primary/10"
                   )}
                   onClick={() => {
@@ -164,7 +164,7 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
                 >
                   <div className="pt-0.5">
                     <div className={cn(
-                      "w-4.5 h-4.5 rounded-full border-2 border-white/10 flex items-center justify-center transition-all",
+                      "w-4.5 h-4.5 rounded-full border-2 border-foreground/10 flex items-center justify-center transition-all",
                       leadStatus === stage.id && "border-accent-primary"
                     )}>
                       {leadStatus === stage.id && <div className="w-2.5 h-2.5 rounded-full bg-accent-primary" />}
@@ -189,7 +189,7 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
                 </div>
               ))}
             </div>
-            <div className="p-3 bg-black/20 border-t border-white/10 text-[0.75rem] text-foreground-tertiary">
+            <div className="p-3 bg-background-tertiary border-t border-foreground/10 text-[0.75rem] text-foreground-tertiary">
               <span>Bạn có thể tạo giai đoạn tùy chỉnh trong <a href="#" className="text-accent-primary hover:underline">Leads Center</a>.</span>
             </div>
           </div>,

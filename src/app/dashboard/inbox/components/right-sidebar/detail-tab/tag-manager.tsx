@@ -164,7 +164,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
 
       <div className="relative w-full mt-2" ref={tagDropdownRef}>
         <div 
-          className="flex items-center justify-between w-full p-2.5 bg-white/5 border border-white/10 rounded-lg text-[0.875rem] text-foreground cursor-pointer transition-all hover:bg-white/10 hover:border-accent-primary"
+          className="flex items-center justify-between w-full p-2.5 bg-background-secondary border border-foreground/10 rounded-lg text-[0.875rem] text-foreground cursor-pointer transition-all hover:bg-background-tertiary hover:border-accent-primary"
           onClick={toggleTagDropdown}
         >
           <span>Thêm nhãn</span>
@@ -175,7 +175,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
           <div 
             ref={tagMenuRef}
             className={cn(
-              "fixed bg-[#1a1a1e] border border-white/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
+              "fixed bg-base-200 border border-foreground/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
               dropdownDirection === 'up' && "mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
             )}
             style={{
@@ -185,14 +185,14 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
               width: dropdownPos.width,
             }}
           >
-            <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-white/10">
+            <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-foreground/10">
               {unappliedTags.length > 0 ? (
                 unappliedTags.map((tag: string) => {
                   const { name, color } = parseTag(tag);
                   return (
                     <div 
                       key={tag} 
-                      className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-white/5"
+                      className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-foreground/5"
                       onClick={() => {
                         toggleTag(tag);
                         setIsTagDropdownOpen(false);

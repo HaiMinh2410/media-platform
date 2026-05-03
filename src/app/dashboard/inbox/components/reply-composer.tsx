@@ -192,7 +192,7 @@ export function ReplyComposer({
   const isSending = sendState === 'sending';
 
   return (
-    <div className="p-md px-lg border-t border-white/10 bg-background-tertiary/40">
+    <div className="p-md px-lg border-t border-foreground/10 bg-background-tertiary/40">
       {errorMsg && (
         <div className="p-sm px-3 mb-2 bg-status-error/10 border border-status-error/30 rounded-sm text-status-error text-[0.8125rem]" role="alert">
           {errorMsg}
@@ -231,7 +231,7 @@ export function ReplyComposer({
       
       <div className="relative">
         <form className="flex gap-3 items-end" onSubmit={handleSubmit}>
-          <div className="flex-1 bg-black/30 border border-white/10 rounded-lg p-3 px-md transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] focus-within:border-accent-primary/50 focus-within:bg-black/40 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]">
+          <div className="flex-1 bg-background-base border border-foreground/10 rounded-lg p-3 px-md transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] focus-within:border-accent-primary/50 focus-within:bg-background-secondary focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]">
             <textarea
               ref={textareaRef}
               className="w-full bg-transparent border-none text-foreground text-[15px] resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto"
@@ -248,7 +248,7 @@ export function ReplyComposer({
               }}
             />
             
-            <div className="flex justify-between items-center pt-3 border-t border-white/5 mt-2">
+            <div className="flex justify-between items-center pt-3 border-t border-foreground/5 mt-2">
               <div className="flex items-center gap-2">
                 <div className="relative" ref={snippetsRef}>
                   <button 
@@ -261,9 +261,9 @@ export function ReplyComposer({
                   </button>
                   
                   {showSnippets && (
-                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-background-base border border-white/10 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-                      <div className="px-3 py-2 text-[0.7rem] font-bold text-foreground-tertiary uppercase tracking-wider border-b border-white/5">Saved Snippets</div>
-                      <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-base-200 border border-foreground/10 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                      <div className="px-3 py-2 text-[0.7rem] font-bold text-foreground-tertiary uppercase tracking-wider border-b border-foreground/5">Saved Snippets</div>
+                      <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
                         {SNIPPETS.map(s => (
                           <button 
                             key={s.id} 
