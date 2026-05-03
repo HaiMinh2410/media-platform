@@ -21,14 +21,14 @@ import {
 } from '@/application/actions/account-group.actions';
 import { getUnreadCountsAction, UnreadCounts } from '@/application/actions/unread-counts.actions';
 import { AccountGroup } from '@/domain/types/account-group';
-import { SegmentFilter } from '../store/inbox.store';
+
 import { PlatformAccount } from '@/domain/types/platform-account';
 
 export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const { 
     viewMode, setViewMode,
     platform, setPlatform,
-    segmentFilter, setSegmentFilter,
+
     selectedGroupId, setGroupId,
     accountGroups, setAccountGroups 
   } = useInboxStore();
@@ -285,17 +285,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           </button>
         </div>
         
-        <div className={styles.filterGroup}>
-          <select 
-            className={styles.filterSelect}
-            value={segmentFilter}
-            onChange={(e) => setSegmentFilter(e.target.value as SegmentFilter)}
-          >
-            <option value="all">All Segments</option>
-            <option value="hot_lead">🔥 Hot Leads</option>
-            <option value="cold">❄️ Cold</option>
-          </select>
-        </div>
+
       </div>
     </div>
 

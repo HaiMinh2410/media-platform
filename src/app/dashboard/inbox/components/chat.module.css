@@ -660,6 +660,17 @@
   transform: translateY(-1px);
 }
 
+.isRewriting {
+  opacity: 0.8;
+  cursor: wait;
+  transform: none !important;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+
 .headerActions {
   display: flex;
   gap: 8px;

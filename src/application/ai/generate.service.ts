@@ -102,4 +102,33 @@ export const generateService = {
       error: null,
     };
   },
+
+  /**
+   * Rewrites a draft text to match a specific tone.
+   */
+  async rewrite(text: string, tone: string): Promise<{ data: string | null; error: string | null }> {
+    const template = PROMPTS.REWRITE_MESSAGE;
+
+    const { data: completion, error: groqError } = await groqClient.complete(
+      [
+        { role: 'system' as const, content: template.system },
+        { role: 'user' as const, content: template.user({ text, tone }) },
+      ],
+      {
+        model: AI_MODELS.GENERATE,
+        temperature: 0.7,
+        maxTokens: 256,
+      }
+    );
+
+    if (groqError || !completion) {
+      return { data: null, error: `GROQ_REWRITE_FAILED: ${groqError}` };
+    }
+
+    return {
+      data: completion.content.trim(),
+      error: null,
+    };
+  },
 };
+

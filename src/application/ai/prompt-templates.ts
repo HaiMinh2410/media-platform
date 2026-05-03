@@ -48,4 +48,15 @@ Generate a polite, helpful, and concise response to the user's message.
       return `User said: "${context.text}"`;
     },
   } as PromptTemplate,
+
+  /**
+   * Rewrite Template
+   * Goal: Rewrite a draft message into a specific tone.
+   */
+  REWRITE_MESSAGE: {
+    system: `You are a social media assistant. Rewrite the user's draft message to match the requested tone while preserving the original meaning.
+Return ONLY the rewritten text. No chat, no quotes, no explanations.`,
+    user: (context: { text: string; tone: string }) => `Tone: ${context.tone}\nDraft: "${context.text}"`,
+  } as PromptTemplate,
 };
+

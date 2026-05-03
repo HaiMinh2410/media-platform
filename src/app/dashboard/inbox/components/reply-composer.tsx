@@ -5,6 +5,8 @@ import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { Wand2, BookOpen, Paperclip, Send } from 'lucide-react';
 import { useInboxStore, ToneMode } from '../store/inbox.store';
+import clsx from 'clsx';
+
 
 type SendState = 'idle' | 'sending' | 'error';
 
@@ -34,6 +36,8 @@ export function ReplyComposer({
   const [sendState, setSendState] = useState<SendState>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showSnippets, setShowSnippets] = useState(false);
+  const [isRewriting, setIsRewriting] = useState(false);
+
 
   const { 
     selectedTone, 
@@ -149,6 +153,44 @@ export function ReplyComposer({
       textareaRef.current.focus();
     }
   };
+  
+  const handleRewrite = async () => {
+    const trimmed = text.trim();
+    if (!trimmed || isRewriting) return;
+
+    setIsRewriting(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch('/api/ai/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          text: trimmed,
+          tone: selectedTone
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.data) {
+        setText(data.data);
+        // Adjust textarea height
+        requestAnimationFrame(() => {
+          if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+          }
+        });
+      } else {
+        setErrorMsg(data.error || 'Failed to rewrite text.');
+      }
+    } catch {
+      setErrorMsg('Network error while rewriting.');
+    } finally {
+      setIsRewriting(false);
+    }
+  };
+
 
   const isSending = sendState === 'sending';
 
@@ -170,11 +212,17 @@ export function ReplyComposer({
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
-          <button className={styles.aiRewriteBtn}>
-            <Wand2 size={14} />
-            AI Rewrite
+          <button 
+            type="button"
+            className={clsx(styles.aiRewriteBtn, isRewriting && styles.isRewriting)}
+            onClick={handleRewrite}
+            disabled={isRewriting || !text.trim()}
+          >
+            <Wand2 size={14} className={isRewriting ? styles.spinning : ''} />
+            {isRewriting ? 'Rewriting...' : 'AI Rewrite'}
           </button>
         </div>
+
       
       <div className={styles.replyFormContainer}>
         <form className={styles.replyForm} onSubmit={handleSubmit}>
