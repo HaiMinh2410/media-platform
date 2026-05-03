@@ -7,10 +7,9 @@ import { ChatHeader } from './chat-header';
 import { RightSidebar } from './right-sidebar';
 import { useAiSuggestions } from '../hooks/use-ai-suggestions';
 import { useMetadataRealtime } from '../hooks/use-inbox-realtime';
-import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { useInboxStore } from '../store/inbox.store';
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 
 type RightPanelProps = {
   workspaceId: string;
@@ -121,8 +120,8 @@ export function RightPanel({
   const { isRightPanelVisible, setRightPanelVisible } = useInboxStore();
 
   return (
-    <div className={styles.mainContent}>
-      <div className={styles.chatMain}>
+    <div className="flex flex-1 overflow-hidden">
+      <div className="flex-1 flex flex-col border-r border-white/10">
         <ChatHeader 
           conversationId={conversationId}
           customerName={customerName || externalId}
@@ -142,7 +141,10 @@ export function RightPanel({
         />
       </div>
 
-      <div className={clsx(styles.rightSidebarWrapper, !isRightPanelVisible && styles.collapsedWrapper)}>
+      <div className={cn(
+        "w-[340px] flex flex-col transition-[width] duration-300 ease-in-out overflow-hidden border-l border-white/10 bg-[#0f0f10]/40",
+        !isRightPanelVisible && "w-[60px]"
+      )}>
         <RightSidebar
           workspaceId={workspaceId}
           conversationId={conversationId}

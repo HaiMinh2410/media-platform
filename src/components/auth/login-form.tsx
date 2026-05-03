@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { login } from '@/app/auth/actions';
-import styles from './login-form.module.css';
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +30,7 @@ export function LoginForm() {
   };
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-md" onSubmit={handleSubmit}>
       <Input 
         label="Email" 
         type="email" 
@@ -49,20 +48,24 @@ export function LoginForm() {
         onChange={(e) => setPassword(e.target.value)}
       />
       
-      {error && <div className={styles.errorBanner}>{error}</div>}
+      {error && (
+        <div className="bg-status-error/10 border border-status-error text-status-error p-[10px] rounded-sm text-sm text-center">
+          {error}
+        </div>
+      )}
       
-      <div className={styles.footer}>
-        <Link href="/auth/forgot-password" className={styles.forgot}>
+      <div className="flex justify-end">
+        <Link href="/auth/forgot-password" summerized-link="forgot" className="text-sm text-foreground-secondary hover:text-foreground transition-colors">
           Forgot password?
         </Link>
       </div>
       
-      <Button type="submit" isLoading={isLoading} className={styles.submit}>
+      <Button type="submit" isLoading={isLoading} className="w-full mt-sm">
         Sign In
       </Button>
       
-      <p className={styles.switch}>
-        Don't have an account? <Link href="/auth/register" className="text-gradient">Register</Link>
+      <p className="text-center text-sm text-foreground-secondary mt-sm">
+        Don't have an account? <Link href="/auth/register" className="text-gradient font-semibold">Register</Link>
       </p>
     </form>
   );

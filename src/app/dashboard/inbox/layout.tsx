@@ -1,5 +1,4 @@
 import React from 'react';
-import styles from './inbox.module.css';
 import { MiddlePanel } from './components/middle-panel';
 import { SecondaryHeader } from './components/secondary-header';
 import { createClient } from '@/infrastructure/supabase/server';
@@ -30,11 +29,11 @@ export default async function InboxLayout({
   }
 
   return (
-    <div className={styles.inboxContainer}>
+    <div className="flex flex-col h-full w-full">
       <SecondaryHeader workspaceId={workspace.id} />
-      <div className={styles.inboxContent}>
+      <div className="flex flex-1 h-full w-full overflow-hidden relative">
         <MiddlePanel workspaceId={workspace.id} />
-        <main className={styles.chatArea}>
+        <main className="flex-1 flex flex-col bg-transparent relative overflow-hidden">
           {children}
         </main>
       </div>

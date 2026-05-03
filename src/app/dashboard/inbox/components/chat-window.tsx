@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
-import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { MessageBubble } from './message-bubble';
 import { ChatSkeleton } from './skeletons';
 import { useMessageRealtime } from '../hooks/use-inbox-realtime';
 import { formatChatSeparator } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export type ChatWindowRef = {
   addMessage: (message: MessageWithSender) => void;
@@ -23,7 +23,6 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
   const observerTarget = useRef<HTMLDivElement>(null);
   const previousScrollHeight = useRef<number>(0);
   const isInitialLoad = useRef(true);
-  // Track IDs so Realtime duplicates from the initial fetch are ignored
   const seenIds = useRef<Set<string>>(new Set());
 
   const fetchMessages = useCallback(async (cursor?: string | null) => {
@@ -33,7 +32,6 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
       url.searchParams.set('limit', '50');
       if (cursor) url.searchParams.set('cursor', cursor);
 
-      // Record scroll height before adding new items
       if (scrollRef.current) {
         previousScrollHeight.current = scrollRef.current.scrollHeight;
       }
@@ -42,14 +40,10 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
       const data = await res.json();
 
       if (data.data) {
-        // API returns newest first. We reverse to make oldest first for chronological order visually.
         const chronologicalChunk = [...data.data].reverse() as MessageWithSender[];
-        
-        // Track seen IDs to avoid realtime duplicates
         chronologicalChunk.forEach(m => seenIds.current.add(m.id));
         
         setMessages(prev => {
-          // If cursor is present, we are prepending older chunks at the top
           return cursor ? [...chronologicalChunk, ...prev] : chronologicalChunk;
         });
         
@@ -62,36 +56,30 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
     }
   }, [conversationId]);
 
-  // Initial fetch + mark conversation as read
   useEffect(() => {
     isInitialLoad.current = true;
     seenIds.current = new Set();
     fetchMessages(null);
 
-    // Fire-and-forget: mark all messages as read when entering the conversation
     fetch(`/api/conversations/${conversationId}/read`, { method: 'PATCH' }).catch(
       (err) => console.warn('[ChatWindow] Failed to mark conversation as read:', err)
     );
   }, [fetchMessages, conversationId]);
 
-  // Handle scroll position maintenance
   useEffect(() => {
     if (!scrollRef.current) return;
     const scrollEl = scrollRef.current;
 
     if (isInitialLoad.current && messages.length > 0) {
-      // First load: scroll to bottom
       scrollEl.scrollTo(0, scrollEl.scrollHeight);
       isInitialLoad.current = false;
     } else if (messages.length > 0 && previousScrollHeight.current > 0) {
-      // Older items fetched: maintain user's view by adjusting scroll
       const heightDifference = scrollEl.scrollHeight - previousScrollHeight.current;
       scrollEl.scrollTo(0, scrollEl.scrollTop + heightDifference);
       previousScrollHeight.current = 0;
     }
   }, [messages]);
 
-  // Fetch more when scrolling to top
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => {
@@ -109,16 +97,12 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
     return () => observer.disconnect();
   }, [nextCursor, loading, fetchMessages]);
 
-  // Realtime: append new messages arriving from Supabase
   const handleNewMessage = useCallback((message: MessageWithSender) => {
-    // Dedup: ignore if we already fetched this message in the initial load
-    // or if it was added optimistically via addMessage ref
     if (seenIds.current.has(message.id)) return;
     seenIds.current.add(message.id);
 
     setMessages(prev => [...prev, message]);
 
-    // Auto-scroll to bottom when new message arrives (only if already at bottom)
     requestAnimationFrame(() => {
       const el = scrollRef.current;
       if (!el) return;
@@ -129,13 +113,11 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
     });
   }, []);
 
-  // Realtime: handle message updates (like read status)
   const handleUpdateMessage = useCallback((updated: any) => {
     setMessages(prev => prev.map(m => {
       if (m.id === updated.id) {
         return {
           ...m,
-          // Support both camelCase and snake_case from DB/Realtime
           is_read: updated.is_read ?? updated.isRead ?? m.is_read,
           is_delivered: updated.is_delivered ?? updated.isDelivered ?? m.is_delivered,
         };
@@ -144,7 +126,6 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
     }));
   }, []);
 
-  // Expose methods to parent
   useImperativeHandle(ref, () => ({
     addMessage: (message: MessageWithSender) => {
       handleNewMessage(message);
@@ -153,10 +134,9 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
       const element = document.getElementById(`msg-${messageId}`);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Add a temporary highlight effect
-        element.classList.add(styles.highlightMessage);
+        element.classList.add("ring-2", "ring-accent-primary", "ring-offset-2", "ring-offset-[#1a1a1e]", "rounded-[20px]", "animate-pulse");
         setTimeout(() => {
-          element.classList.remove(styles.highlightMessage);
+          element.classList.remove("ring-2", "ring-accent-primary", "ring-offset-2", "ring-offset-[#1a1a1e]", "rounded-[20px]", "animate-pulse");
         }, 2000);
       } else {
         console.warn(`[ChatWindow] Message ${messageId} not found in current window`);
@@ -171,21 +151,18 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
   });
 
   return (
-    <div className={styles.messagesArea} ref={scrollRef}>
-      {/* Invisible target at the top for infinite scroll backwards */}
+    <div className="flex-1 overflow-y-auto p-6 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" ref={scrollRef}>
       <div ref={observerTarget} style={{ height: '1px', opacity: 0 }} />
 
       {loading && nextCursor && (
-        <div className={styles.loadingTop}>Loading older messages...</div>
+        <div className="p-4 text-center text-foreground-tertiary text-[0.875rem]">Loading older messages...</div>
       )}
       
-      {/* Initial loading state */}
       {loading && messages.length === 0 && <ChatSkeleton />}
 
       {messages.map((msg, index) => {
         const prevMsg = index > 0 ? messages[index - 1] : null;
         
-        // Logic for separator: different day OR same day but > 20 mins gap
         let showSeparator = false;
         if (!prevMsg) {
           showSeparator = true;
@@ -207,8 +184,8 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
         return (
           <React.Fragment key={msg.id}>
             {showSeparator && (
-              <div className={styles.timelineSeparator}>
-                <span className={styles.timelineText}>
+              <div className="flex justify-center items-center my-6 relative before:content-[''] before:absolute before:left-0 before:right-0 before:top-1/2 before:h-px before:bg-white/5">
+                <span className="bg-[#1a1a1e] px-4 py-1 rounded-full text-[0.7rem] font-medium text-foreground-tertiary border border-white/10 relative z-10">
                   {formatChatSeparator(msg.createdAt)}
                 </span>
               </div>
@@ -222,7 +199,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
       })}
       
       {!loading && messages.length === 0 && (
-        <div className={styles.loadingTop}>No messages found for this conversation.</div>
+        <div className="p-4 text-center text-foreground-tertiary text-[0.875rem]">No messages found for this conversation.</div>
       )}
     </div>
   );

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter, usePathname } from 'next/navigation';
 import { toast } from 'sonner';
-import styles from './middle-panel.module.css';
 import { ConversationWithLastMessage } from '@/domain/types/messaging';
 import { ThreadCard } from './thread-card';
 import { ConversationSkeleton } from './skeletons';
@@ -14,7 +13,7 @@ import { Search, MoreHorizontal, Settings, Plus, Filter, TrendingUp, TrendingDow
 import { useInboxStore } from '../store/inbox.store';
 import { getConversationAction } from '@/application/actions/inbox.actions';
 import { getCurrentWorkspaceUnreadCountAction } from '@/application/actions/workspace.actions';
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 
 export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const [conversations, setConversations] = useState<ConversationWithLastMessage[]>([]);
@@ -31,8 +30,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const filterRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
   
-  // Power user feature: Multi-thread tabs managed via useInboxStore
-
   const { 
     viewMode, platform, segmentFilter, 
     middlePanelWidth, setMiddlePanelWidth, 
@@ -43,8 +40,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   
   const [totalUnread, setTotalUnread] = useState(0);
 
-
-  
   const params = useParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -116,28 +111,23 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
       if (cursor) url.searchParams.set('cursor', cursor);
       if (searchQuery) url.searchParams.set('search', searchQuery);
       
-      // Apply segment filter from global store (SecondaryHeader)
       if (segmentFilter === 'unread') url.searchParams.set('unread', 'true');
       if (segmentFilter === 'vip') url.searchParams.set('is_vip', 'true');
       if (segmentFilter === 'needs_reply') url.searchParams.set('status', 'open');
       if (segmentFilter === 'hot_lead') url.searchParams.set('priority', 'high');
       if (segmentFilter === 'cold') url.searchParams.set('priority', 'low');
 
-      // Apply global scopes from LeftPanel
       if (selectedGroupId) url.searchParams.set('groupId', selectedGroupId);
       if (platform !== 'all') url.searchParams.set('platform', platform);
 
-      // Handle Filter from the Filter dropdown
       if (filterBy === 'unread') {
         url.searchParams.set('unread', 'true');
       } else if (filterBy === 'priority') {
         url.searchParams.set('priority', 'high');
       } else if (filterBy !== 'all') {
-        // Assume it's a tag
         url.searchParams.set('tag', filterBy);
       }
 
-      // Handle Sort Field & Order
       url.searchParams.set('sortBy', sortField === 'date' ? 'lastMessageAt' : 'customer_name');
       url.searchParams.set('sortOrder', sortOrder);
 
@@ -155,7 +145,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     }
   }, [workspaceId, searchQuery, filterBy, sortField, sortOrder, platform, segmentFilter, selectedGroupId]);
 
-
   useEffect(() => {
     fetchRef.current = () => fetchConversations(null, true);
   }, [fetchConversations]);
@@ -164,7 +153,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     fetchConversations(null, true);
   }, [fetchConversations, refreshCounter]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
@@ -178,11 +166,10 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Infinite Scroll via Virtualizer
   const virtualizer = useVirtualizer({
     count: nextCursor ? conversations.length + 1 : conversations.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 84, // Approx ThreadCard height
+    estimateSize: () => 84,
     overscan: 10,
   });
 
@@ -206,7 +193,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
         return;
       }
 
-      // Re-fetch the full conversation data to ensure accurate unread count and state
       const { data: updatedConv } = await getConversationAction(partial.id);
       if (!updatedConv) return;
 
@@ -242,7 +228,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     [filterBy, sortField, sortOrder]
   );
 
-
   const handleMessageReceived = useCallback((payload: { conversationId: string; content: string; createdAt: Date }) => {
     setConversations(prev => {
       const existing = prev.find(c => c.id === payload.conversationId);
@@ -270,7 +255,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
   const handleConversationDeleted = useCallback((conversationId: string) => {
     setConversations(prev => prev.filter(c => c.id !== conversationId));
     
-    // If the currently viewed conversation is deleted, navigate away
     if (activeIdRef.current === conversationId) {
       router.push('/dashboard/inbox');
       toast.info('Conversation was deleted');
@@ -284,7 +268,6 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     onMessageReceived: handleMessageReceived
   });
 
-  // Fetch total unread for header
   const refreshTotalUnread = useCallback(() => {
     getCurrentWorkspaceUnreadCountAction().then(res => {
       if (res.data !== null) setTotalUnread(res.data);
@@ -300,16 +283,13 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
     onRefresh: refreshTotalUnread
   });
 
-  // Fetch available tags and sync to global store
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        // Fetch all tags for general use (sidebar, etc)
         const res = await fetch(`/api/tags?workspaceId=${workspaceId}`);
         const json = await res.json();
         if (json.data) setAvailableTags(json.data);
 
-        // Fetch only used tags for the filter bar
         const usedRes = await fetch(`/api/tags?workspaceId=${workspaceId}&onlyUsed=true`);
         const usedJson = await usedRes.json();
         if (usedJson.data) setUsedTags(usedJson.data);
@@ -318,79 +298,76 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
       }
     };
     fetchTags();
-  }, [workspaceId, setAvailableTags, refreshCounter]); // Also refresh tags when counter changes
+  }, [workspaceId, setAvailableTags, refreshCounter]);
 
   if (pathname?.includes('/flow')) return null;
 
   return (
     <aside 
-      className={styles.middlePanel} 
+      className="relative min-w-[280px] max-w-[500px] border-r border-white/10 bg-white/[0.01] flex flex-col h-full shrink-0" 
       ref={panelRef}
       style={{ width: middlePanelWidth }}
     >
       <div 
-        className={styles.resizeHandle} 
+        className="absolute -right-1 top-0 bottom-0 w-2 cursor-col-resize z-30 transition-colors hover:bg-indigo-500/30" 
         onMouseDown={startResizing}
       />
 
-      <div className={styles.header}>
-        <div className={styles.searchWrapper}>
-          <Search className={styles.searchIcon} size={16} />
+      <div className="p-[16px_20px_12px]">
+        <div className="relative w-full mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary pointer-events-none" size={16} />
           <input 
             type="text" 
             placeholder="Search conversations..." 
-            className={styles.searchBox}
+            className="w-full p-[10px_16px_10px_38px] rounded-md border border-white/10 bg-black/20 text-foreground text-[0.9375rem] outline-none transition-all focus:border-accent-primary focus:bg-black/40 focus:ring-3 focus:ring-accent-primary/20"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
         
-        {/* Filters are now managed in the SecondaryHeader */}
-
-        {/* Inbox Sort Bar */}
-        <div className={styles.sortBar}>
-          <div className={styles.countInfo}>
+        <div className="flex justify-between items-center pb-2 border-b border-white/10 text-[0.75rem] text-foreground-tertiary">
+          <div className="font-medium text-foreground-tertiary">
             <span>{conversations.length} items</span>
           </div>
           
-          <div className={styles.controls}>
-            <div className={styles.controlGroup} ref={filterRef}>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 bg-white/5 p-[2px_6px] rounded-md border border-white/10 shrink-0 relative" ref={filterRef}>
               <div 
-                className={styles.customFilterTrigger} 
+                className="flex items-center justify-between gap-1 cursor-pointer text-[0.75rem] font-medium text-foreground-secondary w-[90px] min-w-0" 
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
               >
-                <span>
+                <span className="truncate">
                   {filterBy === 'all' ? 'Tất cả' : 
                    filterBy === 'unread' ? 'Chưa đọc' : 
                    filterBy.split('::')[0]}
                 </span>
-                <ChevronDown size={12} className={clsx(styles.chevron, isFilterOpen && styles.chevronRotate)} />
+                <ChevronDown size={12} className={cn("transition-transform duration-200 text-foreground-tertiary", isFilterOpen && "rotate-180")} />
               </div>
 
               {isFilterOpen && (
-                <div className={styles.customFilterMenu}>
+                <div className="absolute top-full left-0 mt-1 bg-[#1a1a1e] border border-white/10 rounded-lg shadow-2xl z-[100] w-[180px] overflow-hidden flex flex-col">
                   <div 
-                    className={clsx(styles.filterOption, filterBy === 'all' && styles.filterOptionActive)}
+                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", filterBy === 'all' && "bg-accent-primary/10 text-accent-primary")}
                     onClick={() => { setFilterBy('all'); setIsFilterOpen(false); }}
                   >
                     Tất cả
                   </div>
                   <div 
-                    className={clsx(styles.filterOption, filterBy === 'unread' && styles.filterOptionActive)}
+                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", filterBy === 'unread' && "bg-accent-primary/10 text-accent-primary")}
                     onClick={() => { setFilterBy('unread'); setIsFilterOpen(false); }}
                   >
                     Chưa đọc
                   </div>
                   
-                  <div className={styles.filterGroupTitle}>Lọc theo nhãn</div>
-                  <div className={styles.filterScrollArea}>
+                  <div className="p-[8px_12px_4px] text-[0.65rem] font-bold text-foreground-tertiary uppercase tracking-wider border-top border-white/10 mt-1">Lọc theo nhãn</div>
+                  <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
                     {usedTags.map(tag => {
                       const name = tag.split('::')[0];
                       const isActive = filterBy === tag;
                       return (
                         <div 
                           key={tag} 
-                          className={clsx(styles.filterOption, isActive && styles.filterOptionActive)}
+                          className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", isActive && "bg-accent-primary/10 text-accent-primary")}
                           onClick={() => { setFilterBy(tag); setIsFilterOpen(false); }}
                         >
                           {name}
@@ -403,27 +380,27 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
               )}
             </div>
 
-            <div className={styles.controlGroup} ref={sortRef}>
+            <div className="flex items-center gap-1 bg-white/5 p-[2px_6px] rounded-md border border-white/10 shrink-0 relative" ref={sortRef}>
               <div 
-                className={styles.customSortTrigger} 
+                className="flex items-center justify-between gap-1 cursor-pointer text-[0.75rem] font-medium text-foreground-secondary w-[50px] min-w-0" 
                 onClick={() => setIsSortOpen(!isSortOpen)}
               >
-                <span>
+                <span className="truncate">
                   {sortField === 'date' ? 'Date' : 'Name'}
                 </span>
-                <ChevronDown size={12} className={clsx(styles.chevron, isSortOpen && styles.chevronRotate)} />
+                <ChevronDown size={12} className={cn("transition-transform duration-200 text-foreground-tertiary", isSortOpen && "rotate-180")} />
               </div>
 
               {isSortOpen && (
-                <div className={styles.customSortMenu}>
+                <div className="absolute top-full left-0 mt-1 bg-[#1a1a1e] border border-white/10 rounded-lg shadow-2xl z-[100] w-[100px] overflow-hidden flex flex-col">
                   <div 
-                    className={clsx(styles.filterOption, sortField === 'date' && styles.filterOptionActive)}
+                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", sortField === 'date' && "bg-accent-primary/10 text-accent-primary")}
                     onClick={() => { setSortField('date'); setIsSortOpen(false); }}
                   >
                     Date
                   </div>
                   <div 
-                    className={clsx(styles.filterOption, sortField === 'name' && styles.filterOptionActive)}
+                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", sortField === 'name' && "bg-accent-primary/10 text-accent-primary")}
                     onClick={() => { setSortField('name'); setIsSortOpen(false); }}
                   >
                     Name
@@ -432,7 +409,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
               )}
 
               <button 
-                className={styles.orderBtn}
+                className="flex items-center justify-center bg-transparent border-none text-foreground-tertiary cursor-pointer p-0.5 rounded transition-all hover:text-foreground hover:bg-white/5"
                 onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
                 title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
               >
@@ -443,8 +420,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
         </div>
       </div>
 
-      {/* Virtualized List */}
-      <div className={styles.listContainer} ref={parentRef}>
+      <div className="flex-1 overflow-y-auto relative scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" ref={parentRef}>
         {loading && conversations.length === 0 ? (
           <div className="p-4 space-y-2">
             <ConversationSkeleton />
@@ -452,12 +428,12 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
             <ConversationSkeleton />
           </div>
         ) : conversations.length === 0 ? (
-          <div className={styles.empty}>
+          <div className="p-10 text-center text-foreground-tertiary">
             <p>No conversations found</p>
           </div>
         ) : (
           <div 
-            className={styles.virtualInner}
+            className="w-full relative px-3 py-2"
             style={{ height: `${virtualizer.getTotalSize()}px` }}
           >
             {virtualItems.map((virtualItem) => {
@@ -477,7 +453,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
                   }}
                 >
                   {isLoaderRow ? (
-                    <div className={styles.loading}>Loading more...</div>
+                    <div className="p-4 text-center text-foreground-tertiary">Loading more...</div>
                   ) : (
                     <ThreadCard 
                       conversation={conv} 

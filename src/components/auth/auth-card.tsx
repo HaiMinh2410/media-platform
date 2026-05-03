@@ -1,5 +1,4 @@
 import React from 'react';
-import styles from './auth-card.module.css';
 
 interface AuthCardProps {
   title: string;
@@ -9,15 +8,15 @@ interface AuthCardProps {
 
 export function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
-    <div className={`${styles.card} glass`}>
-      <div className={styles.header}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}></div>
+    <div className="w-full max-w-[440px] p-xl rounded-lg flex flex-col gap-lg animate-in fade-in slide-in-from-bottom-5 duration-700 glass">
+      <div className="text-center flex flex-col items-center gap-sm">
+        <div className="mb-md">
+          <div className="w-12 h-12 bg-[var(--accent-gradient)] rounded-md -rotate-[10deg] relative after:content-[''] after:absolute after:inset-1 after:border-2 after:border-white/40 after:rounded-sm"></div>
         </div>
-        <h1 className={styles.title}>{title}</h1>
-        <p className={styles.subtitle}>{subtitle}</p>
+        <h1 className="text-[2rem] text-foreground">{title}</h1>
+        <p className="text-foreground-secondary text-base">{subtitle}</p>
       </div>
-      <div className={styles.content}>
+      <div className="flex flex-col gap-md">
         {children}
       </div>
     </div>

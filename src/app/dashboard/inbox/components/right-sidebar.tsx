@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
-import styles from './chat.module.css';
 import { AiSuggestionPanel } from './ai-suggestion-panel';
 import { ContactEditModal } from './modals/contact-edit-modal';
 import { ManageTagsModal } from './modals/manage-tags-modal';
 import { useInboxStore } from '../store/inbox.store';
+import { cn } from '@/lib/utils';
 import { 
   Search, X, User, Calendar, MessageSquare, Loader2, 
   MoreHorizontal, ChevronRight, Camera, Info, Plus, Trash2, ChevronDown,
@@ -485,45 +485,48 @@ export function RightSidebar({
     const otherThreads = activeThreads.filter(t => t.id !== conversationId);
     
     return (
-      <aside className={clsx(styles.rightSidebar, styles.collapsed)}>
-        <div className={styles.collapsedContent}>
+      <aside className="w-full h-full p-3 flex flex-col items-center gap-4 bg-[#1a1a1e] border-l border-white/5">
+        <div className="flex flex-col items-center gap-4 w-full">
           {/* Active Conversation Avatar - Toggles Sidebar */}
           <div 
-            className={clsx(styles.collapsedAvatar, styles.activeTabCollapsed)} 
+            className={cn(
+              "relative w-9 h-9 rounded-full bg-surface-primary border-2 border-white/10 flex items-center justify-center text-[0.875rem] font-bold text-foreground cursor-pointer transition-all hover:scale-105 hover:border-accent-primary shadow-lg",
+              "border-accent-primary bg-accent-primary/10 ring-2 ring-accent-primary/20"
+            )}
             onClick={onToggleCollapse}
             title={customerName || 'Active Conversation'}
           >
             {customerAvatar ? (
-              <img src={customerAvatar} alt={customerName} className={styles.avatarImg} />
+              <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover rounded-full" />
             ) : (
               customerName?.charAt(0) || 'U'
             )}
-            <div className={styles.platformIndicator}>
+            <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] bg-white border-[1.5px] border-[#1a1a1e] rounded-full flex items-center justify-center text-[#E1306C] shadow-lg z-10">
               <Camera size={10} />
             </div>
           </div>
 
           {/* Divider */}
-          {otherThreads.length > 0 && <div className={styles.collapsedDivider} />}
+          {otherThreads.length > 0 && <div className="w-6 h-px bg-white/10 opacity-50 my-2" />}
 
           {/* Other Active Threads */}
           {otherThreads.length > 0 && (
-            <div className={styles.multiThreadList}>
+            <div className="flex flex-col items-center gap-5 w-full">
               {otherThreads.map(t => (
                 <div 
                   key={t.id} 
-                  className={styles.threadTabCollapsed}
+                  className="group relative w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-white/5 cursor-pointer transition-all hover:scale-110 hover:bg-white/10 hover:border-foreground-tertiary"
                   onClick={() => router.push(`/dashboard/inbox/${t.id}`)}
                   title={t.sender_name || 'Switch conversation'}
                 >
                   {t.customer_avatar ? (
-                    <img src={t.customer_avatar} alt="" className={styles.avatarImg} style={{ borderRadius: '50%' }} />
+                    <img src={t.customer_avatar} alt="" className="w-full h-full object-cover rounded-full" />
                   ) : (
-                    <span>{t.sender_name?.charAt(0) || '?'}</span>
+                    <span className="text-[0.75rem] font-bold text-foreground-secondary">{t.sender_name?.charAt(0) || '?'}</span>
                   )}
                   
                   <button 
-                    className={styles.removeThreadBtn}
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full hidden group-hover:flex items-center justify-center z-10 border-2 border-[#1a1a1e] transition-all hover:scale-110"
                     onClick={(e) => {
                       e.stopPropagation();
                       removeActiveThread(t.id);
@@ -542,23 +545,29 @@ export function RightSidebar({
   }
 
   return (
-    <aside className={styles.rightSidebar} data-sidebar="right">
-      <div className={styles.workspaceTabs}>
+    <aside className="flex flex-col h-full bg-[#1a1a1e] border-l border-white/5" data-sidebar="right">
+      <div className="flex items-center gap-1 p-2 border-b border-white/10">
         <button 
-          className={`${styles.tabBtn} ${activeTab === 'detail' ? styles.tabActive : ''}`}
+          className={cn(
+            "flex-1 py-2 text-[0.8rem] font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-white/5",
+            activeTab === 'detail' && "text-accent-primary bg-accent-primary/10"
+          )}
           onClick={() => setActiveTab('detail')}
         >
           Detail
         </button>
         <button 
-          className={`${styles.tabBtn} ${activeTab === 'ai' ? styles.tabActive : ''}`}
+          className={cn(
+            "flex-1 py-2 text-[0.8rem] font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-white/5",
+            activeTab === 'ai' && "text-accent-primary bg-accent-primary/10"
+          )}
           onClick={() => setActiveTab('ai')}
         >
           AI Assist
         </button>
         {activeTab === 'search' && (
           <button 
-            className={`${styles.tabBtn} ${styles.tabActive}`}
+            className="flex-1 py-2 text-[0.8rem] font-semibold text-accent-primary bg-accent-primary/10 rounded-md transition-all"
             onClick={() => setActiveTab('search')}
           >
             Search
@@ -566,43 +575,43 @@ export function RightSidebar({
         )}
       </div>
 
-      <div className={styles.tabContent}>
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
         {activeTab === 'detail' && (
-          <div className={styles.detailSection}>
-            <div className={styles.profileHeader}>
-              <div className={styles.avatar}>
+          <div className="p-4 flex flex-col gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-surface-primary border border-white/10 overflow-hidden flex items-center justify-center text-lg font-bold">
                 {customerAvatar ? (
-                  <img src={customerAvatar} alt={customerName} className={styles.avatarImg} />
+                  <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover" />
                 ) : (
                   customerName?.charAt(0) || 'U'
                 )}
               </div>
-              <div className={styles.profileInfo}>
-                <h4 className={styles.profileName}>{customerName || 'Unknown'}</h4>
+              <div className="flex-1 flex flex-col gap-0.5">
+                <h4 className="text-[0.9375rem] font-bold text-foreground truncate">{customerName || 'Unknown'}</h4>
                 {platform === 'instagram' ? (
                   customerUsername ? (
                     <a 
                       href={`https://www.instagram.com/${customerUsername}/`} 
                       target="_blank" 
                       rel="noreferrer" 
-                      className={styles.profileLink}
+                      className="text-[0.75rem] text-accent-primary hover:underline"
                     >
                       Xem trang cá nhân
                     </a>
                   ) : (
                     <>
                       <span 
-                        className={styles.profileLinkDisabled} 
+                        className="text-[0.75rem] text-foreground-tertiary cursor-help" 
                         title="Chưa đồng bộ được username Instagram. Nhấn 'Làm mới' để thử lại."
                       >
                         Chưa có liên kết
                       </span>
                       <button 
-                        className={styles.syncBtn} 
+                        className="inline-flex items-center gap-1 text-[0.7rem] text-foreground-tertiary hover:text-foreground mt-1 transition-colors disabled:opacity-50" 
                         onClick={handleSyncProfile}
                         disabled={isSyncing}
                       >
-                        <RefreshCw size={12} className={clsx(isSyncing && styles.spin)} />
+                        <RefreshCw size={12} className={cn(isSyncing && "animate-spin")} />
                         Làm mới
                       </button>
                     </>
@@ -613,82 +622,82 @@ export function RightSidebar({
                       href={customerLink} 
                       target="_blank" 
                       rel="noreferrer" 
-                      className={styles.profileLink}
+                      className="text-[0.75rem] text-accent-primary hover:underline"
                     >
                       Xem trang cá nhân
                     </a>
                   ) : (
                     <>
                       <span 
-                        className={styles.profileLinkDisabled} 
+                        className="text-[0.75rem] text-foreground-tertiary cursor-help" 
                         title="Facebook hạn chế link trang cá nhân qua API nếu không có quyền user_link. Nhấn 'Làm mới' để thử lại."
                       >
                         Chưa có liên kết
                       </span>
                       <button 
-                        className={styles.syncBtn} 
+                        className="inline-flex items-center gap-1 text-[0.7rem] text-foreground-tertiary hover:text-foreground mt-1 transition-colors disabled:opacity-50" 
                         onClick={handleSyncProfile}
                         disabled={isSyncing}
                       >
-                        <RefreshCw size={12} className={clsx(isSyncing && styles.spin)} />
+                        <RefreshCw size={12} className={cn(isSyncing && "animate-spin")} />
                         Làm mới
                       </button>
                     </>
                   )
                 )}
               </div>
-              <div className={styles.headerActions}>
-                <button className={styles.iconBtn} onClick={onToggleCollapse}>
+              <div className="flex items-center gap-1">
+                <button className="p-2 text-foreground-tertiary hover:text-foreground hover:bg-white/5 rounded-md transition-all" onClick={onToggleCollapse}>
                   <ChevronRight size={18} />
                 </button>
               </div>
             </div>
 
-            <div className={styles.detailItem}>
-              <div className={styles.statusHeader}>
-                <h3 className={styles.detailTitle}>Chi tiết liên hệ</h3>
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <h3 className="text-[0.75rem] font-bold text-foreground-tertiary uppercase tracking-wider">Chi tiết liên hệ</h3>
                 {hasContactInfo && (
-                  <div className={styles.contactActions}>
-                    <span className={styles.statusAction} onClick={() => setIsEditingContact(true)}>Chỉnh sửa</span>
-                    <span className={styles.deleteAction} onClick={handleDeleteContact}>Xóa</span>
+                   <div className="flex items-center gap-3">
+                    <span className="text-[0.75rem] text-accent-primary cursor-pointer hover:underline" onClick={() => setIsEditingContact(true)}>Chỉnh sửa</span>
+                    <span className="text-[0.75rem] text-red-400 cursor-pointer hover:underline" onClick={handleDeleteContact}>Xóa</span>
                   </div>
                 )}
               </div>
-              <div className={styles.contactDetails}>
+              <div className="flex flex-col gap-2">
                 {hasContactInfo ? (
                   <>
-                    <p className={styles.addedLabel}>Chi tiết đã thêm</p>
+                    <p className="text-[0.7rem] font-bold text-foreground-tertiary uppercase tracking-wider mb-1">Chi tiết đã thêm</p>
                     {contactInfo.phone && (
-                      <div className={styles.contactRow}>
-                        <Phone size={16} className={styles.contactIcon} />
-                        <span className={styles.contactValue}>{contactInfo.phone}</span>
+                      <div className="flex items-center gap-2 text-[0.8125rem] text-foreground-secondary">
+                        <Phone size={16} className="text-foreground-tertiary" />
+                        <span className="truncate">{contactInfo.phone}</span>
                       </div>
                     )}
                     {contactInfo.email && (
-                      <div className={styles.contactRow}>
-                        <Mail size={16} className={styles.contactIcon} />
-                        <span className={styles.contactValue}>{contactInfo.email}</span>
+                      <div className="flex items-center gap-2 text-[0.8125rem] text-foreground-secondary">
+                        <Mail size={16} className="text-foreground-tertiary" />
+                        <span className="truncate">{contactInfo.email}</span>
                       </div>
                     )}
                     {contactInfo.birthday && (
-                      <div className={styles.contactRow}>
-                        <Cake size={16} className={styles.contactIcon} />
-                        <span className={styles.contactValue}>
+                      <div className="flex items-center gap-2 text-[0.8125rem] text-foreground-secondary">
+                        <Cake size={16} className="text-foreground-tertiary" />
+                        <span className="truncate">
                           {new Date(contactInfo.birthday).getDate()} tháng {new Date(contactInfo.birthday).getMonth() + 1}
                         </span>
                       </div>
                     )}
                     {contactInfo.address && (
-                      <div className={styles.contactRow}>
-                        <Home size={16} className={styles.contactIcon} />
-                        <span className={styles.contactValue}>{contactInfo.address}</span>
+                      <div className="flex items-center gap-2 text-[0.8125rem] text-foreground-secondary">
+                        <Home size={16} className="text-foreground-tertiary" />
+                        <span className="truncate">{contactInfo.address}</span>
                       </div>
                     )}
                   </>
                 ) : (
                   <>
-                    <p className={styles.detailDesc}>Bổ sung chi tiết về người liên hệ này.</p>
-                    <button className={styles.addDetailBtn} onClick={() => setIsEditingContact(true)}>
+                    <p className="text-[0.8125rem] text-foreground-tertiary leading-normal mb-1">Bổ sung chi tiết về người liên hệ này.</p>
+                    <button className="flex items-center justify-center gap-2 w-full py-2 border border-dashed border-white/20 rounded-lg text-[0.8125rem] text-foreground-tertiary transition-all hover:border-white/40 hover:text-foreground-secondary" onClick={() => setIsEditingContact(true)}>
                       <Plus size={16} /> Thêm chi tiết
                     </button>
                   </>
@@ -696,13 +705,13 @@ export function RightSidebar({
               </div>
             </div>
 
-            <div className={styles.detailItem}>
-              <div className={styles.statusHeader}>
-                <h3 className={styles.detailTitle}>Hoạt động</h3>
-                <div className={styles.headerActions}>
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <h3 className="text-[0.75rem] font-bold text-foreground-tertiary uppercase tracking-wider">Hoạt động</h3>
+                <div className="flex items-center gap-2">
                   {isLead && (
                     <span 
-                      className={styles.statusAction} 
+                      className="text-[0.75rem] text-accent-primary cursor-pointer hover:underline" 
                       onClick={() => {
                         setIsLead(false);
                         handleUpdateLeadStatus('none');
@@ -712,19 +721,18 @@ export function RightSidebar({
                       Bỏ đánh dấu
                     </span>
                   )}
-                  <span className={styles.tagBadge}>Khuyên dùng</span>
+                  <span className="text-[0.625rem] font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-foreground-tertiary">Khuyên dùng</span>
                 </div>
               </div>
               
-              <h3 className={styles.detailTitle} style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                Giai đoạn khách hàng tiềm năng <Info size={14} className={styles.infoIcon} />
+              <h3 className="text-[0.8125rem] font-semibold text-foreground-secondary flex items-center gap-1 mt-1">
+                Giai đoạn khách hàng tiềm năng <Info size={14} className="text-foreground-tertiary" />
               </h3>
 
-              <div className={styles.leadStatusDropdown} ref={dropdownRef}>
+              <div className="relative w-full mt-1" ref={dropdownRef}>
                 {!isLead ? (
                   <div 
-                    className={styles.dropdownTrigger} 
-                    style={{ justifyContent: 'center', color: 'var(--fg-secondary)' }}
+                    className="flex items-center justify-center w-full p-2.5 bg-white/5 border border-white/10 rounded-lg text-[0.875rem] text-foreground-secondary cursor-pointer transition-all hover:bg-white/10 hover:border-accent-primary"
                     onClick={() => {
                       setIsLead(true);
                       handleUpdateLeadStatus('new');
@@ -735,62 +743,75 @@ export function RightSidebar({
                   </div>
                 ) : (
                   <div 
-                    className={styles.dropdownTrigger} 
+                    className="flex items-center justify-between w-full p-2.5 bg-white/5 border border-white/10 rounded-lg text-[0.875rem] text-foreground cursor-pointer transition-all hover:bg-white/10 hover:border-accent-primary"
                     onClick={toggleLeadStatus}
                   >
                     <span>{
                       leadStages.find(s => s.id === leadStatus)?.label || 'Chọn giai đoạn'
                     }</span>
-                    <ChevronDown size={16} className={clsx(isLeadStatusOpen && styles.rotate180)} />
+                    <ChevronDown size={16} className={cn(isLeadStatusOpen && "rotate-180 transition-transform")} />
                   </div>
                 )}
 
                 {isLeadStatusOpen && isMounted && createPortal(
                   <div 
                     ref={menuRef}
-                    className={clsx(styles.leadStatusMenu, dropdownDirection === 'up' && styles.leadStatusMenuUp)}
+                    className={cn(
+                      "fixed bg-[#1a1a1e] border border-white/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
+                      dropdownDirection === 'up' && "mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
+                    )}
                     style={{
-                      position: 'fixed',
                       top: dropdownDirection === 'down' ? dropdownPos.top + 42 : 'auto',
                       bottom: dropdownDirection === 'up' ? window.innerHeight - dropdownPos.top + 2 : 'auto',
                       left: dropdownPos.left,
-                      right: 'auto',
                       width: dropdownPos.width,
-                      zIndex: 10000,
                       maxHeight: dropdownDirection === 'down' 
                         ? window.innerHeight - dropdownPos.top - 60 
                         : dropdownPos.top - 20
                     }}
                   >
-                    <div className={styles.menuList}>
+                    <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-white/10">
                       {leadStages.map((stage) => (
                         <div 
                           key={stage.id} 
-                          className={clsx(styles.menuItem, leadStatus === stage.id && styles.menuItemActive)}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-white/5",
+                            leadStatus === stage.id && "bg-accent-primary/10"
+                          )}
                           onClick={() => {
                             handleUpdateLeadStatus(stage.id);
                             setIsLeadStatusOpen(false);
                           }}
                         >
-                          <div className={styles.itemRadio}>
-                            <div className={clsx(styles.radioOuter, leadStatus === stage.id && styles.radioActive)}>
-                              {leadStatus === stage.id && <div className={styles.radioInner} />}
+                          <div className="pt-0.5">
+                            <div className={cn(
+                              "w-4.5 h-4.5 rounded-full border-2 border-white/10 flex items-center justify-center transition-all",
+                              leadStatus === stage.id && "border-accent-primary"
+                            )}>
+                              {leadStatus === stage.id && <div className="w-2.5 h-2.5 rounded-full bg-accent-primary" />}
                             </div>
                           </div>
-                          <div className={styles.itemContent}>
-                            <div className={styles.itemHeader}>
-                              <span className={styles.itemLabel}>{stage.label}</span>
-                              <span className={clsx(styles.statusBadge, styles[`badge${stage.badge.charAt(0).toUpperCase() + stage.badge.slice(1)}`])}>
+                          <div className="flex-1">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-bold text-[0.875rem] text-foreground">{stage.label}</span>
+                              <span className={cn(
+                                "text-[0.625rem] font-bold px-2 py-0.5 rounded-full",
+                                stage.badge === 'blue' && "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+                                stage.badge === 'green' && "bg-green-500/20 text-green-400 border border-green-500/30",
+                                stage.badge === 'purple' && "bg-purple-500/20 text-purple-400 border border-purple-500/30",
+                                stage.badge === 'gray' && "bg-slate-500/20 text-slate-400 border border-slate-500/30",
+                                stage.badge === 'red' && "bg-red-500/20 text-red-400 border border-red-500/30"
+                              )}>
                                 {stage.label}
                               </span>
                             </div>
-                            <p className={styles.itemDesc}>{stage.description}</p>
+                            <p className="text-[0.75rem] text-foreground-tertiary leading-normal">{stage.description}</p>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className={styles.menuFooter}>
-                      <span>Bạn có thể tạo giai đoạn tùy chỉnh trong <a href="#">Leads Center</a>.</span>
+                    <div className="p-3 bg-black/20 border-t border-white/10 text-[0.75rem] text-foreground-tertiary">
+                      <span>Bạn có thể tạo giai đoạn tùy chỉnh trong <a href="#" className="text-accent-primary hover:underline">Leads Center</a>.</span>
                     </div>
                   </div>,
                   document.body
@@ -798,26 +819,26 @@ export function RightSidebar({
               </div>
             </div>
 
-            <div className={styles.detailItem}>
-              <div className={styles.statusHeader}>
-                <h3 className={styles.detailTitle}>
-                  Nhãn <Info size={14} className={styles.infoIcon} />
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <h3 className="text-[0.75rem] font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
+                  Nhãn <Info size={14} className="text-foreground-tertiary cursor-help" />
                 </h3>
                 <span 
-                  className={styles.statusAction}
+                  className="text-[0.75rem] text-accent-primary cursor-pointer hover:underline"
                   onClick={() => setIsManageTagsOpen(true)}
                 >
                   Quản lý nhãn
                 </span>
               </div>
-              <div className={styles.tagsContainer}>
+              <div className="flex flex-wrap gap-2">
                 {tags.length > 0 ? (
                   tags.map(tag => {
                     const { name, color } = parseTag(tag);
                     return (
                       <span 
                         key={tag} 
-                        className={styles.tagBadge}
+                        className="flex items-center gap-2 px-2.5 py-1 rounded-md text-[0.8125rem] font-medium transition-all"
                         style={{ 
                           backgroundColor: `${color}15`, 
                           color: color,
@@ -827,22 +848,22 @@ export function RightSidebar({
                         {name}
                         <X 
                           size={12} 
-                          className={styles.removeTagIcon} 
+                          className="cursor-pointer opacity-50 hover:opacity-100 hover:text-red-400 transition-all" 
                           onClick={() => toggleTag(tag)}
                         />
                       </span>
                     );
                   })
                 ) : (
-                  <p style={{ fontSize: '12px', color: 'var(--fg-tertiary)', fontStyle: 'italic', margin: '8px 0' }}>
+                  <p className="text-[0.75rem] text-foreground-tertiary italic my-2">
                     Chưa có nhãn nào được gắn
                   </p>
                 )}
               </div>
 
-              <div className={styles.tagInputWrapper} ref={tagDropdownRef}>
+              <div className="relative w-full mt-2" ref={tagDropdownRef}>
                 <div 
-                  className={styles.dropdownTrigger} 
+                  className="flex items-center justify-between w-full p-2.5 bg-white/5 border border-white/10 rounded-lg text-[0.875rem] text-foreground cursor-pointer transition-all hover:bg-white/10 hover:border-accent-primary"
                   onClick={toggleTagDropdown}
                 >
                   <span>Thêm nhãn</span>
@@ -852,40 +873,40 @@ export function RightSidebar({
                 {isTagDropdownOpen && isMounted && createPortal(
                   <div 
                     ref={tagMenuRef}
-                    className={clsx(styles.leadStatusMenu, styles.tagSelectMenu, dropdownDirection === 'up' && styles.leadStatusMenuUp)}
+                    className={cn(
+                      "fixed bg-[#1a1a1e] border border-white/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
+                      dropdownDirection === 'up' && "mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
+                    )}
                     style={{
-                      position: 'fixed',
                       top: dropdownDirection === 'down' ? dropdownPos.top + 42 : 'auto',
                       bottom: dropdownDirection === 'up' ? window.innerHeight - dropdownPos.top + 2 : 'auto',
                       left: dropdownPos.left,
-                      right: 'auto',
                       width: dropdownPos.width,
-                      zIndex: 10000,
                     }}
                   >
-                    <div className={styles.menuList}>
+                    <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-white/10">
                       {unappliedTags.length > 0 ? (
                         unappliedTags.map((tag) => {
                           const { name, color } = parseTag(tag);
                           return (
                             <div 
                               key={tag} 
-                              className={styles.menuItem}
+                              className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-white/5"
                               onClick={() => {
                                 toggleTag(tag);
                                 setIsTagDropdownOpen(false);
                               }}
                             >
                               <div 
-                                className={styles.colorDot} 
+                                className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
                                 style={{ backgroundColor: color }} 
                               />
-                              <span className={styles.itemLabel}>{name}</span>
+                              <span className="font-bold text-[0.875rem] text-foreground">{name}</span>
                             </div>
                           );
                         })
                       ) : (
-                        <div className={styles.emptyText}>Không còn nhãn nào để thêm</div>
+                        <div className="p-4 text-center text-[0.8125rem] text-foreground-tertiary italic">Không còn nhãn nào để thêm</div>
                       )}
                     </div>
                   </div>,
@@ -894,24 +915,24 @@ export function RightSidebar({
               </div>
             </div>
 
-            <div className={styles.detailItem}>
-              <div className={styles.statusHeader}>
-                <h3 className={styles.detailTitle}>Ghi chú</h3>
-                <span className={styles.statusAction} onClick={() => setIsAddingNote(!isAddingNote)}>
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <h3 className="text-[0.75rem] font-bold text-foreground-tertiary uppercase tracking-wider">Ghi chú</h3>
+                <span className="text-[0.75rem] text-accent-primary cursor-pointer hover:underline" onClick={() => setIsAddingNote(!isAddingNote)}>
                   {isAddingNote ? 'Hủy' : 'Thêm ghi chú'}
                 </span>
               </div>
               
               {isAddingNote && (
-                <div className={styles.addNoteForm}>
+                <div className="flex flex-col gap-3 mt-2">
                   <textarea 
-                    className={styles.noteInput}
+                    className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-foreground text-[0.875rem] min-height-[80px] resize-vertical outline-none focus:border-accent-primary"
                     placeholder="Nhập nội dung ghi chú..."
                     value={noteContent}
                     onChange={(e) => setNoteContent(e.target.value)}
                   />
                   <button 
-                    className={styles.saveNoteBtn}
+                    className="bg-accent-primary text-white border-none p-2 rounded-lg text-[0.875rem] font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
                     onClick={handleSaveNote}
                   >
                     Lưu ghi chú
@@ -919,54 +940,54 @@ export function RightSidebar({
                 </div>
               )}
 
-              <div className={styles.notesList}>
+              <div className="flex flex-col gap-3 mt-3">
                 {isLoadingNotes ? (
-                  <div className={styles.loadingNotes}>
-                    <Loader2 size={16} className={styles.spin} />
+                  <div className="flex items-center justify-center gap-2 py-5 text-foreground-tertiary text-[0.8125rem]">
+                    <Loader2 size={16} className="animate-spin" />
                     <span>Đang tải ghi chú...</span>
                   </div>
                 ) : notes.length > 0 ? (
                   notes.map((note) => (
-                    <div key={note.id} className={styles.noteItem}>
-                      <div className={styles.noteMeta}>
+                    <div key={note.id} className="bg-white/[0.03] border border-white/10 rounded-lg p-3">
+                      <div className="flex justify-between items-center text-[0.75rem] text-foreground-tertiary mb-2">
                         <span>{formatNoteDate(note.createdAt)}</span>
-                        <div className={styles.noteActions}>
+                        <div className="flex gap-3">
                           {editingNoteId === note.id ? (
-                            <span onClick={() => setEditingNoteId(null)}>Hủy</span>
+                            <span className="cursor-pointer hover:text-foreground hover:underline" onClick={() => setEditingNoteId(null)}>Hủy</span>
                           ) : (
                             <>
-                              <span onClick={() => {
+                              <span className="cursor-pointer hover:text-foreground hover:underline" onClick={() => {
                                 setEditingNoteId(note.id);
                                 setEditingNoteContent(note.content);
                               }}>Chỉnh sửa</span>
-                              <span onClick={() => handleDeleteNote(note.id)}>Xóa</span>
+                              <span className="cursor-pointer hover:text-foreground hover:underline" onClick={() => handleDeleteNote(note.id)}>Xóa</span>
                             </>
                           )}
                         </div>
                       </div>
                       
                       {editingNoteId === note.id ? (
-                        <div className={styles.editNoteForm}>
+                        <div className="flex flex-col gap-3">
                           <textarea 
-                            className={styles.noteInput}
+                            className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-foreground text-[0.875rem] min-height-[80px] resize-vertical outline-none focus:border-accent-primary"
                             value={editingNoteContent}
                             onChange={(e) => setEditingNoteContent(e.target.value)}
                             autoFocus
                           />
                           <button 
-                            className={styles.saveNoteBtn}
+                            className="bg-accent-primary text-white border-none p-2 rounded-lg text-[0.875rem] font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
                             onClick={() => handleUpdateNote(note.id)}
                           >
                             Cập nhật
                           </button>
                         </div>
                       ) : (
-                        <p className={styles.noteText}>{note.content}</p>
+                        <p className="text-[0.875rem] text-foreground leading-normal m-0">{note.content}</p>
                       )}
                     </div>
                   ))
                 ) : (
-                  <p className={styles.emptyNotes}>Chưa có ghi chú nào.</p>
+                  <p className="text-[0.8125rem] text-foreground-tertiary italic text-center py-4 m-0">Chưa có ghi chú nào.</p>
                 )}
               </div>
             </div>
@@ -990,45 +1011,60 @@ export function RightSidebar({
 
 
         {activeTab === 'search' && (
-          <div className={styles.searchSection}>
-            <div className={styles.searchHeader}>
-              <h3>Search in Conversation</h3>
-              <button className={styles.closeSearch} onClick={() => setActiveTab('detail')}>
+          <div className="flex flex-col h-full">
+            <div className="flex justify-between items-center p-4 border-b border-white/5">
+              <h3 className="text-[0.875rem] font-bold text-foreground">Search in Conversation</h3>
+              <button className="text-foreground-tertiary hover:text-foreground p-1 transition-colors" onClick={() => setActiveTab('detail')}>
                 <X size={16} />
               </button>
             </div>
             
-            <div className={styles.searchControls}>
-              <div className={styles.searchBar}>
-                <Search size={16} className={styles.searchIcon} />
+            <div className="p-4 flex flex-col gap-4">
+              <div className="relative group">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary group-focus-within:text-accent-primary transition-colors" />
                 <input 
                   type="text" 
                   placeholder="Search keywords..." 
-                  className={styles.sidebarSearchInput} 
+                  className="w-full bg-black/20 border border-white/10 pl-10 pr-10 py-2 rounded-lg text-[0.875rem] text-foreground outline-none focus:border-accent-primary transition-all" 
                   autoFocus 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                {isSearching && <Loader2 size={16} className={styles.loadingSpinner} />}
+                {isSearching && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-accent-primary animate-spin" />}
               </div>
               
-              <div className={styles.searchFilters}>
+              <div className="flex flex-wrap gap-2">
                 <div 
-                  className={clsx(styles.filterChip, senderFilter === 'user' && styles.activeFilter)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.75rem] font-medium border transition-all cursor-pointer",
+                    senderFilter === 'user' 
+                      ? "bg-accent-primary/10 border-accent-primary/30 text-accent-primary" 
+                      : "bg-white/5 border-white/10 text-foreground-tertiary hover:bg-white/10"
+                  )}
                   onClick={() => setSenderFilter(senderFilter === 'user' ? '' : 'user')}
                 >
                   <User size={14} />
                   <span>{senderFilter === 'user' ? 'Customer only' : 'Customer'}</span>
                 </div>
                 <div 
-                  className={clsx(styles.filterChip, senderFilter === 'agent' && styles.activeFilter)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.75rem] font-medium border transition-all cursor-pointer",
+                    senderFilter === 'agent' 
+                      ? "bg-accent-primary/10 border-accent-primary/30 text-accent-primary" 
+                      : "bg-white/5 border-white/10 text-foreground-tertiary hover:bg-white/10"
+                  )}
                   onClick={() => setSenderFilter(senderFilter === 'agent' ? '' : 'agent')}
                 >
                   <MessageSquare size={14} />
                   <span>{senderFilter === 'agent' ? 'Agent only' : 'Agent'}</span>
                 </div>
                 <div 
-                  className={clsx(styles.filterChip, dateFilter === 'today' && styles.activeFilter)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.75rem] font-medium border transition-all cursor-pointer",
+                    dateFilter === 'today' 
+                      ? "bg-accent-primary/10 border-accent-primary/30 text-accent-primary" 
+                      : "bg-white/5 border-white/10 text-foreground-tertiary hover:bg-white/10"
+                  )}
                   onClick={() => setDateFilter(dateFilter === 'today' ? '' : 'today')}
                 >
                   <Calendar size={14} />
@@ -1037,34 +1073,37 @@ export function RightSidebar({
               </div>
             </div>
 
-            <div className={styles.searchResultsList}>
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-white/10">
               {!searchQuery.trim() ? (
-                <div className={styles.searchEmpty}>
-                  <div className={styles.emptyIcon}>
-                    <Search size={48} />
+                <div className="flex flex-col items-center justify-center gap-4 py-10 px-6 text-center">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-foreground-tertiary">
+                    <Search size={32} />
                   </div>
-                  <p>Enter a keyword to start searching for messages and files in this conversation.</p>
+                  <p className="text-[0.875rem] text-foreground-tertiary leading-relaxed">Enter a keyword to start searching for messages and files in this conversation.</p>
                 </div>
               ) : searchResults.length > 0 ? (
                 searchResults.map((msg) => (
                   <div 
                     key={msg.id} 
-                    className={styles.searchResultItem}
+                    className="p-3 bg-white/[0.03] border border-white/5 rounded-lg cursor-pointer transition-all hover:bg-white/10 hover:border-white/20"
                     onClick={() => onJumpToMessage?.(msg.id)}
                   >
-                    <div className={styles.resultHeader}>
-                      <span className={clsx(styles.resultSender, styles[msg.senderType])}>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className={cn(
+                        "text-[0.7rem] font-bold px-2 py-0.5 rounded uppercase",
+                        msg.senderType === 'user' ? "bg-blue-500/10 text-blue-400" : "bg-purple-500/10 text-purple-400"
+                      )}>
                         {msg.senderType === 'user' ? 'Customer' : 'Agent'}
                       </span>
-                      <span className={styles.resultTime}>
+                      <span className="text-[0.7rem] text-foreground-tertiary">
                         {format(new Date(msg.createdAt), 'MMM d, HH:mm')}
                       </span>
                     </div>
-                    <p className={styles.resultContent}>{msg.content}</p>
+                    <p className="text-[0.875rem] text-foreground-secondary line-clamp-2 leading-relaxed">{msg.content}</p>
                   </div>
                 ))
               ) : !isSearching ? (
-                <div className={styles.searchEmpty}>
+                <div className="py-10 text-center text-foreground-tertiary text-[0.875rem]">
                   <p>No results found for "{searchQuery}"</p>
                 </div>
               ) : null}
@@ -1093,4 +1132,4 @@ export function RightSidebar({
       />
     </aside>
   );
-};
+}

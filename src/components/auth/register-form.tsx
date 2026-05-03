@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { signup } from '@/app/auth/actions';
-import styles from './login-form.module.css'; // Reusing styles
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -37,10 +36,10 @@ export function RegisterForm() {
 
   if (isSuccess) {
     return (
-      <div className={styles.success}>
-        <h3>Check your email</h3>
-        <p>We've sent a confirmation link to <strong>{email}</strong>.</p>
-        <Button className={styles.submit} onClick={() => window.location.href = '/auth/login'}>
+      <div className="text-center flex flex-col gap-sm py-4">
+        <h3 className="text-xl font-bold">Check your email</h3>
+        <p className="text-foreground-secondary">We've sent a confirmation link to <strong>{email}</strong>.</p>
+        <Button className="w-full mt-md" onClick={() => window.location.href = '/auth/login'}>
           Back to Login
         </Button>
       </div>
@@ -48,7 +47,7 @@ export function RegisterForm() {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-md" onSubmit={handleSubmit}>
       <Input 
         label="Full Name" 
         type="text" 
@@ -74,14 +73,18 @@ export function RegisterForm() {
         onChange={(e) => setPassword(e.target.value)}
       />
       
-      {error && <div className={styles.errorBanner}>{error}</div>}
+      {error && (
+        <div className="bg-status-error/10 border border-status-error text-status-error p-[10px] rounded-sm text-sm text-center">
+          {error}
+        </div>
+      )}
       
-      <Button type="submit" isLoading={isLoading} className={styles.submit}>
+      <Button type="submit" isLoading={isLoading} className="w-full mt-sm">
         Create Account
       </Button>
       
-      <p className={styles.switch}>
-        Already have an account? <Link href="/auth/login" className="text-gradient">Sign in</Link>
+      <p className="text-center text-sm text-foreground-secondary mt-sm">
+        Already have an account? <Link href="/auth/login" className="text-gradient font-semibold">Sign in</Link>
       </p>
     </form>
   );

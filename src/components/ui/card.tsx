@@ -1,5 +1,4 @@
 import React from 'react';
-import styles from './card.module.css';
 
 type CardProps = {
   children: React.ReactNode;
@@ -10,14 +9,14 @@ type CardProps = {
 
 export function Card({ children, className, title, description }: CardProps) {
   return (
-    <div className={`${styles.card} ${className || ''}`}>
+    <div className={`glass glass-shadow rounded-lg overflow-hidden ${className || ''}`}>
       {(title || description) && (
-        <div className={styles.header}>
-          {title && <h3 className={styles.title}>{title}</h3>}
-          {description && <p className={styles.description}>{description}</p>}
+        <div className="p-md border-b border-white/5 bg-white/[0.02]">
+          {title && <h3 className="text-lg font-bold text-foreground">{title}</h3>}
+          {description && <p className="text-sm text-foreground-secondary mt-1">{description}</p>}
         </div>
       )}
-      <div className={styles.content}>{children}</div>
+      <div className="p-md">{children}</div>
     </div>
   );
 }

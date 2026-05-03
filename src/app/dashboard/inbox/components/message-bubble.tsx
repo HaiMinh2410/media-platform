@@ -1,9 +1,9 @@
 'use client';
 
 import React, { memo } from 'react';
-import styles from './chat.module.css';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const MessageBubble = memo(function MessageBubble({ 
   message, 
@@ -16,30 +16,38 @@ export const MessageBubble = memo(function MessageBubble({
   const isAi = message.senderType === 'ai';
   const isAgent = message.senderType === 'agent';
 
-  const rowClass = isUser ? styles.rowUser : (isAi ? styles.rowAi : styles.rowAgent);
-  
-  let bubbleClass = styles.bubbleUser;
-  if (isAi) bubbleClass = styles.bubbleAi;
-  if (isAgent) bubbleClass = styles.bubbleAgent;
-
   return (
-    <div id={`msg-${message.id}`} className={`${styles.messageRow} ${rowClass}`}>
-      <div className={styles.bubbleContainer}>
-        <div className={`${styles.bubble} ${bubbleClass}`}>
+    <div 
+      id={`msg-${message.id}`} 
+      className={cn(
+        "flex mb-4 max-w-full",
+        isUser ? "justify-start" : "justify-end"
+      )}
+    >
+      <div className={cn(
+        "flex flex-col max-w-[80%] gap-1",
+        isUser ? "items-start" : "items-end"
+      )}>
+        <div className={cn(
+          "w-fit p-[12px_18px] rounded-[20px] shadow-md flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-lg",
+          isUser && "bg-gradient-to-br from-[#2d2d34]/60 to-[#1e1e24]/80 border border-white/10 rounded-bl-sm text-foreground",
+          isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-[0_4px_15px_rgba(99,102,241,0.3)]",
+          isAi && "bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/40 rounded-br-sm text-foreground shadow-[0_4px_20px_rgba(168,85,247,0.15)] backdrop-blur-md"
+        )}>
           {isAi && (
-            <div className={styles.aiBadge}>
+            <div className="flex items-center gap-1 text-[0.6875rem] font-bold uppercase text-purple-400 mb-1">
               <Sparkles size={12} className="text-purple-400" />
               <span>AI Auto-Reply</span>
             </div>
           )}
-          <div className={styles.messageContent}>
+          <div className="text-[0.9375rem] leading-normal whitespace-pre-wrap">
             {message.content}
           </div>
         </div>
 
         {showStatus && (
-          <div className={styles.messageMeta}>
-            <span className={styles.messageStatus}>
+          <div className="flex flex-col gap-0.5 mt-1">
+            <span className="text-[0.75rem] text-foreground-tertiary opacity-80">
               {message.is_read ? 'Đã xem' : (message.is_delivered ? 'Đã gửi' : 'Đang gửi...')}
             </span>
           </div>
