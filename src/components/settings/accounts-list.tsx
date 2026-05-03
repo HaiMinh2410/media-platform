@@ -1,8 +1,7 @@
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { PlatformAccount } from '@/domain/types/platform-account';
-
-import styles from './accounts-list.module.css';
+import { cn } from '@/lib/utils';
 
 type AccountsListProps = {
   accounts: PlatformAccount[];
@@ -11,35 +10,38 @@ type AccountsListProps = {
 export function AccountsList({ accounts }: AccountsListProps) {
   if (accounts.length === 0) {
     return (
-      <div className={styles.empty}>
+      <div className="p-12 text-center text-white/40 bg-white/[0.02] border border-dashed border-white/10 rounded-[24px]">
         <p>No accounts connected yet.</p>
       </div>
     );
   }
 
   return (
-    <div className={styles.list}>
+    <div className="flex flex-col gap-4">
       {accounts.map((account) => (
-        <Card key={account.id} className={styles.accountCard}>
-          <div className={styles.header}>
-            <div className={styles.platformIcon}>
+        <Card key={account.id} className="bg-white/[0.02] border-white/5 p-4 transition-all duration-200 hover:bg-white/[0.04] hover:border-white/10 hover:-translate-y-0.5">
+          <div className="flex items-center gap-4">
+            <div className="shrink-0">
               {account.platform === 'facebook' && (
-                <div className={`${styles.iconCircle} ${styles.fb}`}>FB</div>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-[0.9rem] shadow-lg shadow-black/20 bg-gradient-to-br from-[#1877F2] to-[#166ada] text-white">FB</div>
               )}
               {account.platform === 'instagram' && (
-                <div className={`${styles.iconCircle} ${styles.ig}`}>IG</div>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-[0.9rem] shadow-lg shadow-black/20 bg-gradient-to-br from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white">IG</div>
               )}
               {account.platform === 'tiktok' && (
-                <div className={`${styles.iconCircle} ${styles.tt}`}>TT</div>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-[0.9rem] shadow-lg shadow-black/20 bg-black border border-white/10 text-white">TT</div>
               )}
             </div>
-            <div className={styles.info}>
-              <h4 className={styles.name}>{account.name}</h4>
-              <p className={styles.platformName}>{account.platform.charAt(0).toUpperCase() + account.platform.slice(1)}</p>
+            <div className="flex-1">
+              <h4 className="text-base font-semibold m-0 text-white leading-snug">{account.name}</h4>
+              <p className="text-[0.8rem] text-white/40 m-0 capitalize leading-tight">{account.platform}</p>
             </div>
-            <div className={styles.status}>
-              <span className={styles.badge}>Active</span>
-              <Link href={`/dashboard/settings/accounts/${account.id}/bot`} className={styles.configBtn}>
+            <div className="flex flex-col items-end gap-2">
+              <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider">Active</span>
+              <Link 
+                href={`/dashboard/settings/accounts/${account.id}/bot`} 
+                className="text-[0.8rem] font-semibold text-violet-400 no-underline px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 transition-all hover:bg-white/10 hover:border-white/20"
+              >
                 Configure Bot
               </Link>
             </div>

@@ -5,7 +5,7 @@ import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.
 import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
 import { ConnectButtons } from '@/components/settings/connect-buttons';
 import { AccountsList } from '@/components/settings/accounts-list';
-import styles from './accounts-page.module.css';
+import { cn } from '@/lib/utils';
 
 export default async function AccountsSettingsPage(props: {
   searchParams: Promise<{ success?: string; error?: string }>;
@@ -27,10 +27,10 @@ export default async function AccountsSettingsPage(props: {
   if (wsError || !workspace) {
     // Handle case where user has no workspace (should ideally be handled during signup)
     return (
-      <div className={styles.container}>
-        <h1 className={styles.title}>Settings</h1>
-        <div className={styles.error}>
-          <p>No workspace found. please contact support or try reconnecting.</p>
+      <div className="max-w-[1000px] mx-auto p-10 md:py-12">
+        <h1 className="text-[2.5rem] font-extrabold mb-8 tracking-tight">Settings</h1>
+        <div className="p-8 text-center bg-rose-500/5 border border-rose-500/10 rounded-[20px]">
+          <p className="text-foreground-secondary">No workspace found. please contact support or try reconnecting.</p>
         </div>
       </div>
     );
@@ -40,16 +40,16 @@ export default async function AccountsSettingsPage(props: {
   const { data: accounts = [], error: accError } = await accountRepo.findByWorkspaceId(workspace.id);
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.titleGroup}>
-          <h1 className={`${styles.title} text-gradient`}>Platform Connections</h1>
-          <p className={styles.subtitle}>Manage your social media integrations and unified inbox settings.</p>
+    <div className="max-w-[1000px] mx-auto p-10 md:py-12">
+      <header className="mb-12">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-[2.5rem] font-extrabold tracking-tight bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent m-0 mb-2">Platform Connections</h1>
+          <p className="text-white/60 text-[1.1rem]">Manage your social media integrations and unified inbox settings.</p>
         </div>
       </header>
 
       {searchParams.success && (
-        <div className={styles.alertSuccess}>
+        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 p-4 rounded-xl mb-6 flex items-center gap-2.5 font-medium animate-in fade-in slide-in-from-top-2">
           <svg viewBox="0 0 20 20" fill="currentColor" width="20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
@@ -58,7 +58,7 @@ export default async function AccountsSettingsPage(props: {
       )}
 
       {searchParams.error && (
-        <div className={styles.alertError}>
+        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 p-4 rounded-xl mb-6 flex items-center gap-2.5 font-medium animate-in fade-in slide-in-from-top-2">
           <svg viewBox="0 0 20 20" fill="currentColor" width="20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
@@ -66,30 +66,30 @@ export default async function AccountsSettingsPage(props: {
         </div>
       )}
 
-      <div className={styles.mainGrid}>
-        <div className={styles.leftCol}>
-          <section className={`${styles.section} glass`}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Connected Accounts</h2>
-              <span className={styles.countBadge}>{accounts.length}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
+        <div className="flex flex-col gap-6">
+          <section className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-[1.25rem] font-semibold m-0">Connected Accounts</h2>
+              <span className="bg-white/10 px-3 py-1 rounded-full text-[0.85rem] font-semibold">{accounts?.length || 0}</span>
             </div>
             <AccountsList accounts={accounts || []} />
           </section>
         </div>
 
-        <div className={styles.rightCol}>
-          <section className={`${styles.section} glass`}>
-            <h2 className={styles.sectionTitle}>Add New Connection</h2>
-            <p className={styles.sectionDesc}>Connect your professional accounts to enable unified messaging and AI automation.</p>
+        <div className="flex flex-col gap-6">
+          <section className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-xl">
+            <h2 className="text-[1.25rem] font-semibold mb-2">Add New Connection</h2>
+            <p className="text-white/50 text-[0.95rem] mb-6 leading-relaxed">Connect your professional accounts to enable unified messaging and AI automation.</p>
             <ConnectButtons workspaceId={workspace.id} />
           </section>
 
-          <section className={`${styles.section} glass`} style={{ marginTop: '24px', opacity: 0.8 }}>
-            <h2 className={styles.sectionTitle} style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.6)' }}>Developer Tools</h2>
-            <p className={styles.sectionDesc} style={{ fontSize: '0.8rem' }}>Manually update tokens or debug connection issues.</p>
+          <section className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-xl opacity-80">
+            <h2 className="text-base font-semibold mb-2 text-white/60">Developer Tools</h2>
+            <p className="text-white/50 text-[0.8rem] mb-4">Manually update tokens or debug connection issues.</p>
             <Link 
               href="/dashboard/settings/accounts/debug" 
-              className={styles.debugLink}
+              className="inline-block text-violet-400 font-semibold text-[0.9rem] no-underline transition-all hover:opacity-80 hover:translate-x-1"
             >
               Open Debug Connection Tool
             </Link>

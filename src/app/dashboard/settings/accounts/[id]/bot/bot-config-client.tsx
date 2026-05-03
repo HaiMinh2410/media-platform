@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ROLE_TEMPLATES } from '@/application/ai/role-templates';
-import styles from './bot-config-client.module.css';
+import { cn } from '@/lib/utils';
 
 type BotConfig = {
   is_active: boolean;
@@ -80,45 +80,56 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
   };
 
   if (isLoading) {
-    return <div className={styles.loading}>Loading configuration...</div>;
+    return (
+      <div className="p-10 text-center text-white/60 bg-white/[0.02] rounded-xl border border-dashed border-white/10">
+        Loading configuration...
+      </div>
+    );
   }
 
   if (!config) {
-    return <div className={styles.error}>Error loading configuration</div>;
+    return (
+      <div className="p-10 text-center text-rose-500 bg-rose-500/5 rounded-xl border border-dashed border-rose-500/20">
+        Error loading configuration
+      </div>
+    );
   }
 
   return (
-    <div className={styles.container}>
-      <Card className={styles.card}>
-        <div className={styles.header}>
+    <div className="flex flex-col gap-6">
+      <Card className="p-6 bg-white/[0.02] border-white/10 flex flex-col gap-5 transition-opacity duration-300 backdrop-blur-xl">
+        <div className="flex justify-between items-center">
           <div>
-            <h2 className={styles.cardTitle}>AI Assistant Status</h2>
-            <p className={styles.cardDesc}>Enable or disable the AI for this account</p>
+            <h2 className="m-0 text-lg font-semibold text-white">AI Assistant Status</h2>
+            <p className="m-1 text-sm text-white/50">Enable or disable the AI for this account</p>
           </div>
-          <label className={styles.toggle}>
+          <label className="relative inline-block w-12 h-6">
             <input 
               type="checkbox" 
               checked={config.is_active} 
               onChange={(e) => setConfig({ ...config, is_active: e.target.checked })}
-              className={styles.toggleInput}
+              className="opacity-0 w-0 h-0 peer"
             />
-            <span className={styles.toggleSlider}></span>
+            <span className="absolute inset-0 cursor-pointer bg-white/10 rounded-full transition-all peer-checked:bg-blue-500 before:absolute before:content-[''] before:h-[18px] before:w-[18px] before:left-[3px] before:bottom-[3px] before:bg-white before:rounded-full before:transition-all peer-checked:before:translate-x-6"></span>
           </label>
         </div>
       </Card>
 
-      <Card className={`${styles.card} ${!config.is_active ? styles.cardDisabled : ''}`}>
-        <h2 className={styles.sectionTitle}>Behavior Settings</h2>
+      <Card className={cn(
+        "p-6 bg-white/[0.02] border-white/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
+        !config.is_active && "opacity-50 pointer-events-none"
+      )}>
+        <h2 className="m-0 text-base font-semibold text-white">Behavior Settings</h2>
         
-        <div className={styles.formGroup}>
-          <label className={styles.label}>
+        <div className="flex flex-col gap-2">
+          <label className="flex flex-col gap-1 text-sm font-medium text-gray-200">
             System Prompt
-            <span className={styles.helpText}>Instructions for the AI on how to respond. Be specific about tone and boundary.</span>
+            <span className="text-xs font-normal text-white/40">Instructions for the AI on how to respond. Be specific about tone and boundary.</span>
           </label>
 
           <select 
             disabled={!config.is_active}
-            className={`${styles.select} ${styles.templateSelect}`}
+            className="mb-2 w-full bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 text-sm font-medium text-blue-400 outline-none cursor-pointer transition-all hover:bg-blue-500/15 hover:border-blue-500/40"
             onChange={(e) => {
               const template = ROLE_TEMPLATES.find(t => t.id === e.target.value);
               if (template) {
@@ -136,7 +147,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
 
           <textarea 
             disabled={!config.is_active}
-            className={styles.textarea}
+            className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm text-white font-sans outline-none focus:border-white/30 focus:ring-2 focus:ring-white/5 transition-all resize-vertical min-h-[100px]"
             value={config.system_prompt || ''}
             onChange={(e) => setConfig({ ...config, system_prompt: e.target.value })}
             placeholder="You are a helpful customer support assistant for..."
@@ -144,12 +155,12 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
           />
         </div>
 
-        <div className={styles.row}>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Model Selection</label>
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-1 flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-200">Model Selection</label>
             <select 
               disabled={!config.is_active}
-              className={styles.select}
+              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/5 transition-all"
               value={config.model}
               onChange={(e) => setConfig({ ...config, model: e.target.value })}
             >
@@ -161,46 +172,50 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
             </select>
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>
+          <div className="flex-1 flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-200">
               Confidence Threshold ({config.confidence_threshold.toFixed(2)})
             </label>
             <input 
               disabled={!config.is_active}
               type="range" 
               min="0" max="1" step="0.05"
-              className={styles.range}
+              className="w-full mt-3 accent-blue-500"
               value={config.confidence_threshold}
               onChange={(e) => setConfig({ ...config, confidence_threshold: parseFloat(e.target.value) })}
             />
           </div>
         </div>
 
-        <div className={styles.formGroup}>
-          <div className={styles.checkboxWrapper}>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-3 mt-3">
             <input 
               disabled={!config.is_active}
               type="checkbox" 
               id="autoSend"
               checked={config.auto_send}
               onChange={(e) => setConfig({ ...config, auto_send: e.target.checked })}
-              className={styles.checkbox}
+              className="w-[18px] h-[18px] mt-0.5 accent-blue-500 cursor-pointer"
             />
-            <label htmlFor="autoSend" className={styles.checkboxLabel}>
-              <strong>Auto-Reply</strong>
-              <span>Automatically send replies that pass the confidence threshold instead of drafting suggestions.</span>
+            <label htmlFor="autoSend" className="flex flex-col gap-1 text-sm text-white cursor-pointer select-none">
+              <strong className="font-semibold">Auto-Reply</strong>
+              <span className="font-normal text-white/50 leading-relaxed">Automatically send replies that pass the confidence threshold instead of drafting suggestions.</span>
             </label>
           </div>
 
           {config.auto_send && (
-            <div className={styles.autoReplyFilters}>
-              <div className={styles.filterGroup}>
-                <label className={styles.filterLabel}>Auto-Reply for Priorities:</label>
-                <div className={styles.filterOptions}>
+            <div className="mt-4 p-4 bg-white/[0.03] rounded-xl border border-white/5 flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-[0.75rem] font-bold uppercase tracking-wider text-white/40">Auto-Reply for Priorities:</label>
+                <div className="flex flex-wrap gap-3">
                   {PRIORITY_OPTIONS.map(prio => (
-                    <label key={prio} className={styles.filterOption}>
+                    <label key={prio} className={cn(
+                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-white cursor-pointer bg-white/[0.05] border border-transparent transition-all hover:bg-white/[0.08]",
+                      config.auto_reply_priorities.includes(prio) && "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                    )}>
                       <input 
                         type="checkbox"
+                        className="w-3.5 h-3.5 accent-blue-500"
                         checked={(config.auto_reply_priorities || []).includes(prio)}
                         onChange={(e) => {
                           const updated = e.target.checked 
@@ -209,19 +224,23 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
                           setConfig({ ...config, auto_reply_priorities: updated });
                         }}
                       />
-                      <span className={styles.capitalize}>{prio}</span>
+                      <span className="capitalize">{prio}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className={styles.filterGroup}>
-                <label className={styles.filterLabel}>Auto-Reply for Sentiments:</label>
-                <div className={styles.filterOptions}>
+              <div className="flex flex-col gap-2">
+                <label className="text-[0.75rem] font-bold uppercase tracking-wider text-white/40">Auto-Reply for Sentiments:</label>
+                <div className="flex flex-wrap gap-3">
                   {SENTIMENT_OPTIONS.map(sent => (
-                    <label key={sent} className={styles.filterOption}>
+                    <label key={sent} className={cn(
+                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-white cursor-pointer bg-white/[0.05] border border-transparent transition-all hover:bg-white/[0.08]",
+                      config.auto_reply_sentiments.includes(sent) && "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                    )}>
                       <input 
                         type="checkbox"
+                        className="w-3.5 h-3.5 accent-blue-500"
                         checked={(config.auto_reply_sentiments || []).includes(sent)}
                         onChange={(e) => {
                           const updated = e.target.checked 
@@ -230,7 +249,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
                           setConfig({ ...config, auto_reply_sentiments: updated });
                         }}
                       />
-                      <span className={styles.capitalize}>{sent}</span>
+                      <span className="capitalize">{sent}</span>
                     </label>
                   ))}
                 </div>
@@ -240,19 +259,22 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
         </div>
       </Card>
 
-      <Card className={`${styles.card} ${!config.is_active ? styles.cardDisabled : ''}`}>
-        <h2 className={styles.sectionTitle}>Intent Routing</h2>
-        <p className={styles.sectionDesc}>Specify trigger labels to classify intents. Intents outside these will be escalated to humans.</p>
+      <Card className={cn(
+        "p-6 bg-white/[0.02] border-white/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
+        !config.is_active && "opacity-50 pointer-events-none"
+      )}>
+        <h2 className="m-0 text-base font-semibold text-white">Intent Routing</h2>
+        <p className="m-0 text-sm text-white/50 -mt-2">Specify trigger labels to classify intents. Intents outside these will be escalated to humans.</p>
         
-        <div className={styles.formGroup}>
-          <div className={styles.tagInputWrapper}>
-            <div className={styles.tagsContainer}>
+        <div className="flex flex-col gap-2">
+          <div className="bg-black/20 border border-white/10 rounded-lg p-2 transition-all focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/5">
+            <div className="flex flex-wrap items-center gap-2">
               {config.trigger_labels?.map(label => (
-                <span key={label} className={styles.tag}>
+                <span key={label} className="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 animate-in zoom-in-95">
                   {label}
                   <button 
                     disabled={!config.is_active}
-                    className={styles.tagRemoveBtn} 
+                    className="text-lg leading-none opacity-70 hover:opacity-100 transition-opacity" 
                     onClick={() => removeLabel(label)}
                   >
                     &times;
@@ -266,18 +288,18 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
                 onChange={(e) => setNewLabel(e.target.value)}
                 onKeyDown={addLabel}
                 placeholder="Add trigger label and press Enter"
-                className={styles.tagInput}
+                className="bg-transparent border-none text-white outline-none text-sm flex-1 min-w-[200px] py-1.5 px-2"
               />
             </div>
           </div>
         </div>
       </Card>
 
-      <div className={styles.footer}>
+      <div className="flex justify-end mt-4">
         <Button 
           onClick={handleSave} 
           disabled={isSaving || isLoading} 
-          className={styles.saveBtn}
+          className="bg-blue-600 text-white font-medium px-8 hover:bg-blue-700 active:scale-95 transition-all"
         >
           {isSaving ? 'Saving...' : 'Save Configuration'}
         </Button>

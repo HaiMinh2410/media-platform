@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import styles from './chat.module.css';
 
 type ContextProps = {
   platform: string;
@@ -14,40 +13,40 @@ type ContextProps = {
 export function ConversationContext({ platform, externalId, lastMessageAt, pageName, customerName }: ContextProps) {
   return (
     <>
-      <div className={styles.sideSection}>
-        <h3>Conversation Details</h3>
-        <div className={styles.infoGrid}>
-          <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>Sender Name</span>
-            <span className={styles.infoValue}>{customerName || 'Syncing...'}</span>
+      <div className="mb-6">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3 px-1">Conversation Details</h3>
+        <div className="grid grid-cols-1 gap-1">
+          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+            <span className="text-xs text-white/50">Sender Name</span>
+            <span className="text-sm font-medium text-white">{customerName || 'Syncing...'}</span>
           </div>
-          <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>Platform</span>
-            <span className={styles.infoValue} style={{ textTransform: 'capitalize' }}>{platform}</span>
+          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+            <span className="text-xs text-white/50">Platform</span>
+            <span className="text-sm font-medium text-white capitalize">{platform}</span>
           </div>
-          <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>External ID</span>
-            <span className={styles.infoValue}>{externalId}</span>
+          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+            <span className="text-xs text-white/50">External ID</span>
+            <span className="text-[10px] font-mono text-white/60 bg-white/5 px-2 py-0.5 rounded leading-none">{externalId}</span>
           </div>
-          <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>Last Message</span>
-            <span className={styles.infoValue} suppressHydrationWarning>
+          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+            <span className="text-xs text-white/50">Last Message</span>
+            <span className="text-sm font-medium text-white" suppressHydrationWarning>
               {new Date(lastMessageAt).toLocaleString()}
             </span>
           </div>
         </div>
       </div>
 
-      <div className={styles.sideSection}>
-        <h3>Account Context</h3>
-        <div className={styles.infoGrid}>
-          <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>Connected Account</span>
-            <span className={styles.infoValue}>{pageName}</span>
+      <div className="mb-6">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-3 px-1">Account Context</h3>
+        <div className="grid grid-cols-1 gap-1">
+          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+            <span className="text-xs text-white/50">Connected Account</span>
+            <span className="text-sm font-medium text-white">{pageName}</span>
           </div>
-          <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>Status</span>
-            <span className={styles.infoValue} style={{ color: 'var(--success)', fontWeight: 600 }}>Active</span>
+          <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+            <span className="text-xs text-white/50">Status</span>
+            <span className="text-sm font-bold text-emerald-400">Active</span>
           </div>
         </div>
       </div>
