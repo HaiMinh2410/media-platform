@@ -46,7 +46,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const selectedGroup = accountGroups.find((g: AccountGroup) => g.id === selectedGroupId);
 
   useEffect(() => {
-    getCurrentUserWorkspaceAction().then(res => {
+    getCurrentUserWorkspaceAction().then((res: any) => {
       if (res.data) {
         setUserData({
           name: res.data.user.name,
@@ -71,11 +71,11 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   const fetchCounts = React.useCallback(() => {
     if (!workspaceId) return;
     
-    getUnreadCountsAction(workspaceId, selectedGroupId).then(res => {
+    getUnreadCountsAction(workspaceId, selectedGroupId).then((res: any) => {
       if (res.data) setUnreadCounts(res.data);
     });
     
-    getAccountGroupsAction(workspaceId).then(res => {
+    getAccountGroupsAction(workspaceId).then((res: any) => {
       if (res.data) setAccountGroups(res.data);
     });
   }, [workspaceId, selectedGroupId, setAccountGroups]);
@@ -115,8 +115,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
   return (
     <>
     <div className="flex items-center justify-between px-6 h-[56px] border-b border-foreground/10 bg-background/80 backdrop-blur-xl sticky top-0 z-20 w-full gap-4">
-      <div className="flex items-center gap-3 h-full">
-
+      <div className="flex items-center gap-4 h-full">
         <div className="relative flex items-center" ref={dropdownRef}>
           <button 
             className={cn(
@@ -271,28 +270,6 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           )}
         </div>
 
-
-        <button 
-          className={cn(
-            "flex items-center gap-2.5 px-3 h-10 text-foreground-secondary text-sm font-medium border border-transparent bg-transparent cursor-pointer relative transition-all duration-250 rounded-lg hover:text-foreground hover:bg-white/5 hover:-translate-y-px active:translate-y-0 active:scale-[0.98]",
-            viewMode === 'daily_flow' && "text-foreground bg-accent-primary/10 border-accent-primary/20 shadow-md"
-          )}
-          onClick={() => { 
-            if (viewMode === 'daily_flow') {
-              setViewMode('all');
-              router.push('/dashboard/inbox');
-            } else {
-              setViewMode('daily_flow'); 
-              router.push('/dashboard/inbox/flow'); 
-            }
-          }}
-        >
-          <Zap size={16} className="text-[#fbbf24] opacity-100" />
-          <span>Daily Flow</span>
-        </button>
-      </div>
-
-      <div className="flex items-center gap-3 pl-4 border-l border-foreground/10">
         <div className="flex items-center bg-background-secondary p-1 rounded-[14px] border border-foreground/10">
           <button 
             className={cn(
@@ -322,9 +299,28 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
             Instagram {unreadCounts.instagram > 0 && <span className="bg-[#ff4757] text-white text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-[0_0_10px_rgba(255,71,87,0.4)] ml-1">{formatCount(unreadCounts.instagram)}</span>}
           </button>
         </div>
+
+        <button 
+          className={cn(
+            "flex items-center gap-2.5 px-3 h-10 text-foreground-secondary text-sm font-medium border border-transparent bg-transparent cursor-pointer relative transition-all duration-250 rounded-lg hover:text-foreground hover:bg-white/5 hover:-translate-y-px active:translate-y-0 active:scale-[0.98]",
+            viewMode === 'daily_flow' && "text-foreground bg-accent-primary/10 border-accent-primary/20 shadow-md"
+          )}
+          onClick={() => { 
+            if (viewMode === 'daily_flow') {
+              setViewMode('all');
+              router.push('/dashboard/inbox');
+            } else {
+              setViewMode('daily_flow'); 
+              router.push('/dashboard/inbox/flow'); 
+            }
+          }}
+        >
+          <Zap size={16} className="text-[#fbbf24] opacity-100" />
+          <span>Daily Flow</span>
+        </button>
       </div>
 
-      <div className="flex items-center gap-4 pl-4 border-l border-foreground/10 h-8">
+      <div className="flex items-center gap-4 h-8">
         <ThemeSwitcher />
         <div className="w-9 h-9 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground-secondary border border-white/10 shrink-0 overflow-hidden shadow-md">
           {userData?.avatar ? (

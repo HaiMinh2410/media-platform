@@ -70,7 +70,7 @@ export default function LeadsCenter() {
   const [userData, setUserData] = useState<{ name: string; avatar?: string | null } | null>(null);
 
   React.useEffect(() => {
-    getCurrentUserWorkspaceAction().then(res => {
+    getCurrentUserWorkspaceAction().then((res: any) => {
       if (res.data) {
         setUserData({
           name: res.data.user.name,

@@ -28,7 +28,7 @@ export function ThemeSwitcher() {
   };
 
   return (
-    <div className="dropdown dropdown-top dropdown-end">
+    <div className="dropdown dropdown-bottom dropdown-end">
 
       <div 
         tabIndex={0} 
