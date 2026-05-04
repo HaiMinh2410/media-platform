@@ -97,8 +97,8 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-[0.75rem] font-bold text-foreground-tertiary uppercase tracking-wider">Ghi chú</h3>
-        <span className="text-[0.75rem] text-accent-primary cursor-pointer hover:underline" onClick={() => setIsAddingNote(!isAddingNote)}>
+        <h3 className="text-xs font-bold text-foreground-tertiary uppercase tracking-wider">Ghi chú</h3>
+        <span className="text-xs text-accent-primary cursor-pointer hover:underline" onClick={() => setIsAddingNote(!isAddingNote)}>
           {isAddingNote ? 'Hủy' : 'Thêm ghi chú'}
         </span>
       </div>
@@ -106,13 +106,13 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
       {isAddingNote && (
         <div className="flex flex-col gap-3 mt-2">
           <textarea 
-            className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-foreground text-[0.875rem] min-height-[80px] resize-vertical outline-none focus:border-accent-primary"
+            className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-foreground text-sm min-height-[80px] resize-vertical outline-none focus:border-accent-primary"
             placeholder="Nhập nội dung ghi chú..."
             value={noteContent}
             onChange={(e) => setNoteContent(e.target.value)}
           />
           <button 
-            className="bg-accent-primary text-white border-none p-2 rounded-lg text-[0.875rem] font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
+            className="bg-accent-primary text-white border-none p-2 rounded-lg text-sm font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
             onClick={handleSaveNote}
           >
             Lưu ghi chú
@@ -122,14 +122,14 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
 
       <div className="flex flex-col gap-3 mt-3">
         {isLoadingNotes ? (
-          <div className="flex items-center justify-center gap-2 py-5 text-foreground-tertiary text-[0.8125rem]">
+          <div className="flex items-center justify-center gap-2 py-5 text-foreground-tertiary text-13">
             <Loader2 size={16} className="animate-spin" />
             <span>Đang tải ghi chú...</span>
           </div>
         ) : notes.length > 0 ? (
           notes.map((note) => (
             <div key={note.id} className="bg-white/[0.03] border border-white/10 rounded-lg p-3">
-              <div className="flex justify-between items-center text-[0.75rem] text-foreground-tertiary mb-2">
+              <div className="flex justify-between items-center text-xs text-foreground-tertiary mb-2">
                 <span>{formatNoteDate(note.createdAt)}</span>
                 <div className="flex gap-3">
                   {editingNoteId === note.id ? (
@@ -149,25 +149,25 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
               {editingNoteId === note.id ? (
                 <div className="flex flex-col gap-3">
                   <textarea 
-                    className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-foreground text-[0.875rem] min-height-[80px] resize-vertical outline-none focus:border-accent-primary"
+                    className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-foreground text-sm min-height-[80px] resize-vertical outline-none focus:border-accent-primary"
                     value={editingNoteContent}
                     onChange={(e) => setEditingNoteContent(e.target.value)}
                     autoFocus
                   />
                   <button 
-                    className="bg-accent-primary text-white border-none p-2 rounded-lg text-[0.875rem] font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
+                    className="bg-accent-primary text-white border-none p-2 rounded-lg text-sm font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
                     onClick={() => handleUpdateNote(note.id)}
                   >
                     Cập nhật
                   </button>
                 </div>
               ) : (
-                <p className="text-[0.875rem] text-foreground leading-normal m-0">{note.content}</p>
+                <p className="text-sm text-foreground leading-normal m-0">{note.content}</p>
               )}
             </div>
           ))
         ) : (
-          <p className="text-[0.8125rem] text-foreground-tertiary italic text-center py-4 m-0">Chưa có ghi chú nào.</p>
+          <p className="text-13 text-foreground-tertiary italic text-center py-4 m-0">Chưa có ghi chú nào.</p>
         )}
       </div>
     </div>

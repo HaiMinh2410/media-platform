@@ -194,7 +194,7 @@ export function ReplyComposer({
   return (
     <div className="p-md px-lg border-t border-foreground/10 bg-background-tertiary/40">
       {errorMsg && (
-        <div className="p-sm px-3 mb-2 bg-status-error/10 border border-status-error/30 rounded-sm text-status-error text-[0.8125rem]" role="alert">
+        <div className="p-sm px-3 mb-2 bg-status-error/10 border border-status-error/30 rounded-sm text-status-error text-13" role="alert">
           {errorMsg}
         </div>
       )}
@@ -234,7 +234,7 @@ export function ReplyComposer({
           <div className="flex-1 bg-background-base border border-foreground/10 rounded-lg p-3 px-md transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] focus-within:border-accent-primary/50 focus-within:bg-background-secondary focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]">
             <textarea
               ref={textareaRef}
-              className="w-full bg-transparent border-none text-foreground text-[15px] resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto"
+              className="w-full bg-transparent border-none text-foreground text-15 resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto"
               placeholder={isSending ? 'Sending…' : 'Type a message…'}
               rows={1}
               value={text}
@@ -262,7 +262,7 @@ export function ReplyComposer({
                   
                   {showSnippets && (
                     <div className="absolute bottom-full left-0 mb-2 w-64 bg-base-200 border border-foreground/10 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-                      <div className="px-3 py-2 text-[0.7rem] font-bold text-foreground-tertiary uppercase tracking-wider border-b border-foreground/5">Saved Snippets</div>
+                      <div className="px-3 py-2 text-11 font-bold text-foreground-tertiary uppercase tracking-wider border-b border-foreground/5">Saved Snippets</div>
                       <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
                         {SNIPPETS.map(s => (
                           <button 
@@ -288,7 +288,7 @@ export function ReplyComposer({
               <button
                 type="submit"
                 className={cn(
-                  "w-8 h-8 rounded-md bg-accent-gradient border-none text-white flex items-center justify-center cursor-pointer transition-all shrink-0 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-accent-primary/20",
+                  "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground flex items-center justify-center cursor-pointer transition-all shrink-0 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-accent-primary/20",
                   isSending && "opacity-70"
                 )}
                 disabled={!text.trim() || isSending}
@@ -309,7 +309,7 @@ export function ReplyComposer({
       
       {text.length > 0 && text.length < 5 && (
         <div className="mt-2 p-2 bg-accent-secondary/5 rounded-md border border-accent-secondary/10 animate-pulse">
-          <div className="flex items-center gap-1.5 text-[0.7rem] font-bold text-accent-secondary uppercase tracking-wide mb-1">
+          <div className="flex items-center gap-1.5 text-11 font-bold text-accent-secondary uppercase tracking-wide mb-1">
             <Icon name="ai-sparkles" size={14} />
             AI Suggestion
           </div>

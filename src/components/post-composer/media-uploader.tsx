@@ -106,13 +106,13 @@ export function MediaUploader({ files, onChange, workspaceId }: MediaUploaderPro
               {file.status === 'uploading' && (
                 <div className="absolute inset-0 bg-slate-950/60 flex items-center justify-center flex-col gap-2">
                   <Loader2 className="text-blue-500 animate-spin" size={24} />
-                  <span className="text-[10px] text-blue-200 font-medium">Uploading...</span>
+                  <span className="text-2xs text-blue-200 font-medium">Uploading...</span>
                 </div>
               )}
 
               {file.status === 'error' && (
                 <div className="absolute inset-0 bg-red-950/60 flex items-center justify-center">
-                  <span className="text-[10px] text-red-200 font-medium">Failed</span>
+                  <span className="text-2xs text-red-200 font-medium">Failed</span>
                 </div>
               )}
 
@@ -138,12 +138,12 @@ export function MediaUploader({ files, onChange, workspaceId }: MediaUploaderPro
           >
             <input {...getInputProps()} />
             <UploadCloud className={cn("transition-colors", isDragActive ? "text-blue-500" : "text-slate-600")} size={28} />
-            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">Add Media</span>
+            <span className="text-2xs font-medium text-slate-500 uppercase tracking-widest">Add Media</span>
           </div>
         )}
       </div>
       
-      <p className="text-[10px] text-slate-500 italic">
+      <p className="text-2xs text-slate-500 italic">
         Max 10 files. Images (JPG, PNG) or Videos (MP4).
       </p>
     </div>

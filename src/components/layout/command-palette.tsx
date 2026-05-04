@@ -69,7 +69,7 @@ export function CommandPalette() {
           {items?.accounts && items.accounts.length > 0 && (
             <Command.Group 
               heading="Tài khoản" 
-              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
+              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-11 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
             >
               {items.accounts.map((account) => (
                 <Command.Item
@@ -80,7 +80,7 @@ export function CommandPalette() {
                 >
                   <User size={16} />
                   <span>{account.name}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 bg-foreground/5 rounded-[4px] text-foreground-tertiary uppercase">{account.platform}</span>
+                  <span className="text-2xs px-1.5 py-0.5 bg-foreground/5 rounded text-foreground-tertiary uppercase">{account.platform}</span>
                   <ArrowRight className="ml-auto text-foreground-tertiary opacity-0 -translate-x-1 transition-all duration-150 group-aria-selected:opacity-100 group-aria-selected:translate-x-0" size={14} />
                 </Command.Item>
               ))}
@@ -90,7 +90,7 @@ export function CommandPalette() {
           {items?.groups && items.groups.length > 0 && (
             <Command.Group 
               heading="Nhóm" 
-              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
+              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-11 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
             >
               {items.groups.map((group) => (
                 <Command.Item
@@ -110,7 +110,7 @@ export function CommandPalette() {
           {items?.tags && items.tags.length > 0 && (
             <Command.Group 
               heading="Tags" 
-              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
+              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-11 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
             >
               {items.tags.map((tag) => (
                 <Command.Item

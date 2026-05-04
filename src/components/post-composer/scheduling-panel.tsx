@@ -22,7 +22,7 @@ export function SchedulingPanel({ scheduledAt, onChange, isSubmitting, onPublish
           <button
             onClick={() => onChange(null)}
             className={cn(
-              "px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all duration-300",
+              "px-5 py-2.5 text-11 font-bold uppercase tracking-widest rounded-xl transition-all duration-300",
               !isScheduled ? "bg-primary text-primary-content shadow-lg shadow-primary/30" : "text-foreground-tertiary hover:text-foreground-secondary"
             )}
           >
@@ -31,7 +31,7 @@ export function SchedulingPanel({ scheduledAt, onChange, isSubmitting, onPublish
           <button
             onClick={() => onChange(new Date(Date.now() + 24 * 60 * 60 * 1000))}
             className={cn(
-              "px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all duration-300",
+              "px-5 py-2.5 text-11 font-bold uppercase tracking-widest rounded-xl transition-all duration-300",
               isScheduled ? "bg-primary text-primary-content shadow-lg shadow-primary/30" : "text-foreground-tertiary hover:text-foreground-secondary"
             )}
           >
@@ -51,7 +51,7 @@ export function SchedulingPanel({ scheduledAt, onChange, isSubmitting, onPublish
               className="w-full bg-background-tertiary border border-foreground/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
             />
           </div>
-          <p className="text-[10px] text-foreground-tertiary px-1">
+          <p className="text-2xs text-foreground-tertiary px-1">
             Post will be automatically published at the selected time.
           </p>
         </div>

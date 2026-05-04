@@ -55,13 +55,13 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
       onClick={onClose}
     >
       <div 
-        className="bg-[#121212] border border-white/10 rounded-[24px] w-[480px] max-w-[95vw] max-h-[90vh] flex flex-col shadow-[0_32px_64px_rgba(0,0,0,0.6)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 relative"
+        className="bg-base-200 border border-foreground/10 rounded-[24px] w-[480px] max-w-[95vw] max-h-[90vh] flex flex-col shadow-[0_32px_64px_rgba(0,0,0,0.6)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 relative"
         onClick={e => e.stopPropagation()}
       >
         <div className="p-6 border-b border-white/[0.05] flex items-center justify-between">
-          <h2 className="m-0 text-[1.25rem] font-semibold text-white">Tạo cụm tài khoản mới</h2>
+          <h2 className="m-0 text-xl font-semibold text-foreground">Tạo cụm tài khoản mới</h2>
           <button 
-            className="p-1 rounded-lg text-[#666] hover:bg-white/5 hover:text-white transition-all"
+            className="p-1 rounded-lg text-foreground-tertiary hover:bg-white/5 hover:text-white transition-all"
             onClick={onClose}
           >
             <X size={20} />
@@ -70,9 +70,9 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
 
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <div className="mb-6">
-            <label className="block text-[0.875rem] font-semibold text-[#888] mb-2.5 uppercase tracking-wider">Tên cụm</label>
+            <label className="block text-sm font-semibold text-foreground-tertiary mb-2.5 uppercase tracking-wider">Tên cụm</label>
             <input 
-              className="w-full bg-white/5 border border-white/10 rounded-[14px] p-3.5 text-white text-base outline-none focus:border-violet-500 focus:bg-violet-500/[0.08] focus:ring-4 focus:ring-violet-500/10 transition-all duration-200"
+              className="w-full bg-background-secondary border border-foreground/10 text-foreground"
               placeholder="Ví dụ: Cụm Influencers, Cụm Instagram..."
               value={name}
               onChange={e => setName(e.target.value)}
@@ -81,14 +81,14 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
           </div>
 
           <div className="mb-6">
-            <label className="block text-[0.875rem] font-semibold text-[#888] mb-2.5 uppercase tracking-wider">
+            <label className="block text-sm font-semibold text-foreground-tertiary mb-2.5 uppercase tracking-wider">
               Chọn tài khoản ({selectedIds.length})
             </label>
             <div className="flex flex-col gap-2.5 pr-1 scrollbar-thin scrollbar-thumb-white/10">
               {isLoading ? (
-                <div className="p-5 text-center text-[#666]">Đang tải danh sách...</div>
+                <div className="p-5 text-center text-foreground-tertiary">Đang tải danh sách...</div>
               ) : accounts.length === 0 ? (
-                <div className="p-5 text-center text-[#666]">Không tìm thấy tài khoản nào.</div>
+                <div className="p-5 text-center text-foreground-tertiary">Không tìm thấy tài khoản nào.</div>
               ) : (
                 accounts.map(acc => (
                   <div 
@@ -99,7 +99,7 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
                     )}
                     onClick={() => toggleAccount(acc.id)}
                   >
-                    <div className="w-8 h-8 rounded-full mr-3 shrink-0 flex items-center justify-center bg-[#333] text-white text-[0.75rem] overflow-hidden">
+                    <div className="w-8 h-8 rounded-full mr-3 shrink-0 flex items-center justify-center bg-background-tertiary text-foreground text-xs overflow-hidden">
                       {acc.metadata?.avatar_url ? (
                         <img src={acc.metadata.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -107,12 +107,12 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="block text-[0.9375rem] font-medium text-white truncate">{acc.name || acc.externalId}</span>
-                      <span className="text-[0.75rem] text-[#666] capitalize">{acc.platform}</span>
+                      <span className="block text-15 font-medium text-foreground truncate">{acc.name || acc.externalId}</span>
+                      <span className="text-xs text-foreground-tertiary capitalize">{acc.platform}</span>
                     </div>
                     <div className={cn(
                       "w-5 h-5 rounded-md border-2 border-white/10 flex items-center justify-center ml-3 transition-all shrink-0",
-                      selectedIds.includes(acc.id) && "bg-violet-500 border-violet-500"
+                      selectedIds.includes(acc.id) && "bg-accent-primary border-violet-500"
                     )}>
                       {selectedIds.includes(acc.id) && <Check size={12} color="#fff" />}
                     </div>
@@ -125,13 +125,13 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
 
         <div className="p-6 border-t border-white/[0.05] flex justify-end gap-3">
           <button 
-            className="px-5 py-2.5 rounded-[10px] text-[0.875rem] font-medium bg-transparent border border-white/10 text-white transition-all hover:bg-white/5 active:scale-[0.98]" 
+            className="px-5 py-2.5 rounded-[10px] text-sm font-medium bg-transparent border border-white/10 text-white transition-all hover:bg-white/5 active:scale-[0.98]" 
             onClick={onClose}
           >
             Hủy
           </button>
           <button 
-            className="px-5 py-2.5 rounded-[10px] text-[0.875rem] font-medium bg-violet-500 border-none text-white transition-all hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]" 
+            className="px-5 py-2.5 rounded-[10px] text-sm font-medium bg-accent-primary border-none text-white transition-all hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]" 
             disabled={!name || selectedIds.length === 0 || isSubmitting}
             onClick={handleSubmit}
           >

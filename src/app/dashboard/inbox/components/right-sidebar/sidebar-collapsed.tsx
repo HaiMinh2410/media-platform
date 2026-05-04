@@ -29,7 +29,7 @@ export function SidebarCollapsed({
         {/* Active Conversation Avatar - Toggles Sidebar */}
         <div 
           className={cn(
-            "relative w-9 h-9 rounded-full bg-background-tertiary border-2 border-foreground/10 flex items-center justify-center text-[0.875rem] font-bold text-foreground cursor-pointer transition-all hover:scale-105 hover:border-accent-primary shadow-lg",
+            "relative w-9 h-9 rounded-full bg-background-tertiary border-2 border-foreground/10 flex items-center justify-center text-sm font-bold text-foreground cursor-pointer transition-all hover:scale-105 hover:border-accent-primary shadow-lg",
             "border-accent-primary bg-accent-primary/10 ring-2 ring-accent-primary/20"
           )}
           onClick={onToggleCollapse}
@@ -40,7 +40,7 @@ export function SidebarCollapsed({
           ) : (
             customerName?.charAt(0) || 'U'
           )}
-          <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] bg-background border-[1.5px] border-background rounded-full flex items-center justify-center text-[#E1306C] shadow-lg z-10">
+          <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] bg-background border-[1.5px] border-background rounded-full flex items-center justify-center text-instagram shadow-lg z-10">
             <Camera size={10} />
           </div>
         </div>
@@ -61,7 +61,7 @@ export function SidebarCollapsed({
                 {t.customer_avatar ? (
                   <img src={t.customer_avatar} alt="" className="w-full h-full object-cover rounded-full" />
                 ) : (
-                  <span className="text-[0.75rem] font-bold text-foreground-secondary">{t.sender_name?.charAt(0) || '?'}</span>
+                  <span className="text-xs font-bold text-foreground-secondary">{t.sender_name?.charAt(0) || '?'}</span>
                 )}
                 
                 <button 

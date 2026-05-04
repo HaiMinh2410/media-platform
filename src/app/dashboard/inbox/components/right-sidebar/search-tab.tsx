@@ -58,7 +58,7 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
   return (
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center p-4 border-b border-white/5">
-        <h3 className="text-[0.875rem] font-bold text-foreground">Search in Conversation</h3>
+        <h3 className="text-sm font-bold text-foreground">Search in Conversation</h3>
         <button className="text-foreground-tertiary hover:text-foreground p-1 transition-colors" onClick={onClose}>
           <X size={16} />
         </button>
@@ -70,7 +70,7 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
           <input 
             type="text" 
             placeholder="Search keywords..." 
-            className="w-full bg-black/20 border border-white/10 pl-10 pr-10 py-2 rounded-lg text-[0.875rem] text-foreground outline-none focus:border-accent-primary transition-all" 
+            className="w-full bg-black/20 border border-white/10 pl-10 pr-10 py-2 rounded-lg text-sm text-foreground outline-none focus:border-accent-primary transition-all" 
             autoFocus 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -81,7 +81,7 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
         <div className="flex flex-wrap gap-2">
           <div 
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.75rem] font-medium border transition-all cursor-pointer",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
               senderFilter === 'user' 
                 ? "bg-accent-primary/10 border-accent-primary/30 text-accent-primary" 
                 : "bg-white/5 border-white/10 text-foreground-tertiary hover:bg-white/10"
@@ -93,7 +93,7 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
           </div>
           <div 
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.75rem] font-medium border transition-all cursor-pointer",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
               senderFilter === 'agent' 
                 ? "bg-accent-primary/10 border-accent-primary/30 text-accent-primary" 
                 : "bg-white/5 border-white/10 text-foreground-tertiary hover:bg-white/10"
@@ -105,7 +105,7 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
           </div>
           <div 
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.75rem] font-medium border transition-all cursor-pointer",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
               dateFilter === 'today' 
                 ? "bg-accent-primary/10 border-accent-primary/30 text-accent-primary" 
                 : "bg-white/5 border-white/10 text-foreground-tertiary hover:bg-white/10"
@@ -124,7 +124,7 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
             <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-foreground-tertiary">
               <Search size={32} />
             </div>
-            <p className="text-[0.875rem] text-foreground-tertiary leading-relaxed">Enter a keyword to start searching for messages and files in this conversation.</p>
+            <p className="text-sm text-foreground-tertiary leading-relaxed">Enter a keyword to start searching for messages and files in this conversation.</p>
           </div>
         ) : searchResults.length > 0 ? (
           searchResults.map((msg) => (
@@ -135,20 +135,20 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
             >
               <div className="flex justify-between items-center mb-1.5">
                 <span className={cn(
-                  "text-[0.7rem] font-bold px-2 py-0.5 rounded uppercase",
+                  "text-11 font-bold px-2 py-0.5 rounded uppercase",
                   msg.senderType === 'user' ? "bg-blue-500/10 text-blue-400" : "bg-purple-500/10 text-purple-400"
                 )}>
                   {msg.senderType === 'user' ? 'Customer' : 'Agent'}
                 </span>
-                <span className="text-[0.7rem] text-foreground-tertiary">
+                <span className="text-11 text-foreground-tertiary">
                   {format(new Date(msg.createdAt), 'MMM d, HH:mm')}
                 </span>
               </div>
-              <p className="text-[0.875rem] text-foreground-secondary line-clamp-2 leading-relaxed">{msg.content}</p>
+              <p className="text-sm text-foreground-secondary line-clamp-2 leading-relaxed">{msg.content}</p>
             </div>
           ))
         ) : !isSearching ? (
-          <div className="py-10 text-center text-foreground-tertiary text-[0.875rem]">
+          <div className="py-10 text-center text-foreground-tertiary text-sm">
             <p>No results found for "{searchQuery}"</p>
           </div>
         ) : null}

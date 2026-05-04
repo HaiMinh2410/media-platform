@@ -75,9 +75,9 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
         )}
         <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] rounded-full bg-background flex items-center justify-center p-0.5 shadow-lg border-[1.5px] border-background z-10">
           {conversation.platform === 'instagram' ? (
-            <Icon name="instagram" size="100%" className="text-[#E1306C]" />
+            <Icon name="instagram" size="100%" className="text-instagram" />
           ) : (
-            <Icon name="facebook" size="100%" className="text-[#1877F2]" />
+            <Icon name="facebook" size="100%" className="text-facebook" />
           )}
         </div>
       </div>
@@ -86,7 +86,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
         <div className="flex justify-between items-baseline mb-0.5">
           <div className="flex items-center gap-1 min-w-0 flex-1">
             <span className={cn(
-              "font-medium text-foreground text-[0.9375rem] whitespace-nowrap overflow-hidden text-ellipsis",
+              "font-medium text-foreground text-md whitespace-nowrap overflow-hidden text-ellipsis",
               isUnread && "font-semibold"
             )}>
               {conversation.sender_name || 'Unknown User'}
@@ -111,18 +111,18 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
               </span>
             )}
           </div>
-          <span className="text-[0.7rem] text-foreground-tertiary shrink-0 ml-2">{formatTime(conversation.last_message_at)}</span>
+          <span className="text-11 text-foreground-tertiary shrink-0 ml-2">{formatTime(conversation.last_message_at)}</span>
         </div>
         
         <div className="flex justify-between items-center gap-2">
           <span className={cn(
-            "text-[0.8125rem] text-foreground-secondary whitespace-nowrap overflow-hidden text-ellipsis",
+            "text-13 text-foreground-secondary whitespace-nowrap overflow-hidden text-ellipsis",
             isUnread && "font-medium text-foreground"
           )}>
             {conversation.last_message_content || 'No messages'}
           </span>
           {isUnread && (
-            <span className="bg-primary text-primary-content min-w-[18px] h-[18px] rounded-full px-1.5 text-[0.7rem] font-semibold flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+            <span className="bg-primary text-primary-content min-w-[18px] h-[18px] rounded-full px-1.5 text-11 font-semibold flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
               {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
             </span>
           )}
@@ -130,7 +130,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
 
         <div className="flex items-center gap-1.5 mt-1">
           {conversation.priority && LEAD_STAGE_LABELS[conversation.priority] && (
-            <span className={cn("text-[0.6rem] font-bold uppercase px-1.5 py-0.5 rounded-md", getPriorityClass(conversation.priority))}>
+            <span className={cn("text-2xs font-bold uppercase px-1.5 py-0.5 rounded-md", getPriorityClass(conversation.priority))}>
               {LEAD_STAGE_LABELS[conversation.priority]}
             </span>
           )}

@@ -122,11 +122,11 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-[0.75rem] font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
+        <h3 className="text-xs font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
           Nhãn <Info size={14} className="text-foreground-tertiary cursor-help" />
         </h3>
         <span 
-          className="text-[0.75rem] text-accent-primary cursor-pointer hover:underline"
+          className="text-xs text-accent-primary cursor-pointer hover:underline"
           onClick={() => setIsManageTagsOpen(true)}
         >
           Quản lý nhãn
@@ -139,7 +139,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
             return (
               <span 
                 key={tag} 
-                className="flex items-center gap-2 px-2.5 py-1 rounded-md text-[0.8125rem] font-medium transition-all"
+                className="flex items-center gap-2 px-2.5 py-1 rounded-md text-13 font-medium transition-all"
                 style={{ 
                   backgroundColor: `${color}15`, 
                   color: color,
@@ -156,7 +156,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
             );
           })
         ) : (
-          <p className="text-[0.75rem] text-foreground-tertiary italic my-2">
+          <p className="text-xs text-foreground-tertiary italic my-2">
             Chưa có nhãn nào được gắn
           </p>
         )}
@@ -164,7 +164,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
 
       <div className="relative w-full mt-2" ref={tagDropdownRef}>
         <div 
-          className="flex items-center justify-between w-full p-2.5 bg-background-secondary border border-foreground/10 rounded-lg text-[0.875rem] text-foreground cursor-pointer transition-all hover:bg-background-tertiary hover:border-accent-primary"
+          className="flex items-center justify-between w-full p-2.5 bg-background-secondary border border-foreground/10 rounded-lg text-sm text-foreground cursor-pointer transition-all hover:bg-background-tertiary hover:border-accent-primary"
           onClick={toggleTagDropdown}
         >
           <span>Thêm nhãn</span>
@@ -202,12 +202,12 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
                         style={{ backgroundColor: color }} 
                       />
-                      <span className="font-bold text-[0.875rem] text-foreground">{name}</span>
+                      <span className="font-bold text-sm text-foreground">{name}</span>
                     </div>
                   );
                 })
               ) : (
-                <div className="p-4 text-center text-[0.8125rem] text-foreground-tertiary italic">Không còn nhãn nào để thêm</div>
+                <div className="p-4 text-center text-13 text-foreground-tertiary italic">Không còn nhãn nào để thêm</div>
               )}
             </div>
           </div>,

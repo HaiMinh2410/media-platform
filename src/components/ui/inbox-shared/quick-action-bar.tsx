@@ -35,7 +35,7 @@ export const QuickActionBar: React.FC<QuickActionProps> = ({ className }) => {
       
       <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-bg-tertiary border border-glass-border">
         <Command size={12} className="text-fg-tertiary" />
-        <span className="text-[10px] font-mono font-bold text-fg-tertiary">K</span>
+        <span className="text-2xs font-mono font-bold text-fg-tertiary">K</span>
       </div>
     </div>
   );

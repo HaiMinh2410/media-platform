@@ -28,7 +28,7 @@ export function ConnectButtons({ workspaceId }: ConnectButtonsProps) {
         description="Connect your Facebook Pages to manage messages and automation."
       >
         <div className="flex justify-center items-center h-24 mb-6">
-          <Icon name="facebook" size={60} className="text-[#1877F2] drop-shadow-md" />
+          <Icon name="facebook" size={60} className="text-facebook drop-shadow-md" />
         </div>
         <Button onClick={handleConnectFacebook} fullWidth className="mt-auto">
           Connect Page
@@ -41,7 +41,7 @@ export function ConnectButtons({ workspaceId }: ConnectButtonsProps) {
         description="Manage your Instagram Business messages and automated replies."
       >
         <div className="flex justify-center items-center h-24 mb-6">
-          <Icon name="instagram-filled" size={60} className="text-[#E4405F] drop-shadow-md" />
+          <Icon name="instagram-filled" size={60} className="text-instagram drop-shadow-md" />
         </div>
         <Button onClick={handleConnectInstagram} fullWidth className="mt-auto">
           Connect IG

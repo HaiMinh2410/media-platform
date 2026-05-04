@@ -155,7 +155,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
       <div ref={observerTarget} style={{ height: '1px', opacity: 0 }} />
 
       {loading && nextCursor && (
-        <div className="p-4 text-center text-foreground-tertiary text-[0.875rem]">Loading older messages...</div>
+        <div className="p-4 text-center text-foreground-tertiary text-sm">Loading older messages...</div>
       )}
       
       {loading && messages.length === 0 && <ChatSkeleton />}
@@ -185,7 +185,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
           <React.Fragment key={msg.id}>
             {showSeparator && (
               <div className="flex justify-center items-center my-6 relative before:content-[''] before:absolute before:left-0 before:right-0 before:top-1/2 before:h-px before:bg-foreground/5">
-                <span className="bg-base-200 px-4 py-1 rounded-full text-[0.7rem] font-medium text-foreground-tertiary border border-foreground/10 relative z-10">
+                <span className="bg-base-200 px-4 py-1 rounded-full text-11 font-medium text-foreground-tertiary border border-foreground/10 relative z-10">
                   {formatChatSeparator(msg.createdAt)}
                 </span>
               </div>
@@ -199,7 +199,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
       })}
       
       {!loading && messages.length === 0 && (
-        <div className="p-4 text-center text-foreground-tertiary text-[0.875rem]">No messages found for this conversation.</div>
+        <div className="p-4 text-center text-foreground-tertiary text-sm">No messages found for this conversation.</div>
       )}
     </div>
   );

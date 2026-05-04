@@ -107,7 +107,7 @@ export default function LeadsCenter() {
         <div className="flex gap-1 bg-foreground/10 p-1 rounded-xl">
           <button 
             className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all",
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-13 font-medium transition-all",
               viewMode === 'kanban' ? "bg-foreground/10 text-foreground shadow-lg" : "text-foreground-tertiary hover:text-foreground-secondary"
             )}
             onClick={() => setViewMode('kanban')}
@@ -117,7 +117,7 @@ export default function LeadsCenter() {
           </button>
           <button 
             className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all",
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-13 font-medium transition-all",
               viewMode === 'table' ? "bg-foreground/10 text-foreground shadow-lg" : "text-foreground-tertiary hover:text-foreground-secondary"
             )}
             onClick={() => setViewMode('table')}
@@ -128,21 +128,21 @@ export default function LeadsCenter() {
         </div>
 
         <div className="flex flex-wrap gap-3 items-center">
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium bg-foreground/[0.02] border border-foreground/10 text-foreground-secondary hover:bg-foreground/[0.05]">
+          <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-13 font-medium bg-foreground/[0.02] border border-foreground/10 text-foreground-secondary hover:bg-foreground/[0.05]">
             <Filter size={14} />
             Ẩn bộ lọc
           </button>
-          <select className="bg-foreground/[0.02] border border-foreground/10 px-3 py-2 rounded-lg text-foreground-secondary text-[13px] outline-none cursor-pointer hover:border-foreground/20">
+          <select className="bg-foreground/[0.02] border border-foreground/10 px-3 py-2 rounded-lg text-foreground-secondary text-13 outline-none cursor-pointer hover:border-foreground/20">
             <option>Chiến dịch</option>
           </select>
-          <select className="bg-foreground/[0.02] border border-foreground/10 px-3 py-2 rounded-lg text-foreground-secondary text-[13px] outline-none cursor-pointer hover:border-foreground/20">
+          <select className="bg-foreground/[0.02] border border-foreground/10 px-3 py-2 rounded-lg text-foreground-secondary text-13 outline-none cursor-pointer hover:border-foreground/20">
             <option>Mẫu</option>
           </select>
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium bg-foreground/[0.02] border border-foreground/10 text-foreground-secondary hover:bg-foreground/[0.05]">
+          <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-13 font-medium bg-foreground/[0.02] border border-foreground/10 text-foreground-secondary hover:bg-foreground/[0.05]">
             <Calendar size={14} />
             Chọn ngày
           </button>
-          <select className="bg-foreground/[0.02] border border-foreground/10 px-3 py-2 rounded-lg text-foreground-secondary text-[13px] outline-none cursor-pointer hover:border-foreground/20">
+          <select className="bg-foreground/[0.02] border border-foreground/10 px-3 py-2 rounded-lg text-foreground-secondary text-13 outline-none cursor-pointer hover:border-foreground/20">
             <option>Trạng thái</option>
           </select>
         </div>
@@ -151,17 +151,17 @@ export default function LeadsCenter() {
       {/* Stats Bar */}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
         <div className="p-4 bg-foreground/[0.02] border border-foreground/10 rounded-2xl">
-          <span className="text-[13px] text-foreground-tertiary flex items-center gap-2">
+          <span className="text-13 text-foreground-tertiary flex items-center gap-2">
             Số khách hàng tiềm năng ở giai đoạn tiếp nhận: 3 <Info size={12} />
           </span>
         </div>
         <div className="p-4 bg-foreground/[0.02] border border-foreground/10 rounded-2xl">
-          <span className="text-[13px] text-foreground-tertiary flex items-center gap-2">
+          <span className="text-13 text-foreground-tertiary flex items-center gap-2">
             Số khách hàng tiềm năng đã chuyển đổi: -- <Info size={12} />
           </span>
         </div>
         <div className="p-4 bg-foreground/[0.02] border border-foreground/10 rounded-2xl">
-          <span className="text-[13px] text-foreground-tertiary flex items-center gap-2">
+          <span className="text-13 text-foreground-tertiary flex items-center gap-2">
             Tỷ lệ chuyển đổi: -- <Info size={12} />
           </span>
         </div>
@@ -173,7 +173,7 @@ export default function LeadsCenter() {
           {LEAD_STAGES.map((stage) => (
             <div key={stage.id} className="min-w-[300px] max-w-[300px] flex flex-col gap-3">
               <div className="flex justify-between items-center py-2 px-1 sticky top-0 bg-background-primary z-10">
-                <div className="flex items-center gap-2 text-[15px] font-semibold">
+                <div className="flex items-center gap-2 text-md font-semibold">
                   {stage.label} <Info size={14} className="opacity-50" />
                   <span className="bg-foreground/5 px-2 py-0.5 rounded-full text-xs text-foreground-tertiary">
                     {MOCK_LEADS.filter(l => l.stage === stage.id).length}
@@ -231,27 +231,27 @@ export default function LeadsCenter() {
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-foreground/[0.02]">
-                <th className="text-left p-4 text-[13px] font-semibold text-foreground-tertiary border-bottom border-foreground/5"><input type="checkbox" className="rounded bg-foreground/10 border-foreground/20" /></th>
-                <th className="text-left p-4 text-[13px] font-semibold text-foreground-tertiary border-bottom border-white/5">
+                <th className="text-left p-4 text-13 font-semibold text-foreground-tertiary border-bottom border-foreground/5"><input type="checkbox" className="rounded bg-foreground/10 border-foreground/20" /></th>
+                <th className="text-left p-4 text-13 font-semibold text-foreground-tertiary border-bottom border-white/5">
                   <div className="flex items-center gap-1 cursor-pointer hover:text-foreground-secondary">Ngày thêm <ChevronDown size={12} /></div>
                 </th>
-                <th className="text-left p-4 text-[13px] font-semibold text-foreground-tertiary border-bottom border-white/5">
+                <th className="text-left p-4 text-13 font-semibold text-foreground-tertiary border-bottom border-white/5">
                   <div className="flex items-center gap-1 cursor-pointer hover:text-foreground-secondary">Tên <ChevronDown size={12} /></div>
                 </th>
-                <th className="text-left p-4 text-[13px] font-semibold text-foreground-tertiary border-bottom border-white/5">
+                <th className="text-left p-4 text-13 font-semibold text-foreground-tertiary border-bottom border-white/5">
                   <div className="flex items-center gap-1 cursor-pointer hover:text-foreground-secondary">Giai đoạn <ChevronDown size={12} /></div>
                 </th>
-                <th className="text-left p-4 text-[13px] font-semibold text-foreground-tertiary border-bottom border-white/5">
+                <th className="text-left p-4 text-13 font-semibold text-foreground-tertiary border-bottom border-white/5">
                   <div className="flex items-center gap-1 cursor-pointer hover:text-foreground-secondary">Nguồn <ChevronDown size={12} /></div>
                 </th>
-                <th className="text-left p-4 text-[13px] font-semibold text-foreground-tertiary border-bottom border-white/5">
+                <th className="text-left p-4 text-13 font-semibold text-foreground-tertiary border-bottom border-white/5">
                   <div className="flex items-center gap-1 cursor-pointer hover:text-foreground-secondary">Chỉ định cho <ChevronDown size={12} /></div>
                 </th>
-                <th className="text-left p-4 text-[13px] font-semibold text-foreground-tertiary border-bottom border-white/5">
+                <th className="text-left p-4 text-13 font-semibold text-foreground-tertiary border-bottom border-white/5">
                   <div className="flex items-center gap-1 cursor-pointer hover:text-foreground-secondary">Kênh <ChevronDown size={12} /></div>
                 </th>
-                <th className="text-left p-4 text-[13px] font-semibold text-foreground-tertiary border-bottom border-white/5">Trạng thái</th>
-                <th className="text-left p-4 text-[13px] font-semibold text-foreground-tertiary border-bottom border-white/5">Lời nhắc</th>
+                <th className="text-left p-4 text-13 font-semibold text-foreground-tertiary border-bottom border-white/5">Trạng thái</th>
+                <th className="text-left p-4 text-13 font-semibold text-foreground-tertiary border-bottom border-white/5">Lời nhắc</th>
               </tr>
             </thead>
             <tbody>
@@ -261,7 +261,7 @@ export default function LeadsCenter() {
                   <td className="p-4 text-sm">{lead.date}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                       <div className="w-7 h-7 rounded-full bg-foreground/10 flex items-center justify-center font-bold text-foreground overflow-hidden text-[10px]">
+                       <div className="w-7 h-7 rounded-full bg-foreground/10 flex items-center justify-center font-bold text-foreground overflow-hidden text-2xs">
                         {lead.avatar ? <img src={lead.avatar} alt={lead.name} className="w-full h-full object-cover" /> : lead.name.charAt(0)}
                       </div>
                       <span className="text-sm font-medium">{lead.name}</span>
@@ -270,7 +270,7 @@ export default function LeadsCenter() {
                   <td className="p-4">
                     <span 
                       className={cn(
-                        "px-2.5 py-1 rounded-md text-[12px] font-bold",
+                        "px-2.5 py-1 rounded-md text-xs font-bold",
                         lead.stage === 'new' ? "bg-info/10 text-info" : "bg-success/10 text-success"
                       )}
                     >

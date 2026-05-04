@@ -49,10 +49,10 @@ export function PlatformSelector({ accounts, selectedIds, onChange }: PlatformSe
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className={cn(
-                  "text-[15px] font-bold truncate transition-colors",
+                  "text-md font-bold truncate transition-colors",
                   isSelected ? "text-foreground" : "text-foreground-secondary"
                 )}>{account.name}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest opacity-50">{account.platform}</p>
+                <p className="text-2xs font-bold uppercase tracking-widest opacity-50">{account.platform}</p>
               </div>
               
               {isSelected && (

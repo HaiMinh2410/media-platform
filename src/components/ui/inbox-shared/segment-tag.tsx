@@ -33,7 +33,7 @@ export const SegmentTag: React.FC<SegmentTagProps> = ({ label, type = 'generic',
 
   return (
     <div className={cn(
-      "px-2 py-0.5 rounded-md border text-[10px] font-mono font-bold tracking-tight",
+      "px-2 py-0.5 rounded-md border text-2xs font-mono font-bold tracking-tight",
       getStyles(),
       className
     )}>

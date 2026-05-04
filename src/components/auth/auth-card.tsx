@@ -13,7 +13,7 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
         <div className="mb-md">
           <div className="w-12 h-12 bg-[var(--accent-gradient)] rounded-md -rotate-[10deg] relative after:content-[''] after:absolute after:inset-1 after:border-2 after:border-white/40 after:rounded-sm"></div>
         </div>
-        <h1 className="text-[2rem] text-foreground">{title}</h1>
+        <h1 className="text-32 text-foreground">{title}</h1>
         <p className="text-foreground-secondary text-base">{subtitle}</p>
       </div>
       <div className="flex flex-col gap-md">

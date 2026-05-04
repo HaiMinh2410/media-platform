@@ -34,7 +34,7 @@ export const AIStateChip: React.FC<AIStateChipProps> = ({ state, className }) =>
 
   return (
     <div className={cn(
-      "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[9px] font-mono font-black uppercase tracking-tighter transition-all",
+      "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-3xs font-mono font-black uppercase tracking-tighter transition-all",
       config.color,
       className
     )}>

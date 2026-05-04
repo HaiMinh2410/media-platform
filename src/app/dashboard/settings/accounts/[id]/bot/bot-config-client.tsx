@@ -206,7 +206,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
           {config.auto_send && (
             <div className="mt-4 p-4 bg-foreground/[0.03] rounded-xl border border-foreground/5 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-[0.75rem] font-bold uppercase tracking-wider text-foreground-tertiary">Auto-Reply for Priorities:</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-foreground-tertiary">Auto-Reply for Priorities:</label>
                 <div className="flex flex-wrap gap-3">
                   {PRIORITY_OPTIONS.map(prio => (
                     <label key={prio} className={cn(
@@ -231,7 +231,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-[0.75rem] font-bold uppercase tracking-wider text-foreground-tertiary">Auto-Reply for Sentiments:</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-foreground-tertiary">Auto-Reply for Sentiments:</label>
                 <div className="flex flex-wrap gap-3">
                   {SENTIMENT_OPTIONS.map(sent => (
                     <label key={sent} className={cn(

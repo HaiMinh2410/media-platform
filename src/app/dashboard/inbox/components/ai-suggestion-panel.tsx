@@ -44,26 +44,26 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
   return (
     <div className="bg-foreground/[0.03] border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 transition-all hover:bg-foreground/[0.05] hover:border-foreground/10 group">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[0.75rem] font-bold text-accent-primary">
+        <div className="flex items-center gap-2 text-xs font-bold text-accent-primary">
           <Zap size={12} fill="currentColor" />
           <span>AI Reply</span>
-          <span className="bg-accent-primary/10 px-1.5 py-0.5 rounded text-[0.625rem] font-bold uppercase tracking-wider">
+          <span className="bg-accent-primary/10 px-1.5 py-0.5 rounded text-3xs font-bold uppercase tracking-wider">
             {formatModel(suggestion.model)}
           </span>
         </div>
-        <span className="text-[0.65rem] text-foreground-tertiary flex items-center gap-1">
+        <span className="text-3xs text-foreground-tertiary flex items-center gap-1">
           <Clock size={10} />
           {timeAgo(suggestion.createdAt)}
         </span>
       </div>
 
-      <p className="text-[0.875rem] text-foreground-secondary leading-relaxed m-0 italic">
+      <p className="text-sm text-foreground-secondary leading-relaxed m-0 italic">
         "{suggestion.response}"
       </p>
 
       <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
-          className="flex-1 bg-accent-primary text-white py-2 rounded-lg text-[0.8125rem] font-bold transition-all hover:brightness-110 active:scale-[0.98]"
+          className="flex-1 bg-accent-primary text-white py-2 rounded-lg text-13 font-bold transition-all hover:brightness-110 active:scale-[0.98]"
           onClick={() => onUse(suggestion.response)}
         >
           Sử dụng
@@ -112,7 +112,7 @@ export function AiSuggestionPanel({
       {/* --- Insights Section --- */}
       <div className="p-4 flex flex-col gap-4">
         <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2 text-[0.875rem] font-bold text-foreground uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
             <Sparkles size={14} className="text-accent-primary" />
             <span>Phân tích hội thoại</span>
           </div>
@@ -120,10 +120,10 @@ export function AiSuggestionPanel({
         
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <span className="text-[0.7rem] font-bold text-foreground-tertiary uppercase tracking-wider">Độ ưu tiên</span>
+            <span className="text-11 font-bold text-foreground-tertiary uppercase tracking-wider">Độ ưu tiên</span>
             <select 
               className={cn(
-                "bg-background-secondary border border-foreground/10 rounded-md p-2 text-[0.8125rem] text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer",
+                "bg-background-secondary border border-foreground/10 rounded-md p-2 text-13 text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer",
                 priority === 'high' && "text-red-400 border-red-500/30 bg-red-500/5",
                 priority === 'medium' && "text-amber-400 border-amber-500/30 bg-amber-500/5",
                 priority === 'low' && "text-blue-400 border-blue-500/30 bg-blue-500/5"
@@ -138,9 +138,9 @@ export function AiSuggestionPanel({
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <span className="text-[0.7rem] font-bold text-foreground-tertiary uppercase tracking-wider">Sắc thái</span>
+            <span className="text-11 font-bold text-foreground-tertiary uppercase tracking-wider">Sắc thái</span>
             <select 
-              className="bg-background-secondary border border-foreground/10 rounded-md p-2 text-[0.8125rem] text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer"
+              className="bg-background-secondary border border-foreground/10 rounded-md p-2 text-13 text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer"
               value={sentiment || 'neutral'}
               onChange={(e) => onUpdateSentiment?.(e.target.value)}
             >
@@ -155,7 +155,7 @@ export function AiSuggestionPanel({
         <div className="mt-1">
           <div className="flex flex-wrap gap-1.5 items-center">
             {tags.map(tag => (
-              <span key={tag} className="flex items-center gap-1.5 px-2.5 py-1 bg-accent-primary/10 border border-accent-primary/20 rounded-md text-[0.75rem] text-accent-primary font-medium">
+              <span key={tag} className="flex items-center gap-1.5 px-2.5 py-1 bg-accent-primary/10 border border-accent-primary/20 rounded-md text-xs text-accent-primary font-medium">
                 {tag}
                 <button onClick={() => removeTag(tag)} className="hover:text-white transition-colors">
                   <X size={10} />
@@ -163,7 +163,7 @@ export function AiSuggestionPanel({
               </span>
             ))}
             <input 
-              className="bg-transparent border-none outline-none text-[0.75rem] text-foreground-secondary placeholder:text-foreground-tertiary w-24 p-1" 
+              className="bg-transparent border-none outline-none text-xs text-foreground-secondary placeholder:text-foreground-tertiary w-24 p-1" 
               placeholder="+ Thêm nhãn..." 
               onKeyDown={handleAddTag}
             />
@@ -175,12 +175,12 @@ export function AiSuggestionPanel({
 
       {/* --- Suggestions Section --- */}
       <div className="px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[0.875rem] font-bold text-foreground uppercase tracking-wider">
+        <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
           <Zap size={14} className="text-accent-primary" />
           <span>Gợi ý phản hồi AI</span>
         </div>
         {visible.length > 0 && (
-          <span className="bg-accent-primary/20 text-accent-primary px-1.5 py-0.5 rounded-full text-[0.625rem] font-bold">
+          <span className="bg-accent-primary/20 text-accent-primary px-1.5 py-0.5 rounded-full text-3xs font-bold">
             {visible.length}
           </span>
         )}
@@ -196,7 +196,7 @@ export function AiSuggestionPanel({
                 <div className="h-4 bg-foreground/5 rounded w-4/5" />
               </div>
             ))}
-            <div className="flex items-center justify-center py-5 text-foreground-tertiary text-[0.8125rem] gap-2">
+            <div className="flex items-center justify-center py-5 text-foreground-tertiary text-13 gap-2">
               <Loader2 size={16} className="animate-spin" />
               <span>Đang tạo phản hồi...</span>
             </div>
@@ -206,7 +206,7 @@ export function AiSuggestionPanel({
         {!loading && visible.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3">
             <Info size={24} />
-            <p className="text-[0.875rem] italic">Chưa có gợi ý nào</p>
+            <p className="text-sm italic">Chưa có gợi ý nào</p>
           </div>
         )}
 

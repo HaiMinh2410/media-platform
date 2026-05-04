@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronRight, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,27 +32,27 @@ export function CustomerProfile({
         )}
       </div>
       <div className="flex-1 flex flex-col gap-0.5">
-        <h4 className="text-[0.9375rem] font-bold text-foreground truncate">{customerName || 'Unknown'}</h4>
+        <h4 className="text-md font-bold text-foreground truncate">{customerName || 'Unknown'}</h4>
         {platform === 'instagram' ? (
           customerUsername ? (
             <a 
               href={`https://www.instagram.com/${customerUsername}/`} 
               target="_blank" 
               rel="noreferrer" 
-              className="text-[0.75rem] text-accent-primary hover:underline"
+              className="text-xs text-accent-primary hover:underline"
             >
               Xem trang cá nhân
             </a>
           ) : (
             <>
               <span 
-                className="text-[0.75rem] text-foreground-tertiary cursor-help" 
+                className="text-xs text-foreground-tertiary cursor-help" 
                 title="Chưa đồng bộ được username Instagram. Nhấn 'Làm mới' để thử lại."
               >
                 Chưa có liên kết
               </span>
               <button 
-                className="inline-flex items-center gap-1 text-[0.7rem] text-foreground-tertiary hover:text-foreground mt-1 transition-colors disabled:opacity-50" 
+                className="inline-flex items-center gap-1 text-2xs text-foreground-tertiary hover:text-foreground mt-1 transition-colors disabled:opacity-50" 
                 onClick={onSyncProfile}
                 disabled={isSyncing}
               >
@@ -68,20 +67,20 @@ export function CustomerProfile({
               href={customerLink} 
               target="_blank" 
               rel="noreferrer" 
-              className="text-[0.75rem] text-accent-primary hover:underline"
+              className="text-xs text-accent-primary hover:underline"
             >
               Xem trang cá nhân
             </a>
           ) : (
             <>
               <span 
-                className="text-[0.75rem] text-foreground-tertiary cursor-help" 
+                className="text-xs text-foreground-tertiary cursor-help" 
                 title="Facebook hạn chế link trang cá nhân qua API nếu không có quyền user_link. Nhấn 'Làm mới' để thử lại."
               >
                 Chưa có liên kết
               </span>
               <button 
-                className="inline-flex items-center gap-1 text-[0.7rem] text-foreground-tertiary hover:text-foreground mt-1 transition-colors disabled:opacity-50" 
+                className="inline-flex items-center gap-1 text-2xs text-foreground-tertiary hover:text-foreground mt-1 transition-colors disabled:opacity-50" 
                 onClick={onSyncProfile}
                 disabled={isSyncing}
               >

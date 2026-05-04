@@ -11,6 +11,23 @@
   --font-sans: "DM Sans", "sans-serif";
   --font-mono: "JetBrains Mono", "monospace";
 
+  /* Font Sizes */
+  --font-size-3xs: 8px;
+  --font-size-2xs: 10px;
+  --font-size-11: 11px;
+  --font-size-xs: 12px;
+  --font-size-13: 13px;
+  --font-size-sm: 14px;
+  --font-size-md: 15px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-32: 32px;
+  --font-size-3xl: 30px;
+  --font-size-40: 40px;
+  --font-size-4xl: 36px;
+
   /* Colors - Map to daisyUI variables */
   --color-background: var(--color-base-100);
   --color-background-secondary: var(--color-base-200);
@@ -30,12 +47,21 @@
   --color-status-warning: var(--color-warning);
   --color-status-info: var(--color-info);
 
+  /* Brand Colors */
+  --color-facebook: #1877F2;
+  --color-instagram: #E4405F;
+  --color-messenger: #0084FF;
+  --color-tiktok: #000000;
+  --color-whatsapp: #25D366;
+
   /* Radii */
   --radius-sm: var(--radius-selector, 6px);
   --radius-md: var(--radius-field, 10px);
   --radius-lg: var(--radius-box, 16px);
   --radius-xl: 24px;
   --radius-2xl: 32px;
+  --radius-3xl: 40px;
+  --radius-full: 9999px;
 
   /* Spacing */
   --spacing-xs: 4px;

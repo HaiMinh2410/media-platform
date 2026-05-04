@@ -17,7 +17,7 @@ export const AccountBadge: React.FC<AccountBadgeProps> = ({ platform, accountNam
       className
     )}>
       <PlatformIcon platform={platform} size={12} />
-      <span className="text-[10px] font-mono uppercase tracking-wider text-fg-secondary font-bold">
+      <span className="text-2xs font-mono uppercase tracking-wider text-fg-secondary font-bold">
         {accountName}
       </span>
     </div>

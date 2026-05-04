@@ -17,7 +17,7 @@ export function ContentEditor({ content, onChange }: ContentEditorProps) {
       <div className="flex items-center justify-between px-1">
         <label className="text-sm font-bold uppercase tracking-widest text-slate-500">Post Content</label>
         <div className={cn(
-          "text-[10px] font-bold px-3 py-1 rounded-full bg-black/40 border border-white/5 shadow-inner transition-colors",
+          "text-2xs font-bold px-3 py-1 rounded-full bg-black/40 border border-white/5 shadow-inner transition-colors",
           charCount > 2200 ? "text-red-400 border-red-500/20" : "text-slate-500"
         )}>
           {charCount.toLocaleString()} <span className="opacity-40">/</span> 2,200

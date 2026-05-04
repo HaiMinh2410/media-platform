@@ -126,7 +126,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
 
         {isOpen && (
           <div className="absolute top-[calc(100%+8px)] left-0 w-[280px] bg-base-100 border border-foreground/10 rounded-xl glass-shadow z-[100] p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="p-[8px_12px_12px] text-[0.6875rem] font-bold text-foreground-tertiary uppercase tracking-[0.08em] flex items-center justify-between">
+            <div className="p-[8px_12px_12px] text-11 font-bold text-foreground-tertiary uppercase tracking-[0.08em] flex items-center justify-between">
               <span>{isSelectionMode ? `Đã chọn ${selectedIdsForAction.length}` : 'Chọn cụm tài khoản'}</span>
               
               {!isSelectionMode ? (
@@ -144,7 +144,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
                   {showManagementMenu && (
                     <div className="absolute top-full right-0 mt-2 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl w-40 overflow-hidden z-[101] p-1">
                       <button 
-                        className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-[0.8125rem] font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
+                        className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-13 font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowCreateModal(true);
@@ -155,7 +155,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
                         <Plus size={14} /> Thêm cụm mới
                       </button>
                       <button 
-                        className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-[0.8125rem] font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
+                        className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-13 font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsSelectionMode(true);
@@ -171,7 +171,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
                 <div className="flex items-center gap-2 relative">
                   <button 
                     className={cn(
-                      "p-[4px_10px] rounded-md text-[0.75rem] font-semibold cursor-pointer transition-all bg-error/10 border border-error/20 text-error",
+                      "p-[4px_10px] rounded-md text-xs font-semibold cursor-pointer transition-all bg-error/10 border border-error/20 text-error",
                       selectedIdsForAction.length === 0 && "opacity-30 cursor-not-allowed"
                     )}
                     disabled={selectedIdsForAction.length === 0}
@@ -189,7 +189,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
                     <Trash2 size={14} />
                   </button>
                   <button 
-                    className="p-[4px_10px] rounded-md text-[0.75rem] font-semibold cursor-pointer transition-all bg-foreground/5 border border-foreground/10 text-foreground hover:bg-foreground/10"
+                    className="p-[4px_10px] rounded-md text-xs font-semibold cursor-pointer transition-all bg-foreground/5 border border-foreground/10 text-foreground hover:bg-foreground/10"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsSelectionMode(false);
@@ -216,7 +216,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
               <div className="w-6 h-6 flex items-center justify-center bg-background-tertiary rounded-md text-foreground-tertiary">
                 <Users size={14} />
               </div>
-              <span className="flex-1 text-[0.875rem] font-medium">Tất cả cụm</span>
+              <span className="flex-1 text-sm font-medium">Tất cả cụm</span>
               {!selectedGroupId && <Check size={14} className="text-primary" />}
             </button>
 
@@ -256,30 +256,30 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
       <div className="flex items-center bg-background-secondary p-1 rounded-[14px] border border-foreground/10">
         <button 
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
+            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-13 font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
             platform === 'all' && "bg-primary/10 text-primary shadow-sm"
           )}
           onClick={() => setPlatform('all')}
         >
-          Tất cả {unreadCounts.all > 0 && <span className="bg-error text-error-content text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-md shadow-error/20 ml-1">{formatCount(unreadCounts.all)}</span>}
+          Tất cả {unreadCounts.all > 0 && <span className="bg-error text-error-content text-2xs font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-md shadow-error/20 ml-1">{formatCount(unreadCounts.all)}</span>}
         </button>
         <button 
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
+            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-13 font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
             platform === 'facebook' && "bg-primary/10 text-primary shadow-sm"
           )}
           onClick={() => setPlatform('facebook')}
         >
-          Messenger {unreadCounts.facebook > 0 && <span className="bg-error text-error-content text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-md shadow-error/20 ml-1">{formatCount(unreadCounts.facebook)}</span>}
+          Messenger {unreadCounts.facebook > 0 && <span className="bg-error text-error-content text-2xs font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-md shadow-error/20 ml-1">{formatCount(unreadCounts.facebook)}</span>}
         </button>
         <button 
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
+            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-13 font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
             platform === 'instagram' && "bg-primary/10 text-primary shadow-sm"
           )}
           onClick={() => setPlatform('instagram')}
         >
-          Instagram {unreadCounts.instagram > 0 && <span className="bg-error text-error-content text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-md shadow-error/20 ml-1">{formatCount(unreadCounts.instagram)}</span>}
+          Instagram {unreadCounts.instagram > 0 && <span className="bg-error text-error-content text-2xs font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-md shadow-error/20 ml-1">{formatCount(unreadCounts.instagram)}</span>}
         </button>
       </div>
 
@@ -360,7 +360,7 @@ function ReorderItem({
           </div>
         )}
         <CombinedAvatar group={group} unreadCount={group.unreadCount} />
-        <span className="flex-1 text-[0.875rem] font-medium">{group.name}</span>
+        <span className="flex-1 text-sm font-medium">{group.name}</span>
         {!isSelectionMode && selectedGroupId === group.id && <Check size={14} className="text-primary" />}
       </div>
       
@@ -398,7 +398,7 @@ function CombinedAvatar({ group, unreadCount }: { group: AccountGroup; unreadCou
         {avatarUrl ? (
           <img src={avatarUrl} alt="" className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-110" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-foreground/15 to-foreground/5 text-foreground font-bold text-[0.75rem] uppercase rounded-inherit" style={isSub ? { fontSize: '0.5rem' } : {}}>
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-foreground/15 to-foreground/5 text-foreground font-bold text-xs uppercase rounded-inherit" style={isSub ? { fontSize: '0.5rem' } : {}}>
             {initial}
           </div>
         )}
@@ -411,7 +411,7 @@ function CombinedAvatar({ group, unreadCount }: { group: AccountGroup; unreadCou
       {fbAccount && renderAvatar(fbAccount)}
       {igAccount && renderAvatar(igAccount, true)}
       {unreadCount !== undefined && unreadCount > 0 && (
-        <div className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-error text-error-content rounded-full border-[1.5px] border-background z-[4] shadow-md shadow-error/20 text-[0.625rem] font-extrabold flex items-center justify-center leading-none">
+        <div className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-error text-error-content rounded-full border-[1.5px] border-background z-[4] shadow-md shadow-error/20 text-3xs font-extrabold flex items-center justify-center leading-none">
           {unreadCount > 99 ? '99+' : unreadCount}
         </div>
       )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -11,8 +11,6 @@ import {
   PenTool, 
   Files, 
   Settings,
-  ChevronLeft,
-  ChevronRight,
   Palette
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,11 +19,12 @@ import { useUnreadRealtime } from '@/app/dashboard/inbox/hooks/use-unread-realti
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [userData, setUserData] = useState<{ name: string; avatar?: string | null; role: string; workspaceName: string } | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const NAV_ITEMS = [
     {
@@ -80,10 +79,6 @@ export function Sidebar() {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem('sidebar-collapsed');
-    if (saved === 'true') {
-      setIsCollapsed(true);
-    }
     setMounted(true);
     
     getCurrentUserWorkspaceAction().then(res => {
@@ -107,7 +102,6 @@ export function Sidebar() {
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem('sidebar-collapsed', String(isCollapsed));
       document.documentElement.style.setProperty('--sidebar-width', isCollapsed ? '80px' : '260px');
     }
   }, [isCollapsed, mounted]);
@@ -125,18 +119,34 @@ export function Sidebar() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     
     checkTheme();
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    };
   }, []);
 
-  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
   if (!mounted) return <aside className="fixed left-0 top-0 h-screen bg-background-secondary border-r border-foreground/10 z-50 w-[260px]" />;
 
   return (
-    <aside className={cn(
-      "fixed left-0 top-0 h-screen bg-background-secondary border-r border-foreground/10 flex flex-col z-50 transition-[width,padding] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-x-hidden",
-      isCollapsed ? "w-[80px] p-8 px-3" : "w-[260px] p-8 px-4"
-    )}>
+    <aside 
+      className={cn(
+        "fixed left-0 top-0 h-screen bg-background-secondary border-r border-foreground/10 flex flex-col z-50 transition-[width,padding] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-x-hidden",
+        isCollapsed ? "w-[80px] p-8 px-3" : "w-[260px] p-8 px-4"
+      )}
+      onMouseEnter={() => {
+        hoverTimeoutRef.current = setTimeout(() => {
+          setIsCollapsed(false);
+        }, 300);
+      }}
+      onMouseLeave={() => {
+        if (hoverTimeoutRef.current) {
+          clearTimeout(hoverTimeoutRef.current);
+          hoverTimeoutRef.current = null;
+        }
+        setIsCollapsed(true);
+      }}
+    >
       <div className={cn(
         "flex items-center gap-3 px-4 mb-12 transition-all duration-300",
         isCollapsed && "px-0 justify-center"
@@ -148,7 +158,7 @@ export function Sidebar() {
             className="w-full h-full object-contain transition-opacity duration-300" 
           />
         </div>
-        {!isCollapsed && <span className="font-brand text-xl font-bold tracking-tight whitespace-nowrap">{userData?.workspaceName || 'Media'}</span>}
+        {!isCollapsed && <span className="font-brand text-xl font-bold tracking-tight whitespace-nowrap">{userData?.workspaceName || 'Media Platform'}</span>}
       </div>
 
       <nav className="flex-1 flex flex-col gap-2">
@@ -176,12 +186,12 @@ export function Sidebar() {
                 <span className={cn("w-5 h-5 flex items-center justify-center shrink-0 transition-colors", isActive && "text-primary")}>
                   {item.icon}
                 </span>
-                {!isCollapsed && <span className="text-[0.9375rem] whitespace-nowrap">{item.label}</span>}
+                {!isCollapsed && <span className="text-md whitespace-nowrap">{item.label}</span>}
               </div>
               {item.badge && (
                 <span className={cn(
-                  "bg-primary text-primary-content text-[0.75rem] font-bold px-2 py-0.5 rounded-full leading-none transition-all",
-                  isCollapsed ? "absolute top-1 right-1 text-[10px] px-1" : "relative"
+                  "bg-primary text-primary-content text-xs font-bold px-2 py-0.5 rounded-full leading-none transition-all",
+                  isCollapsed ? "absolute top-1 right-1 text-2xs px-1" : "relative"
                 )}>
                   {item.badge}
                 </span>
@@ -191,21 +201,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className={cn(
-        "mt-auto p-2 bg-foreground/5 rounded-lg border border-foreground/10 flex flex-col gap-4 transition-all duration-300 mb-4",
-        isCollapsed && "p-2 items-center"
-      )}>
-        <button 
-          className={cn(
-            "w-full h-8 bg-foreground/5 border border-foreground/10 rounded-sm text-foreground-tertiary flex items-center justify-center cursor-pointer transition-all duration-200 hover:bg-foreground/10 hover:text-foreground",
-            isCollapsed && "w-8"
-          )} 
-          onClick={toggleSidebar}
-          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-        >
-          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </button>
-      </div>
+
     </aside>
   );
 }

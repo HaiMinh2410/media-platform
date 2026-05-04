@@ -17,7 +17,7 @@ export function PostPreview({ content, mediaUrls, platform }: PostPreviewProps) 
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground-secondary">Live Preview</h3>
         <div className="flex bg-background-secondary rounded-lg p-1 border border-foreground/10">
-          <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-foreground-tertiary bg-background-tertiary rounded-md">
+          <div className="px-3 py-1 text-2xs font-bold uppercase tracking-widest text-foreground-tertiary bg-background-tertiary rounded-md">
             Mobile Feed
           </div>
         </div>
@@ -54,8 +54,8 @@ function InstagramPreview({ content, mediaUrls }: { content: string; mediaUrls: 
             </div>
           </div>
           <div>
-            <p className="text-[11px] font-bold">your_account</p>
-            <p className="text-[9px] text-gray-500 -mt-0.5">Original Audio</p>
+            <p className="text-11 font-bold">your_account</p>
+            <p className="text-3xs text-gray-500 -mt-0.5">Original Audio</p>
           </div>
         </div>
         <MoreHorizontal size={16} className="text-gray-400" />
@@ -69,7 +69,7 @@ function InstagramPreview({ content, mediaUrls }: { content: string; mediaUrls: 
           <Camera size={48} className="text-gray-200" />
         )}
         {mediaUrls.length > 1 && (
-          <div className="absolute top-3 right-3 bg-black/50 text-white text-[9px] px-2 py-1 rounded-full backdrop-blur-md">
+          <div className="absolute top-3 right-3 bg-black/50 text-white text-3xs px-2 py-1 rounded-full backdrop-blur-md">
             1/{mediaUrls.length}
           </div>
         )}
@@ -87,12 +87,12 @@ function InstagramPreview({ content, mediaUrls }: { content: string; mediaUrls: 
         </div>
         
         <div className="space-y-1">
-          <p className="text-[11px] font-bold">999 likes</p>
-          <p className="text-[12px] leading-tight">
+          <p className="text-11 font-bold">999 likes</p>
+          <p className="text-xs leading-tight">
             <span className="font-bold mr-1">your_account</span>
             {content || 'Your caption will appear here...'}
           </p>
-          <p className="text-[10px] text-gray-400 uppercase tracking-tight mt-1">2 hours ago</p>
+          <p className="text-2xs text-gray-400 uppercase tracking-tight mt-1">2 hours ago</p>
         </div>
       </div>
     </div>
@@ -108,7 +108,7 @@ function FacebookPreview({ content, mediaUrls }: { content: string; mediaUrls: s
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-full bg-gray-200" />
             <div>
-              <p className="text-[14px] font-bold leading-tight">Your Page Name</p>
+              <p className="text-sm font-bold leading-tight">Your Page Name</p>
               <p className="text-[12px] text-gray-500 leading-tight">Just now · 🌍</p>
             </div>
           </div>
@@ -116,7 +116,7 @@ function FacebookPreview({ content, mediaUrls }: { content: string; mediaUrls: s
         </div>
 
         {/* Content */}
-        <p className="text-[14px] whitespace-pre-wrap">
+        <p className="text-sm whitespace-pre-wrap">
           {content || 'What\'s on your mind?'}
         </p>
       </div>
@@ -132,7 +132,7 @@ function FacebookPreview({ content, mediaUrls }: { content: string; mediaUrls: s
       <div className="bg-white px-3 py-2 border-t border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-            <span className="text-[8px] text-white">👍</span>
+            <span className="text-3xs text-white">👍</span>
           </div>
           <p className="text-[12px] text-gray-500">12</p>
         </div>
@@ -140,10 +140,10 @@ function FacebookPreview({ content, mediaUrls }: { content: string; mediaUrls: s
       </div>
 
       <div className="bg-white border-t border-gray-200 px-2 py-1 flex items-center justify-around">
-        <button className="flex items-center gap-2 text-gray-600 font-semibold text-[13px] hover:bg-gray-100 px-4 py-1.5 rounded-md transition-colors">
+        <button className="flex items-center gap-2 text-gray-600 font-semibold text-13 hover:bg-gray-100 px-4 py-1.5 rounded-md transition-colors">
           <span>👍</span> Like
         </button>
-        <button className="flex items-center gap-2 text-gray-600 font-semibold text-[13px] hover:bg-gray-100 px-4 py-1.5 rounded-md transition-colors">
+        <button className="flex items-center gap-2 text-gray-600 font-semibold text-13 hover:bg-gray-100 px-4 py-1.5 rounded-md transition-colors">
           <span>💬</span> Comment
         </button>
       </div>

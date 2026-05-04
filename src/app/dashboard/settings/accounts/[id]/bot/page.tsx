@@ -29,11 +29,11 @@ export default async function BotConfigPage(props: { params: Promise<{ id: strin
     <div className="max-w-[800px] mx-auto p-6">
       <header className="mb-8">
         <div className="flex flex-col gap-2">
-          <Link href="/dashboard/settings/accounts" className="text-white/50 text-[0.875rem] no-underline mb-2 inline-block transition-colors hover:text-white/80">
+          <Link href="/dashboard/settings/accounts" className="text-white/50 text-sm no-underline mb-2 inline-block transition-colors hover:text-white/80">
             &larr; Back to Accounts
           </Link>
           <h1 className="m-0 text-2xl font-bold text-white">Bot Configuration</h1>
-          <p className="m-0 text-[0.875rem] text-white/60">
+          <p className="m-0 text-sm text-white/60">
             Manage AI automation for <strong className="text-white">{account.name}</strong> ({account.platform})
           </p>
         </div>

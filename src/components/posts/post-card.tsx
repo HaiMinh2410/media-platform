@@ -59,7 +59,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
         </div>
 
         {post.mediaUrls.length > 1 && (
-          <div className="absolute bottom-3 right-3 bg-foreground/60 backdrop-blur-md text-background text-[10px] px-2 py-1 rounded-md">
+          <div className="absolute bottom-3 right-3 bg-foreground/60 backdrop-blur-md text-background text-2xs px-2 py-1 rounded-md">
             +{post.mediaUrls.length - 1} more
           </div>
         )}
@@ -92,7 +92,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
                       setShowActions(false);
                       handleDelete();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-red-400 hover:bg-red-500/10 transition-colors text-left font-bold uppercase tracking-wider"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-11 text-red-400 hover:bg-red-500/10 transition-colors text-left font-bold uppercase tracking-wider"
                   >
                     <Trash2 size={14} />
                     Delete
@@ -107,7 +107,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
         <div className="pt-3 border-t border-foreground/5 flex items-center justify-between">
           <div className="flex items-center gap-2 text-foreground-secondary">
             <Calendar size={12} />
-            <span className="text-[11px] font-medium">
+            <span className="text-11 font-medium">
               {post.status === 'scheduled' && post.scheduledAt 
                 ? format(new Date(post.scheduledAt), 'MMM d, h:mm a')
                 : format(new Date(post.createdAt), 'MMM d, yyyy')}
@@ -117,7 +117,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
           {post.status === 'failed' && post.errorMessage && (
             <div className="flex items-center gap-1 text-red-500" title={post.errorMessage}>
               <AlertTriangle size={12} />
-              <span className="text-[10px] font-bold uppercase">Error</span>
+              <span className="text-2xs font-bold uppercase">Error</span>
             </div>
           )}
         </div>

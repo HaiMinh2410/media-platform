@@ -34,7 +34,7 @@ export function PostStatusBadge({ status }: { status: PostStatus }) {
 
   return (
     <div className={cn(
-      "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors",
+      "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider border transition-colors",
       config.className
     )}>
       <Icon size={12} />

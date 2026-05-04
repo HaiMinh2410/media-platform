@@ -13,7 +13,7 @@ export const UnreadBadge: React.FC<UnreadBadgeProps> = ({ count, className, size
   return (
     <div className={cn(
       "flex items-center justify-center rounded-full bg-accent-primary text-white font-mono font-bold leading-none",
-      size === 'sm' ? "min-w-[14px] h-[14px] text-[8px] px-0.5" : "min-w-[20px] h-[20px] text-[10px] px-1",
+      size === 'sm' ? "min-w-3.5 h-3.5 text-3xs px-0.5" : "min-w-5 h-5 text-2xs px-1",
       "shadow-[0_0_12px_rgba(99,102,241,0.4)]",
       className
     )}>

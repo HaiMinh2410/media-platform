@@ -54,7 +54,7 @@ export function PostList({ initialPosts, workspaceId }: PostListProps) {
               key={s}
               onClick={() => setFilter(s as PostStatus | 'all')}
               className={cn(
-                "px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-[14px] transition-all duration-300",
+                "px-5 py-2.5 text-11 font-bold uppercase tracking-widest rounded-[14px] transition-all duration-300",
                 filter === s 
                   ? "bg-primary text-primary-content shadow-xl shadow-primary/30" 
                   : "text-foreground-secondary hover:text-foreground hover:bg-foreground/5"

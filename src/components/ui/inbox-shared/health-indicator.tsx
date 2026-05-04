@@ -22,7 +22,7 @@ export const HealthIndicator: React.FC<HealthIndicatorProps> = ({ status, label,
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <div className={cn("w-2 h-2 rounded-full", color, glow)} />
-      {label && <span className="text-[10px] uppercase font-mono tracking-widest text-fg-tertiary">{label}</span>}
+      {label && <span className="text-2xs uppercase font-mono tracking-widest text-fg-tertiary">{label}</span>}
     </div>
   );
 };

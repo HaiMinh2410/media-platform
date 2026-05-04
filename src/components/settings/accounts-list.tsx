@@ -23,7 +23,7 @@ export function AccountsList({ accounts }: AccountsListProps) {
           <div className="flex items-center gap-4">
             <div className="shrink-0">
               {account.platform === 'facebook' && (
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-sm shadow-md bg-gradient-to-br from-[#1877F2] to-[#166ada] text-white">FB</div>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-sm shadow-md bg-gradient-to-br from-facebook to-[#166ada] text-white">FB</div>
               )}
               {account.platform === 'instagram' && (
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-sm shadow-md bg-gradient-to-br from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white">IG</div>
@@ -37,7 +37,7 @@ export function AccountsList({ accounts }: AccountsListProps) {
               <p className="text-sm text-foreground-tertiary m-0 capitalize leading-tight">{account.platform}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-[0.7rem] font-bold uppercase tracking-wider">Active</span>
+              <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider">Active</span>
               <Link 
                 href={`/dashboard/settings/accounts/${account.id}/bot`} 
                 className="text-sm font-semibold text-primary no-underline px-3 py-1.5 rounded-lg bg-foreground/5 border border-foreground/10 transition-all hover:bg-foreground/10 hover:border-foreground/20"

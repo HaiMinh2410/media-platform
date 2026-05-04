@@ -83,7 +83,7 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
               {initialData.avatar ? (
                 <img src={initialData.avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-[2rem] text-foreground-tertiary">{initialData.name?.charAt(0)}</span>
+                <span className="text-32 text-foreground-tertiary">{initialData.name?.charAt(0)}</span>
               )}
             </div>
           </div>
@@ -93,14 +93,14 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
               Số điện thoại <span className="font-normal text-foreground-tertiary text-xs ml-1">· Không bắt buộc</span>
             </label>
             <div className="flex gap-3">
-              <select className="w-[120px] px-3 py-2.5 bg-background-secondary border border-foreground/10 rounded-xl text-[0.9375rem] text-foreground outline-none cursor-pointer focus:border-accent-primary transition-all">
+              <select className="w-[120px] px-3 py-2.5 bg-background-secondary border border-foreground/10 rounded-xl text-15 text-foreground outline-none cursor-pointer focus:border-accent-primary transition-all">
                 <option value="+1">+1</option>
                 <option value="+84">+84</option>
               </select>
               <input
                 type="text"
                 name="phone"
-                className="flex-1 px-3 py-2.5 bg-background-secondary border border-foreground/10 rounded-xl text-[0.9375rem] text-foreground outline-none focus:border-accent-primary focus:bg-background-tertiary focus:ring-4 focus:ring-accent-primary/10 transition-all"
+                className="flex-1 px-3 py-2.5 bg-background-secondary border border-foreground/10 rounded-xl text-15 text-foreground outline-none focus:border-accent-primary focus:bg-background-tertiary focus:ring-4 focus:ring-accent-primary/10 transition-all"
                 placeholder=""
                 value={formData.phone}
                 onChange={handleChange}
@@ -115,7 +115,7 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
             <input
               type="email"
               name="email"
-              className="w-full px-3 py-2.5 bg-background-secondary border border-foreground/10 rounded-xl text-[0.9375rem] text-foreground outline-none focus:border-accent-primary focus:bg-background-tertiary focus:ring-4 focus:ring-accent-primary/10 transition-all"
+              className="w-full px-3 py-2.5 bg-background-secondary border border-foreground/10 rounded-xl text-15 text-foreground outline-none focus:border-accent-primary focus:bg-background-tertiary focus:ring-4 focus:ring-accent-primary/10 transition-all"
               placeholder=""
               value={formData.email}
               onChange={handleChange}
@@ -129,7 +129,7 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
             <div className="flex gap-3">
               <select
                 name="birthdayMonth"
-                className="flex-1 px-3 py-2.5 bg-background-secondary border border-foreground/10 rounded-xl text-[0.9375rem] text-foreground outline-none cursor-pointer focus:border-accent-primary transition-all"
+                className="flex-1 px-3 py-2.5 bg-background-secondary border border-foreground/10 rounded-xl text-15 text-foreground outline-none cursor-pointer focus:border-accent-primary transition-all"
                 value={formData.birthdayMonth}
                 onChange={handleChange}
               >
@@ -140,7 +140,7 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
               </select>
               <select
                 name="birthdayDay"
-                className="flex-1 px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none cursor-pointer focus:border-sky-500 transition-all"
+                className="flex-1 px-3 py-2.5 bg-background-secondary border border-foreground/10 rounded-xl text-15 text-foreground outline-none cursor-pointer focus:border-accent-primary transition-all"
                 value={formData.birthdayDay}
                 onChange={handleChange}
               >
@@ -159,7 +159,7 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
             <input
               type="text"
               name="address"
-              className="w-full px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
+              className="w-full px-3 py-2.5 bg-background-secondary border border-foreground/10 text-15 text-foreground outline-none focus:border-accent-primary focus:bg-background-tertiary focus:ring-4 focus:ring-accent-primary/10 transition-all"
               placeholder=""
               value={formData.address}
               onChange={handleChange}
@@ -173,7 +173,7 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
             <input
               type="text"
               name="city"
-              className="w-full px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
+              className="w-full px-3 py-2.5 bg-background-secondary border border-foreground/10 text-15 text-foreground outline-none focus:border-accent-primary focus:bg-background-tertiary focus:ring-4 focus:ring-accent-primary/10 transition-all"
               placeholder=""
               value={formData.city}
               onChange={handleChange}
@@ -188,20 +188,20 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
               <input
                 type="text"
                 name="state"
-                className="w-full px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
+                className="w-full px-3 py-2.5 bg-background-secondary border border-foreground/10 text-15 text-foreground outline-none focus:border-accent-primary focus:bg-background-tertiary focus:ring-4 focus:ring-accent-primary/10 transition-all"
                 placeholder=""
                 value={formData.state}
                 onChange={handleChange}
               />
             </div>
             <div className="flex flex-col gap-2 flex-1">
-              <label className="text-sm font-semibold text-gray-200">
+              <label className="text-sm font-semibold text-foreground-secondary">
                 Mã zip/Mã bưu chính <span className="font-normal text-foreground-tertiary text-xs ml-1">· Không bắt buộc</span>
               </label>
               <input
                 type="text"
                 name="zipCode"
-                className="w-full px-3 py-2.5 bg-black/20 border border-white/10 rounded-xl text-[0.9375rem] text-white outline-none focus:border-sky-500 focus:bg-black/30 focus:ring-4 focus:ring-sky-500/10 transition-all"
+                className="w-full px-3 py-2.5 bg-background-secondary border border-foreground/10 text-15 text-foreground outline-none focus:border-accent-primary focus:bg-background-tertiary focus:ring-4 focus:ring-accent-primary/10 transition-all"
                 placeholder=""
                 value={formData.zipCode}
                 onChange={handleChange}
@@ -218,7 +218,7 @@ export function ContactEditModal({ isOpen, onClose, onSave, initialData }: Conta
             Hủy
           </button>
           <button 
-            className="px-8 py-2.5 border-none bg-gradient-to-br from-sky-500 to-sky-600 text-white text-sm font-semibold rounded-xl cursor-pointer transition-all shadow-lg shadow-sky-500/20 hover:-translate-y-px hover:shadow-sky-500/30 hover:brightness-110 active:translate-y-0" 
+            className="px-8 py-2.5 border-none bg-accent-primary text-white text-sm font-semibold rounded-xl cursor-pointer transition-all shadow-lg shadow-accent-primary/20 hover:-translate-y-px hover:shadow-accent-primary/30 hover:brightness-110 active:translate-y-0" 
             onClick={handleSave}
           >
             Lưu
