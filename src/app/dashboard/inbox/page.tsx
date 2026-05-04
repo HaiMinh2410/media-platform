@@ -9,7 +9,7 @@ export default function InboxEmptyState() {
         <Icon lucide={Mail} size={32} className="text-primary-content" />
       </div>
       <h3 className="text-2xl font-bold text-foreground mb-2 font-brand tracking-tight">Pulse Inbox</h3>
-      <p className="text-foreground-secondary text-base max-w-md">Your synchronized message hub. Select a conversation to start engaging.</p>
+      <p className="text-foreground-secondary text-base max-w-3xl">Your synchronized message hub. Select a conversation to start engaging.</p>
       <div className="mt-8 flex gap-2">
         <div className="glass px-4 py-2 rounded-xl text-xs">Meta</div>
         <div className="glass px-4 py-2 rounded-xl text-xs">Instagram</div>

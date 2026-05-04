@@ -70,7 +70,7 @@ RULE: DEBUG auto-upgrades REVIEW → FULL if severity = major.
 
 RULE: Missing skill file → warning only, never block.
 RULE: Inject skills only to Target Agents listed above.
-RULE: Mọi tác vụ tạo hoặc chỉnh sửa UI (ui, component, page) BẮT BUỘC phải tuân thủ skill 'tailwind-best-practices' và 'daisy-theme'.
+RULE: Mọi tác vụ tạo hoặc chỉnh sửa UI (ui, component, page) BẮT BUỘC phải tuân thủ `.antigravity/workflows/ui.workflow.md`.
 
 ---
 
