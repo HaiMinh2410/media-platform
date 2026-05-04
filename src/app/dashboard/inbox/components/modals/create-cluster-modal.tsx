@@ -107,7 +107,7 @@ export function CreateClusterModal({ workspaceId, onClose, onCreated }: CreateCl
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="block text-15 font-medium text-foreground truncate">{acc.name || acc.externalId}</span>
+                      <span className="block text-base font-medium text-foreground truncate">{acc.name || acc.externalId}</span>
                       <span className="text-xs text-foreground-tertiary capitalize">{acc.platform}</span>
                     </div>
                     <div className={cn(

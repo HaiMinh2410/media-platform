@@ -11,22 +11,10 @@
   --font-sans: "DM Sans", "sans-serif";
   --font-mono: "JetBrains Mono", "monospace";
 
-  /* Font Sizes */
-  --font-size-3xs: 8px;
+  /* Font Sizes - Only define non-standard sizes if absolutely necessary */
   --font-size-2xs: 10px;
-  --font-size-11: 11px;
-  --font-size-xs: 12px;
-  --font-size-13: 13px;
-  --font-size-sm: 14px;
-  --font-size-md: 15px;
-  --font-size-base: 16px;
-  --font-size-lg: 18px;
-  --font-size-xl: 20px;
-  --font-size-2xl: 24px;
-  --font-size-32: 32px;
-  --font-size-3xl: 30px;
-  --font-size-40: 40px;
-  --font-size-4xl: 36px;
+  --font-size-3xs: 8px;
+  /* Use standard tailwind sizes: xs(12), sm(14), base(16), lg(18), xl(20), 2xl(24), 3xl(30), 4xl(36) */
 
   /* Colors - Map to daisyUI variables */
   --color-background: var(--color-base-100);

@@ -35,12 +35,12 @@ export const MessageBubble = memo(function MessageBubble({
           isAi && "bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/40 rounded-br-sm text-foreground shadow-[0_4px_20px_rgba(168,85,247,0.15)] backdrop-blur-md"
         )}>
           {isAi && (
-            <div className="flex items-center gap-1 text-11 font-bold uppercase text-purple-400 mb-1">
+            <div className="flex items-center gap-1 text-xs font-bold uppercase text-purple-400 mb-1">
               <Sparkles size={12} className="text-purple-400" />
               <span>AI Auto-Reply</span>
             </div>
           )}
-          <div className="text-15 leading-normal whitespace-pre-wrap">
+          <div className="text-base leading-normal whitespace-pre-wrap">
             {message.content}
           </div>
         </div>

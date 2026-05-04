@@ -104,7 +104,7 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
         </div>
       </div>
       
-      <h3 className="text-13 font-semibold text-foreground-secondary flex items-center gap-1 mt-1">
+      <h3 className="text-sm font-semibold text-foreground-secondary flex items-center gap-1 mt-1">
         Giai đoạn khách hàng tiềm năng <Info size={14} className="text-foreground-tertiary" />
       </h3>
 

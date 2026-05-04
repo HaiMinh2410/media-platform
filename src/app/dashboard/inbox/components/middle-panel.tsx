@@ -319,7 +319,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
           <input 
             type="text" 
             placeholder="Search conversations..." 
-            className="w-full p-[10px_16px_10px_38px] rounded-md border border-foreground/10 bg-background-secondary text-foreground text-15 outline-none transition-all focus:border-accent-primary focus:bg-background-tertiary focus:ring-3 focus:ring-accent-primary/20"
+            className="w-full p-[10px_16px_10px_38px] rounded-md border border-foreground/10 bg-background-secondary text-foreground text-base outline-none transition-all focus:border-accent-primary focus:bg-background-tertiary focus:ring-3 focus:ring-accent-primary/20"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />

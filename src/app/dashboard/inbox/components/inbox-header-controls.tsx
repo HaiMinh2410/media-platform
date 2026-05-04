@@ -126,7 +126,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
 
         {isOpen && (
           <div className="absolute top-[calc(100%+8px)] left-0 w-[280px] bg-base-100 border border-foreground/10 rounded-xl glass-shadow z-[100] p-2 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="p-[8px_12px_12px] text-11 font-bold text-foreground-tertiary uppercase tracking-[0.08em] flex items-center justify-between">
+            <div className="p-[8px_12px_12px] text-xs font-bold text-foreground-tertiary uppercase tracking-[0.08em] flex items-center justify-between">
               <span>{isSelectionMode ? `Đã chọn ${selectedIdsForAction.length}` : 'Chọn cụm tài khoản'}</span>
               
               {!isSelectionMode ? (
@@ -144,7 +144,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
                   {showManagementMenu && (
                     <div className="absolute top-full right-0 mt-2 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl w-40 overflow-hidden z-[101] p-1">
                       <button 
-                        className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-13 font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
+                        className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowCreateModal(true);
@@ -155,7 +155,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
                         <Plus size={14} /> Thêm cụm mới
                       </button>
                       <button 
-                        className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-13 font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
+                        className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsSelectionMode(true);
@@ -256,7 +256,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
       <div className="flex items-center bg-background-secondary p-1 rounded-[14px] border border-foreground/10">
         <button 
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-13 font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
+            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
             platform === 'all' && "bg-primary/10 text-primary shadow-sm"
           )}
           onClick={() => setPlatform('all')}
@@ -265,7 +265,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
         </button>
         <button 
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-13 font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
+            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
             platform === 'facebook' && "bg-primary/10 text-primary shadow-sm"
           )}
           onClick={() => setPlatform('facebook')}
@@ -274,7 +274,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
         </button>
         <button 
           className={cn(
-            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-13 font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
+            "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-sm font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
             platform === 'instagram' && "bg-primary/10 text-primary shadow-sm"
           )}
           onClick={() => setPlatform('instagram')}

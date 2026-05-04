@@ -86,7 +86,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
         <div className="flex justify-between items-baseline mb-0.5">
           <div className="flex items-center gap-1 min-w-0 flex-1">
             <span className={cn(
-              "font-medium text-foreground text-md whitespace-nowrap overflow-hidden text-ellipsis",
+              "font-medium text-foreground text-base whitespace-nowrap overflow-hidden text-ellipsis",
               isUnread && "font-semibold"
             )}>
               {conversation.sender_name || 'Unknown User'}
@@ -111,18 +111,18 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
               </span>
             )}
           </div>
-          <span className="text-11 text-foreground-tertiary shrink-0 ml-2">{formatTime(conversation.last_message_at)}</span>
+          <span className="text-xs text-foreground-tertiary shrink-0 ml-2">{formatTime(conversation.last_message_at)}</span>
         </div>
         
         <div className="flex justify-between items-center gap-2">
           <span className={cn(
-            "text-13 text-foreground-secondary whitespace-nowrap overflow-hidden text-ellipsis",
+            "text-sm text-foreground-secondary whitespace-nowrap overflow-hidden text-ellipsis",
             isUnread && "font-medium text-foreground"
           )}>
             {conversation.last_message_content || 'No messages'}
           </span>
           {isUnread && (
-            <span className="bg-primary text-primary-content min-w-[18px] h-[18px] rounded-full px-1.5 text-11 font-semibold flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+            <span className="bg-primary text-primary-content min-w-[18px] h-[18px] rounded-full px-1.5 text-xs font-semibold flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
               {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
             </span>
           )}

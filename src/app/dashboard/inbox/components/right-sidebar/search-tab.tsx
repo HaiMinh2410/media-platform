@@ -135,12 +135,12 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
             >
               <div className="flex justify-between items-center mb-1.5">
                 <span className={cn(
-                  "text-11 font-bold px-2 py-0.5 rounded uppercase",
+                  "text-xs font-bold px-2 py-0.5 rounded uppercase",
                   msg.senderType === 'user' ? "bg-blue-500/10 text-blue-400" : "bg-purple-500/10 text-purple-400"
                 )}>
                   {msg.senderType === 'user' ? 'Customer' : 'Agent'}
                 </span>
-                <span className="text-11 text-foreground-tertiary">
+                <span className="text-xs text-foreground-tertiary">
                   {format(new Date(msg.createdAt), 'MMM d, HH:mm')}
                 </span>
               </div>

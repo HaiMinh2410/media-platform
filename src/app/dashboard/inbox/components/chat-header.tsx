@@ -156,7 +156,7 @@ export function ChatHeader({
           <div className="flex items-center gap-2">
             <PlatformIcon platform={platform as any} size={14} />
             <span className="bg-foreground/10 px-2 py-0.5 rounded-sm text-xs capitalize text-foreground-secondary">{platform}</span>
-            <span className="text-13 text-foreground-tertiary">via {platformUserName}</span>
+            <span className="text-sm text-foreground-tertiary">via {platformUserName}</span>
           </div>
         </div>
       </div>

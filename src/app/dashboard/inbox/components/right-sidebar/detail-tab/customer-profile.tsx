@@ -32,7 +32,7 @@ export function CustomerProfile({
         )}
       </div>
       <div className="flex-1 flex flex-col gap-0.5">
-        <h4 className="text-md font-bold text-foreground truncate">{customerName || 'Unknown'}</h4>
+        <h4 className="text-base font-bold text-foreground truncate">{customerName || 'Unknown'}</h4>
         {platform === 'instagram' ? (
           customerUsername ? (
             <a 

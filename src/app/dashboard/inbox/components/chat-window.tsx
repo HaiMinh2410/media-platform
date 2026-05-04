@@ -185,7 +185,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
           <React.Fragment key={msg.id}>
             {showSeparator && (
               <div className="flex justify-center items-center my-6 relative before:content-[''] before:absolute before:left-0 before:right-0 before:top-1/2 before:h-px before:bg-foreground/5">
-                <span className="bg-base-200 px-4 py-1 rounded-full text-11 font-medium text-foreground-tertiary border border-foreground/10 relative z-10">
+                <span className="bg-base-200 px-4 py-1 rounded-full text-xs font-medium text-foreground-tertiary border border-foreground/10 relative z-10">
                   {formatChatSeparator(msg.createdAt)}
                 </span>
               </div>

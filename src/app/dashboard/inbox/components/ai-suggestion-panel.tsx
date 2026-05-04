@@ -63,7 +63,7 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
 
       <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
-          className="flex-1 bg-accent-primary text-white py-2 rounded-lg text-13 font-bold transition-all hover:brightness-110 active:scale-[0.98]"
+          className="flex-1 bg-accent-primary text-white py-2 rounded-lg text-sm font-bold transition-all hover:brightness-110 active:scale-[0.98]"
           onClick={() => onUse(suggestion.response)}
         >
           Sử dụng
@@ -120,10 +120,10 @@ export function AiSuggestionPanel({
         
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <span className="text-11 font-bold text-foreground-tertiary uppercase tracking-wider">Độ ưu tiên</span>
+            <span className="text-xs font-bold text-foreground-tertiary uppercase tracking-wider">Độ ưu tiên</span>
             <select 
               className={cn(
-                "bg-background-secondary border border-foreground/10 rounded-md p-2 text-13 text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer",
+                "bg-background-secondary border border-foreground/10 rounded-md p-2 text-sm text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer",
                 priority === 'high' && "text-red-400 border-red-500/30 bg-red-500/5",
                 priority === 'medium' && "text-amber-400 border-amber-500/30 bg-amber-500/5",
                 priority === 'low' && "text-blue-400 border-blue-500/30 bg-blue-500/5"
@@ -138,9 +138,9 @@ export function AiSuggestionPanel({
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <span className="text-11 font-bold text-foreground-tertiary uppercase tracking-wider">Sắc thái</span>
+            <span className="text-xs font-bold text-foreground-tertiary uppercase tracking-wider">Sắc thái</span>
             <select 
-              className="bg-background-secondary border border-foreground/10 rounded-md p-2 text-13 text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer"
+              className="bg-background-secondary border border-foreground/10 rounded-md p-2 text-sm text-foreground outline-none transition-all focus:border-accent-primary appearance-none cursor-pointer"
               value={sentiment || 'neutral'}
               onChange={(e) => onUpdateSentiment?.(e.target.value)}
             >
@@ -196,7 +196,7 @@ export function AiSuggestionPanel({
                 <div className="h-4 bg-foreground/5 rounded w-4/5" />
               </div>
             ))}
-            <div className="flex items-center justify-center py-5 text-foreground-tertiary text-13 gap-2">
+            <div className="flex items-center justify-center py-5 text-foreground-tertiary text-sm gap-2">
               <Loader2 size={16} className="animate-spin" />
               <span>Đang tạo phản hồi...</span>
             </div>

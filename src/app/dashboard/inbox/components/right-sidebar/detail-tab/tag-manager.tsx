@@ -139,7 +139,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
             return (
               <span 
                 key={tag} 
-                className="flex items-center gap-2 px-2.5 py-1 rounded-md text-13 font-medium transition-all"
+                className="flex items-center gap-2 px-2.5 py-1 rounded-md text-sm font-medium transition-all"
                 style={{ 
                   backgroundColor: `${color}15`, 
                   color: color,
@@ -207,7 +207,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
                   );
                 })
               ) : (
-                <div className="p-4 text-center text-13 text-foreground-tertiary italic">Không còn nhãn nào để thêm</div>
+                <div className="p-4 text-center text-sm text-foreground-tertiary italic">Không còn nhãn nào để thêm</div>
               )}
             </div>
           </div>,

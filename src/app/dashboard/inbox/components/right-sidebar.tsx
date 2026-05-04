@@ -163,7 +163,7 @@ export function RightSidebar({
       <div className="flex items-center gap-1 p-2 border-b border-foreground/10">
         <button 
           className={cn(
-            "flex-1 py-2 text-13 font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-foreground/5",
+            "flex-1 py-2 text-sm font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-foreground/5",
             activeTab === 'detail' && "text-accent-primary bg-accent-primary/10"
           )}
           onClick={() => setActiveTab('detail')}
@@ -172,7 +172,7 @@ export function RightSidebar({
         </button>
         <button 
           className={cn(
-            "flex-1 py-2 text-13 font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-foreground/5",
+            "flex-1 py-2 text-sm font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-foreground/5",
             activeTab === 'ai' && "text-accent-primary bg-accent-primary/10"
           )}
           onClick={() => setActiveTab('ai')}
@@ -181,7 +181,7 @@ export function RightSidebar({
         </button>
         {activeTab === 'search' && (
           <button 
-            className="flex-1 py-2 text-13 font-semibold text-accent-primary bg-accent-primary/10 rounded-md transition-all"
+            className="flex-1 py-2 text-sm font-semibold text-accent-primary bg-accent-primary/10 rounded-md transition-all"
             onClick={() => setActiveTab('search')}
           >
             Search

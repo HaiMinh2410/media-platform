@@ -122,7 +122,7 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
 
       <div className="flex flex-col gap-3 mt-3">
         {isLoadingNotes ? (
-          <div className="flex items-center justify-center gap-2 py-5 text-foreground-tertiary text-13">
+          <div className="flex items-center justify-center gap-2 py-5 text-foreground-tertiary text-sm">
             <Loader2 size={16} className="animate-spin" />
             <span>Đang tải ghi chú...</span>
           </div>
@@ -167,7 +167,7 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
             </div>
           ))
         ) : (
-          <p className="text-13 text-foreground-tertiary italic text-center py-4 m-0">Chưa có ghi chú nào.</p>
+          <p className="text-sm text-foreground-tertiary italic text-center py-4 m-0">Chưa có ghi chú nào.</p>
         )}
       </div>
     </div>

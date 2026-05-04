@@ -233,14 +233,14 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
             </div>
             <input 
               type="text" 
-              className="flex-1 bg-background-secondary border border-foreground/10 rounded-md px-3 py-2 text-15 text-foreground outline-none focus:border-accent-primary transition-all"
+              className="flex-1 bg-background-secondary border border-foreground/10 rounded-md px-3 py-2 text-base text-foreground outline-none focus:border-accent-primary transition-all"
               placeholder="Đặt tên nhãn..."
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
             />
             <button 
-              className="px-5 py-2 bg-accent-primary text-white border-none rounded-md font-semibold text-15 cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-110 active:scale-[0.98]"
+              className="px-5 py-2 bg-accent-primary text-white border-none rounded-md font-semibold text-base cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:brightness-110 active:scale-[0.98]"
               onClick={handleAddTag}
               disabled={!newTagName.trim()}
               style={{ backgroundColor: selectedColor }}
@@ -253,7 +253,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary" />
             <input 
               type="text" 
-              className="w-full bg-background-secondary border border-foreground/10 rounded-md py-2 pl-10 pr-3 text-foreground text-15 outline-none focus:border-accent-primary transition-all"
+              className="w-full bg-background-secondary border border-foreground/10 rounded-md py-2 pl-10 pr-3 text-foreground text-base outline-none focus:border-accent-primary transition-all"
               placeholder="Tìm kiếm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -309,7 +309,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                       ) : (
                         <>
                           <div className="w-5 h-5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                          <span className="text-15 text-foreground font-normal">{name}</span>
+                          <span className="text-base text-foreground font-normal">{name}</span>
                         </>
                       )}
                     </div>
@@ -349,7 +349,7 @@ export const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
 
         <div className="px-4 py-3 border-t border-foreground/10 flex justify-end bg-background-tertiary">
           <button 
-            className="px-6 py-2 bg-foreground text-background border-none rounded-md font-bold text-15 cursor-pointer transition-all hover:opacity-90 active:scale-[0.98]" 
+            className="px-6 py-2 bg-foreground text-background border-none rounded-md font-bold text-base cursor-pointer transition-all hover:opacity-90 active:scale-[0.98]" 
             onClick={onClose}
           >
             Xong

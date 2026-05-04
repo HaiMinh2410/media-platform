@@ -49,7 +49,7 @@ export default function FlowPage() {
           >
             <ArrowLeft size={24} />
           </Link>
-          <h1 className="text-40 font-extrabold m-0 bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent">Daily Flow</h1>
+          <h1 className="text-4xl font-extrabold m-0 bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent">Daily Flow</h1>
         </div>
         <p className="text-foreground-secondary text-lg">Focus on what matters. Your mission-critical tasks for today.</p>
       </header>
@@ -66,7 +66,7 @@ export default function FlowPage() {
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 bg-rose-500/10 text-rose-500">
                 <Flame size={24} />
               </div>
-              <div className="text-32 font-bold mb-1">12</div>
+              <div className="text-3xl font-bold mb-1">12</div>
               <div className="text-foreground-secondary text-sm font-medium">High Intent Leads</div>
               <div className="mt-3 h-1 bg-rose-500/20 rounded-full">
                 <div className="h-full bg-rose-500 rounded-full" style={{ width: '70%' }} />
@@ -77,7 +77,7 @@ export default function FlowPage() {
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 bg-amber-500/10 text-amber-500">
                 <Star size={24} />
               </div>
-              <div className="text-32 font-bold mb-1">4</div>
+              <div className="text-3xl font-bold mb-1">4</div>
               <div className="text-foreground-secondary text-sm font-medium">VIP Conversations</div>
               <div className="mt-3 h-1 bg-amber-500/20 rounded-full">
                 <div className="h-full bg-amber-500 rounded-full" style={{ width: '40%' }} />
@@ -88,7 +88,7 @@ export default function FlowPage() {
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 bg-violet-500/10 text-violet-500">
                 <Zap size={24} />
               </div>
-              <div className="text-32 font-bold mb-1">3</div>
+              <div className="text-3xl font-bold mb-1">3</div>
               <div className="text-foreground-secondary text-sm font-medium">AI Escalations</div>
               <div className="mt-3 h-1 bg-violet-500/20 rounded-full">
                 <div className="h-full bg-violet-500 rounded-full" style={{ width: '90%' }} />
@@ -123,7 +123,7 @@ export default function FlowPage() {
                   <div className={cn("font-semibold mb-1", completedMissions.includes(mission.id) && "line-through")}>
                     {mission.title}
                   </div>
-                  <div className="text-13 text-foreground-tertiary flex gap-3">
+                  <div className="text-sm text-foreground-tertiary flex gap-3">
                     <span className="flex items-center gap-1">
                       {mission.icon}
                       {mission.category}
@@ -181,11 +181,11 @@ export default function FlowPage() {
           </div>
 
           <div className="mt-auto p-5 bg-white/[0.02] border border-white/10 rounded-[24px] flex items-center justify-between">
-            <div className="flex items-center gap-2 text-13 text-foreground-tertiary">
+            <div className="flex items-center gap-2 text-sm text-foreground-tertiary">
               <Command size={16} />
               <span>Command Center</span>
             </div>
-            <div className="flex items-center gap-2 text-13 text-foreground-tertiary">
+            <div className="flex items-center gap-2 text-sm text-foreground-tertiary">
               <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/10">⌘</kbd>
               <kbd className="px-1.5 py-0.5 bg-white/10 rounded border border-white/10">K</kbd>
             </div>
