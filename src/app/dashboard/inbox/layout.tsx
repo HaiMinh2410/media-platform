@@ -1,6 +1,5 @@
 import React from 'react';
 import { MiddlePanel } from './components/middle-panel';
-import { SecondaryHeader } from './components/secondary-header';
 import { createClient } from '@/infrastructure/supabase/server';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
 import { redirect } from 'next/navigation';
@@ -30,7 +29,6 @@ export default async function InboxLayout({
 
   return (
     <div className="flex flex-col h-full w-full">
-      <SecondaryHeader workspaceId={workspace.id} />
       <div className="flex flex-1 h-full w-full overflow-hidden relative">
         <MiddlePanel workspaceId={workspace.id} />
         <main className="flex-1 flex flex-col bg-transparent relative overflow-hidden">

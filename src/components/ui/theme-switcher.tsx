@@ -40,18 +40,13 @@ export function ThemeSwitcher() {
         <div className="p-1 rounded-lg bg-primary/20">
           <Palette className="h-4 w-4 text-primary" />
         </div>
-        <span className="hidden sm:inline text-xs font-medium uppercase tracking-wider opacity-80">Theme</span>
         <ChevronDown className="h-3 w-3 opacity-40 group-focus:rotate-180 transition-transform" />
       </div>
       
       <ul 
         tabIndex={0} 
-        className="dropdown-content z-[100] menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-xl rounded-2xl w-64 max-h-[70vh] overflow-y-auto flex-nowrap border border-foreground/10 mt-2 gap-1 animate-in fade-in zoom-in duration-200"
+        className="dropdown-content z-[100] menu py-4 px-2 shadow-2xl bg-base-200/95 backdrop-blur-xl rounded-2xl w-64 max-h-[70vh] overflow-y-auto flex-nowrap border border-foreground/10 mt-2 gap-1 animate-in fade-in zoom-in duration-200"
       >
-        <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-base-content/40">
-          Select Visual Identity
-        </div>
-        
         {themes.map((theme) => (
           <li key={theme} className="group">
             <button

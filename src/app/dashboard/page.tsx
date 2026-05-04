@@ -5,7 +5,6 @@ import { createClient } from '@/infrastructure/supabase/server';
 import { redirect } from 'next/navigation';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
 import { cn } from '@/lib/utils';
-import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -114,12 +113,6 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-[2.5rem] mb-1 font-brand font-bold text-gradient">Dashboard</h1>
           <p className="text-foreground-secondary text-[1.1rem]">Welcome back! Here's what's happening with your accounts today.</p>
-        </div>
-        <div className="flex items-center gap-4 mt-4">
-          <ThemeSwitcher />
-          <div className="w-10 h-10 rounded-full bg-foreground/10 flex items-center justify-center font-bold text-foreground overflow-hidden shrink-0 border border-foreground/10 shadow-lg">
-             {user.user_metadata?.avatar_url ? <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" /> : (user.email?.charAt(0).toUpperCase() || 'U')}
-          </div>
         </div>
       </header>
 

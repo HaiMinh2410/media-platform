@@ -16,7 +16,6 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 import { getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
 
 const LEAD_STAGES = [
@@ -100,13 +99,6 @@ export default function LeadsCenter() {
             <Plus size={16} />
             Thêm khách hàng tiềm năng
           </button>
-          
-          <div className="flex items-center gap-4 pl-4 border-l border-foreground/10 ml-2">
-            <ThemeSwitcher />
-            <div className="w-8 h-8 rounded-full bg-foreground/10 flex items-center justify-center font-bold text-foreground overflow-hidden shrink-0 border border-foreground/10">
-               {userData?.avatar ? <img src={userData.avatar} alt="" className="w-full h-full object-cover" /> : (userData?.name?.charAt(0) || 'U')}
-            </div>
-          </div>
         </div>
       </div>
 
