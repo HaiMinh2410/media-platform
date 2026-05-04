@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: dark --default, light, all;
+  themes: all;
 }
 
 
@@ -94,7 +94,7 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased selection:bg-accent-primary/30;
+    @apply bg-base-100 text-base-content antialiased selection:bg-primary/30;
     font-family: 'DM Sans', sans-serif;
     max-width: 100vw;
     overflow-x: hidden;

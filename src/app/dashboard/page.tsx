@@ -94,9 +94,9 @@ export default async function DashboardPage() {
         <header className="mb-10">
           <h1 className="text-[2.5rem] mb-1 font-brand font-bold text-gradient">Dashboard</h1>
         </header>
-        <div className="glass p-10 text-center rounded-[24px] border border-white/10 bg-white/[0.02] backdrop-blur-xl">
+        <div className="glass p-10 text-center rounded-2xl border border-foreground/10 bg-foreground/[0.02] backdrop-blur-xl">
           <p className="text-foreground-secondary text-lg mb-6">You don't have a workspace yet. Please go to settings to set up your account.</p>
-          <Link href="/dashboard/settings/accounts" className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold transition-all hover:opacity-90 active:scale-[0.98]">
+          <Link href="/dashboard/settings/accounts" className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-primary text-primary-content font-bold transition-all hover:opacity-90 active:scale-[0.98]">
             Go to Settings
           </Link>
         </div>
@@ -117,35 +117,35 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-4 mt-4">
           <ThemeSwitcher />
-          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold text-white overflow-hidden shrink-0 border border-white/10 shadow-lg">
+          <div className="w-10 h-10 rounded-full bg-foreground/10 flex items-center justify-center font-bold text-foreground overflow-hidden shrink-0 border border-foreground/10 shadow-lg">
              {user.user_metadata?.avatar_url ? <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" /> : (user.email?.charAt(0).toUpperCase() || 'U')}
           </div>
         </div>
       </header>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 mb-10">
-        <div className="glass p-6 rounded-[24px] border border-white/10 bg-white/[0.02] backdrop-blur-xl flex flex-col gap-2 transition-all hover:-translate-y-1 hover:border-violet-500/50">
+        <div className="glass p-6 rounded-2xl border border-foreground/10 bg-foreground/[0.02] backdrop-blur-xl flex flex-col gap-2 transition-all hover:-translate-y-1 hover:border-primary/50">
           <span className="text-[0.875rem] text-foreground-secondary font-medium uppercase tracking-wider">Connected Accounts</span>
           <span className="text-[2rem] font-bold font-brand">{stats.accounts}</span>
           <span className="text-[0.875rem] flex items-center gap-1 text-foreground-tertiary">
             Accounts linked
           </span>
         </div>
-        <div className="glass p-6 rounded-[24px] border border-white/10 bg-white/[0.02] backdrop-blur-xl flex flex-col gap-2 transition-all hover:-translate-y-1 hover:border-violet-500/50">
+        <div className="glass p-6 rounded-2xl border border-foreground/10 bg-foreground/[0.02] backdrop-blur-xl flex flex-col gap-2 transition-all hover:-translate-y-1 hover:border-primary/50">
           <span className="text-[0.875rem] text-foreground-secondary font-medium uppercase tracking-wider">Total Messages</span>
           <span className="text-[2rem] font-bold font-brand">{stats.messages}</span>
           <span className="text-[0.875rem] flex items-center gap-1 text-foreground-tertiary">
             Interactions recorded
           </span>
         </div>
-        <div className="glass p-6 rounded-[24px] border border-white/10 bg-white/[0.02] backdrop-blur-xl flex flex-col gap-2 transition-all hover:-translate-y-1 hover:border-violet-500/50">
+        <div className="glass p-6 rounded-2xl border border-foreground/10 bg-foreground/[0.02] backdrop-blur-xl flex flex-col gap-2 transition-all hover:-translate-y-1 hover:border-primary/50">
           <span className="text-[0.875rem] text-foreground-secondary font-medium uppercase tracking-wider">Conversations</span>
           <span className="text-[2rem] font-bold font-brand">{stats.conversations}</span>
           <span className="text-[0.875rem] flex items-center gap-1 text-foreground-tertiary">
             Total active threads
           </span>
         </div>
-        <div className="glass p-6 rounded-[24px] border border-white/10 bg-white/[0.02] backdrop-blur-xl flex flex-col gap-2 transition-all hover:-translate-y-1 hover:border-violet-500/50">
+        <div className="glass p-6 rounded-2xl border border-foreground/10 bg-foreground/[0.02] backdrop-blur-xl flex flex-col gap-2 transition-all hover:-translate-y-1 hover:border-primary/50">
           <span className="text-[0.875rem] text-foreground-secondary font-medium uppercase tracking-wider">Webhook Events</span>
           <span className="text-[2rem] font-bold font-brand">{stats.events}</span>
           <span className="text-[0.875rem] flex items-center gap-1 text-foreground-tertiary">
@@ -155,7 +155,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-        <section className="glass p-6 rounded-[24px] border border-white/10 bg-white/[0.02] backdrop-blur-xl flex flex-col gap-5">
+        <section className="glass p-6 rounded-2xl border border-foreground/10 bg-foreground/[0.02] backdrop-blur-xl flex flex-col gap-5">
           <div className="text-[1.25rem] font-semibold flex justify-between items-center text-foreground">
             Recent Messages
             <Link href="/dashboard/inbox" className="text-gradient text-[0.9rem]">View All</Link>
@@ -165,8 +165,8 @@ export default async function DashboardPage() {
               recentMessages.map((msg) => {
                 const conversation = msg.conversation as any;
                 return (
-                  <div key={msg.id} className="p-4 rounded-[16px] bg-white/[0.02] border border-white/5 flex items-center gap-4 transition-all hover:bg-white/[0.05]">
-                    <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white shrink-0 overflow-hidden">
+                  <div key={msg.id} className="p-4 rounded-xl bg-foreground/[0.02] border border-foreground/5 flex items-center gap-4 transition-all hover:bg-foreground/[0.05]">
+                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-content shrink-0 overflow-hidden">
                       {conversation.customer_avatar ? (
                         <img 
                           src={conversation.customer_avatar} 
@@ -174,7 +174,7 @@ export default async function DashboardPage() {
                           className="w-full h-full object-cover" 
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-white/5 text-[0.75rem] font-bold">
+                        <div className="w-full h-full flex items-center justify-center bg-foreground/5 text-xs font-bold">
                           {(conversation.customer_name || msg.senderId).substring(0, 2).toUpperCase()}
                         </div>
                       )}
@@ -195,7 +195,7 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section className="glass p-6 rounded-[24px] border border-white/10 bg-white/[0.02] backdrop-blur-xl flex flex-col gap-5">
+        <section className="glass p-6 rounded-2xl border border-foreground/10 bg-foreground/[0.02] backdrop-blur-xl flex flex-col gap-5">
           <div className="text-[1.25rem] font-semibold flex justify-between items-center text-foreground">
             Your Accounts
             <Link href="/dashboard/settings/accounts" className="text-gradient text-[0.9rem]">Manage</Link>
@@ -203,13 +203,13 @@ export default async function DashboardPage() {
           <div className="flex flex-col gap-3">
             {activeAccounts.length > 0 ? (
               activeAccounts.map((acc) => (
-                <div key={acc.id} className="p-4 rounded-[16px] bg-white/[0.02] border border-white/5 flex items-center gap-4 transition-all hover:bg-white/[0.05]">
+                <div key={acc.id} className="p-4 rounded-xl bg-foreground/[0.02] border border-foreground/5 flex items-center gap-4 transition-all hover:bg-foreground/[0.05]">
                   <div 
                     className={cn(
-                      "w-10 h-10 rounded-[12px] flex items-center justify-center text-white shrink-0 font-bold",
+                      "w-10 h-10 rounded-xl flex items-center justify-center text-primary-content shrink-0 font-bold",
                       acc.platform === 'facebook' ? "bg-[#1877F2]" : 
                       acc.platform === 'instagram' ? "bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888]" : 
-                      "bg-gradient-to-br from-indigo-500 to-violet-600"
+                      "bg-primary"
                     )}
                   >
                     <span>{acc.platform[0].toUpperCase()}</span>
@@ -218,7 +218,7 @@ export default async function DashboardPage() {
                     <div className="font-semibold text-[0.95rem] text-foreground truncate">{acc.platform_user_name}</div>
                     <div className="text-[0.85rem] text-foreground-secondary capitalize">{acc.platform}</div>
                   </div>
-                  <span className="px-2 py-1 rounded-[6px] text-[0.75rem] font-bold uppercase bg-emerald-500/10 text-emerald-400 shrink-0">
+                  <span className="px-2 py-1 rounded-sm text-xs font-bold uppercase bg-success/10 text-success shrink-0">
                     Connected
                   </span>
                 </div>

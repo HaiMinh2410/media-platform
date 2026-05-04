@@ -21,14 +21,14 @@ export function ConnectButtons({ workspaceId }: ConnectButtonsProps) {
   };
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <Card 
-        className="h-full bg-white/[0.02] border-white/5"
+        className="h-full bg-foreground/[0.02] border-foreground/5"
         title="Facebook" 
         description="Connect your Facebook Pages to manage messages and automation."
       >
         <div className="flex justify-center items-center h-24 mb-6">
-          <Icon name="facebook" size={60} className="text-[#1877F2] drop-shadow-[0_0_10px_rgba(24,119,242,0.3)]" />
+          <Icon name="facebook" size={60} className="text-[#1877F2] drop-shadow-md" />
         </div>
         <Button onClick={handleConnectFacebook} fullWidth className="mt-auto">
           Connect Page
@@ -36,12 +36,12 @@ export function ConnectButtons({ workspaceId }: ConnectButtonsProps) {
       </Card>
 
       <Card 
-        className="h-full bg-white/[0.02] border-white/5"
+        className="h-full bg-foreground/[0.02] border-foreground/5"
         title="Instagram" 
         description="Manage your Instagram Business messages and automated replies."
       >
         <div className="flex justify-center items-center h-24 mb-6">
-          <Icon name="instagram-filled" size={60} className="text-[#E4405F] drop-shadow-[0_0_10px_rgba(228,64,95,0.3)]" />
+          <Icon name="instagram-filled" size={60} className="text-[#E4405F] drop-shadow-md" />
         </div>
         <Button onClick={handleConnectInstagram} fullWidth className="mt-auto">
           Connect IG
@@ -49,12 +49,12 @@ export function ConnectButtons({ workspaceId }: ConnectButtonsProps) {
       </Card>
       
       <Card 
-        className="h-full bg-white/[0.02] border-white/5 opacity-60 grayscale"
+        className="h-full bg-foreground/[0.02] border-foreground/5 opacity-60 grayscale"
         title="TikTok" 
         description="Connect your TikTok Business accounts to stay engaged."
       >
         <div className="flex justify-center items-center h-24 mb-6">
-          <Icon name="tiktok" size={60} className="text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+          <Icon name="tiktok" size={60} className="text-foreground drop-shadow-md" />
         </div>
         <Button disabled fullWidth variant="outline">
           Coming Soon

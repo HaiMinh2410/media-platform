@@ -353,14 +353,14 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
                     Tất cả
                   </div>
                   <div 
-                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-white/5 hover:text-foreground", filterBy === 'unread' && "bg-accent-primary/10 text-accent-primary")}
+                    className={cn("p-[8px_12px] text-[0.75rem] text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground", filterBy === 'unread' && "bg-accent-primary/10 text-accent-primary")}
                     onClick={() => { setFilterBy('unread'); setIsFilterOpen(false); }}
                   >
                     Chưa đọc
                   </div>
                   
-                  <div className="p-[8px_12px_4px] text-[0.65rem] font-bold text-foreground-tertiary uppercase tracking-wider border-top border-white/10 mt-1">Lọc theo nhãn</div>
-                  <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+                  <div className="p-[8px_12px_4px] text-[0.65rem] font-bold text-foreground-tertiary uppercase tracking-wider border-top border-foreground/10 mt-1">Lọc theo nhãn</div>
+                  <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
                     {usedTags.map(tag => {
                       const name = tag.split('::')[0];
                       const isActive = filterBy === tag;
@@ -380,7 +380,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
               )}
             </div>
 
-            <div className="flex items-center gap-1 bg-white/5 p-[2px_6px] rounded-md border border-white/10 shrink-0 relative" ref={sortRef}>
+            <div className="flex items-center gap-1 bg-foreground/5 p-[2px_6px] rounded-md border border-foreground/10 shrink-0 relative" ref={sortRef}>
               <div 
                 className="flex items-center justify-between gap-1 cursor-pointer text-[0.75rem] font-medium text-foreground-secondary w-[50px] min-w-0" 
                 onClick={() => setIsSortOpen(!isSortOpen)}
@@ -409,7 +409,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
               )}
 
               <button 
-                className="flex items-center justify-center bg-transparent border-none text-foreground-tertiary cursor-pointer p-0.5 rounded transition-all hover:text-foreground hover:bg-white/5"
+                className="flex items-center justify-center bg-transparent border-none text-foreground-tertiary cursor-pointer p-0.5 rounded transition-all hover:text-foreground hover:bg-foreground/5"
                 onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
                 title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
               >
@@ -420,7 +420,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto relative scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" ref={parentRef}>
+      <div className="flex-1 overflow-y-auto relative scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent" ref={parentRef}>
         {loading && conversations.length === 0 ? (
           <div className="p-4 space-y-2">
             <ConversationSkeleton />

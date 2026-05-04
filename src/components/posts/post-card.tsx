@@ -37,11 +37,11 @@ export function PostCard({ post, onDelete }: PostCardProps) {
 
   return (
     <div className={cn(
-      "group relative bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition-all duration-300",
+      "group relative bg-foreground/5 border border-foreground/10 rounded-2xl overflow-hidden hover:border-foreground/20 transition-all duration-300",
       isDeleting && "opacity-50 pointer-events-none"
     )}>
       {/* Media Preview */}
-      <div className="aspect-video bg-slate-950 relative overflow-hidden">
+      <div className="aspect-video bg-base-300 relative overflow-hidden">
         {post.mediaUrls.length > 0 ? (
           <img 
             src={post.mediaUrls[0]} 
@@ -50,7 +50,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Eye className="text-slate-800" size={48} />
+            <Eye className="text-foreground-tertiary" size={48} />
           </div>
         )}
         
@@ -59,7 +59,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
         </div>
 
         {post.mediaUrls.length > 1 && (
-          <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-md">
+          <div className="absolute bottom-3 right-3 bg-foreground/60 backdrop-blur-md text-background text-[10px] px-2 py-1 rounded-md">
             +{post.mediaUrls.length - 1} more
           </div>
         )}
@@ -68,14 +68,14 @@ export function PostCard({ post, onDelete }: PostCardProps) {
       {/* Content */}
       <div className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-sm text-slate-200 line-clamp-2 leading-relaxed">
-            {post.content || <span className="text-slate-600 italic">No content</span>}
+          <p className="text-sm text-foreground line-clamp-2 leading-relaxed">
+            {post.content || <span className="text-foreground-tertiary italic">No content</span>}
           </p>
           
           <div className="relative">
             <button 
               onClick={() => setShowActions(!showActions)}
-              className="p-1 rounded-lg hover:bg-slate-800 text-slate-500 transition-colors"
+              className="p-1 rounded-lg hover:bg-foreground/5 text-foreground-secondary transition-colors"
             >
               <MoreVertical size={16} />
             </button>
@@ -86,7 +86,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
                   className="fixed inset-0 z-10" 
                   onClick={() => setShowActions(false)} 
                 />
-                <div className="absolute right-0 bottom-full mb-2 w-32 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-20 py-1 animate-in fade-in zoom-in duration-200">
+                <div className="absolute right-0 bottom-full mb-2 w-32 bg-base-200 border border-foreground/10 rounded-xl shadow-2xl z-20 py-1 animate-in fade-in zoom-in duration-200">
                   <button
                     onClick={() => {
                       setShowActions(false);
@@ -104,8 +104,8 @@ export function PostCard({ post, onDelete }: PostCardProps) {
         </div>
 
         {/* Footer info */}
-        <div className="pt-3 border-t border-slate-800/50 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-slate-500">
+        <div className="pt-3 border-t border-foreground/5 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-foreground-secondary">
             <Calendar size={12} />
             <span className="text-[11px] font-medium">
               {post.status === 'scheduled' && post.scheduledAt 

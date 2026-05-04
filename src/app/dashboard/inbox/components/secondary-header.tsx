@@ -120,7 +120,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           <button 
             className={cn(
               "flex items-center gap-3 px-3.5 h-10 bg-background-secondary border border-foreground/10 rounded-lg text-foreground-secondary cursor-pointer transition-all duration-200 min-w-[180px] outline-none hover:bg-background-tertiary hover:border-foreground/20 hover:-translate-y-px",
-              selectedGroupId && "bg-accent-primary/10 border-accent-primary/20 text-foreground"
+              selectedGroupId && "bg-primary/10 border-primary/20 text-foreground"
             )}
             onClick={() => setIsOpen(!isOpen)}
           >
@@ -141,7 +141,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           </button>
 
           {isOpen && (
-            <div className="absolute top-[calc(100%+8px)] left-0 w-[280px] bg-base-200 border border-foreground/10 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] z-[100] p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute top-[calc(100%+8px)] left-0 w-[280px] bg-base-100 border border-foreground/10 rounded-xl glass-shadow z-[100] p-2 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="p-[8px_12px_12px] text-[0.6875rem] font-bold text-foreground-tertiary uppercase tracking-[0.08em] flex items-center justify-between">
                 <span>{isSelectionMode ? `Đã chọn ${selectedIdsForAction.length}` : 'Chọn cụm tài khoản'}</span>
                 
@@ -158,7 +158,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                     </button>
 
                     {showManagementMenu && (
-                      <div className="absolute top-full right-0 mt-2 bg-base-300 border border-foreground/10 rounded-xl shadow-2xl w-40 overflow-hidden z-[101] p-1">
+                      <div className="absolute top-full right-0 mt-2 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl w-40 overflow-hidden z-[101] p-1">
                         <button 
                           className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-[0.8125rem] font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
                           onClick={(e) => {
@@ -171,7 +171,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                           <Plus size={14} /> Thêm cụm mới
                         </button>
                         <button 
-                          className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-[0.8125rem] font-medium cursor-pointer rounded-lg hover:bg-white/5 hover:text-foreground transition-all"
+                          className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-[0.8125rem] font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             setIsSelectionMode(true);
@@ -187,12 +187,11 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                   <div className="flex items-center gap-2 relative">
                     <button 
                       className={cn(
-                        "p-[4px_10px] rounded-md text-[0.75rem] font-semibold cursor-pointer transition-all bg-status-error/10 border border-status-error/20 text-status-error",
+                        "p-[4px_10px] rounded-md text-[0.75rem] font-semibold cursor-pointer transition-all bg-error/10 border border-error/20 text-error",
                         selectedIdsForAction.length === 0 && "opacity-30 cursor-not-allowed"
                       )}
                       disabled={selectedIdsForAction.length === 0}
                       onClick={(e) => {
-                        e.stopPropagation();
                         if (confirm(`Xóa ${selectedIdsForAction.length} cụm đã chọn?`)) {
                           Promise.all(selectedIdsForAction.map(id => deleteAccountGroupAction(id)))
                             .then(() => {
@@ -206,7 +205,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                       <Trash2 size={14} />
                     </button>
                     <button 
-                      className="p-[4px_10px] rounded-md text-[0.75rem] font-semibold cursor-pointer transition-all bg-white/5 border border-white/10 text-foreground hover:bg-white/10"
+                      className="p-[4px_10px] rounded-md text-[0.75rem] font-semibold cursor-pointer transition-all bg-foreground/5 border border-foreground/10 text-foreground hover:bg-foreground/10"
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsSelectionMode(false);
@@ -221,7 +220,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
               <button 
                 className={cn(
                   "flex items-center gap-3 w-full p-[10px_12px] rounded-xl border-none bg-transparent text-foreground-secondary cursor-pointer transition-all duration-150 text-left hover:bg-foreground/5 hover:text-foreground",
-                  !selectedGroupId && "bg-accent-primary/10 text-foreground"
+                  !selectedGroupId && "bg-primary/10 text-foreground"
                 )}
                 onClick={() => {
                   setGroupId(null);
@@ -234,7 +233,7 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
                   <Users size={14} />
                 </div>
                 <span className="flex-1 text-[0.875rem] font-medium">Tất cả cụm</span>
-                {!selectedGroupId && <Check size={14} className="text-accent-primary" />}
+                {!selectedGroupId && <Check size={14} className="text-primary" />}
               </button>
 
               <div className="h-px bg-foreground/5 m-[4px_8px]" />
@@ -274,36 +273,36 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
           <button 
             className={cn(
               "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
-              platform === 'all' && "bg-accent-primary/10 text-accent-primary shadow-sm"
+              platform === 'all' && "bg-primary/10 text-primary shadow-sm"
             )}
             onClick={() => setPlatform('all')}
           >
-            Tất cả {unreadCounts.all > 0 && <span className="bg-[#ff4757] text-white text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-[0_0_10px_rgba(255,71,87,0.4)] ml-1">{formatCount(unreadCounts.all)}</span>}
+            Tất cả {unreadCounts.all > 0 && <span className="bg-error text-error-content text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-md shadow-error/20 ml-1">{formatCount(unreadCounts.all)}</span>}
           </button>
           <button 
             className={cn(
               "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
-              platform === 'facebook' && "bg-accent-primary/10 text-accent-primary shadow-sm"
+              platform === 'facebook' && "bg-primary/10 text-primary shadow-sm"
             )}
             onClick={() => setPlatform('facebook')}
           >
-            Messenger {unreadCounts.facebook > 0 && <span className="bg-[#ff4757] text-white text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-[0_0_10px_rgba(255,71,87,0.4)] ml-1">{formatCount(unreadCounts.facebook)}</span>}
+            Messenger {unreadCounts.facebook > 0 && <span className="bg-error text-error-content text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-md shadow-error/20 ml-1">{formatCount(unreadCounts.facebook)}</span>}
           </button>
           <button 
             className={cn(
               "flex items-center gap-2 px-4 py-1.5 rounded-lg border-none bg-transparent text-foreground-secondary text-[0.8125rem] font-semibold cursor-pointer transition-all duration-200 whitespace-nowrap hover:text-foreground hover:bg-foreground/5",
-              platform === 'instagram' && "bg-accent-primary/10 text-accent-primary shadow-sm"
+              platform === 'instagram' && "bg-primary/10 text-primary shadow-sm"
             )}
             onClick={() => setPlatform('instagram')}
           >
-            Instagram {unreadCounts.instagram > 0 && <span className="bg-[#ff4757] text-white text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-[0_0_10px_rgba(255,71,87,0.4)] ml-1">{formatCount(unreadCounts.instagram)}</span>}
+            Instagram {unreadCounts.instagram > 0 && <span className="bg-error text-error-content text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-md shadow-error/20 ml-1">{formatCount(unreadCounts.instagram)}</span>}
           </button>
         </div>
 
         <button 
           className={cn(
-            "flex items-center gap-2.5 px-3 h-10 text-foreground-secondary text-sm font-medium border border-transparent bg-transparent cursor-pointer relative transition-all duration-250 rounded-lg hover:text-foreground hover:bg-white/5 hover:-translate-y-px active:translate-y-0 active:scale-[0.98]",
-            viewMode === 'daily_flow' && "text-foreground bg-accent-primary/10 border-accent-primary/20 shadow-md"
+            "flex items-center gap-2.5 px-3 h-10 text-foreground-secondary text-sm font-medium border border-transparent bg-transparent cursor-pointer relative transition-all duration-250 rounded-lg hover:text-foreground hover:bg-foreground/5 hover:-translate-y-px active:translate-y-0 active:scale-[0.98]",
+            viewMode === 'daily_flow' && "text-foreground bg-primary/10 border-primary/20 shadow-md"
           )}
           onClick={() => { 
             if (viewMode === 'daily_flow') {
@@ -315,14 +314,14 @@ export function SecondaryHeader({ workspaceId }: { workspaceId: string }) {
             }
           }}
         >
-          <Zap size={16} className="text-[#fbbf24] opacity-100" />
+          <Zap size={16} className="text-warning opacity-100" />
           <span>Daily Flow</span>
         </button>
       </div>
 
       <div className="flex items-center gap-4 h-8">
         <ThemeSwitcher />
-        <div className="w-9 h-9 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground-secondary border border-white/10 shrink-0 overflow-hidden shadow-md">
+        <div className="w-9 h-9 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground-secondary border border-foreground/10 shrink-0 overflow-hidden shadow-md">
           {userData?.avatar ? (
             <img src={userData.avatar} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -366,9 +365,9 @@ function ReorderItem({
       dragListener={false}
       dragControls={controls}
       className={cn(
-        "flex items-center gap-3 w-full p-[10px_12px] rounded-xl border-none bg-transparent text-foreground-secondary cursor-pointer transition-all duration-150 text-left hover:bg-white/5 hover:text-foreground group",
-        selectedGroupId === group.id && !isSelectionMode && "bg-accent-primary/10 text-foreground",
-        isSelectionMode && isSelected && "bg-accent-primary/5"
+        "flex items-center gap-3 w-full p-[10px_12px] rounded-xl border-none bg-transparent text-foreground-secondary cursor-pointer transition-all duration-150 text-left hover:bg-foreground/5 hover:text-foreground group",
+        selectedGroupId === group.id && !isSelectionMode && "bg-primary/10 text-foreground",
+        isSelectionMode && isSelected && "bg-primary/5"
       )}
     >
       <div 
@@ -383,20 +382,20 @@ function ReorderItem({
       >
         {isSelectionMode && (
           <div className={cn(
-            "w-[18px] h-[18px] rounded-[5px] border-2 border-white/10 flex items-center justify-center transition-all shrink-0",
-            isSelected && "bg-accent-primary border-accent-primary"
+            "w-[18px] h-[18px] rounded-[5px] border-2 border-foreground/10 flex items-center justify-center transition-all shrink-0",
+            isSelected && "bg-primary border-primary"
           )}>
-            {isSelected && <Check size={10} color="#fff" />}
+            {isSelected && <Check size={10} className="text-primary-content" />}
           </div>
         )}
         <CombinedAvatar group={group} unreadCount={group.unreadCount} />
         <span className="flex-1 text-[0.875rem] font-medium">{group.name}</span>
-        {!isSelectionMode && selectedGroupId === group.id && <Check size={14} className="text-accent-primary" />}
+        {!isSelectionMode && selectedGroupId === group.id && <Check size={14} className="text-primary" />}
       </div>
       
       <div className="flex items-center gap-1">
         {isSelectionMode && isSelected && (
-          <button className="w-6 h-6 rounded-md flex items-center justify-center bg-white/5 border border-white/10 text-foreground-secondary cursor-pointer transition-all hover:bg-white/10 hover:text-foreground" onClick={(e) => {
+          <button className="w-6 h-6 rounded-md flex items-center justify-center bg-foreground/5 border border-foreground/10 text-foreground-secondary cursor-pointer transition-all hover:bg-foreground/10 hover:text-foreground" onClick={(e) => {
             e.stopPropagation();
             alert('Tính năng Sửa đang được phát triển');
           }}>
@@ -404,7 +403,7 @@ function ReorderItem({
           </button>
         )}
         <div 
-          className="cursor-grab text-foreground-tertiary opacity-0 transition-opacity duration-200 p-1 rounded-md hover:bg-white/5 group-hover:opacity-50 hover:opacity-100 active:cursor-grabbing"
+          className="cursor-grab text-foreground-tertiary opacity-0 transition-opacity duration-200 p-1 rounded-md hover:bg-foreground/5 group-hover:opacity-50 hover:opacity-100 active:cursor-grabbing"
           onPointerDown={(e) => controls.start(e)}
         >
           <GripVertical size={14} />
@@ -441,7 +440,7 @@ function CombinedAvatar({ group, unreadCount }: { group: AccountGroup; unreadCou
       {fbAccount && renderAvatar(fbAccount)}
       {igAccount && renderAvatar(igAccount, true)}
       {unreadCount !== undefined && unreadCount > 0 && (
-        <div className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-[#ff4757] text-white rounded-full border-[1.5px] border-background z-[4] shadow-[0_2px_6px_rgba(255,71,87,0.4)] text-[0.625rem] font-extrabold flex items-center justify-center leading-none">
+        <div className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-error text-error-content rounded-full border-[1.5px] border-background z-[4] shadow-md shadow-error/20 text-[0.625rem] font-extrabold flex items-center justify-center leading-none">
           {unreadCount > 99 ? '99+' : unreadCount}
         </div>
       )}

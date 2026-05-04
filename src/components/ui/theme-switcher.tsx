@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { themeChange } from 'theme-change';
 import { Palette, ChevronDown, Check } from 'lucide-react';
 
 const themes = [
@@ -16,15 +15,18 @@ export function ThemeSwitcher() {
   const [currentTheme, setCurrentTheme] = useState('dark');
 
   useEffect(() => {
-    themeChange(false);
-    // Lấy theme hiện tại từ localStorage hoặc document attribute
+    // Initialize theme from localStorage or document attribute
     const savedTheme = localStorage.getItem('theme') || document.documentElement.getAttribute('data-theme') || 'dark';
     setCurrentTheme(savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.body.setAttribute('data-theme', savedTheme);
   }, []);
 
   const handleThemeChange = (theme: string) => {
     setCurrentTheme(theme);
-    // theme-change sẽ tự động xử lý data-theme trên html tag khi click vào button có data-set-theme
+    localStorage.setItem('theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
   };
 
   return (
@@ -33,7 +35,7 @@ export function ThemeSwitcher() {
       <div 
         tabIndex={0} 
         role="button" 
-        className="btn btn-ghost btn-sm md:btn-md flex items-center gap-2 px-3 border border-white/5 hover:border-white/20 bg-white/5 backdrop-blur-md transition-all duration-300 rounded-xl"
+        className="btn btn-ghost btn-sm md:btn-md flex items-center gap-2 px-3 border border-foreground/5 hover:border-foreground/20 bg-foreground/5 backdrop-blur-md transition-all duration-300 rounded-xl"
       >
         <div className="p-1 rounded-lg bg-primary/20">
           <Palette className="h-4 w-4 text-primary" />
@@ -44,7 +46,7 @@ export function ThemeSwitcher() {
       
       <ul 
         tabIndex={0} 
-        className="dropdown-content z-[100] menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-xl rounded-2xl w-64 max-h-[70vh] overflow-y-auto flex-nowrap border border-white/10 mt-2 gap-1 animate-in fade-in zoom-in duration-200"
+        className="dropdown-content z-[100] menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-xl rounded-2xl w-64 max-h-[70vh] overflow-y-auto flex-nowrap border border-foreground/10 mt-2 gap-1 animate-in fade-in zoom-in duration-200"
       >
         <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-base-content/40">
           Select Visual Identity
@@ -63,9 +65,9 @@ export function ThemeSwitcher() {
               <div className="flex items-center gap-3">
                 <div className="relative flex items-center justify-center">
                   <div 
-                    className="w-4 h-4 rounded-full border border-white/10" 
+                    className="w-4 h-4 rounded-full border border-foreground/10" 
                     data-theme={theme}
-                    style={{ backgroundColor: 'var(--p)' }}
+                    style={{ backgroundColor: 'var(--color-primary)' }}
                   />
                   {currentTheme === theme && (
                     <Check className="absolute h-2.5 w-2.5 text-primary-content" />
@@ -76,10 +78,10 @@ export function ThemeSwitcher() {
 
               {/* Theme Preview Colors */}
               <div className="flex gap-0.5 p-1 rounded-lg bg-base-300/50" data-theme={theme}>
-                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--p)' }} title="Primary" />
-                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--s)' }} title="Secondary" />
-                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--a)' }} title="Accent" />
-                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--n)' }} title="Neutral" />
+                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-primary)' }} title="Primary" />
+                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-secondary)' }} title="Secondary" />
+                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-accent)' }} title="Accent" />
+                <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'var(--color-neutral)' }} title="Neutral" />
               </div>
             </button>
           </li>

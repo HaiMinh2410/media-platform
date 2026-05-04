@@ -22,7 +22,7 @@ export function PlatformSelector({ accounts, selectedIds, onChange }: PlatformSe
 
   return (
     <div className="space-y-4">
-      <label className="text-sm font-bold uppercase tracking-widest text-slate-500 ml-1">Select Accounts</label>
+      <label className="text-sm font-bold uppercase tracking-widest text-foreground-tertiary ml-1">Select Accounts</label>
       <div className="flex flex-wrap gap-4">
         {accounts.map((account) => {
           const isSelected = selectedIds.includes(account.id);
@@ -35,29 +35,29 @@ export function PlatformSelector({ accounts, selectedIds, onChange }: PlatformSe
               className={cn(
                 "group relative flex items-center gap-4 px-5 py-4 rounded-2xl border transition-all duration-300 text-left min-w-[200px]",
                 isSelected 
-                  ? "bg-blue-600/10 border-blue-500/50 ring-1 ring-blue-500/20" 
-                  : "bg-slate-900/40 border-slate-800/80 text-slate-400 hover:border-slate-700 hover:bg-slate-800/40"
+                  ? "bg-primary/10 border-primary/50 ring-1 ring-primary/20" 
+                  : "bg-background-secondary/40 border-foreground/10 text-foreground-secondary hover:border-foreground/20 hover:bg-background-tertiary/40"
               )}
             >
               <div className={cn(
                 "p-2.5 rounded-xl transition-all duration-300",
                 isSelected 
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/40 scale-110" 
-                  : "bg-slate-800 text-slate-500 group-hover:text-slate-300"
+                  ? "bg-primary text-primary-content shadow-lg shadow-primary/40 scale-110" 
+                  : "bg-background-tertiary text-foreground-tertiary group-hover:text-foreground-secondary"
               )}>
                 <PlatformIcon size={20} />
               </div>
               <div className="flex-1 overflow-hidden">
                 <p className={cn(
                   "text-[15px] font-bold truncate transition-colors",
-                  isSelected ? "text-white" : "text-slate-300"
+                  isSelected ? "text-foreground" : "text-foreground-secondary"
                 )}>{account.name}</p>
                 <p className="text-[10px] font-bold uppercase tracking-widest opacity-50">{account.platform}</p>
               </div>
               
               {isSelected && (
-                <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-4 border-slate-950 shadow-lg">
-                  <Check size={12} className="text-white stroke-[3px]" />
+                <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-primary rounded-full flex items-center justify-center border-4 border-base-100 shadow-lg">
+                  <Check size={12} className="text-primary-content stroke-[3px]" />
                 </div>
               )}
             </button>

@@ -52,10 +52,10 @@ export function CommandPalette() {
       open={open}
       onOpenChange={setOpen}
       label="Global Command Menu"
-      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[600px] bg-[#171717]/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[600px] bg-base-200/80 backdrop-blur-xl border border-foreground/10 rounded-xl shadow-2xl z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
     >
       <div className="flex flex-col">
-        <div className="flex items-center p-4 border-b border-white/5">
+        <div className="flex items-center p-4 border-b border-foreground/5">
           <Search className="text-foreground-tertiary mr-3" size={18} />
           <Command.Input
             placeholder="Tìm kiếm tài khoản, nhóm hoặc tag..."
@@ -63,7 +63,7 @@ export function CommandPalette() {
           />
         </div>
 
-        <Command.List className="max-h-[400px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/10">
+        <Command.List className="max-h-[400px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-foreground/10">
           <Command.Empty className="p-6 text-center text-foreground-tertiary text-sm">Không tìm thấy kết quả.</Command.Empty>
 
           {items?.accounts && items.accounts.length > 0 && (
@@ -76,11 +76,11 @@ export function CommandPalette() {
                   key={account.id}
                   onSelect={() => runCommand(() => router.push(`/dashboard/inbox?account=${account.id}`))}
                   onPointerEnter={() => router.prefetch(`/dashboard/inbox?account=${account.id}`)}
-                  className="flex items-center p-[10px_12px] rounded-lg cursor-pointer gap-3 text-[#d4d4d4] text-sm transition-all duration-150 select-none aria-selected:bg-white/10 aria-selected:text-white group"
+                  className="flex items-center p-[10px_12px] rounded-lg cursor-pointer gap-3 text-foreground-secondary text-sm transition-all duration-150 select-none aria-selected:bg-foreground/10 aria-selected:text-foreground group"
                 >
                   <User size={16} />
                   <span>{account.name}</span>
-                  <span className="text-[10px] px-1.5 py-0.5 bg-white/5 rounded-[4px] text-foreground-tertiary uppercase">{account.platform}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 bg-foreground/5 rounded-[4px] text-foreground-tertiary uppercase">{account.platform}</span>
                   <ArrowRight className="ml-auto text-foreground-tertiary opacity-0 -translate-x-1 transition-all duration-150 group-aria-selected:opacity-100 group-aria-selected:translate-x-0" size={14} />
                 </Command.Item>
               ))}
@@ -97,7 +97,7 @@ export function CommandPalette() {
                   key={group.id}
                   onSelect={() => runCommand(() => router.push(`/dashboard/inbox?group=${group.id}`))}
                   onPointerEnter={() => router.prefetch(`/dashboard/inbox?group=${group.id}`)}
-                  className="flex items-center p-[10px_12px] rounded-lg cursor-pointer gap-3 text-[#d4d4d4] text-sm transition-all duration-150 select-none aria-selected:bg-white/10 aria-selected:text-white group"
+                  className="flex items-center p-[10px_12px] rounded-lg cursor-pointer gap-3 text-foreground-secondary text-sm transition-all duration-150 select-none aria-selected:bg-foreground/10 aria-selected:text-foreground group"
                 >
                   <Users size={16} />
                   <span>{group.name}</span>
@@ -117,7 +117,7 @@ export function CommandPalette() {
                   key={tag.name}
                   onSelect={() => runCommand(() => router.push(`/dashboard/inbox?tag=${tag.name}`))}
                   onPointerEnter={() => router.prefetch(`/dashboard/inbox?tag=${tag.name}`)}
-                  className="flex items-center p-[10px_12px] rounded-lg cursor-pointer gap-3 text-[#d4d4d4] text-sm transition-all duration-150 select-none aria-selected:bg-white/10 aria-selected:text-white group"
+                  className="flex items-center p-[10px_12px] rounded-lg cursor-pointer gap-3 text-foreground-secondary text-sm transition-all duration-150 select-none aria-selected:bg-foreground/10 aria-selected:text-foreground group"
                 >
                   <Tag size={16} />
                   <span>{tag.name}</span>

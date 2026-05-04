@@ -151,7 +151,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
   });
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent" ref={scrollRef}>
+    <div className="flex-1 overflow-y-auto p-6 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent" ref={scrollRef}>
       <div ref={observerTarget} style={{ height: '1px', opacity: 0 }} />
 
       {loading && nextCursor && (

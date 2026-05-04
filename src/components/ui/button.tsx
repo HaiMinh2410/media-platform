@@ -17,10 +17,10 @@ export function Button({
   ...props 
 }: ButtonProps) {
   const variants = {
-    primary: 'bg-gradient-to-br from-accent-primary to-accent-secondary text-white border-none hover:shadow-[0_4px_12px_rgba(99,102,241,0.4)] hover:-translate-y-px active:translate-y-0',
-    secondary: 'bg-background-tertiary text-foreground hover:bg-[#232326]',
-    outline: 'bg-transparent border border-white/10 text-foreground hover:bg-white/[0.03] hover:border-foreground-secondary',
-    ghost: 'bg-transparent text-foreground-secondary hover:bg-white/[0.03] hover:text-foreground',
+    primary: 'bg-gradient-to-br from-primary to-secondary text-primary-content border-none hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-px active:translate-y-0',
+    secondary: 'bg-background-tertiary text-foreground hover:bg-background-base',
+    outline: 'bg-transparent border border-foreground/10 text-foreground hover:bg-foreground/[0.03] hover:border-foreground-secondary',
+    ghost: 'bg-transparent text-foreground-secondary hover:bg-foreground/[0.03] hover:text-foreground',
   };
 
   const sizes = {
@@ -34,7 +34,7 @@ export function Button({
   return (
     <button className={buttonClass} disabled={isLoading || props.disabled} {...props}>
       {isLoading ? (
-        <span className="w-[18px] h-[18px] border-2 border-white/30 rounded-full border-t-white animate-spin"></span>
+        <span className="loading loading-spinner loading-xs"></span>
       ) : children}
     </button>
   );

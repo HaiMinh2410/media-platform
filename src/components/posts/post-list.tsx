@@ -56,8 +56,8 @@ export function PostList({ initialPosts, workspaceId }: PostListProps) {
               className={cn(
                 "px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-[14px] transition-all duration-300",
                 filter === s 
-                  ? "bg-blue-600 text-white shadow-xl shadow-blue-600/30" 
-                  : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
+                  ? "bg-primary text-primary-content shadow-xl shadow-primary/30" 
+                  : "text-foreground-secondary hover:text-foreground hover:bg-foreground/5"
               )}
             >
               {s}
@@ -67,20 +67,20 @@ export function PostList({ initialPosts, workspaceId }: PostListProps) {
 
         <div className="flex items-center gap-3">
           <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary" size={14} />
             <input 
               type="text"
               placeholder="Search posts..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-900/50 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500/50 transition-all"
+              className="w-full bg-foreground/5 border border-foreground/10 rounded-xl pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
             />
           </div>
           
           <button 
             onClick={fetchPosts}
             disabled={isLoading}
-            className="p-2 rounded-xl bg-slate-900/50 border border-slate-800 text-slate-400 hover:text-white transition-all disabled:opacity-50"
+            className="p-2 rounded-xl bg-foreground/5 border border-foreground/10 text-foreground-tertiary hover:text-foreground transition-all disabled:opacity-50"
           >
             {isLoading ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={18} />}
           </button>

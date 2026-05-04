@@ -41,9 +41,9 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
 
   const getPriorityClass = (priority?: string | null) => {
     switch (priority?.toLowerCase()) {
-      case 'high': return "bg-status-error/15 text-status-error";
-      case 'medium': return "bg-status-warning/15 text-status-warning";
-      case 'low': return "bg-status-info/15 text-status-info";
+      case 'high': return "bg-error/15 text-error";
+      case 'medium': return "bg-warning/15 text-warning";
+      case 'low': return "bg-info/15 text-info";
       default: return '';
     }
   };
@@ -93,20 +93,20 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
             </span>
             
             {conversation.is_vip && (
-              <span className="text-amber-500 flex items-center" title="VIP">
+              <span className="text-warning flex items-center" title="VIP">
                 <Star size={12} fill="currentColor" />
               </span>
             )}
 
 
             {conversation.priority === 'high' && (
-              <span className="text-red-500 flex items-center" title="Hot Lead">
+              <span className="text-error flex items-center" title="Hot Lead">
                 <Flame size={12} fill="currentColor" />
               </span>
             )}
             
             {conversation.ai_replied && (
-              <span className="text-accent-primary flex items-center" title="AI Handled">
+              <span className="text-primary flex items-center" title="AI Handled">
                 <Bot size={12} />
               </span>
             )}
@@ -122,7 +122,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
             {conversation.last_message_content || 'No messages'}
           </span>
           {isUnread && (
-            <span className="bg-accent-primary text-white min-w-[18px] h-[18px] rounded-full px-1.5 text-[0.7rem] font-semibold flex items-center justify-center shrink-0 shadow-lg shadow-accent-primary/20">
+            <span className="bg-primary text-primary-content min-w-[18px] h-[18px] rounded-full px-1.5 text-[0.7rem] font-semibold flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
               {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
             </span>
           )}

@@ -206,7 +206,7 @@ export function ReplyComposer({
               key={t}
               type="button"
               className={cn(
-                "bg-transparent border-none text-foreground-tertiary text-xs px-2 py-1 rounded-sm cursor-pointer transition-all hover:text-foreground-secondary hover:bg-white/5",
+                "bg-transparent border-none text-foreground-tertiary text-xs px-2 py-1 rounded-sm cursor-pointer transition-all hover:text-foreground-secondary hover:bg-foreground/5",
                 selectedTone === t && "text-accent-primary bg-accent-primary/10"
               )}
               onClick={() => setTone(t)}
@@ -253,7 +253,7 @@ export function ReplyComposer({
                 <div className="relative" ref={snippetsRef}>
                   <button 
                     type="button" 
-                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-white/5"
+                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5"
                     onClick={() => setShowSnippets(!showSnippets)}
                     title="Saved Snippets"
                   >
@@ -268,7 +268,7 @@ export function ReplyComposer({
                           <button 
                             key={s.id} 
                             type="button" 
-                            className="w-full px-3 py-2 flex flex-col gap-0.5 text-left hover:bg-white/5 transition-colors"
+                            className="w-full px-3 py-2 flex flex-col gap-0.5 text-left hover:bg-foreground/5 transition-colors"
                             onClick={() => handleSnippetClick(s.text)}
                           >
                             <span className="text-sm font-semibold text-foreground">{s.title}</span>
@@ -280,7 +280,7 @@ export function ReplyComposer({
                   )}
                 </div>
                 
-                <button type="button" className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-white/5" title="Attach file">
+                <button type="button" className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5" title="Attach file">
                   <Paperclip size={18} />
                 </button>
               </div>

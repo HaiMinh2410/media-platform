@@ -15,22 +15,22 @@ export function PostPreview({ content, mediaUrls, platform }: PostPreviewProps) 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-300">Live Preview</h3>
-        <div className="flex bg-slate-900 rounded-lg p-1 border border-slate-800">
-          <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-800 rounded-md">
+        <h3 className="text-sm font-semibold text-foreground-secondary">Live Preview</h3>
+        <div className="flex bg-background-secondary rounded-lg p-1 border border-foreground/10">
+          <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-foreground-tertiary bg-background-tertiary rounded-md">
             Mobile Feed
           </div>
         </div>
       </div>
 
-      <div className="relative mx-auto w-full max-w-[360px] aspect-[9/19.5] bg-slate-950 rounded-[3rem] border-[8px] border-slate-900 shadow-2xl overflow-hidden ring-1 ring-slate-800">
+      <div className="relative mx-auto w-full max-w-[360px] aspect-[9/19.5] bg-neutral rounded-[3rem] border-[8px] border-neutral shadow-2xl overflow-hidden ring-1 ring-white/10">
         {/* Notch */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-slate-900 rounded-b-3xl z-50 flex items-center justify-center">
-          <div className="w-12 h-1 bg-slate-950 rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-neutral rounded-b-3xl z-50 flex items-center justify-center">
+          <div className="w-12 h-1 bg-neutral-focus/30 rounded-full" />
         </div>
 
         {/* Content Area */}
-        <div className="h-full w-full bg-white pt-10 overflow-y-auto hide-scrollbar">
+        <div className="h-full w-full bg-base-100 pt-10 overflow-y-auto hide-scrollbar">
           {platform === 'instagram' ? (
             <InstagramPreview content={content} mediaUrls={mediaUrls} />
           ) : (

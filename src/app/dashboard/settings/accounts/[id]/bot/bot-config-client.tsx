@@ -81,7 +81,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
 
   if (isLoading) {
     return (
-      <div className="p-10 text-center text-white/60 bg-white/[0.02] rounded-xl border border-dashed border-white/10">
+      <div className="p-10 text-center text-foreground-secondary bg-foreground/[0.02] rounded-xl border border-dashed border-foreground/10">
         Loading configuration...
       </div>
     );
@@ -97,11 +97,11 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="p-6 bg-white/[0.02] border-white/10 flex flex-col gap-5 transition-opacity duration-300 backdrop-blur-xl">
+      <Card className="p-6 bg-foreground/[0.02] border-foreground/10 flex flex-col gap-5 transition-opacity duration-300 backdrop-blur-xl">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="m-0 text-lg font-semibold text-white">AI Assistant Status</h2>
-            <p className="m-1 text-sm text-white/50">Enable or disable the AI for this account</p>
+            <h2 className="m-0 text-lg font-semibold text-foreground">AI Assistant Status</h2>
+            <p className="m-1 text-sm text-foreground-secondary">Enable or disable the AI for this account</p>
           </div>
           <label className="relative inline-block w-12 h-6">
             <input 
@@ -110,26 +110,26 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
               onChange={(e) => setConfig({ ...config, is_active: e.target.checked })}
               className="opacity-0 w-0 h-0 peer"
             />
-            <span className="absolute inset-0 cursor-pointer bg-white/10 rounded-full transition-all peer-checked:bg-blue-500 before:absolute before:content-[''] before:h-[18px] before:w-[18px] before:left-[3px] before:bottom-[3px] before:bg-white before:rounded-full before:transition-all peer-checked:before:translate-x-6"></span>
+            <span className="absolute inset-0 cursor-pointer bg-foreground/10 rounded-full transition-all peer-checked:bg-primary before:absolute before:content-[''] before:h-[18px] before:w-[18px] before:left-[3px] before:bottom-[3px] before:bg-base-100 before:rounded-full before:transition-all peer-checked:before:translate-x-6"></span>
           </label>
         </div>
       </Card>
 
       <Card className={cn(
-        "p-6 bg-white/[0.02] border-white/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
+        "p-6 bg-foreground/[0.02] border-foreground/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
         !config.is_active && "opacity-50 pointer-events-none"
       )}>
-        <h2 className="m-0 text-base font-semibold text-white">Behavior Settings</h2>
+        <h2 className="m-0 text-base font-semibold text-foreground">Behavior Settings</h2>
         
         <div className="flex flex-col gap-2">
-          <label className="flex flex-col gap-1 text-sm font-medium text-gray-200">
+          <label className="flex flex-col gap-1 text-sm font-medium text-foreground">
             System Prompt
-            <span className="text-xs font-normal text-white/40">Instructions for the AI on how to respond. Be specific about tone and boundary.</span>
+            <span className="text-xs font-normal text-foreground-tertiary">Instructions for the AI on how to respond. Be specific about tone and boundary.</span>
           </label>
 
           <select 
             disabled={!config.is_active}
-            className="mb-2 w-full bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 text-sm font-medium text-blue-400 outline-none cursor-pointer transition-all hover:bg-blue-500/15 hover:border-blue-500/40"
+            className="mb-2 w-full bg-primary/10 border border-primary/20 rounded-lg px-4 py-3 text-sm font-medium text-primary outline-none cursor-pointer transition-all hover:bg-primary/15 hover:border-primary/40"
             onChange={(e) => {
               const template = ROLE_TEMPLATES.find(t => t.id === e.target.value);
               if (template) {
@@ -147,7 +147,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
 
           <textarea 
             disabled={!config.is_active}
-            className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm text-white font-sans outline-none focus:border-white/30 focus:ring-2 focus:ring-white/5 transition-all resize-vertical min-h-[100px]"
+            className="w-full bg-background-tertiary border border-foreground/10 rounded-lg px-4 py-3 text-sm text-foreground font-sans outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/5 transition-all resize-vertical min-h-[100px]"
             value={config.system_prompt || ''}
             onChange={(e) => setConfig({ ...config, system_prompt: e.target.value })}
             placeholder="You are a helpful customer support assistant for..."
@@ -157,10 +157,10 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-1 flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-200">Model Selection</label>
+            <label className="text-sm font-medium text-foreground">Model Selection</label>
             <select 
               disabled={!config.is_active}
-              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-sm text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/5 transition-all"
+              className="w-full bg-background-tertiary border border-foreground/10 rounded-lg px-4 py-3 text-sm text-foreground outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/5 transition-all"
               value={config.model}
               onChange={(e) => setConfig({ ...config, model: e.target.value })}
             >
@@ -173,14 +173,14 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
           </div>
 
           <div className="flex-1 flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-200">
+            <label className="text-sm font-medium text-foreground">
               Confidence Threshold ({config.confidence_threshold.toFixed(2)})
             </label>
             <input 
               disabled={!config.is_active}
               type="range" 
               min="0" max="1" step="0.05"
-              className="w-full mt-3 accent-blue-500"
+              className="w-full mt-3 accent-primary"
               value={config.confidence_threshold}
               onChange={(e) => setConfig({ ...config, confidence_threshold: parseFloat(e.target.value) })}
             />
@@ -195,23 +195,23 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
               id="autoSend"
               checked={config.auto_send}
               onChange={(e) => setConfig({ ...config, auto_send: e.target.checked })}
-              className="w-[18px] h-[18px] mt-0.5 accent-blue-500 cursor-pointer"
+              className="w-[18px] h-[18px] mt-0.5 accent-primary cursor-pointer"
             />
-            <label htmlFor="autoSend" className="flex flex-col gap-1 text-sm text-white cursor-pointer select-none">
+            <label htmlFor="autoSend" className="flex flex-col gap-1 text-sm text-foreground cursor-pointer select-none">
               <strong className="font-semibold">Auto-Reply</strong>
-              <span className="font-normal text-white/50 leading-relaxed">Automatically send replies that pass the confidence threshold instead of drafting suggestions.</span>
+              <span className="font-normal text-foreground-secondary leading-relaxed">Automatically send replies that pass the confidence threshold instead of drafting suggestions.</span>
             </label>
           </div>
 
           {config.auto_send && (
-            <div className="mt-4 p-4 bg-white/[0.03] rounded-xl border border-white/5 flex flex-col gap-4">
+            <div className="mt-4 p-4 bg-foreground/[0.03] rounded-xl border border-foreground/5 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-[0.75rem] font-bold uppercase tracking-wider text-white/40">Auto-Reply for Priorities:</label>
+                <label className="text-[0.75rem] font-bold uppercase tracking-wider text-foreground-tertiary">Auto-Reply for Priorities:</label>
                 <div className="flex flex-wrap gap-3">
                   {PRIORITY_OPTIONS.map(prio => (
                     <label key={prio} className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-white cursor-pointer bg-white/[0.05] border border-transparent transition-all hover:bg-white/[0.08]",
-                      config.auto_reply_priorities.includes(prio) && "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-foreground cursor-pointer bg-foreground/[0.05] border border-transparent transition-all hover:bg-foreground/[0.08]",
+                      config.auto_reply_priorities.includes(prio) && "bg-primary/10 border-primary/30 text-primary"
                     )}>
                       <input 
                         type="checkbox"
@@ -231,12 +231,12 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-[0.75rem] font-bold uppercase tracking-wider text-white/40">Auto-Reply for Sentiments:</label>
+                <label className="text-[0.75rem] font-bold uppercase tracking-wider text-foreground-tertiary">Auto-Reply for Sentiments:</label>
                 <div className="flex flex-wrap gap-3">
                   {SENTIMENT_OPTIONS.map(sent => (
                     <label key={sent} className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-white cursor-pointer bg-white/[0.05] border border-transparent transition-all hover:bg-white/[0.08]",
-                      config.auto_reply_sentiments.includes(sent) && "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-foreground cursor-pointer bg-foreground/[0.05] border border-transparent transition-all hover:bg-foreground/[0.08]",
+                      config.auto_reply_sentiments.includes(sent) && "bg-primary/10 border-primary/30 text-primary"
                     )}>
                       <input 
                         type="checkbox"
@@ -260,17 +260,17 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
       </Card>
 
       <Card className={cn(
-        "p-6 bg-white/[0.02] border-white/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
+        "p-6 bg-foreground/[0.02] border-foreground/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
         !config.is_active && "opacity-50 pointer-events-none"
       )}>
-        <h2 className="m-0 text-base font-semibold text-white">Intent Routing</h2>
-        <p className="m-0 text-sm text-white/50 -mt-2">Specify trigger labels to classify intents. Intents outside these will be escalated to humans.</p>
+        <h2 className="m-0 text-base font-semibold text-foreground">Intent Routing</h2>
+        <p className="m-0 text-sm text-foreground-secondary -mt-2">Specify trigger labels to classify intents. Intents outside these will be escalated to humans.</p>
         
         <div className="flex flex-col gap-2">
-          <div className="bg-black/20 border border-white/10 rounded-lg p-2 transition-all focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/5">
+          <div className="bg-background-tertiary border border-foreground/10 rounded-lg p-2 transition-all focus-within:border-primary/30 focus-within:ring-2 focus-within:ring-primary/5">
             <div className="flex flex-wrap items-center gap-2">
               {config.trigger_labels?.map(label => (
-                <span key={label} className="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 animate-in zoom-in-95">
+                <span key={label} className="bg-primary/20 text-primary border border-primary/30 px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 animate-in zoom-in-95">
                   {label}
                   <button 
                     disabled={!config.is_active}
@@ -281,14 +281,14 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
                   </button>
                 </span>
               ))}
-              <input
-                disabled={!config.is_active}
-                type="text"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                onKeyDown={addLabel}
-                placeholder="Add trigger label and press Enter"
-                className="bg-transparent border-none text-white outline-none text-sm flex-1 min-w-[200px] py-1.5 px-2"
+                <input
+                  disabled={!config.is_active}
+                  type="text"
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  onKeyDown={addLabel}
+                  placeholder="Add trigger label and press Enter"
+                  className="bg-transparent border-none text-base-content outline-none text-sm flex-1 min-w-[200px] py-1.5 px-2"
               />
             </div>
           </div>
@@ -299,7 +299,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
         <Button 
           onClick={handleSave} 
           disabled={isSaving || isLoading} 
-          className="bg-blue-600 text-white font-medium px-8 hover:bg-blue-700 active:scale-95 transition-all"
+          className="px-8"
         >
           {isSaving ? 'Saving...' : 'Save Configuration'}
         </Button>
