@@ -112,6 +112,22 @@ export function Sidebar() {
     }
   }, [isCollapsed, mounted]);
 
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const darkThemes = ['dark', 'synthwave', 'halloween', 'forest', 'black', 'luxury', 'dracula', 'business', 'night', 'coffee', 'dim', 'sunset', 'abyss'];
+      setIsDark(darkThemes.includes(theme));
+    };
+
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    
+    checkTheme();
+    return () => observer.disconnect();
+  }, []);
+
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
   if (!mounted) return <aside className="fixed left-0 top-0 h-screen bg-background-secondary border-r border-foreground/10 z-50 w-[260px]" />;
@@ -125,8 +141,12 @@ export function Sidebar() {
         "flex items-center gap-3 px-4 mb-12 transition-all duration-300",
         isCollapsed && "px-0 justify-center"
       )}>
-        <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-sm flex items-center justify-center font-extrabold text-primary-content font-brand shrink-0">
-          {userData?.workspaceName?.charAt(0) || 'M'}
+        <div className="w-8 h-8 flex items-center justify-center shrink-0">
+          <img 
+            src={isDark ? "/logo-white.png" : "/logo-black.png"} 
+            alt="Logo" 
+            className="w-full h-full object-contain transition-opacity duration-300" 
+          />
         </div>
         {!isCollapsed && <span className="font-brand text-xl font-bold tracking-tight whitespace-nowrap">{userData?.workspaceName || 'Media'}</span>}
       </div>
