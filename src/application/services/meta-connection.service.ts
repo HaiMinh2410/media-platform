@@ -35,7 +35,8 @@ export class MetaConnectionService {
     }
 
     const pages = pagesResponse.data?.data || [];
-    const connectedExternalIds: string[] = [];
+    const connectedFbIds: string[] = [];
+    const connectedIgIds: string[] = [];
 
     // 3. Process each Page
     for (const page of pages) {
@@ -44,26 +45,50 @@ export class MetaConnectionService {
       const encryptedPageToken = await encryption.encrypt(page.access_token);
       if (encryptedPageToken.error || !encryptedPageToken.data) continue;
 
-      const saveResult = await repository.upsert({
+      // Upsert Facebook Page
+      const fbResult = await repository.upsert({
         profileId,
         workspaceId,
         platform: 'facebook' as Platform,
         externalId: page.id,
         name: page.name,
         accessToken: encryptedPageToken.data,
-        expiresAt: null, // Page tokens from /me/accounts are often long-lived or handled differently
+        expiresAt: null,
         metadata: {
           category: page.category,
           instagram_id: page.instagram_business_account?.id
         }
       });
 
-      if (saveResult.data) {
-        connectedExternalIds.push(page.id);
+      if (fbResult.data) {
+        connectedFbIds.push(page.id);
+      }
+
+      // Upsert Instagram Account if linked
+      if (page.instagram_business_account) {
+        const ig = page.instagram_business_account;
+        console.log(`>>> [MetaService] Found linked Instagram: ${ig.id}`);
+        
+        const igResult = await repository.upsert({
+          profileId,
+          workspaceId,
+          platform: 'instagram' as Platform,
+          externalId: ig.id,
+          name: `${page.name} (Instagram)`, // Meta doesn't return IG name here, use Page name as proxy
+          accessToken: encryptedPageToken.data, // IG Messaging uses Page Token
+          expiresAt: null,
+          metadata: {
+            facebook_page_id: page.id
+          }
+        });
+
+        if (igResult.data) {
+          connectedIgIds.push(ig.id);
+        }
       }
     }
 
-    // 4. Also upsert the User Profile itself (optional, but good for tracking who connected)
+    // 4. Also upsert the User Profile itself
     const profileResponse = await metaClient.getMe(userToken);
     if (profileResponse.data) {
       const encryptedUserToken = await encryption.encrypt(userToken);
@@ -71,25 +96,26 @@ export class MetaConnectionService {
         await repository.upsert({
           profileId,
           workspaceId,
-          platform: 'facebook' as Platform, // We mark the user as a 'facebook' account too
+          platform: 'facebook' as Platform,
           externalId: profileResponse.data.id,
           name: `${profileResponse.data.name} (User Profile)`,
           accessToken: encryptedUserToken.data,
           expiresAt: null,
           metadata: { is_user_profile: true }
         });
-        connectedExternalIds.push(profileResponse.data.id);
+        connectedFbIds.push(profileResponse.data.id);
       }
     }
 
-    // 5. [CLEANUP] Ngắt kết nối các tài khoản cũ không còn trong session này
-    // Điều này đảm bảo workspace chỉ chứa các tài khoản mà token hiện tại có quyền truy cập.
+    // 5. [CLEANUP] Ngắt kết nối các tài khoản cũ
     console.log('>>> [MetaService] Cleaning up orphaned accounts...');
-    await repository.cleanupOrphanedAccounts(workspaceId, 'facebook', connectedExternalIds);
+    await repository.cleanupOrphanedAccounts(workspaceId, 'facebook', connectedFbIds);
+    await repository.cleanupOrphanedAccounts(workspaceId, 'instagram', connectedIgIds);
 
     return { 
       data: {
-        count: connectedExternalIds.length,
+        facebookCount: connectedFbIds.length,
+        instagramCount: connectedIgIds.length,
         status: 'SYNCED'
       }, 
       error: null 

@@ -52,6 +52,7 @@ export async function getConversations(
       where: {
         platform_accounts: {
           workspaceId: filter.workspaceId,
+          disconnected_at: null,
           // Tier 2: Scoped Inbox (Account Group)
           ...(filter.groupId ? {
             account_memberships: {

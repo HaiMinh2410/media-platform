@@ -20,6 +20,7 @@ export async function getUnreadCountsAction(
       where: {
         platform_accounts: {
           workspaceId: workspaceId,
+          disconnected_at: null,
           ...(groupId ? {
             account_memberships: {
               some: { group_id: groupId }

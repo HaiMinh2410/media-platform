@@ -8,6 +8,11 @@ export class AccountGroupRepository {
         where: { workspace_id: workspaceId },
         include: {
           members: {
+            where: {
+              account: {
+                disconnected_at: null
+              }
+            },
             include: {
               account: true,
             },
