@@ -6,11 +6,17 @@ import { Platform } from '../../domain/types/platform-account';
 export class MetaConnectionService {
   /**
    * Completes the Meta OAuth flow: exchange code, encrypt token, save account.
+   * Logic dọn dẹp: 
+   * 1. Lấy danh sách Pages từ token mới.
+   * 2. Upsert từng Page vào Database.
+   * 3. Ngắt kết nối (soft delete) các Page cũ không có trong danh sách mới.
    */
   async connectAccount(code: string, workspaceId: string, redirectUri: string, profileId: string) {
     const metaClient = getMetaGraphClient();
     const encryption = getTokenEncryptionService();
     const repository = getPlatformAccountRepository();
+
+    console.log('>>> [MetaService] Starting account connection sync...');
 
     // 1. Exchange code for user access token
     const tokenResponse = await metaClient.getAccessToken(code, redirectUri);
@@ -18,45 +24,73 @@ export class MetaConnectionService {
       return { data: null, error: tokenResponse.error || 'TOKEN_EXCHANGE_FAILED' };
     }
 
-    const accessToken = tokenResponse.data.access_token;
-    const expiresSeconds = tokenResponse.data.expires_in;
-    const expiresAt = expiresSeconds ? new Date(Date.now() + expiresSeconds * 1000) : null;
+    const userToken = tokenResponse.data.access_token;
 
-    // 2. Fetch user profile to get External ID and Name
-    const profileResponse = await metaClient.getMe(accessToken);
-    if (profileResponse.error || !profileResponse.data) {
-      return { data: null, error: profileResponse.error || 'PROFILE_FETCH_FAILED' };
+    // 2. Fetch Pages authorized by this token
+    const pagesResponse = await metaClient.getPages(userToken);
+    if (pagesResponse.error || !pagesResponse.data) {
+      // Fallback: If no pages, maybe it's just a user profile? 
+      // But for our platform, we usually expect pages.
+      console.warn('>>> [MetaService] No pages found for this token.');
     }
 
-    const profile = profileResponse.data;
+    const pages = pagesResponse.data?.data || [];
+    const connectedExternalIds: string[] = [];
 
-    // 3. Encrypt the access token before storing
-    const encrypted = await encryption.encrypt(accessToken);
-    if (encrypted.error || !encrypted.data) {
-      return { data: null, error: 'ENCRYPTION_FAILED' };
+    // 3. Process each Page
+    for (const page of pages) {
+      console.log(`>>> [MetaService] Syncing page: ${page.name} (${page.id})`);
+      
+      const encryptedPageToken = await encryption.encrypt(page.access_token);
+      if (encryptedPageToken.error || !encryptedPageToken.data) continue;
+
+      const saveResult = await repository.upsert({
+        profileId,
+        workspaceId,
+        platform: 'facebook' as Platform,
+        externalId: page.id,
+        name: page.name,
+        accessToken: encryptedPageToken.data,
+        expiresAt: null, // Page tokens from /me/accounts are often long-lived or handled differently
+        metadata: {
+          category: page.category,
+          instagram_id: page.instagram_business_account?.id
+        }
+      });
+
+      if (saveResult.data) {
+        connectedExternalIds.push(page.id);
+      }
     }
 
-    // 4. Save to Database
-    // Defaulting to FACEBOOK for Meta OAuth connection, can be refined later for Instagram
-    const saveResult = await repository.upsert({
-      profileId,
-      workspaceId,
-      platform: 'facebook' as Platform,
-      externalId: profile.id,
-      name: profile.name,
-      accessToken: encrypted.data,
-      expiresAt: expiresAt,
-    });
-
-    if (saveResult.error || !saveResult.data) {
-      return { data: null, error: saveResult.error || 'DATABASE_SAVE_FAILED' };
+    // 4. Also upsert the User Profile itself (optional, but good for tracking who connected)
+    const profileResponse = await metaClient.getMe(userToken);
+    if (profileResponse.data) {
+      const encryptedUserToken = await encryption.encrypt(userToken);
+      if (encryptedUserToken.data) {
+        await repository.upsert({
+          profileId,
+          workspaceId,
+          platform: 'facebook' as Platform, // We mark the user as a 'facebook' account too
+          externalId: profileResponse.data.id,
+          name: `${profileResponse.data.name} (User Profile)`,
+          accessToken: encryptedUserToken.data,
+          expiresAt: null,
+          metadata: { is_user_profile: true }
+        });
+        connectedExternalIds.push(profileResponse.data.id);
+      }
     }
+
+    // 5. [CLEANUP] Ngắt kết nối các tài khoản cũ không còn trong session này
+    // Điều này đảm bảo workspace chỉ chứa các tài khoản mà token hiện tại có quyền truy cập.
+    console.log('>>> [MetaService] Cleaning up orphaned accounts...');
+    await repository.cleanupOrphanedAccounts(workspaceId, 'facebook', connectedExternalIds);
 
     return { 
       data: {
-        accountId: saveResult.data.id,
-        name: saveResult.data.name,
-        platform: saveResult.data.platform,
+        count: connectedExternalIds.length,
+        status: 'SYNCED'
       }, 
       error: null 
     };

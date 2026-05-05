@@ -102,6 +102,31 @@ export class MetaGraphClient {
   }
 
   /**
+   * Fetches the list of Facebook Pages that the user has access to.
+   */
+  async getPages(accessToken: string): Promise<MetaApiResponse<{ data: any[] }>> {
+    const url = `${this.baseUrl}/me/accounts?fields=id,name,access_token,category,instagram_business_account&access_token=${accessToken}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { 
+          data: null, 
+          error: data.error?.message || 'FAILED_TO_GET_PAGES',
+          details: data.error
+        };
+      }
+
+      return { data, error: null };
+    } catch (err) {
+      console.error('[MetaGraphClient] getPages error:', err);
+      return { data: null, error: 'NETWORK_ERROR' };
+    }
+  }
+
+  /**
    * Universal fetch helper for custom Graph API calls.
    */
   async request<T>(endpoint: string, accessToken: string, params: Record<string, string> = {}): Promise<MetaApiResponse<T>> {

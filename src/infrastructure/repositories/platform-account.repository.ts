@@ -1,5 +1,5 @@
 import { db } from '../../lib/db';
-import type { CreatePlatformAccountInput, PlatformAccount } from '../../domain/types/platform-account';
+import type { CreatePlatformAccountInput, PlatformAccount, Platform } from '../../domain/types/platform-account';
 
 export class PlatformAccountRepository {
   /**
@@ -21,6 +21,7 @@ export class PlatformAccountRepository {
           update: {
             platform_user_name: input.name,
             workspaceId: input.workspaceId,
+            disconnected_at: null, // Reactivate if it was disconnected
             metadata: input.metadata || {},
           },
           create: {
@@ -35,26 +36,61 @@ export class PlatformAccountRepository {
 
         console.log('>>> [Repository] Account ID preserved:', account.id);
 
-        // 2. Handle Meta tokens
+        // 2. Handle Meta tokens (Facebook/Instagram)
         const isMeta = input.platform === 'facebook' || input.platform === 'instagram';
         if (isMeta && input.accessToken) {
           console.log('>>> [Repository] Persisting Meta Token...');
-          // Using create for now since meta_tokens doesn't have a simple unique constraint on account_id in the current schema
-          // but we want to ensure at least one exists. 
-          await tx.meta_tokens.create({
-             data: {
-               account_id: account.id,
-               encrypted_access_token: input.accessToken,
-               expires_at: input.expiresAt || new Date(Date.now() + 60 * 60 * 24 * 60 * 1000),
-             }
+          
+          // Check if token exists to avoid duplicates
+          const existingToken = await tx.meta_tokens.findFirst({
+            where: { account_id: account.id }
           });
-          console.log('>>> [Repository] Meta Token created.');
+
+          if (existingToken) {
+            await tx.meta_tokens.update({
+              where: { id: existingToken.id },
+              data: {
+                encrypted_access_token: input.accessToken,
+                expires_at: input.expiresAt || new Date(Date.now() + 60 * 60 * 24 * 60 * 1000),
+                updated_at: new Date(),
+              }
+            });
+            console.log('>>> [Repository] Meta Token updated.');
+          } else {
+            await tx.meta_tokens.create({
+              data: {
+                account_id: account.id,
+                encrypted_access_token: input.accessToken,
+                expires_at: input.expiresAt || new Date(Date.now() + 60 * 60 * 24 * 60 * 1000),
+              }
+            });
+            console.log('>>> [Repository] Meta Token created.');
+          }
+        }
+
+        // 3. Handle TikTok tokens
+        if (input.platform === 'tiktok' && input.accessToken) {
+          console.log('>>> [Repository] Persisting TikTok Token...');
+          await tx.tiktok_tokens.upsert({
+            where: { account_id: account.id },
+            update: {
+              encrypted_access_token: input.accessToken,
+              encrypted_refresh_token: input.refreshToken,
+              expires_at: input.expiresAt || new Date(Date.now() + 60 * 60 * 24 * 60 * 1000),
+              updated_at: new Date(),
+            },
+            create: {
+              account_id: account.id,
+              encrypted_access_token: input.accessToken,
+              encrypted_refresh_token: input.refreshToken,
+              expires_at: input.expiresAt || new Date(Date.now() + 60 * 60 * 24 * 60 * 1000),
+            }
+          });
+          console.log('>>> [Repository] TikTok Token upserted.');
         }
 
         return account;
       });
-
-      console.log(`[PlatformAccountRepository] SUCCESS: ${result.platform_user_name}`);
 
       return {
         data: {
@@ -70,6 +106,56 @@ export class PlatformAccountRepository {
     } catch (err: any) {
       console.error('!!! [Repository] UPSERT CRITICAL ERROR:', err);
       return { data: null, error: `DATABASE_ERROR: ${err.message}` };
+    }
+  }
+
+  /**
+   * Cleans up orphaned accounts for a workspace/platform.
+   * Marks accounts as disconnected if they are not in the provided list of valid external IDs.
+   */
+  async cleanupOrphanedAccounts(workspaceId: string, platform: Platform, activeExternalIds: string[]) {
+    try {
+      const result = await db.platformAccount.updateMany({
+        where: {
+          workspaceId,
+          platform,
+          platform_user_id: { notIn: activeExternalIds },
+          disconnected_at: null, // Only disconnect currently active ones
+        },
+        data: {
+          disconnected_at: new Date(),
+        }
+      });
+
+      console.log(`[PlatformAccountRepository] Cleaned up ${result.count} orphaned ${platform} accounts.`);
+      return { count: result.count, error: null };
+    } catch (error) {
+      console.error('[PlatformAccountRepository] cleanupOrphanedAccounts failed:', error);
+      return { count: 0, error: 'DATABASE_ERROR' };
+    }
+  }
+
+  /**
+   * Permanently deletes accounts that have been disconnected for a long time.
+   * "Dọn dẹp dữ liệu cũ" implementation.
+   */
+  async purgeDeletedAccounts(workspaceId: string, olderThanDays: number = 30) {
+    const threshold = new Date();
+    threshold.setDate(threshold.getDate() - olderThanDays);
+
+    try {
+      const result = await db.platformAccount.deleteMany({
+        where: {
+          workspaceId,
+          disconnected_at: { lt: threshold },
+        }
+      });
+
+      console.log(`[PlatformAccountRepository] Purged ${result.count} old disconnected accounts.`);
+      return { count: result.count, error: null };
+    } catch (error) {
+      console.error('[PlatformAccountRepository] purgeDeletedAccounts failed:', error);
+      return { count: 0, error: 'DATABASE_ERROR' };
     }
   }
 
@@ -101,12 +187,15 @@ export class PlatformAccountRepository {
   }
 
   /**
-   * Finds all accounts for a given workspace.
+   * Finds all active accounts for a given workspace.
    */
   async findByWorkspaceId(workspaceId: string): Promise<{ data: PlatformAccount[] | null, error: string | null }> {
     try {
       const accounts = await db.platformAccount.findMany({
-        where: { workspaceId },
+        where: { 
+          workspaceId,
+          disconnected_at: null, // Default to only active accounts
+        },
         select: {
           id: true,
           workspaceId: true,
@@ -142,6 +231,7 @@ export class PlatformAccountRepository {
       const accounts = await db.platformAccount.findMany({
         where: {
           platform: { in: ['facebook', 'instagram'] },
+          disconnected_at: null,
         },
         include: {
           meta_tokens: {

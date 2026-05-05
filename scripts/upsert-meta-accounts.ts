@@ -14,7 +14,33 @@ const adapter = new PrismaPg(pool);
 const db = new PrismaClient({ adapter });
 
 // ── Dữ liệu từ Facebook Pages API ──────────────────────────────────────────
-import { getTargetPages } from './utils/meta-config';
+// ── Dữ liệu từ Facebook Pages API ──────────────────────────────────────────
+const pages = [
+  {
+    "access_token": "EAATkCZBaS3toBRZAxZChLTFItM8ufYg10o2bbKhOUHM2GNZCIP2pibrPNdVHUJzx9YEBeSKh8xxdNaNmmCUs1OseUdGEnLRMiKwXEwCtNXUHRyNSENeP1bH84w8BBfe7rKjLTL38rs4nK83bIbOtdulKuF29eUiZAxcL9Tb15qcFPQ0uUuhBqrIV3GB5119qDhwczpdsqZBOd9FAEEOnBsZCV0k",
+    "category": "Người sáng tạo nội dung số",
+    "name": "Hai Minh Platform",
+    "id": "1006289889245664"
+  },
+  {
+    "access_token": "EAATkCZBaS3toBRTtxZABi6GZC2Hkr919L7GG3NlfMNUaKgv2QfqS8zKtUBfmEOYpWh3m1wvTcT3b5Ha8Ilr4viYuSHZBoJtxKtvcBZC6b1sGJAydJwAHetF2LI0ZBYLCllJRI3y4gsyuoZCwPuMPgos154pPMy1GRXudHUqAbCu49zOKaSPXTjZAD8vKQ9J0nSCAzUlMkevonBQZB40Fap6wMbJk8",
+    "category": "Người sáng tạo nội dung số",
+    "name": "Kathryn",
+    "id": "1155246160994859"
+  },
+  {
+    "access_token": "EAATkCZBaS3toBRUXuw6aCB24jUAM4Nz8yUkBdRFdEaLpptdJE0CiLSdCq8CzkHrcfEhpntBxjtsnMGsHTLt1lX6UACCRWZC6mKDUEo2FgTnoMh4de9BoliRcgQP1NduzwRZAv9Er37254wNEZBqPDa9PESTZAQcE0HUkeObNokBnowA9bKOhM7GPfNTtQGUCT3NlVtvQQmjIGK4AmVO4fZA9yB",
+    "category": "Người sáng tạo nội dung số",
+    "name": "Minh Anh",
+    "id": "1013155438559010"
+  },
+  {
+    "access_token": "EAATkCZBaS3toBRRP9IBAawhiqGQXuTzZCSybRBLvFS0MSB4EQ3mOj8SNN0qLaqZAZCZCDAVSOJ5yJU6ZChLSL8b2lhSkuJVVFdcAOZB4QTT6i1xcXu2QC2lqFGCUzrS46fvfozR2jwYGpKaYTrnk9G3TZAOoZCNoTRwTH8RgBd7OOnZCfLBKZB1Q0sfkTFhMMrDFSWDjmfyElhtxXx7ax7TWmkvD3zY",
+    "category": "Người sáng tạo nội dung số",
+    "name": "Nguyen An Thu",
+    "id": "1053795974490719"
+  }
+];
 
 // ── Encryption (AES-256-GCM) ────────────────────────────────────────────────
 function encryptToken(text: string): string {
@@ -55,10 +81,9 @@ async function main() {
   console.log(`✅ Workspace: ${workspace.name} (${workspace.id})`);
   console.log(`✅ Profile ID: ${profileId}\n`);
 
-  // 2. Lấy danh sách page cần upsert
-  const pages = await getTargetPages();
+  // 2. Lấy danh sách page cần upsert (đã được định nghĩa ở trên)
   if (pages.length === 0) {
-    console.warn('⚠️ No pages found to upsert. Check your environment variables.');
+    console.warn('⚠️ No pages found to upsert.');
     return;
   }
 

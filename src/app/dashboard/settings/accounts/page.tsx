@@ -5,6 +5,7 @@ import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.
 import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
 import { ConnectButtons } from '@/components/settings/connect-buttons';
 import { AccountsList } from '@/components/settings/accounts-list';
+import { PurgeAccountsButton } from '@/components/settings/purge-accounts-button';
 import { Icon } from '@/components/ui/icon';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -80,6 +81,19 @@ export default async function AccountsSettingsPage(props: {
             <h2 className="text-xl font-semibold mb-2">Add New Connection</h2>
             <p className="text-foreground-tertiary text-base mb-6 leading-relaxed">Connect your professional accounts to enable unified messaging and AI automation.</p>
             <ConnectButtons workspaceId={workspace.id} />
+          </section>
+
+          <section className="p-6 rounded-2xl bg-foreground/[0.02] border border-foreground/10 backdrop-blur-xl">
+            <h2 className="text-xl font-semibold mb-2">Quản lý dữ liệu</h2>
+            <p className="text-foreground-tertiary text-sm mb-4 leading-relaxed">
+              Hệ thống tự động đồng bộ tài khoản theo Access Token mới nhất. Các tài khoản không còn quyền truy cập sẽ bị chuyển sang trạng thái "Ngắt kết nối".
+            </p>
+            <div className="space-y-3">
+              <PurgeAccountsButton workspaceId={workspace.id} />
+              <p className="text-[10px] text-foreground-tertiary text-center italic">
+                * Dữ liệu hội thoại của tài khoản bị xóa sẽ không thể phục hồi.
+              </p>
+            </div>
           </section>
 
           <section className="p-6 rounded-2xl bg-foreground/[0.02] border border-foreground/10 backdrop-blur-xl opacity-80">
