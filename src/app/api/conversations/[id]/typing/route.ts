@@ -32,6 +32,7 @@ export async function POST(
     }
 
     const action = (body as { action: string }).action;
+    const reqSenderId = (body as { senderId?: string }).senderId;
     if (action !== 'typing_on' && action !== 'typing_off') {
       return NextResponse.json(
         { error: 'Invalid action. Allowed values: typing_on, typing_off' },
@@ -72,6 +73,16 @@ export async function POST(
     const channel = supabase.channel(channelName);
 
     await new Promise<void>((resolve) => {
+      let isCleanedUp = false;
+      const cleanup = async () => {
+        if (isCleanedUp) return;
+        isCleanedUp = true;
+        try {
+          await supabase.removeChannel(channel);
+        } catch {}
+        resolve();
+      };
+
       channel.subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           try {
@@ -80,7 +91,7 @@ export async function POST(
               event: 'typing',
               payload: {
                 conversationId,
-                senderId: account.platform_user_id, // Sent by Agent (page id)
+                senderId: reqSenderId || account.platform_user_id, // Sent by Agent
                 eventType: action, // 'typing_on' or 'typing_off'
                 ttl: 8,
               },
@@ -89,13 +100,10 @@ export async function POST(
           } catch (e: any) {
             console.error(`[API Typing] Broadcast channel send error: ${e.message}`);
           } finally {
-            supabase.removeChannel(channel);
-            resolve();
+            await cleanup();
           }
-        } else {
-          // If channel fails to subscribe
-          supabase.removeChannel(channel);
-          resolve();
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          await cleanup();
         }
       });
     });

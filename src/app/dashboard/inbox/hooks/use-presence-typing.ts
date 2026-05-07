@@ -68,21 +68,12 @@ export function usePresenceAndTyping(
           // If it's myself, ignore
           if (me && senderId === me.userId) return;
 
-          // Resolve typing user details
-          let name = 'Someone';
-          let avatar = null;
-
           // Check if this sender ID is one of the active presence agents
           const presUser = presenceUsers.find((u) => u.userId === senderId);
-          if (presUser) {
-            name = presUser.name;
-            avatar = presUser.avatar;
-          } else {
-            // Otherwise, it's either another agent not in presence yet or the customer
-            // Since we receive customer typing events via Webhook Worker, we fallback to customer
-            name = customerName || 'Khách hàng';
-            avatar = customerAvatar;
-          }
+          if (!presUser) return;
+
+          const name = presUser.name;
+          const avatar = presUser.avatar;
 
           setTypingUsers((prev) => {
             const filtered = prev.filter((u) => u.senderId !== senderId);
@@ -177,6 +168,7 @@ export function usePresenceAndTyping(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: isTyping ? 'typing_on' : 'typing_off',
+          senderId: me?.userId,
         }),
       });
     } catch (err) {

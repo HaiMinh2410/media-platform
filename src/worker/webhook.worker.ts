@@ -95,43 +95,6 @@ function createWebhookWorker() {
           return { status: 'success_delivery', eventId: webhookEventId };
         }
 
-        // --- Handle Typing Indicators (Early Intercept) ---
-        if (eventType === 'typing_on' || eventType === 'typing_off') {
-          const conversationId = await findConversationId(platform, externalPageId, externalSenderId);
-          if (conversationId) {
-            const channelName = `conversation:${conversationId}`;
-            const channel = supabase.channel(channelName);
-            
-            await new Promise<void>((resolve) => {
-              channel.subscribe(async (status) => {
-                if (status === 'SUBSCRIBED') {
-                  try {
-                    await channel.send({
-                      type: 'broadcast',
-                      event: 'typing',
-                      payload: {
-                        conversationId,
-                        senderId: externalSenderId,
-                        eventType, // 'typing_on' or 'typing_off'
-                        ttl: 8,
-                      },
-                    });
-                    console.log(`[Worker] Broadcasted ${eventType} on ${channelName}`);
-                  } catch (e: any) {
-                    console.error(`[Worker] Broadcast error: ${e.message}`);
-                  } finally {
-                    supabase.removeChannel(channel);
-                    resolve();
-                  }
-                } else if (status === 'CHANNEL_ERROR') {
-                  supabase.removeChannel(channel);
-                  resolve();
-                }
-              });
-            });
-          }
-          return { status: `success_${eventType}`, eventId: webhookEventId };
-        }
 
         // --- Handle Reaction Events (Early Intercept) ---
         if (eventType === 'reaction') {

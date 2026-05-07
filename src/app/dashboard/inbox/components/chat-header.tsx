@@ -148,7 +148,7 @@ export function ChatHeader({
   };
 
   return (
-    <header className="p-[16px_24px] border-b border-foreground/10 bg-background/80 backdrop-blur-xl z-10 flex items-center justify-between">
+    <header className="p-[16px_24px] border-b border-foreground/10 bg-background/80 backdrop-blur-xl relative z-20 flex items-center justify-between">
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground border border-foreground/10 overflow-hidden">
           {customerAvatar ? (

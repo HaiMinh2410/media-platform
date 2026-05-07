@@ -20,6 +20,8 @@ export async function GET(
     const search = searchParams.get('q') || undefined;
     const isPinnedParam = searchParams.get('isPinned');
     const isPinned = isPinnedParam === 'true' ? true : (isPinnedParam === 'false' ? false : undefined);
+    const senderType = searchParams.get('senderType') || undefined;
+    const fromDate = searchParams.get('fromDate') || undefined;
 
     const pagination: PaginationParams & { senderType?: string; fromDate?: string; isPinned?: boolean } = {
       limit,
