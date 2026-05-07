@@ -12,6 +12,8 @@ import { AI_MODELS } from '@/domain/types/ai';
 import { selectModel } from '@/application/ai/model-selector';
 import { triageService } from '@/application/services/triage.service';
 import { aiRoutingService } from '@/application/services/ai-routing.service';
+import { createClient } from '@supabase/supabase-js';
+import { metaParser } from '@/infrastructure/meta/meta-parser.service';
 
 /**
  * Webhook Event Worker.
@@ -25,6 +27,33 @@ import { aiRoutingService } from '@/application/services/ai-routing.service';
  * 5. Send via Meta API
  * 6. Persist Bot Message + AI Log
  */
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+async function findConversationId(platform: string, externalPageId: string, externalSenderId: string): Promise<string | null> {
+  const normalizedPlatform = platform === 'messenger' ? 'facebook' : platform;
+  const account = await db.platformAccount.findFirst({
+    where: {
+      platform: normalizedPlatform,
+      platform_user_id: externalPageId,
+    },
+    select: { id: true }
+  });
+
+  if (!account) return null;
+
+  const conversation = await db.conversation.findFirst({
+    where: {
+      account_id: account.id,
+      platform_conversation_id: externalSenderId,
+    },
+    select: { id: true }
+  });
+
+  return conversation?.id || null;
+}
+
 function createWebhookWorker() {
   if (!redisConnection) {
     console.error('[Worker] Cannot initialize Webhook Worker: Redis connection is missing.');
@@ -66,10 +95,137 @@ function createWebhookWorker() {
           return { status: 'success_delivery', eventId: webhookEventId };
         }
 
+        // --- Handle Typing Indicators (Early Intercept) ---
+        if (eventType === 'typing_on' || eventType === 'typing_off') {
+          const conversationId = await findConversationId(platform, externalPageId, externalSenderId);
+          if (conversationId) {
+            const channelName = `conversation:${conversationId}`;
+            const channel = supabase.channel(channelName);
+            
+            await new Promise<void>((resolve) => {
+              channel.subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                  try {
+                    await channel.send({
+                      type: 'broadcast',
+                      event: 'typing',
+                      payload: {
+                        conversationId,
+                        senderId: externalSenderId,
+                        eventType, // 'typing_on' or 'typing_off'
+                        ttl: 8,
+                      },
+                    });
+                    console.log(`[Worker] Broadcasted ${eventType} on ${channelName}`);
+                  } catch (e: any) {
+                    console.error(`[Worker] Broadcast error: ${e.message}`);
+                  } finally {
+                    supabase.removeChannel(channel);
+                    resolve();
+                  }
+                } else if (status === 'CHANNEL_ERROR') {
+                  supabase.removeChannel(channel);
+                  resolve();
+                }
+              });
+            });
+          }
+          return { status: `success_${eventType}`, eventId: webhookEventId };
+        }
+
+        // --- Handle Reaction Events (Early Intercept) ---
+        if (eventType === 'reaction') {
+          let reactionData = (job.data as any).reactionData;
+
+          // Fallback: fetch WebhookEvent if reactionData is missing
+          if (!reactionData) {
+            const dbEvent = await db.webhookEvent.findUnique({
+              where: { id: webhookEventId },
+              select: { payload: true }
+            });
+            if (dbEvent && dbEvent.payload) {
+              const parsedPayload = dbEvent.payload as any;
+              const tempEvents = metaParser.parse(parsedPayload, {});
+              const matched = tempEvents.find(e => e.platformMessageId === platformMessageId && e.eventType === 'reaction');
+              if (matched) {
+                reactionData = matched.reactionData;
+              }
+            }
+          }
+
+          if (!reactionData) {
+            console.warn(`[Worker] [${job.id}] Missing reactionData for reaction event.`);
+            return { status: 'failed_missing_reaction_data', eventId: webhookEventId };
+          }
+
+          // 1. Locate the target message in DB
+          const targetMessage = await db.message.findUnique({
+            where: { platform_message_id: platformMessageId },
+          });
+
+          if (!targetMessage) {
+            console.warn(`[Worker] [${job.id}] Target message ${platformMessageId} not found in DB. Cannot apply reaction.`);
+            return { status: 'target_message_not_found', eventId: webhookEventId };
+          }
+
+          // 2. Parse current reactions from DB
+          let currentReactions: any[] = [];
+          if (targetMessage.reactions && Array.isArray(targetMessage.reactions)) {
+            currentReactions = [...targetMessage.reactions];
+          }
+
+          // 3. Update the array based on react vs unreact
+          if (reactionData.action === 'react') {
+            const existingIndex = currentReactions.findIndex((r: any) => r.senderId === externalSenderId);
+            if (existingIndex >= 0) {
+              currentReactions[existingIndex].reaction = reactionData.emoji;
+            } else {
+              currentReactions.push({
+                senderId: externalSenderId,
+                reaction: reactionData.emoji,
+              });
+            }
+          } else if (reactionData.action === 'unreact') {
+            currentReactions = currentReactions.filter((r: any) => r.senderId !== externalSenderId);
+          }
+
+          // 4. Persist the updated array to database
+          await db.message.update({
+            where: { id: targetMessage.id },
+            data: {
+              reactions: currentReactions,
+            },
+          });
+
+          console.log(`[Worker] [${job.id}] Successfully applied reaction update (${reactionData.action}) to message ${targetMessage.id}`);
+          return { status: 'success_reaction_applied', eventId: webhookEventId };
+        }
+
         // --- Handle Other Events (safeguard) ---
         if (eventType === 'other' && !messageText.trim()) {
           console.log(`[Worker] [${job.id}] Ignoring empty 'other' event.`);
           return { status: 'ignored_other_empty', eventId: webhookEventId };
+        }
+
+        // Retrieve attachments and parentMessageId from job.data or fallback from db
+        let attachments = (job.data as any).attachments;
+        let parentMessageId = (job.data as any).parentMessageId;
+
+        // Fallback: fetch WebhookEvent if they are missing
+        if ((!attachments || !parentMessageId) && eventType === 'message') {
+          const dbEvent = await db.webhookEvent.findUnique({
+            where: { id: webhookEventId },
+            select: { payload: true }
+          });
+          if (dbEvent && dbEvent.payload) {
+            const parsedPayload = dbEvent.payload as any;
+            const tempEvents = metaParser.parse(parsedPayload, {});
+            const matched = tempEvents.find(e => e.platformMessageId === platformMessageId && e.eventType === 'message');
+            if (matched) {
+              attachments = attachments || matched.attachments;
+              parentMessageId = parentMessageId || matched.parentMessageId;
+            }
+          }
         }
 
         // --- Handle Standard Message ---
@@ -81,6 +237,8 @@ function createWebhookWorker() {
           senderType: isEcho ? 'agent' : 'user',
           messageText,
           timestamp: new Date(timestamp),
+          attachments,
+          parentMessageId,
         });
 
         if (persistErr || !persistResult) {

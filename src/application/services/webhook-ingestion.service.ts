@@ -58,6 +58,9 @@ export class WebhookIngestionService {
             messageText: event.messageText,
             timestamp: event.receivedAt.toISOString(),
             isEcho: event.isEcho,
+            attachments: event.attachments,
+            parentMessageId: event.parentMessageId,
+            reactionData: event.reactionData,
           });
         })
       );

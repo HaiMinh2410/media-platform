@@ -41,6 +41,9 @@ export interface ParsedWebhookEvent {
   /** Whether this is an echo of a message sent by the page/account itself */
   isEcho?: boolean;
 
+  /** Advanced Inbox: ID of the message being replied to (for reply threading) */
+  parentMessageId?: string | null;
+
   /** Advanced Inbox: media files attached to the message */
   attachments?: MessageAttachment[] | null;
 

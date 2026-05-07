@@ -70,6 +70,18 @@ export async function idempotentPersistMessage(
       });
 
       if (!message) {
+        // Find the parent message internal database ID if parentMessageId (platform ID) is provided
+        let parentMessageDbId: string | null = null;
+        if (input.parentMessageId) {
+          const parentMsg = await tx.message.findUnique({
+            where: { platform_message_id: input.parentMessageId },
+            select: { id: true },
+          });
+          if (parentMsg) {
+            parentMessageDbId = parentMsg.id;
+          }
+        }
+
         message = await tx.message.create({
           data: {
             conversationId: conversation.id,
@@ -78,6 +90,8 @@ export async function idempotentPersistMessage(
             platform_message_id: input.platformMessageId,
             senderType: input.senderType,
             createdAt: messageTime,
+            attachments: input.attachments ? (input.attachments as any) : undefined,
+            parentMessageId: parentMessageDbId,
           },
         });
         isNewMessage = true;

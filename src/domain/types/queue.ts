@@ -31,6 +31,19 @@ export interface WebhookJobPayload {
 
   /** Whether this is an echo message */
   isEcho?: boolean;
+
+  /** Advanced Inbox: media files attached to the message */
+  attachments?: any[] | null;
+
+  /** Advanced Inbox: ID of the message being replied to (for reply threading) */
+  parentMessageId?: string | null;
+
+  /** Advanced Inbox: Reaction event details */
+  reactionData?: {
+    action: 'react' | 'unreact';
+    emoji: string;
+    parentMessageId: string;
+  } | null;
 }
 
 /**

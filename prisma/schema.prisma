@@ -116,6 +116,12 @@ model Message {
   is_delivered        Boolean      @default(false)
   aiReplyLogs         AIReplyLog[]
   conversation        Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  parentMessageId     String?      @map("parent_message_id") @db.Uuid
+  parentMessage       Message?     @relation("MessageReplies", fields: [parentMessageId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  replies             Message[]    @relation("MessageReplies")
+  attachments         Json?        @default("[]")
+  reactions           Json?        @default("[]")
+  is_pinned           Boolean      @default(false)
 
   @@map("messages")
   @@schema("public")
