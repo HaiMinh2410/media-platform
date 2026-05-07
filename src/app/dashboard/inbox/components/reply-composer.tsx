@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageWithSender } from '@/domain/types/messaging';
-import { Wand2, BookOpen, Paperclip, Send } from 'lucide-react';
+import { MessageWithSender, MessageAttachment } from '@/domain/types/messaging';
+import { Wand2, BookOpen, Paperclip, Send, Mic, X, Reply } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { useInboxStore, ToneMode } from '../store/inbox.store';
 import { cn } from '@/lib/utils';
+import { AttachmentPreview, FileAttachment } from './attachment-preview';
+import { VoiceRecorder } from './voice-recorder';
 
 type SendState = 'idle' | 'sending' | 'error';
 
@@ -38,6 +40,11 @@ export function ReplyComposer({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showSnippets, setShowSnippets] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
+  
+  const [files, setFiles] = useState<FileAttachment[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { 
     selectedTone, 
@@ -45,7 +52,9 @@ export function ReplyComposer({
     replyAsId, 
     setReplyAsId, 
     replyOnChannel, 
-    setReplyOnChannel 
+    setReplyOnChannel,
+    replyToMessage,
+    setReplyToMessage
   } = useInboxStore();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -83,28 +92,41 @@ export function ReplyComposer({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const trimmed = text.trim();
-    if (!trimmed || sendState === 'sending') return;
+    if ((!trimmed && files.length === 0) || sendState === 'sending') return;
 
     setSendState('sending');
     setErrorMsg(null);
 
     try {
+      const messageAttachments: MessageAttachment[] = files.map(f => ({
+        type: f.type,
+        payload: {
+          url: f.previewUrl, // Mock URL for UI purposes
+          title: f.file.name,
+          fileSize: f.file.size
+        }
+      }));
+
       const res = await fetch(`/api/conversations/${conversationId}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           text: trimmed,
           platform: replyOnChannel,
-          tone: selectedTone
+          tone: selectedTone,
+          parentMessageId: replyToMessage?.id,
+          attachments: messageAttachments
         }),
       });
 
       if (res.ok || res.status === 207) {
         const responseData = await res.json();
         setText('');
+        setFiles([]);
+        setReplyToMessage(null);
         setSendState('idle');
         if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
@@ -117,6 +139,8 @@ export function ReplyComposer({
             createdAt: new Date(),
             is_delivered: true,
             is_read: false,
+            parentMessageId: replyToMessage?.id || null,
+            attachments: messageAttachments
           });
         }
       } else {
@@ -143,6 +167,72 @@ export function ReplyComposer({
       setSendState('idle');
       setErrorMsg(null);
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files).map(file => {
+        let type: FileAttachment['type'] = 'file';
+        if (file.type.startsWith('image/')) type = 'image';
+        else if (file.type.startsWith('video/')) type = 'video';
+        else if (file.type.startsWith('audio/')) type = 'audio';
+
+        return {
+          id: Math.random().toString(36).substr(2, 9),
+          file,
+          type,
+          previewUrl: URL.createObjectURL(file)
+        };
+      });
+      setFiles(prev => [...prev, ...newFiles]);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const newFiles = Array.from(e.dataTransfer.files).map(file => {
+        let type: FileAttachment['type'] = 'file';
+        if (file.type.startsWith('image/')) type = 'image';
+        else if (file.type.startsWith('video/')) type = 'video';
+        else if (file.type.startsWith('audio/')) type = 'audio';
+
+        return {
+          id: Math.random().toString(36).substr(2, 9),
+          file,
+          type,
+          previewUrl: URL.createObjectURL(file)
+        };
+      });
+      setFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeFile = (id: string) => {
+    setFiles(prev => prev.filter(f => f.id !== id));
+  };
+
+  const handleVoiceConfirm = (blob: Blob) => {
+    setIsRecording(false);
+    const file = new File([blob], "voice-message.webm", { type: "audio/webm" });
+    setFiles(prev => [...prev, {
+      id: Math.random().toString(36).substr(2, 9),
+      file,
+      type: 'audio',
+      previewUrl: URL.createObjectURL(blob)
+    }]);
   };
 
   const handleSnippetClick = (snippetText: string) => {
@@ -230,23 +320,68 @@ export function ReplyComposer({
       </div>
       
       <div className="relative">
-        <form className="flex gap-3 items-end" onSubmit={handleSubmit}>
-          <div className="flex-1 bg-background-base border border-foreground/10 rounded-lg p-3 px-md transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] focus-within:border-accent-primary/50 focus-within:bg-background-secondary focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]">
-            <textarea
-              ref={textareaRef}
-              className="w-full bg-transparent border-none text-foreground text-base resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto"
-              placeholder={isSending ? 'Sending…' : 'Type a message…'}
-              rows={1}
-              value={text}
-              onChange={handleChange}
-              disabled={isSending}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
-            />
+        {replyToMessage && (
+          <div className="flex items-center justify-between bg-black/5 border-l-2 border-indigo-500 px-3 py-2 rounded-t-lg mb-0 text-sm">
+            <div className="flex items-center gap-2 text-foreground-secondary min-w-0">
+              <Reply size={14} className="shrink-0 text-indigo-500" />
+              <div className="truncate">
+                <span className="font-bold text-indigo-500 mr-1">Đang trả lời:</span>
+                {replyToMessage.content || '[Tệp đính kèm]'}
+              </div>
+            </div>
+            <button 
+              type="button"
+              onClick={() => setReplyToMessage(null)}
+              className="text-foreground-tertiary hover:text-foreground transition-colors p-1"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        <div 
+          className={cn(
+            "flex gap-3 items-end p-3 px-md transition-all rounded-b-lg border bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative",
+            !replyToMessage && "rounded-t-lg",
+            isDragging ? "border-indigo-500 bg-indigo-500/5 ring-2 ring-indigo-500/20" : "border-foreground/10 focus-within:border-accent-primary/50 focus-within:bg-background-secondary focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]"
+          )}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {isDragging && (
+            <div className="absolute inset-0 z-10 bg-indigo-500/10 backdrop-blur-[1px] flex items-center justify-center rounded-lg border-2 border-dashed border-indigo-500 text-indigo-500 font-medium">
+              Thả tệp vào đây để đính kèm
+            </div>
+          )}
+          
+          <div className="flex-1 flex flex-col min-w-0">
+            {files.length > 0 && (
+              <AttachmentPreview attachments={files} onRemove={removeFile} />
+            )}
+
+            {isRecording ? (
+              <VoiceRecorder 
+                onCancel={() => setIsRecording(false)} 
+                onConfirm={handleVoiceConfirm} 
+              />
+            ) : (
+              <textarea
+                ref={textareaRef}
+                className="w-full bg-transparent border-none text-foreground text-base resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto placeholder:text-foreground-tertiary"
+                placeholder={isSending ? 'Sending…' : 'Type a message…'}
+                rows={1}
+                value={text}
+                onChange={handleChange}
+                disabled={isSending}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
+              />
+            )}
             
             <div className="flex justify-between items-center pt-3 border-t border-foreground/5 mt-2">
               <div className="flex items-center gap-2">
@@ -280,9 +415,32 @@ export function ReplyComposer({
                   )}
                 </div>
                 
-                <button type="button" className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5" title="Attach file">
+                <button 
+                  type="button" 
+                  className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5" 
+                  title="Attach file"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   <Paperclip size={18} />
                 </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  multiple 
+                  onChange={handleFileChange} 
+                />
+
+                {!isRecording && (
+                  <button 
+                    type="button" 
+                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-red-500 hover:bg-red-500/10" 
+                    title="Record voice note"
+                    onClick={() => setIsRecording(true)}
+                  >
+                    <Mic size={18} />
+                  </button>
+                )}
               </div>
 
               <button
@@ -291,8 +449,9 @@ export function ReplyComposer({
                   "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground flex items-center justify-center cursor-pointer transition-all shrink-0 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-accent-primary/20",
                   isSending && "opacity-70"
                 )}
-                disabled={!text.trim() || isSending}
+                disabled={(!text.trim() && files.length === 0) || isSending || isRecording}
                 aria-label="Send message"
+                onClick={() => handleSubmit()}
               >
                 {isSending ? (
                   <div className="animate-spin">
@@ -304,7 +463,7 @@ export function ReplyComposer({
               </button>
             </div>
           </div>
-        </form>
+        </div>
       </div>
       
       {text.length > 0 && text.length < 5 && (

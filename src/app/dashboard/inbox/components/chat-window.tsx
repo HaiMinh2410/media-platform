@@ -193,6 +193,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
             <MessageBubble 
               message={msg} 
               showStatus={showStatus} 
+              conversationId={conversationId}
             />
           </React.Fragment>
         );

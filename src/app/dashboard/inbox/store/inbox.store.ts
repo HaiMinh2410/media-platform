@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { AccountGroup } from '@/domain/types/account-group';
-import { ConversationWithLastMessage } from '@/domain/types/messaging';
+import { ConversationWithLastMessage, MessageWithSender } from '@/domain/types/messaging';
 
 export type ViewMode = 'all' | 'by_account' | 'by_contacts' | 'ai_priority' | 'daily_flow';
 export type Platform = 'all' | 'facebook' | 'instagram' | 'tiktok' | 'custom';
@@ -17,6 +17,7 @@ interface InboxState {
   selectedTone: ToneMode;
   replyAsId: string | null;
   replyOnChannel: string | null;
+  replyToMessage: MessageWithSender | null;
   
   selectedGroupId: string | null;
   setGroupId: (id: string | null) => void;
@@ -32,6 +33,7 @@ interface InboxState {
   setTone: (tone: ToneMode) => void;
   setReplyAsId: (id: string | null) => void;
   setReplyOnChannel: (channel: string | null) => void;
+  setReplyToMessage: (msg: MessageWithSender | null) => void;
 
   isRightPanelVisible: boolean;
   toggleRightPanel: () => void;
@@ -69,6 +71,7 @@ export const useInboxStore = create<InboxState>((set) => ({
   selectedTone: 'professional',
   replyAsId: null,
   replyOnChannel: null,
+  replyToMessage: null,
   
   setScope: (scope) => set({ currentScope: scope }),
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -81,6 +84,7 @@ export const useInboxStore = create<InboxState>((set) => ({
   setTone: (tone) => set({ selectedTone: tone }),
   setReplyAsId: (id) => set({ replyAsId: id }),
   setReplyOnChannel: (channel) => set({ replyOnChannel: channel }),
+  setReplyToMessage: (msg) => set({ replyToMessage: msg }),
 
   isRightPanelVisible: true,
   toggleRightPanel: () => set((state) => ({ isRightPanelVisible: !state.isRightPanelVisible })),
