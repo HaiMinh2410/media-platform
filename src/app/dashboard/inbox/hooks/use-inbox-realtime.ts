@@ -59,6 +59,10 @@ export function useMessageRealtime({
             createdAt: new Date(row.created_at || row.createdAt),
             is_read: row.is_read ?? false,
             is_delivered: row.is_delivered ?? false,
+            attachments: row.attachments || null,
+            reactions: row.reactions || null,
+            parentMessageId: row.parent_message_id || row.parentMessageId || null,
+            is_pinned: row.is_pinned ?? false,
           };
 
           onNewMessageRef.current(message);

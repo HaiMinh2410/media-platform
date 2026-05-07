@@ -65,7 +65,7 @@ export function RightPanel({
   const { suggestions, loading, dismiss } = useAiSuggestions({ conversationId });
 
   // Real-time Presence and Typing tracking
-  const { typingUsers, presenceUsers, sendTypingState, me } = usePresenceAndTyping(
+  const { typingUsers, sendTypingState } = usePresenceAndTyping(
     conversationId,
     customerName || externalId,
     customerAvatar
@@ -139,8 +139,6 @@ export function RightPanel({
           platformUserName={pageName}
           tags={tags}
           onUpdateTags={handleUpdateTags}
-          presenceUsers={presenceUsers}
-          me={me}
         />
         <ChatWindow 
           ref={chatRef} 
@@ -148,6 +146,7 @@ export function RightPanel({
           typingUsers={typingUsers}
         />
         <ReplyComposer
+          workspaceId={workspaceId}
           conversationId={conversationId}
           fillText={fillText}
           onMessageSent={handleMessageSent}

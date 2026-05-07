@@ -141,24 +141,37 @@ export async function getConversations(
       nextCursor = nextItem!.id;
     }
 
-    const formatted: ConversationWithLastMessage[] = conversations.map(c => ({
-      id: c.id,
-      platform_conversation_id: c.platform_conversation_id,
-      last_message_at: c.lastMessageAt,
-      status: c.status,
-      platform: c.platform_accounts.platform,
-      // Priority: customer_name (synced from Meta) > platform_conversation_id (ID string)
-      sender_name: c.customer_name || c.platform_conversation_id, 
-      customer_avatar: c.customer_avatar,
-      last_message_content: c.messages[0]?.content || '',
-      unread_count: c._count.messages,
-      priority: c.priority,
-      sentiment: c.sentiment,
-      is_vip: c.is_vip,
-      canonical_conversation_id: c.canonical_conversation_id,
-      identity_id: c.customer_platform_mappings[0]?.identity_id ?? null,
-      is_pinned: (c as any).is_pinned
-    }));
+    const formatted: ConversationWithLastMessage[] = conversations.map(c => {
+      const lastMsg = c.messages[0];
+      let lastMsgContent = lastMsg?.content || '';
+      const attachments = lastMsg?.attachments as any[];
+      if (!lastMsgContent && attachments && Array.isArray(attachments) && attachments.length > 0) {
+        const attType = attachments[0]?.type;
+        if (attType === 'image') lastMsgContent = '📷 [Hình ảnh]';
+        else if (attType === 'audio') lastMsgContent = '🎵 [Tin nhắn thoại]';
+        else if (attType === 'video') lastMsgContent = '📹 [Video]';
+        else lastMsgContent = '📁 [Tệp đính kèm]';
+      }
+
+      return {
+        id: c.id,
+        platform_conversation_id: c.platform_conversation_id,
+        last_message_at: c.lastMessageAt,
+        status: c.status,
+        platform: c.platform_accounts.platform,
+        // Priority: customer_name (synced from Meta) > platform_conversation_id (ID string)
+        sender_name: c.customer_name || c.platform_conversation_id, 
+        customer_avatar: c.customer_avatar,
+        last_message_content: lastMsgContent,
+        unread_count: c._count.messages,
+        priority: c.priority,
+        sentiment: c.sentiment,
+        is_vip: c.is_vip,
+        canonical_conversation_id: c.canonical_conversation_id,
+        identity_id: c.customer_platform_mappings[0]?.identity_id ?? null,
+        is_pinned: (c as any).is_pinned
+      };
+    });
 
     return { data: formatted, nextCursor, error: null };
   } catch (error: any) {

@@ -99,6 +99,16 @@ export async function getConversationAction(conversationId: string): Promise<{ d
       orderBy: { createdAt: 'desc' }
     });
 
+    const attachments = lastMessage?.attachments as any[];
+    let lastMsgContent = lastMessage?.content || '';
+    if (!lastMsgContent && attachments && Array.isArray(attachments) && attachments.length > 0) {
+      const attType = attachments[0]?.type;
+      if (attType === 'image') lastMsgContent = '📷 [Hình ảnh]';
+      else if (attType === 'audio') lastMsgContent = '🎵 [Tin nhắn thoại]';
+      else if (attType === 'video') lastMsgContent = '📹 [Video]';
+      else lastMsgContent = '📁 [Tệp đính kèm]';
+    }
+
     return {
       data: {
         id: conversation.id,
@@ -106,7 +116,7 @@ export async function getConversationAction(conversationId: string): Promise<{ d
         platform_conversation_id: conversation.platform_conversation_id,
         sender_name: conversation.customer_name || 'Unknown',
         customer_avatar: conversation.customer_avatar,
-        last_message_content: lastMessage?.content || '',
+        last_message_content: lastMsgContent,
         last_message_at: lastMessage?.createdAt || conversation.lastMessageAt,
         unread_count: conversation._count.messages,
         status: conversation.status,

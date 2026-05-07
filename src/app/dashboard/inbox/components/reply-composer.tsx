@@ -12,6 +12,7 @@ import { VoiceRecorder } from './voice-recorder';
 type SendState = 'idle' | 'sending' | 'error';
 
 type ReplyComposerProps = {
+  workspaceId: string;
   conversationId: string;
   fillText?: string;
   onMessageSent?: (message: MessageWithSender) => void;
@@ -30,6 +31,7 @@ const SNIPPETS = [
 const MAX_TEXTAREA_HEIGHT = 320;
 
 export function ReplyComposer({ 
+  workspaceId,
   conversationId, 
   fillText, 
   onMessageSent,
@@ -118,15 +120,40 @@ export function ReplyComposer({
     setErrorMsg(null);
 
     try {
-      const messageAttachments: MessageAttachment[] = files.map(f => ({
-        type: f.type,
-        payload: {
-          url: f.previewUrl, // Mock URL for UI purposes
-          title: f.file.name,
-          fileSize: f.file.size
-        }
-      }));
+      const messageAttachments: MessageAttachment[] = [];
 
+      // 1. Upload files to our local Server API (to bypass browser CORS) if any exist
+      for (const f of files) {
+        const formData = new FormData();
+        formData.append('file', f.file);
+        if (workspaceId) {
+          formData.append('workspaceId', workspaceId);
+        }
+
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          const uploadErrData = await uploadRes.json().catch(() => ({}));
+          const errMsg = uploadErrData.error || `Upload failed (${uploadRes.status})`;
+          throw new Error(`Failed to upload file ${f.file.name}: ${errMsg}`);
+        }
+
+        const uploadData = await uploadRes.json();
+
+        messageAttachments.push({
+          type: f.type,
+          payload: {
+            url: uploadData.publicUrl,
+            title: f.file.name,
+            fileSize: f.file.size
+          }
+        });
+      }
+
+      // 2. Submit the message reply with uploaded public URLs
       const res = await fetch(`/api/conversations/${conversationId}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -176,8 +203,9 @@ export function ReplyComposer({
         setErrorMsg(msg);
         setSendState('error');
       }
-    } catch {
-      setErrorMsg('Network error — please try again.');
+    } catch (err: any) {
+      console.error('[ReplyComposer] Error submitting reply:', err);
+      setErrorMsg(err.message || 'Network error — please try again.');
       setSendState('error');
     }
   };
@@ -268,7 +296,7 @@ export function ReplyComposer({
 
   const handleVoiceConfirm = (blob: Blob) => {
     setIsRecording(false);
-    const file = new File([blob], "voice-message.webm", { type: "audio/webm" });
+    const file = new File([blob], "voice-message.m4a", { type: "audio/x-m4a" });
     setFiles(prev => [...prev, {
       id: Math.random().toString(36).substr(2, 9),
       file,

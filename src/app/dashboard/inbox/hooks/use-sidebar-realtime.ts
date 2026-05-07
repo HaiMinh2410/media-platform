@@ -163,10 +163,19 @@ export function useSidebarRealtime({
           console.log('[Realtime:Sidebar] ✉️ New message for preview:', payload);
           const row = payload.new as any;
           const conversationId = row.conversation_id || row.conversationId;
-          const content = row.content;
+          let content = row.content || '';
+          const attachments = row.attachments;
           const createdAt = new Date(row.created_at || row.createdAt);
 
-          if (conversationId && content) {
+          if (!content && attachments && Array.isArray(attachments) && attachments.length > 0) {
+            const attType = attachments[0]?.type;
+            if (attType === 'image') content = '📷 [Hình ảnh]';
+            else if (attType === 'audio') content = '🎵 [Tin nhắn thoại]';
+            else if (attType === 'video') content = '📹 [Video]';
+            else content = '📁 [Tệp đính kèm]';
+          }
+
+          if (conversationId && (content || (attachments && attachments.length > 0))) {
             messageCallbackRef.current?.({
               conversationId,
               content,

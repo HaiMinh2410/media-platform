@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-import type { PresenceUser } from '../hooks/use-presence-typing';
 
 type ChatHeaderProps = {
   conversationId: string;
@@ -18,8 +17,6 @@ type ChatHeaderProps = {
   platformUserName: string;
   tags?: string[];
   onUpdateTags?: (tags: string[]) => void;
-  presenceUsers?: PresenceUser[];
-  me?: { userId: string } | null;
 };
 
 export function ChatHeader({
@@ -30,8 +27,6 @@ export function ChatHeader({
   platformUserName,
   tags = [],
   onUpdateTags,
-  presenceUsers = [],
-  me,
 }: ChatHeaderProps) {
   const router = useRouter();
   const triggerRefresh = useInboxStore((state) => state.triggerRefresh);
@@ -167,29 +162,7 @@ export function ChatHeader({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {/* Present Agents with glowing green indicator */}
-        {presenceUsers && presenceUsers.length > 0 && (
-          <div className="flex items-center -space-x-2 mr-2 border-r border-foreground/10 pr-4 h-8">
-            {presenceUsers
-              .filter(u => me && u.userId !== me.userId)
-              .map((u) => (
-                <div 
-                  key={u.userId} 
-                  className="relative group w-8 h-8 rounded-full bg-background-tertiary border-2 border-primary flex items-center justify-center font-bold text-2xs text-foreground overflow-hidden shadow-[0_0_8px_rgba(99,102,241,0.4)] animate-in fade-in duration-300"
-                  title={`${u.name} is active`}
-                >
-                  {u.avatar ? (
-                    <img src={u.avatar} alt={u.name} className="w-full h-full object-cover" />
-                  ) : (
-                    u.name?.charAt(0) || 'A'
-                  )}
-                  {/* Neon Glow Green Badge */}
-                  <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-status-success border border-background shadow-[0_0_6px_#22c55e]" />
-                </div>
-              ))}
-          </div>
-        )}
-        
+
         <div className="relative" ref={dropdownRef}>
           <button 
             className={cn(
