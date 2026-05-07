@@ -37,6 +37,25 @@ export type MetaSendApiResponse = {
 };
 
 /**
+ * Advanced Inbox Message types
+ */
+export type AttachmentType = 'image' | 'video' | 'file' | 'audio';
+
+export type MessageAttachment = {
+  type: AttachmentType;
+  payload: {
+    url: string;
+    title?: string;
+    fileSize?: number;
+  };
+};
+
+export type MessageReaction = {
+  senderId: string;
+  reaction: string;
+};
+
+/**
  * Input for persisting an incoming or outgoing message idempotently.
  */
 export type PersistMessageInput = {
@@ -47,6 +66,8 @@ export type PersistMessageInput = {
   messageText: string;
   senderType: 'user' | 'agent' | 'ai';
   timestamp?: Date;           // Optional, defaults to now. Should receive webhook standard timestamp.
+  attachments?: MessageAttachment[] | null;
+  parentMessageId?: string | null;
 };
 
 /**
@@ -135,6 +156,11 @@ export type MessageWithSender = {
   createdAt: Date;
   is_read?: boolean;
   is_delivered?: boolean;
+  attachments?: MessageAttachment[] | null;
+  reactions?: MessageReaction[] | null;
+  parentMessageId?: string | null;
+  parentMessage?: MessageWithSender | null;
+  is_pinned?: boolean;
 };
 
 /**

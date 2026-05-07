@@ -1,10 +1,11 @@
 /**
  * Unified types for parsed webhook events across different platforms.
  */
+import { MessageAttachment } from './messaging';
 
 export type WebhookPlatform = 'meta' | 'tiktok' | 'whatsapp' | 'facebook' | 'instagram' | 'messenger' | 'other';
 
-export type WebhookEventType = 'message' | 'read' | 'delivery' | 'other';
+export type WebhookEventType = 'message' | 'read' | 'delivery' | 'reaction' | 'typing_on' | 'typing_off' | 'other';
 
 /**
  * Represents a normalized webhook event after being parsed from platform-specific payloads.
@@ -39,6 +40,16 @@ export interface ParsedWebhookEvent {
 
   /** Whether this is an echo of a message sent by the page/account itself */
   isEcho?: boolean;
+
+  /** Advanced Inbox: media files attached to the message */
+  attachments?: MessageAttachment[] | null;
+
+  /** Advanced Inbox: Reaction event details */
+  reactionData?: {
+    action: 'react' | 'unreact';
+    emoji: string;
+    parentMessageId: string;
+  } | null;
 }
 
 /**
