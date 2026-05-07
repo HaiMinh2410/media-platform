@@ -41,6 +41,13 @@ export interface MetaMessagingEvent {
     mids: string[];
     watermark: number;
   };
+  reaction?: {
+    mid: string;
+    action: 'react' | 'unreact';
+    emoji: string;
+    reaction: string;
+  };
+  sender_action?: 'typing_on' | 'typing_off' | 'mark_seen';
 }
 
 export interface MetaWebhookChange {

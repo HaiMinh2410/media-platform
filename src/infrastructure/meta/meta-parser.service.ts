@@ -1,5 +1,6 @@
 import { MetaWebhookPayload } from '@/domain/types/meta-webhook';
 import { ParsedWebhookEvent } from '@/domain/types/webhooks';
+import { MessageAttachment } from '@/domain/types/messaging';
 
 /**
  * Service to parse Meta (Facebook/Instagram) webhook payloads into a unified format.
@@ -36,8 +37,11 @@ export class MetaParserService {
           const isEcho = !!msg.message?.is_echo;
 
           let eventType: any = 'other';
-          let messageText = null;
+          let messageText: string | null = null;
           let platformMessageId = `evt_${entry.time || Date.now()}_${msg.sender?.id || 'unknown'}`;
+          let attachments: MessageAttachment[] | null = null;
+          let parentMessageId: string | null = null;
+          let reactionData: { action: 'react' | 'unreact'; emoji: string; parentMessageId: string } | null = null;
 
           if (msg.read) {
             eventType = 'read';
@@ -48,10 +52,38 @@ export class MetaParserService {
               watermark: msg.delivery.watermark,
               mids: msg.delivery.mids
             });
-          } else if (msg.message?.text || msg.postback?.title) {
+          } else if (msg.reaction) {
+            eventType = 'reaction';
+            platformMessageId = msg.reaction.mid || platformMessageId;
+            reactionData = {
+              action: msg.reaction.action === 'react' ? 'react' : 'unreact',
+              emoji: msg.reaction.emoji || '',
+              parentMessageId: msg.reaction.mid
+            };
+          } else if (msg.sender_action) {
+            eventType = msg.sender_action === 'typing_on' ? 'typing_on' : 'typing_off';
+          } else if (msg.message || msg.postback?.title) {
             eventType = 'message';
             messageText = msg.message?.text || msg.postback?.title || null;
             platformMessageId = msg.message?.mid || platformMessageId;
+            parentMessageId = msg.message?.reply_to?.mid || null;
+
+            if (msg.message?.attachments && Array.isArray(msg.message.attachments)) {
+              attachments = msg.message.attachments.map((att: any) => {
+                let type: any = 'file';
+                if (['image', 'video', 'audio', 'file'].includes(att.type)) {
+                  type = att.type;
+                }
+                return {
+                  type,
+                  payload: {
+                    url: att.payload?.url || '',
+                    title: att.title,
+                    fileSize: att.payload?.file_size,
+                  }
+                };
+              });
+            }
           }
 
           events.push({
@@ -65,6 +97,9 @@ export class MetaParserService {
             headers: headers,
             receivedAt: this.parseTimestamp(msg.timestamp || entry.time),
             isEcho,
+            parentMessageId,
+            attachments,
+            reactionData
           });
         }
       }
