@@ -2,22 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getConversationWithAccount } from '@/infrastructure/repositories/conversation.repository';
 import { createOutgoingMessage } from '../../../../../../message.repository';
 import { metaSendService } from '@/application/services/meta-send.service';
-import type { MessagingPlatform } from '@/domain/types/messaging';
+import type { MessagingPlatform, MessageAttachment } from '@/domain/types/messaging';
+import { db } from '@/lib/db';
 
 const SUPPORTED_PLATFORMS = new Set<string>(['messenger', 'instagram', 'facebook']);
 
 /**
  * POST /api/conversations/[id]/reply
- * Sends an agent text reply to the conversation.
+ * Sends an agent text reply, quote reply, and/or file attachments to the conversation.
  *
- * Body: { text: string }
+ * Body: { 
+ *   text?: string, 
+ *   parentMessageId?: string, 
+ *   attachments?: MessageAttachment[] 
+ * }
  *
  * Flow:
  * 1. Resolve conversation → platform account → encrypted Meta token
  * 2. Validate platform is supported (Meta only for MVP)
- * 3. Send message via Meta Graph API (metaSendService)
- * 4. Persist the outgoing message to DB
- * 5. Return the created message IDs
+ * 3. Resolve parent platform message ID if parentMessageId is provided
+ * 4. Send message text/reply/attachments via Meta Graph API
+ * 5. Persist the outgoing message with relation and attachments to DB
+ * 6. Return the created message IDs
  */
 export async function POST(
   request: NextRequest,
@@ -34,20 +40,21 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    if (
-      !body ||
-      typeof body !== 'object' ||
-      !('text' in body) ||
-      typeof (body as Record<string, unknown>).text !== 'string' ||
-      !(body as { text: string }).text.trim()
-    ) {
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Invalid body format' }, { status: 400 });
+    }
+
+    const bodyObj = body as { text?: string; parentMessageId?: string; attachments?: MessageAttachment[] };
+    const text = bodyObj.text?.trim() || '';
+    const parentMessageId = bodyObj.parentMessageId || null;
+    const attachments = bodyObj.attachments || null;
+
+    if (!text && (!attachments || attachments.length === 0)) {
       return NextResponse.json(
-        { error: 'Missing or empty required field: text' },
+        { error: 'Missing content. Please provide either "text" or "attachments"' },
         { status: 400 }
       );
     }
-
-    const text = ((body as { text: string }).text).trim();
 
     // 2. Resolve conversation with account and token
     const { data: conversation, error: convError } =
@@ -77,34 +84,95 @@ export async function POST(
       );
     }
 
-    // 4. Send via Meta API
-    const { data: sendData, error: sendError } = await metaSendService.sendText({
-      recipientId: conversation.platform_conversation_id,
-      pageId: account.platform_user_id,
-      encryptedToken: account.encryptedToken,
-      text,
-      platform: account.platform as MessagingPlatform,
-    });
+    // 4. Resolve parent platform message ID (for reply quoting)
+    let platformParentMessageId: string | null = null;
+    if (parentMessageId) {
+      const parentMsg = await db.message.findUnique({
+        where: { id: parentMessageId },
+        select: { platform_message_id: true }
+      });
+      if (parentMsg) {
+        platformParentMessageId = parentMsg.platform_message_id;
+      }
+    }
 
-    if (sendError || !sendData) {
-      console.error(`[API Reply] Meta send failed for conversation ${conversationId}:`, sendError);
+    // 5. Send via Meta API
+    let mainPlatformMessageId = '';
+    let lastError = null;
+
+    // Send text first (either reply-quote or standard text message)
+    if (text) {
+      if (platformParentMessageId) {
+        const { data: sendData, error: sendError } = await metaSendService.sendTextWithReply({
+          recipientId: conversation.platform_conversation_id,
+          pageId: account.platform_user_id,
+          encryptedToken: account.encryptedToken,
+          text,
+          replyToMessageId: platformParentMessageId,
+          platform: account.platform as MessagingPlatform,
+        });
+        if (sendError) {
+          lastError = sendError;
+        } else if (sendData) {
+          mainPlatformMessageId = sendData.messageId;
+        }
+      } else {
+        const { data: sendData, error: sendError } = await metaSendService.sendText({
+          recipientId: conversation.platform_conversation_id,
+          pageId: account.platform_user_id,
+          encryptedToken: account.encryptedToken,
+          text,
+          platform: account.platform as MessagingPlatform,
+        });
+        if (sendError) {
+          lastError = sendError;
+        } else if (sendData) {
+          mainPlatformMessageId = sendData.messageId;
+        }
+      }
+    }
+
+    // Send attachments next
+    if (attachments && attachments.length > 0) {
+      for (const att of attachments) {
+        const { data: sendData, error: sendError } = await metaSendService.sendAttachment({
+          recipientId: conversation.platform_conversation_id,
+          pageId: account.platform_user_id,
+          encryptedToken: account.encryptedToken,
+          text: text || '',
+          platform: account.platform as MessagingPlatform,
+          attachmentType: att.type,
+          url: att.payload.url,
+        });
+
+        if (sendError) {
+          lastError = sendError;
+        } else if (sendData && !mainPlatformMessageId) {
+          // If text was not sent, use the first attachment's message ID as main platform ID
+          mainPlatformMessageId = sendData.messageId;
+        }
+      }
+    }
+
+    if (lastError && !mainPlatformMessageId) {
+      console.error(`[API Reply] Meta send failed for conversation ${conversationId}:`, lastError);
       return NextResponse.json(
-        { error: `Failed to send message: ${sendError}` },
+        { error: `Failed to send message: ${lastError}` },
         { status: 502 }
       );
     }
 
-    // 5. Persist the outgoing message to DB
+    // 6. Persist the outgoing message to DB
     const { data: created, error: dbError } = await createOutgoingMessage(
       conversationId,
       text,
       account.platform_user_id,
-      sendData.messageId
+      mainPlatformMessageId || undefined,
+      parentMessageId,
+      attachments
     );
 
     if (dbError || !created) {
-      // Message was sent but DB persistence failed — log it as a warning, not a hard error.
-      // The agent's message has been delivered; this is a non-critical failure.
       console.error(
         `[API Reply] Message sent to Meta but DB persistence failed for conversation ${conversationId}:`,
         dbError
@@ -119,7 +187,7 @@ export async function POST(
       {
         data: {
           messageId: created.messageId,
-          platformMessageId: sendData.messageId,
+          platformMessageId: created.platformMessageId,
         },
       },
       { status: 201 }

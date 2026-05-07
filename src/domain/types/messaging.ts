@@ -143,6 +143,7 @@ export type ConversationWithLastMessage = {
   identity_id?: string | null;
   ai_replied?: boolean;
   tags?: string[];
+  is_pinned?: boolean;
 };
 
 /**

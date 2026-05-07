@@ -357,7 +357,9 @@ export async function createOutgoingMessage(
   conversationId: string,
   text: string,
   agentId: string,
-  platformMessageId?: string
+  platformMessageId?: string,
+  parentMessageId?: string | null,
+  attachments?: any[] | null
 ): Promise<{ data: { messageId: string; platformMessageId: string } | null; error: string | null }> {
   try {
     const finalPlatformMessageId = platformMessageId || `agent-reply-${randomUUID()}`;
@@ -371,6 +373,8 @@ export async function createOutgoingMessage(
         senderType: 'agent',
         is_read: false,
         is_delivered: false,
+        parentMessageId: parentMessageId || undefined,
+        attachments: attachments ? (attachments as any) : undefined,
       },
     });
 

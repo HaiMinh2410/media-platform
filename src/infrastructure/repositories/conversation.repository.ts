@@ -106,11 +106,13 @@ export async function getConversations(
       // Use standard Prisma cursor-based pagination
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0, // Skip the cursor element itself
-      orderBy: sort ? {
-        [sort.field]: sort.order
-      } : {
-        lastMessageAt: 'desc'
-      },
+      orderBy: (sort ? [
+        { is_pinned: 'desc' as const },
+        { [sort.field]: sort.order }
+      ] : [
+        { is_pinned: 'desc' as const },
+        { lastMessageAt: 'desc' as const }
+      ]) as any,
       include: {
         platform_accounts: true,
         // Include only the very latest message for the list snippet
@@ -154,7 +156,8 @@ export async function getConversations(
       sentiment: c.sentiment,
       is_vip: c.is_vip,
       canonical_conversation_id: c.canonical_conversation_id,
-      identity_id: c.customer_platform_mappings[0]?.identity_id ?? null
+      identity_id: c.customer_platform_mappings[0]?.identity_id ?? null,
+      is_pinned: (c as any).is_pinned
     }));
 
     return { data: formatted, nextCursor, error: null };

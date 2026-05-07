@@ -94,6 +94,7 @@ model Conversation {
   /// Points to the primary/canonical conversation when this convo is a cross-channel duplicate (T077)
   canonical_conversation_id  String?                   @db.Uuid
   tags                       String[]                  @default([])
+  is_pinned                  Boolean                   @default(false) @map("is_pinned")
   platform_accounts          PlatformAccount           @relation(fields: [account_id], references: [id], onDelete: Cascade)
   customer_platform_mappings CustomerPlatformMapping[]
   messages                   Message[]
