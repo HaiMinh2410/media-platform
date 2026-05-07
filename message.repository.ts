@@ -260,12 +260,20 @@ export async function getMessages(
       where.createdAt = { gte: new Date(fromDate) };
     }
 
+    const isPinned = (pagination as any).isPinned;
+    if (isPinned !== undefined) {
+      where.is_pinned = isPinned;
+    }
+
     const messages = await db.message.findMany({
       where,
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        parentMessage: true,
+      }
     });
 
     let nextCursor: string | null = null;
@@ -282,6 +290,17 @@ export async function getMessages(
       createdAt: m.createdAt,
       is_read: m.is_read,
       is_delivered: m.is_delivered,
+      attachments: m.attachments as any,
+      reactions: m.reactions as any,
+      parentMessageId: m.parentMessageId,
+      parentMessage: m.parentMessage ? {
+        id: m.parentMessage.id,
+        content: m.parentMessage.content,
+        senderId: m.parentMessage.senderId,
+        senderType: (m.parentMessage.senderType as MessageWithSender['senderType']) || 'user',
+        createdAt: m.parentMessage.createdAt,
+      } : null,
+      is_pinned: m.is_pinned,
     }));
 
     return { data: formatted, nextCursor, error: null };
@@ -317,7 +336,10 @@ export async function getUnifiedHistory(
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        parentMessage: true,
+      }
     });
 
     let nextCursor: string | null = null;
@@ -334,6 +356,17 @@ export async function getUnifiedHistory(
       createdAt: m.createdAt,
       is_read: m.is_read,
       is_delivered: m.is_delivered,
+      attachments: m.attachments as any,
+      reactions: m.reactions as any,
+      parentMessageId: m.parentMessageId,
+      parentMessage: m.parentMessage ? {
+        id: m.parentMessage.id,
+        content: m.parentMessage.content,
+        senderId: m.parentMessage.senderId,
+        senderType: (m.parentMessage.senderType as MessageWithSender['senderType']) || 'user',
+        createdAt: m.parentMessage.createdAt,
+      } : null,
+      is_pinned: m.is_pinned,
     }));
 
     return { data: formatted, nextCursor, error: null };

@@ -18,15 +18,16 @@ export async function GET(
     const limitParams = searchParams.get('limit');
     const limit = limitParams ? parseInt(limitParams, 10) : 50;
     const search = searchParams.get('q') || undefined;
-    const senderType = searchParams.get('senderType') || undefined;
-    const fromDate = searchParams.get('fromDate') || undefined;
+    const isPinnedParam = searchParams.get('isPinned');
+    const isPinned = isPinnedParam === 'true' ? true : (isPinnedParam === 'false' ? false : undefined);
 
-    const pagination: PaginationParams & { senderType?: string; fromDate?: string } = {
+    const pagination: PaginationParams & { senderType?: string; fromDate?: string; isPinned?: boolean } = {
       limit,
       cursor,
       search,
       senderType,
       fromDate,
+      isPinned,
     };
 
     const { data, nextCursor, error } = await getMessages(id, pagination);

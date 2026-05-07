@@ -2,7 +2,7 @@
 
 import React, { memo, useState, useEffect, useRef } from 'react';
 import { MessageWithSender, MessageAttachment, MessageReaction } from '@/domain/types/messaging';
-import { Sparkles, Play, Pause, FileText, Download, Check, CheckCheck, Loader2, Reply } from 'lucide-react';
+import { Sparkles, Play, Pause, FileText, Download, Check, CheckCheck, Loader2, Reply, Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInboxStore } from '../store/inbox.store';
@@ -195,13 +195,17 @@ const HoverReactions = ({
   conversationId, 
   existingReactions,
   onReactSuccess,
-  onReplyClick
+  onReplyClick,
+  isPinned,
+  onPinClick
 }: { 
   messageId: string; 
   conversationId: string; 
   existingReactions: MessageReaction[] | null;
   onReactSuccess: (updated: MessageReaction[]) => void;
   onReplyClick: () => void;
+  isPinned: boolean;
+  onPinClick: () => void;
 }) => {
   const emojis = ['👍', '❤️', '😂', '😮', '😢', '😡'];
 
@@ -267,8 +271,22 @@ const HoverReactions = ({
         className="text-foreground-secondary hover:text-foreground transition-all duration-100 flex items-center justify-center cursor-pointer p-1"
         whileHover={{ scale: 1.15 }}
         whileTap={{ scale: 0.9 }}
+        title="Trả lời"
       >
         <Reply size={15} />
+      </motion.button>
+      <motion.button
+        type="button"
+        onClick={onPinClick}
+        className={cn(
+          "text-foreground-secondary hover:text-indigo-500 transition-all duration-100 flex items-center justify-center cursor-pointer p-1",
+          isPinned && "text-indigo-500"
+        )}
+        whileHover={{ scale: 1.15 }}
+        whileTap={{ scale: 0.9 }}
+        title={isPinned ? "Bỏ ghim tin nhắn" : "Ghim tin nhắn"}
+      >
+        <Pin size={14} className={cn(isPinned && "fill-indigo-500 rotate-45")} />
       </motion.button>
     </motion.div>
   );
@@ -361,11 +379,17 @@ export const MessageBubble = memo(function MessageBubble({
 
   const [isHovered, setIsHovered] = useState(false);
   const [reactions, setReactions] = useState<MessageReaction[]>(message.reactions || []);
+  const [isPinned, setIsPinned] = useState(message.is_pinned || false);
   const setReplyToMessage = useInboxStore(state => state.setReplyToMessage);
+  const triggerRefresh = useInboxStore(state => state.triggerRefresh);
 
   useEffect(() => {
     setReactions(message.reactions || []);
   }, [message.reactions]);
+
+  useEffect(() => {
+    setIsPinned(message.is_pinned || false);
+  }, [message.is_pinned]);
 
   const onScrollToParent = () => {
     if (!message.parentMessageId) return;
@@ -376,6 +400,31 @@ export const MessageBubble = memo(function MessageBubble({
       setTimeout(() => {
         element.classList.remove("ring-2", "ring-indigo-500", "ring-offset-2", "ring-offset-background", "rounded-[20px]", "animate-pulse");
       }, 2000);
+    }
+  };
+
+  const handlePinClick = async () => {
+    try {
+      const newPinnedState = !isPinned;
+      setIsPinned(newPinnedState);
+      
+      const res = await fetch(`/api/conversations/${conversationId}/pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target: 'message',
+          messageId: message.id,
+          isPinned: newPinnedState
+        })
+      });
+      if (res.ok) {
+        triggerRefresh();
+      } else {
+        setIsPinned(!newPinnedState);
+      }
+    } catch (err) {
+      console.error('[MessageBubble] Pin error:', err);
+      setIsPinned(isPinned);
     }
   };
 
@@ -398,6 +447,8 @@ export const MessageBubble = memo(function MessageBubble({
             existingReactions={reactions} 
             onReactSuccess={setReactions} 
             onReplyClick={() => setReplyToMessage(message)}
+            isPinned={isPinned}
+            onPinClick={handlePinClick}
           />
         )}
       </AnimatePresence>
@@ -449,16 +500,27 @@ export const MessageBubble = memo(function MessageBubble({
         </div>
 
         {/* Message Delivery Status Footer */}
-        {showStatus && (
+        {(showStatus || isPinned) && (
           <div className="flex items-center gap-1.5 mt-0.5 select-none opacity-85">
-            <span className="text-[10px] text-foreground-tertiary">
-              {message.is_read ? 'Đã xem' : (message.is_delivered ? 'Đã nhận' : 'Đang gửi...')}
-            </span>
-            <StatusMarker 
-              isRead={message.is_read} 
-              isDelivered={message.is_delivered} 
-              isSending={!message.is_delivered && !message.is_read} 
-            />
+            {isPinned && (
+              <span className="text-2xs text-indigo-400 flex items-center gap-0.5" title="Tin nhắn đã ghim">
+                <Pin size={10} fill="currentColor" className="rotate-45 shrink-0" />
+                <span>Đã ghim</span>
+              </span>
+            )}
+            {isPinned && showStatus && <span className="text-[10px] text-foreground-tertiary">•</span>}
+            {showStatus && (
+              <>
+                <span className="text-[10px] text-foreground-tertiary">
+                  {message.is_read ? 'Đã xem' : (message.is_delivered ? 'Đã nhận' : 'Đang gửi...')}
+                </span>
+                <StatusMarker 
+                  isRead={message.is_read} 
+                  isDelivered={message.is_delivered} 
+                  isSending={!message.is_delivered && !message.is_read} 
+                />
+              </>
+            )}
           </div>
         )}
       </div>

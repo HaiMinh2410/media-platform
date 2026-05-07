@@ -5,12 +5,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ConversationWithLastMessage } from '@/domain/types/messaging';
 import { cn } from '@/lib/utils';
-import { MessageCircle, Flame, Star, Bot, Users } from 'lucide-react';
+import { MessageCircle, Flame, Star, Bot, Users, Pin } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
+import { useInboxStore } from '../store/inbox.store';
 
 export function ThreadCard({ conversation, style }: { conversation: ConversationWithLastMessage, style?: React.CSSProperties }) {
   const pathname = usePathname();
   const isActive = pathname.includes(`/inbox/${conversation.id}`);
+  const triggerRefresh = useInboxStore(state => state.triggerRefresh);
+  const [isPinning, setIsPinning] = React.useState(false);
 
   const formatTime = (dateStr: Date | string) => {
     if (!dateStr) return '';
@@ -55,6 +58,31 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
     'converted': 'Đã chuyển đổi',
     'lost': 'Bị mất đi',
     'unqualified': 'Không đủ tiêu chuẩn'
+  };
+
+  const handlePinClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isPinning) return;
+
+    try {
+      setIsPinning(true);
+      const res = await fetch(`/api/conversations/${conversation.id}/pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target: 'conversation',
+          isPinned: !conversation.is_pinned
+        })
+      });
+      if (res.ok) {
+        triggerRefresh();
+      }
+    } catch (err) {
+      console.error('Failed to toggle conversation pin:', err);
+    } finally {
+      setIsPinning(false);
+    }
   };
 
   return (
@@ -111,7 +139,54 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
               </span>
             )}
           </div>
-          <span className="text-xs text-foreground-tertiary shrink-0 ml-2">{formatTime(conversation.last_message_at)}</span>
+          
+          <div className="relative shrink-0 ml-2 min-w-[60px] h-5 flex items-center justify-end overflow-hidden">
+            {/* If conversation is NOT pinned */}
+            {!conversation.is_pinned && (
+              <>
+                {/* Timestamp - shown by default, hidden on hover */}
+                <span className="text-xs text-foreground-tertiary transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-[-10px] absolute right-0">
+                  {formatTime(conversation.last_message_at)}
+                </span>
+                {/* Pin Button - hidden by default, shown on hover */}
+                <button
+                  type="button"
+                  onClick={handlePinClick}
+                  disabled={isPinning}
+                  className="opacity-0 translate-y-[10px] group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 text-foreground-tertiary hover:text-indigo-500 hover:scale-110 p-1 rounded-full hover:bg-foreground/5 absolute right-0 flex items-center justify-center cursor-pointer border-0 bg-transparent"
+                  title="Ghim hội thoại"
+                >
+                  <Pin size={13} className="rotate-45" />
+                </button>
+              </>
+            )}
+
+            {/* If conversation IS pinned */}
+            {conversation.is_pinned && (
+              <>
+                {/* Persistent colored Pin - shown by default, hidden on hover */}
+                <button
+                  type="button"
+                  onClick={handlePinClick}
+                  disabled={isPinning}
+                  className="transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-[-10px] text-indigo-500 p-1 absolute right-0 flex items-center justify-center cursor-pointer border-0 bg-transparent"
+                  title="Bỏ ghim hội thoại"
+                >
+                  <Pin size={13} fill="currentColor" className="rotate-45" />
+                </button>
+                {/* Timestamp revealed - hidden by default, shown on hover */}
+                <button
+                  type="button"
+                  onClick={handlePinClick}
+                  disabled={isPinning}
+                  className="opacity-0 translate-y-[10px] group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 text-xs text-foreground-tertiary hover:text-error hover:scale-105 p-1 absolute right-0 flex items-center justify-center cursor-pointer font-medium bg-transparent border-0"
+                  title="Click để bỏ ghim"
+                >
+                  <span>{formatTime(conversation.last_message_at)}</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
         
         <div className="flex justify-between items-center gap-2">
