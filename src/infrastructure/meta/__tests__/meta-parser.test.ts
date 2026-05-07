@@ -1,3 +1,4 @@
+/// <reference types="bun-types" />
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { MetaParserService } from '../meta-parser.service';
 import type { MetaWebhookPayload } from '@/domain/types/meta-webhook';
@@ -61,7 +62,7 @@ describe('MetaParserService', () => {
     it('returns [] for unsupported object type', () => {
       const payload: MetaWebhookPayload = {
         // @ts-expect-error intentional bad input
-        object: 'whatsapp_business_account',
+        object: 'invalid_object_type',
         entry: [{ id: PAGE_ID, time: TIMESTAMP_S, messaging: [] }],
       };
       expect(parser.parse(payload)).toEqual([]);
