@@ -21,7 +21,7 @@ export default async function DebugConnectPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="w-full mx-auto p-8">
       <header className="mb-8">
         <Link 
           href="/dashboard/settings/accounts" 
