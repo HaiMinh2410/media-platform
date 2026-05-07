@@ -98,13 +98,21 @@ export default async function AccountsSettingsPage(props: {
 
           <section className="p-6 rounded-2xl bg-foreground/[0.02] border border-foreground/10 backdrop-blur-xl opacity-80">
             <h2 className="text-base font-semibold mb-2 text-foreground-secondary">Developer Tools</h2>
-            <p className="text-foreground-tertiary text-xs mb-4">Manually update tokens or debug connection issues.</p>
-            <Link 
-              href="/dashboard/settings/accounts/debug" 
-              className="inline-block text-primary font-semibold text-sm no-underline transition-all hover:opacity-80 hover:translate-x-1"
-            >
-              Open Debug Connection Tool
-            </Link>
+            <p className="text-foreground-tertiary text-xs mb-4">Manually update tokens, simulate webhooks, or test API endpoints.</p>
+            <div className="flex flex-col gap-2.5">
+              <Link 
+                href="/dashboard/settings/accounts/debug" 
+                className="inline-block text-primary font-semibold text-sm no-underline transition-all hover:opacity-80 hover:translate-x-1"
+              >
+                Open Debug Connection Tool →
+              </Link>
+              <Link 
+                href="/dashboard/dev" 
+                className="inline-block text-primary font-semibold text-sm no-underline transition-all hover:opacity-80 hover:translate-x-1"
+              >
+                Open Webhook & API Console →
+              </Link>
+            </div>
           </section>
         </div>
       </div>
