@@ -294,15 +294,94 @@ export function ReplyComposer({
     setFiles(prev => prev.filter(f => f.id !== id));
   };
 
-  const handleVoiceConfirm = (blob: Blob) => {
+  const handleVoiceConfirm = async (blob: Blob) => {
     setIsRecording(false);
-    const file = new File([blob], "voice-message.m4a", { type: "audio/x-m4a" });
-    setFiles(prev => [...prev, {
-      id: Math.random().toString(36).substr(2, 9),
-      file,
-      type: 'audio',
-      previewUrl: URL.createObjectURL(blob)
-    }]);
+    setSendState('sending');
+    setErrorMsg(null);
+
+    try {
+      const file = new File([blob], "voice-message.m4a", { type: "audio/x-m4a" });
+      
+      // 1. Upload file immediately via backend local proxy API
+      const formData = new FormData();
+      formData.append('file', file);
+      if (workspaceId) {
+        formData.append('workspaceId', workspaceId);
+      }
+
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadRes.ok) {
+        const uploadErrData = await uploadRes.json().catch(() => ({}));
+        const errMsg = uploadErrData.error || `Upload failed (${uploadRes.status})`;
+        throw new Error(`Failed to upload voice message: ${errMsg}`);
+      }
+
+      const uploadData = await uploadRes.json();
+      const messageAttachments: MessageAttachment[] = [{
+        type: 'audio',
+        payload: {
+          url: uploadData.publicUrl,
+          title: 'voice-message.m4a',
+          fileSize: file.size
+        }
+      }];
+
+      // 2. Submit reply directly
+      const res = await fetch(`/api/conversations/${conversationId}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          text: '',
+          platform: replyOnChannel,
+          tone: selectedTone,
+          parentMessageId: replyToMessage?.id,
+          attachments: messageAttachments
+        }),
+      });
+
+      if (res.ok || res.status === 207) {
+        // Clear typing status
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = null;
+        }
+        if (isCurrentlyTyping.current && onTypingStateChange) {
+          isCurrentlyTyping.current = false;
+          onTypingStateChange(false);
+        }
+
+        const responseData = await res.json();
+        setReplyToMessage(null);
+        setSendState('idle');
+
+        if (onMessageSent && responseData.data) {
+          onMessageSent({
+            id: responseData.data.messageId,
+            content: '',
+            senderId: 'agent',
+            senderType: 'agent',
+            createdAt: new Date(),
+            is_delivered: true,
+            is_read: false,
+            parentMessageId: replyToMessage?.id || null,
+            attachments: messageAttachments
+          });
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        const msg = data.error || `Send failed (${res.status})`;
+        setErrorMsg(msg);
+        setSendState('error');
+      }
+    } catch (err: any) {
+      console.error('[ReplyComposer] Error sending voice message:', err);
+      setErrorMsg(err.message || 'Error sending voice message — please try again.');
+      setSendState('error');
+    }
   };
 
   const handleSnippetClick = (snippetText: string) => {
