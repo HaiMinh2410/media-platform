@@ -17,6 +17,7 @@ type ReplyComposerProps = {
   onMessageSent?: (message: MessageWithSender) => void;
   platform: string;
   platformUserName: string;
+  onTypingStateChange?: (isTyping: boolean) => void;
 };
 
 // Mock data for snippets
@@ -33,7 +34,8 @@ export function ReplyComposer({
   fillText, 
   onMessageSent,
   platform,
-  platformUserName
+  platformUserName,
+  onTypingStateChange
 }: ReplyComposerProps) {
   const [text, setText] = useState('');
   const [sendState, setSendState] = useState<SendState>('idle');
@@ -59,6 +61,21 @@ export function ReplyComposer({
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const snippetsRef = useRef<HTMLDivElement>(null);
+
+  const isCurrentlyTyping = useRef(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      if (isCurrentlyTyping.current && onTypingStateChange) {
+        onTypingStateChange(false);
+      }
+      isCurrentlyTyping.current = false;
+    };
+  }, [conversationId, onTypingStateChange]);
 
   useEffect(() => {
     if (!replyAsId) setReplyAsId(platformUserName);
@@ -123,6 +140,16 @@ export function ReplyComposer({
       });
 
       if (res.ok || res.status === 207) {
+        // Clear typing timeout and emit typing_off
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = null;
+        }
+        if (isCurrentlyTyping.current && onTypingStateChange) {
+          isCurrentlyTyping.current = false;
+          onTypingStateChange(false);
+        }
+
         const responseData = await res.json();
         setText('');
         setFiles([]);
@@ -166,6 +193,21 @@ export function ReplyComposer({
     if (sendState === 'error') {
       setSendState('idle');
       setErrorMsg(null);
+    }
+
+    // Monitor agent keystrokes for typing indicator
+    if (onTypingStateChange) {
+      if (!isCurrentlyTyping.current) {
+        isCurrentlyTyping.current = true;
+        onTypingStateChange(true);
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      typingTimeoutRef.current = setTimeout(() => {
+        isCurrentlyTyping.current = false;
+        onTypingStateChange(false);
+      }, 3500); // 3.5 seconds of inactivity clears typing
     }
   };
 

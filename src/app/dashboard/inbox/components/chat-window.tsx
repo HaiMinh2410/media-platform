@@ -8,13 +8,15 @@ import { useMessageRealtime } from '../hooks/use-inbox-realtime';
 import { formatChatSeparator } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
+import { TypingUser } from '../hooks/use-presence-typing';
+
 export type ChatWindowRef = {
   addMessage: (message: MessageWithSender) => void;
   scrollToMessage: (messageId: string) => void;
 };
 
-export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
-  ({ conversationId }, ref) => {
+export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; typingUsers?: TypingUser[] }>(
+  ({ conversationId, typingUsers = [] }, ref) => {
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [loading, setLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -150,6 +152,17 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
     onMessageUpdate: handleUpdateMessage 
   });
 
+  // Scroll to bottom when someone starts typing to ensure the indicator is visible
+  useEffect(() => {
+    if (typingUsers.length > 0 && scrollRef.current) {
+      const el = scrollRef.current;
+      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 240;
+      if (isNearBottom) {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      }
+    }
+  }, [typingUsers.length]);
+
   return (
     <div className="flex-1 overflow-y-auto p-6 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent" ref={scrollRef}>
       <div ref={observerTarget} style={{ height: '1px', opacity: 0 }} />
@@ -199,6 +212,27 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string }>(
         );
       })}
       
+      {/* Typing Indicators */}
+      {typingUsers.map((u) => (
+        <div key={u.senderId} className="flex items-center gap-2.5 px-3 py-1.5 mt-2 animate-in fade-in duration-300">
+          <div className="w-8 h-8 rounded-full bg-background-tertiary flex items-center justify-center font-bold text-xs border border-foreground/10 overflow-hidden shrink-0 shadow-sm">
+            {u.avatar ? (
+              <img src={u.avatar} alt="" className="w-full h-full object-cover" />
+            ) : (
+              u.name?.charAt(0) || 'U'
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 bg-background-secondary border border-foreground/10 px-4 py-2 rounded-2xl max-w-[70%] shadow-sm">
+            <span className="text-sm font-medium text-foreground-secondary">{u.name} đang soạn tin</span>
+            <div className="flex gap-1 items-center ml-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-foreground-tertiary typing-dot" />
+              <span className="w-1.5 h-1.5 rounded-full bg-foreground-tertiary typing-dot" />
+              <span className="w-1.5 h-1.5 rounded-full bg-foreground-tertiary typing-dot" />
+            </div>
+          </div>
+        </div>
+      ))}
+
       {!loading && messages.length === 0 && (
         <div className="p-4 text-center text-foreground-tertiary text-sm">No messages found for this conversation.</div>
       )}

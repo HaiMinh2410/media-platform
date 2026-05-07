@@ -11,6 +11,8 @@ import { MessageWithSender } from '@/domain/types/messaging';
 import { useInboxStore } from '../store/inbox.store';
 import { cn } from '@/lib/utils';
 
+import { usePresenceAndTyping } from '../hooks/use-presence-typing';
+
 type RightPanelProps = {
   workspaceId: string;
   conversationId: string;
@@ -61,6 +63,13 @@ export function RightPanel({
   const chatRef = useRef<ChatWindowRef>(null);
 
   const { suggestions, loading, dismiss } = useAiSuggestions({ conversationId });
+
+  // Real-time Presence and Typing tracking
+  const { typingUsers, presenceUsers, sendTypingState, me } = usePresenceAndTyping(
+    conversationId,
+    customerName || externalId,
+    customerAvatar
+  );
 
   const handleUseSuggestion = useCallback((text: string) => {
     fillSeqRef.current += 1;
@@ -130,14 +139,21 @@ export function RightPanel({
           platformUserName={pageName}
           tags={tags}
           onUpdateTags={handleUpdateTags}
+          presenceUsers={presenceUsers}
+          me={me}
         />
-        <ChatWindow ref={chatRef} conversationId={conversationId} />
+        <ChatWindow 
+          ref={chatRef} 
+          conversationId={conversationId} 
+          typingUsers={typingUsers}
+        />
         <ReplyComposer
           conversationId={conversationId}
           fillText={fillText}
           onMessageSent={handleMessageSent}
           platform={platform}
           platformUserName={pageName}
+          onTypingStateChange={sendTypingState}
         />
       </div>
 
