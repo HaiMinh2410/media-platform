@@ -2,7 +2,7 @@
 
 import React, { memo, useState, useEffect, useRef } from 'react';
 import { MessageWithSender, MessageAttachment } from '@/domain/types/messaging';
-import { Sparkles, Play, Pause, FileText, Download, Check, CheckCheck, Loader2, Reply, Pin } from 'lucide-react';
+import { Sparkles, Play, Pause, FileText, Download, Check, CheckCheck, Loader2, Reply, Pin, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInboxStore } from '../store/inbox.store';
@@ -21,8 +21,13 @@ const getDynamicCornersClass = (
   isUser: boolean,
   isPrevConsecutive: boolean,
   isNextConsecutive: boolean,
-  defaultBase: string = "rounded-2xl"
+  defaultBase: string = "rounded-2xl",
+  isReply: boolean = false
 ) => {
+  if (isReply) {
+    return defaultBase; // Trả về góc bo tròn hoàn hảo đầy đủ 100% không dẹt cạnh nào đối với tin nhắn phản hồi
+  }
+
   if (isUser) {
     // Tin nhắn gửi đến (Trái)
     if (isPrevConsecutive && isNextConsecutive) {
@@ -181,13 +186,15 @@ const AttachmentRenderer = ({
   isUser,
   hasTextBubble,
   isPrevConsecutive = false,
-  isNextConsecutive = false
+  isNextConsecutive = false,
+  isReply = false
 }: { 
   attachments: MessageAttachment[]; 
   isUser: boolean;
   hasTextBubble: boolean;
   isPrevConsecutive?: boolean;
   isNextConsecutive?: boolean;
+  isReply?: boolean;
 }) => {
   if (!attachments || attachments.length === 0) return null;
 
@@ -211,7 +218,7 @@ const AttachmentRenderer = ({
                     ? (isUser 
                         ? cn("rounded-tr-xl rounded-br-xl rounded-tl-sm", isNextConsecutive ? "rounded-bl-sm" : "rounded-bl-xl")
                         : cn("rounded-tl-xl rounded-bl-xl rounded-tr-sm", isNextConsecutive ? "rounded-br-sm" : "rounded-br-xl"))
-                    : getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl")
+                    : getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl", isReply)
                 )}
               >
                 <motion.img 
@@ -234,7 +241,7 @@ const AttachmentRenderer = ({
                     ? (isUser 
                         ? cn("rounded-tr-xl rounded-br-xl rounded-tl-sm", isNextConsecutive ? "rounded-bl-sm" : "rounded-bl-xl")
                         : cn("rounded-tl-xl rounded-bl-xl rounded-tr-sm", isNextConsecutive ? "rounded-br-sm" : "rounded-br-xl"))
-                    : getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl")
+                    : getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl", isReply)
                 )}
               >
                 <video 
@@ -265,7 +272,7 @@ const AttachmentRenderer = ({
                 rel="noopener noreferrer" 
                 className={cn(
                   "flex items-center gap-3 p-3 bg-background-tertiary border border-foreground/10 hover:bg-background-secondary transition-colors text-foreground text-left max-w-72 shadow-sm",
-                  getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-xl")
+                  getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-xl", isReply)
                 )}
               >
                 <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
@@ -358,19 +365,27 @@ const ParentMessageBubble = ({
   onScrollToParent: () => void;
   isUser: boolean;
 }) => {
+  const hasContent = !!parent.content;
+
   return (
     <div 
       onClick={onScrollToParent}
       className={cn(
-        "p-2 px-3 text-xs leading-relaxed cursor-pointer transition-all duration-200 select-none max-w-60 border",
-        "opacity-55 hover:opacity-100 active:scale-[0.98]",
-        isUser ? "rounded-xl rounded-bl-sm" : "rounded-xl rounded-br-sm",
-        "bg-foreground/5 border-foreground/10 text-foreground/60"
+        "p-2 px-3.5 pb-4.5 text-xs leading-relaxed cursor-pointer transition-all duration-200 select-none max-w-60 border-none",
+        "opacity-55 hover:opacity-85 active:scale-[0.98]",
+        "rounded-2xl",
+        "bg-foreground/[0.08] text-foreground/70 backdrop-blur-[0.5px]",   isUser ? "rounded-bl-sm" : "rounded-br-sm"
       )}
     >
-      <span className="line-clamp-2 break-words">
-        {parent.content || '[Tệp đính kèm]'}
-      </span>
+      <div className={cn(
+        "flex items-center gap-1.5",
+        !hasContent && "italic text-foreground/60"
+      )}>
+        {!hasContent && <Paperclip size={12} className="shrink-0 opacity-70" />}
+        <span className="line-clamp-2 break-words">
+          {parent.content || 'File đính kèm'}
+        </span>
+      </div>
     </div>
   );
 };
@@ -417,7 +432,7 @@ export const MessageBubble = memo(function MessageBubble({
 
   // Dynamic Border Radius (Bo góc dẹt phẳng thông minh chuẩn Messenger)
   const getBubbleCornersClass = () => {
-    return getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl");
+    return getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl", !!message.parentMessageId);
   };
 
   const bubbleRef = useRef<HTMLDivElement>(null);
@@ -565,8 +580,10 @@ export const MessageBubble = memo(function MessageBubble({
               </span>
             </div>
 
-            {/* Parent Bubble mờ xếp ngay trên bong bóng chính, thẳng lề hoàn hảo */}
-            <div className="w-fit max-w-full">
+            {/* Parent Bubble mờ xếp ngay trên bong bóng chính, thụt lề so với bong bóng chính để bám sát Ảnh 1 */}
+            <div className={cn(
+              "w-fit max-w-full relative z-10"
+            )}>
               <ParentMessageBubble 
                 parent={message.parentMessage} 
                 onScrollToParent={onScrollToParent}
@@ -579,7 +596,10 @@ export const MessageBubble = memo(function MessageBubble({
         {/* Core Bubble Content Area (Bao gồm Text Bubble và Attachments để căn lề HoverActions + TimePill thẳng hàng dọc chính giữa) */}
         <div 
           ref={bubbleRef} 
-          className="relative w-fit max-w-full flex flex-col gap-1"
+          className={cn(
+            "w-fit max-w-full flex flex-col gap-1",
+            message.parentMessage ? "relative z-20 -mt-4" : "relative z-10"
+          )}
           onMouseEnter={() => {
             if (timePillTimerRef.current) {
               clearTimeout(timePillTimerRef.current);
@@ -600,13 +620,14 @@ export const MessageBubble = memo(function MessageBubble({
           {(message.content || isAi) && (
             <div 
               className={cn(
-                "w-fit p-3 px-4.5 shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md cursor-pointer",
+                "w-fit p-2 px-3.5 flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px cursor-pointer",
+                message.parentMessage 
+                  ? "shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.22)]" 
+                  : "shadow-sm hover:shadow-md",
                 getBubbleCornersClass(),
                 isUser && "bg-background-secondary border border-foreground/10 text-foreground",
                 isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/25",
-                isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 text-foreground shadow-md shadow-purple-500/15 backdrop-blur-md",
-                // Bo góc và dính khít thông minh khi có tin nhắn trích dẫn (parentMessage) ở trên
-                message.parentMessage && (isUser ? "rounded-tl-sm -mt-[1px]" : "rounded-tr-sm -mt-[1px]")
+                isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 text-foreground shadow-md shadow-purple-500/15 backdrop-blur-md"
               )}
             >
               {/* AI Robot Header Banner */}
@@ -628,18 +649,14 @@ export const MessageBubble = memo(function MessageBubble({
 
           {/* 2. Render Attachments Outside the Text Bubble (Images, Videos, Files, Audio Waves) */}
           {message.attachments && message.attachments.length > 0 && (
-            <div 
-              className={cn(
-                "relative w-fit cursor-pointer",
-                !hasTextBubble && message.parentMessage && "-mt-[1px]"
-              )}
-            >
+            <div className="relative w-fit cursor-pointer">
               <AttachmentRenderer 
                 attachments={message.attachments} 
                 isUser={isUser} 
                 hasTextBubble={hasTextBubble} 
                 isPrevConsecutive={isPrevConsecutive}
                 isNextConsecutive={isNextConsecutive}
+                isReply={!!message.parentMessageId}
               />
             </div>
           )}
