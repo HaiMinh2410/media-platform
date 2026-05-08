@@ -2,12 +2,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageWithSender, MessageAttachment } from '@/domain/types/messaging';
-import { Wand2, BookOpen, Paperclip, Send, Mic, X, Reply } from 'lucide-react';
+import { Wand2, BookOpen, Paperclip, Mic, X, Reply } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { useInboxStore, ToneMode } from '../store/inbox.store';
 import { cn } from '@/lib/utils';
 import { AttachmentPreview, FileAttachment } from './attachment-preview';
 import { VoiceRecorder } from './voice-recorder';
+import { SendButton } from './send-button';
 
 type SendState = 'idle' | 'sending' | 'error';
 
@@ -515,9 +516,8 @@ export function ReplyComposer({
         ) : (
           <div 
             className={cn(
-              "flex gap-3 items-end p-3 px-md transition-all rounded-b-lg border bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative",
-              !replyToMessage && "rounded-t-lg",
-              isDragging ? "border-indigo-500 bg-indigo-500/5 ring-2 ring-indigo-500/20" : "border-foreground/10 focus-within:border-accent-primary/50 focus-within:bg-background-secondary focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]"
+              "flex gap-3 items-end p-3 px-md transition-all rounded-b-lg bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative outline-none",
+              !replyToMessage && "rounded-t-lg"
             )}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -608,24 +608,18 @@ export function ReplyComposer({
                   </button>
                 </div>
 
-                <button
+                <SendButton
                   type="submit"
                   className={cn(
-                    "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground flex items-center justify-center cursor-pointer transition-all shrink-0 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-accent-primary/20",
+                    "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-accent-primary/20",
                     isSending && "opacity-70"
                   )}
-                  disabled={(!text.trim() && files.length === 0) || isSending}
+                  disabled={(!text.trim() && files.length === 0)}
+                  isSending={isSending}
                   aria-label="Send message"
                   onClick={() => handleSubmit()}
-                >
-                  {isSending ? (
-                    <div className="animate-spin">
-                      <Send size={16} className="opacity-50" />
-                    </div>
-                  ) : (
-                    <Send size={16} />
-                  )}
-                </button>
+                  size={16}
+                />
               </div>
             </div>
           </div>

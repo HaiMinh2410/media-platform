@@ -241,7 +241,11 @@ const VoiceNotePlayer = ({
         "text-[11px] font-semibold select-none tabular-nums shrink-0 ml-1.5",
         isUser ? "text-[#050505]/80 dark:text-white/80" : "text-white/95"
       )}>
-        {currentTime > 0 ? formatTime(currentTime) : formatTime(duration || 0)}
+        {formatTime(
+          currentTime > 0 
+            ? Math.max(0, Math.ceil(duration - currentTime)) 
+            : Math.ceil(duration || 0)
+        )}
       </span>
     </div>
   );

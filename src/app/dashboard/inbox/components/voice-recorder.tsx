@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Square, Send, Play, X, Pause } from 'lucide-react';
+import { Square, Play, X, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { SendButton } from './send-button';
 
 export function VoiceRecorder({ 
   onCancel, 
@@ -338,14 +339,14 @@ export function VoiceRecorder({
       </div>
 
       {/* Right Send Button: Blue paper plane pointing right */}
-      <button 
+      <SendButton 
         type="button" 
         onClick={handleConfirm}
-        className="w-8 h-8 rounded-full bg-transparent flex items-center justify-center text-[#0084FF] hover:scale-110 active:scale-90 transition-all shrink-0"
+        className="w-8 h-8 rounded-full bg-transparent text-[#0084FF] hover:scale-110 active:scale-90 shrink-0"
+        iconClassName="text-[#0084FF] fill-current"
+        size={20}
         title="Xác nhận và đính kèm"
-      >
-        <Send size={20} className="text-[#0084FF] fill-current" />
-      </button>
+      />
     </div>
   );
 }

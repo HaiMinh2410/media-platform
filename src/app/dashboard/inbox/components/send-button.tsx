@@ -1,0 +1,57 @@
+'use client';
+
+import React from 'react';
+import { Send } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export interface SendButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  isSending?: boolean;
+  size?: number;
+  iconClassName?: string;
+  duration?: number; // Tailwind transition duration value (e.g. 150, 200, 300, 500), default is 200
+}
+
+export function SendButton({
+  isSending = false,
+  size = 16,
+  className,
+  iconClassName,
+  disabled,
+  type = 'submit',
+  duration = 200,
+  ...props
+}: SendButtonProps) {
+  // Map numerical duration to Tailwind class (e.g. duration-200)
+  const durationClass = `duration-${duration}`;
+
+  return (
+    <button
+      type={type}
+      disabled={disabled || isSending}
+      className={cn(
+        "relative transition-all shrink-0 flex items-center justify-center cursor-pointer group",
+        durationClass,
+        (disabled || isSending) && "cursor-not-allowed opacity-50",
+        className
+      )}
+      {...props}
+    >
+      {isSending ? (
+        <div className="animate-spin flex items-center justify-center">
+          <Send size={size} className={cn("opacity-50", iconClassName)} />
+        </div>
+      ) : (
+        <Send 
+          size={size} 
+          className={cn(
+            "transition-transform",
+            durationClass,
+            // When hovering the button, rotate the send icon 90 degrees (if not disabled)
+            !disabled && "group-hover:rotate-45",
+            iconClassName
+          )} 
+        />
+      )}
+    </button>
+  );
+}
