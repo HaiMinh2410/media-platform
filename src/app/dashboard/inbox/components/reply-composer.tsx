@@ -85,6 +85,14 @@ export function ReplyComposer({
   }, [platform, platformUserName, replyAsId, replyOnChannel, setReplyAsId, setReplyOnChannel]);
 
   useEffect(() => {
+    if (replyToMessage) {
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus();
+      });
+    }
+  }, [replyToMessage]);
+
+  useEffect(() => {
     if (!fillText) return;
     const pipeIdx = fillText.indexOf('|');
     const actualText = pipeIdx >= 0 ? fillText.slice(pipeIdx + 1) : fillText;

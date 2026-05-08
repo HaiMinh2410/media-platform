@@ -133,9 +133,9 @@ export const metaMessagingClient = {
       recipient: { id: recipientId },
       message: {
         text,
-        reply_to: {
-          message_id: replyToMessageId,
-        },
+      },
+      reply_to: {
+        mid: replyToMessageId,
       },
       messaging_type: 'RESPONSE',
     };

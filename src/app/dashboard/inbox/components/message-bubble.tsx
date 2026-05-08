@@ -1,7 +1,7 @@
 'use client';
 
 import React, { memo, useState, useEffect, useRef } from 'react';
-import { MessageWithSender, MessageAttachment, MessageReaction } from '@/domain/types/messaging';
+import { MessageWithSender, MessageAttachment } from '@/domain/types/messaging';
 import { Sparkles, Play, Pause, FileText, Download, Check, CheckCheck, Loader2, Reply, Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -233,154 +233,75 @@ const AttachmentRenderer = ({
   );
 };
 
-// --- Hover Reaction Picker Panel ---
-const HoverReactions = ({ 
-  messageId, 
-  conversationId, 
-  existingReactions,
-  onReactSuccess,
+// --- Hover Actions Panel ---
+const HoverActions = ({ 
   onReplyClick,
   isPinned,
   onPinClick
 }: { 
-  messageId: string; 
-  conversationId: string; 
-  existingReactions: MessageReaction[] | null;
-  onReactSuccess: (updated: MessageReaction[]) => void;
   onReplyClick: () => void;
   isPinned: boolean;
   onPinClick: () => void;
 }) => {
-  const emojis = ['👍', '❤️', '😂', '😮', '😢', '😡'];
-
-  const handleReact = async (emoji: string) => {
-    try {
-      if (!conversationId) return;
-      const isAlreadyReacted = existingReactions?.some(r => r.senderId === 'agent' && r.reaction === emoji) || false;
-      const action = isAlreadyReacted ? 'unreact' : 'react';
-
-      const res = await fetch(`/api/conversations/${conversationId}/react`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messageId,
-          reaction: emoji,
-          action
-        })
-      });
-      const data = await res.json();
-      if (data.success && data.reactions) {
-        onReactSuccess(data.reactions);
-      } else {
-        // Fallback Client-side update
-        const updated = existingReactions ? [...existingReactions] : [];
-        if (action === 'react') {
-          updated.push({ senderId: 'agent', reaction: emoji });
-        } else {
-          const idx = updated.findIndex(r => r.senderId === 'agent' && r.reaction === emoji);
-          if (idx !== -1) updated.splice(idx, 1);
-        }
-        onReactSuccess(updated);
-      }
-    } catch (err) {
-      console.warn('[HoverReactions] Reaction error:', err);
-    }
-  };
-
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.85, y: 5 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.85, y: 5 }}
       transition={{ type: "spring", stiffness: 450, damping: 25 }}
-      className="absolute -top-11 z-20 flex items-center gap-1.5 p-1.5 px-2.5 rounded-full bg-background-secondary border border-foreground/10 shadow-[0_4px_25px_rgba(0,0,0,0.18)] backdrop-blur-md"
+      className="absolute -top-9 z-20 flex items-center gap-1 p-1 rounded-full bg-background-secondary border border-foreground/10 shadow-[0_4px_18px_rgba(0,0,0,0.12)] backdrop-blur-md"
     >
-      {emojis.map((emoji) => (
-        <motion.button
-          key={emoji}
-          type="button"
-          onClick={() => handleReact(emoji)}
-          className="text-lg hover:text-2xl transition-all duration-100 flex items-center justify-center cursor-pointer select-none"
-          whileHover={{ scale: 1.35, y: -4 }}
-          whileTap={{ scale: 0.9 }}
-          transition={{ type: "spring", stiffness: 400, damping: 12 }}
-        >
-          {emoji}
-        </motion.button>
-      ))}
-      <div className="w-[1px] h-4 bg-foreground/10 mx-1" />
       <motion.button
         type="button"
         onClick={onReplyClick}
-        className="text-foreground-secondary hover:text-foreground transition-all duration-100 flex items-center justify-center cursor-pointer p-1"
-        whileHover={{ scale: 1.15 }}
-        whileTap={{ scale: 0.9 }}
+        className="text-foreground-secondary hover:text-foreground transition-all duration-100 flex items-center justify-center cursor-pointer p-1.5 rounded-full hover:bg-foreground/5"
+        whileHover={{ scale: 1.12 }}
+        whileTap={{ scale: 0.95 }}
         title="Trả lời"
       >
-        <Reply size={15} />
+        <Reply size={14} />
       </motion.button>
+      <div className="w-[1px] h-3.5 bg-foreground/10" />
       <motion.button
         type="button"
         onClick={onPinClick}
         className={cn(
-          "text-foreground-secondary hover:text-indigo-500 transition-all duration-100 flex items-center justify-center cursor-pointer p-1",
+          "text-foreground-secondary hover:text-indigo-500 transition-all duration-100 flex items-center justify-center cursor-pointer p-1.5 rounded-full hover:bg-foreground/5",
           isPinned && "text-indigo-500"
         )}
-        whileHover={{ scale: 1.15 }}
-        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.12 }}
+        whileTap={{ scale: 0.95 }}
         title={isPinned ? "Bỏ ghim tin nhắn" : "Ghim tin nhắn"}
       >
-        <Pin size={14} className={cn(isPinned && "fill-indigo-500 rotate-45")} />
+        <Pin size={13} className={cn(isPinned && "fill-indigo-500 rotate-45")} />
       </motion.button>
     </motion.div>
   );
 };
 
-// --- Reaction List Displays ---
-const ReactionDisplay = ({ reactions }: { reactions: MessageReaction[] }) => {
-  if (!reactions || reactions.length === 0) return null;
-
-  // Group unique emojis
-  const counts: { [emoji: string]: number } = {};
-  reactions.forEach(r => {
-    counts[r.reaction] = (counts[r.reaction] || 0) + 1;
-  });
-
-  const uniqueEmojis = Object.keys(counts);
-
-  return (
-    <div className="absolute -bottom-2 right-4 z-10 flex items-center gap-1 p-0.5 px-1.5 rounded-full bg-background border border-foreground/10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-[10px] select-none hover:scale-105 transition-all cursor-pointer">
-      <div className="flex items-center gap-0.5">
-        {uniqueEmojis.slice(0, 3).map((emoji) => (
-          <span key={emoji} className="leading-none">{emoji}</span>
-        ))}
-      </div>
-      {reactions.length > 1 && (
-        <span className="font-semibold text-foreground-secondary text-[9px] ml-0.5">{reactions.length}</span>
-      )}
-    </div>
-  );
-};
-
 // --- Quote Parent Message ---
-const ParentMessageQuote = ({ 
+const ParentMessageBubble = ({ 
   parent, 
-  onScrollToParent 
+  onScrollToParent,
+  isUser
 }: { 
   parent: MessageWithSender; 
   onScrollToParent: () => void;
+  isUser: boolean;
 }) => {
-  const isAgent = parent.senderType === 'agent';
-  const isAi = parent.senderType === 'ai';
-  const label = isAgent ? 'Bạn' : (isAi ? 'AI' : 'Khách hàng');
-
   return (
     <div 
       onClick={onScrollToParent}
-      className="mb-1.5 p-2 rounded-lg bg-black/10 text-[11px] border-l-2 border-indigo-500 cursor-pointer hover:bg-black/15 transition-all text-left flex flex-col gap-0.5 max-w-full opacity-85 select-none"
+      className={cn(
+        "p-2 px-3 text-[12.5px] leading-relaxed cursor-pointer transition-all duration-200 select-none max-w-[240px] border",
+        "opacity-55 hover:opacity-100 active:scale-[0.98]",
+        isUser ? "rounded-[18px] rounded-bl-[6px]" : "rounded-[18px] rounded-br-[6px]",
+        "bg-foreground/5 border-foreground/10 text-foreground/60"
+      )}
     >
-      <span className="font-bold text-indigo-400">{label}</span>
-      <span className="truncate max-w-[200px] text-foreground/80">{parent.content || '[Tệp đính kèm]'}</span>
+      <span className="line-clamp-2 break-words">
+        {parent.content || '[Tệp đính kèm]'}
+      </span>
     </div>
   );
 };
@@ -422,15 +343,10 @@ export const MessageBubble = memo(function MessageBubble({
   const isAgent = message.senderType === 'agent';
 
   const [isHovered, setIsHovered] = useState(false);
-  const [reactions, setReactions] = useState<MessageReaction[]>(message.reactions || []);
   const [isPinned, setIsPinned] = useState(message.is_pinned || false);
-  const hasTextBubble = !!(message.content || message.parentMessage || isAi);
+  const hasTextBubble = !!(message.content || isAi);
   const setReplyToMessage = useInboxStore(state => state.setReplyToMessage);
   const triggerRefresh = useInboxStore(state => state.triggerRefresh);
-
-  useEffect(() => {
-    setReactions(message.reactions || []);
-  }, [message.reactions]);
 
   useEffect(() => {
     setIsPinned(message.is_pinned || false);
@@ -483,14 +399,10 @@ export const MessageBubble = memo(function MessageBubble({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Interactive Floating Hover Reaction Bar */}
+      {/* Interactive Floating Hover Action Bar */}
       <AnimatePresence>
         {isHovered && conversationId && (
-          <HoverReactions 
-            messageId={message.id} 
-            conversationId={conversationId} 
-            existingReactions={reactions} 
-            onReactSuccess={setReactions} 
+          <HoverActions 
             onReplyClick={() => setReplyToMessage(message)}
             isPinned={isPinned}
             onPinClick={handlePinClick}
@@ -499,17 +411,51 @@ export const MessageBubble = memo(function MessageBubble({
       </AnimatePresence>
 
       <div className={cn(
-        "flex flex-col max-w-[80%] gap-1.5 relative",
+        "flex flex-col max-w-[80%] gap-1 relative",
         isUser ? "items-start" : "items-end"
       )}>
         
-        {/* 1. Text Bubble (Renders only if there's content, parent quote, or is AI auto-reply) */}
-        {(message.content || message.parentMessage || isAi) && (
+        {/* Render Reply Header & Parent Bubble if Threaded */}
+        {message.parentMessage && (
+          <>
+            {/* Header hiển thị "[Tên] đã trả lời" */}
+            <div className={cn(
+              "flex items-center gap-1 text-[11px] text-foreground-tertiary select-none opacity-80 mb-1 font-medium transition-all duration-150",
+              isUser ? "justify-start pl-1" : "justify-end pr-1"
+            )}>
+              <Reply size={11} className="shrink-0 opacity-70" />
+              <span>
+                {(() => {
+                  const isParentUser = message.parentMessage?.senderType === 'user';
+                  if (isUser) {
+                    return isParentUser ? "Khách hàng đã trả lời chính mình" : "Khách hàng đã trả lời bạn";
+                  } else {
+                    return isParentUser ? "Bạn đã trả lời khách hàng" : "Bạn đã trả lời chính mình";
+                  }
+                })()}
+              </span>
+            </div>
+
+            {/* Parent Bubble mờ xếp ngay trên bong bóng chính, thẳng lề hoàn hảo */}
+            <div className="w-fit max-w-full">
+              <ParentMessageBubble 
+                parent={message.parentMessage} 
+                onScrollToParent={onScrollToParent}
+                isUser={isUser}
+              />
+            </div>
+          </>
+        )}
+
+        {/* 1. Text Bubble (Renders only if there's content or is AI auto-reply) */}
+        {(message.content || isAi) && (
           <div className={cn(
             "w-fit p-3 px-4.5 rounded-[22px] shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md",
             isUser && "bg-background-secondary border border-foreground/10 rounded-bl-sm text-foreground",
             isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-[0_3px_12px_rgba(99,102,241,0.25)]",
-            isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 rounded-br-sm text-foreground shadow-[0_4px_18px_rgba(168,85,247,0.12)] backdrop-blur-md"
+            isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 rounded-br-sm text-foreground shadow-[0_4px_18px_rgba(168,85,247,0.12)] backdrop-blur-md",
+            // Bo góc và dính khít thông minh khi có tin nhắn trích dẫn (parentMessage) ở trên
+            message.parentMessage && (isUser ? "rounded-tl-[6px] -mt-[1px]" : "rounded-tr-[6px] -mt-[1px]")
           )}>
             {/* AI Robot Header Banner */}
             {isAi && (
@@ -519,14 +465,6 @@ export const MessageBubble = memo(function MessageBubble({
               </div>
             )}
 
-            {/* Render Parent Quote if Threaded */}
-            {message.parentMessage && (
-              <ParentMessageQuote 
-                parent={message.parentMessage} 
-                onScrollToParent={onScrollToParent} 
-              />
-            )}
-
             {/* Main Message Text */}
             {message.content && (
               <div className="text-[14px] leading-relaxed whitespace-pre-wrap">
@@ -534,22 +472,16 @@ export const MessageBubble = memo(function MessageBubble({
               </div>
             )}
 
-            {/* Reactions on Text Bubble if there are NO attachments */}
-            {reactions.length > 0 && (!message.attachments || message.attachments.length === 0) && (
-              <ReactionDisplay reactions={reactions} />
-            )}
           </div>
         )}
 
         {/* 2. Render Attachments Outside the Text Bubble (Images, Videos, Files, Audio Waves) */}
         {message.attachments && message.attachments.length > 0 && (
-          <div className="relative w-fit">
+          <div className={cn(
+            "relative w-fit",
+            !hasTextBubble && message.parentMessage && "-mt-[1px]"
+          )}>
             <AttachmentRenderer attachments={message.attachments} isUser={isUser} hasTextBubble={hasTextBubble} />
-            
-            {/* Reactions on Attachments if there are reactions */}
-            {reactions.length > 0 && (
-              <ReactionDisplay reactions={reactions} />
-            )}
           </div>
         )}
 

@@ -219,7 +219,17 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
     if (seenIds.current.has(message.id)) return;
     seenIds.current.add(message.id);
 
-    setMessages(prev => [...prev, message]);
+    setMessages(prev => {
+      let resolvedMessage = { ...message };
+      // Nếu có parentMessageId nhưng thiếu đối tượng parentMessage, tự động ánh xạ từ tin nhắn hiện tại
+      if (resolvedMessage.parentMessageId && !resolvedMessage.parentMessage) {
+        const parent = prev.find(m => m.id === resolvedMessage.parentMessageId);
+        if (parent) {
+          resolvedMessage.parentMessage = parent;
+        }
+      }
+      return [...prev, resolvedMessage];
+    });
 
     requestAnimationFrame(() => {
       const el = scrollRef.current;
