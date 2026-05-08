@@ -16,8 +16,46 @@ const formatFileSize = (bytes?: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+// --- Dynamic Border Radius Utility (Messenger-style grouping) ---
+const getDynamicCornersClass = (
+  isUser: boolean,
+  isPrevConsecutive: boolean,
+  isNextConsecutive: boolean,
+  defaultBase: string = "rounded-2xl"
+) => {
+  if (isUser) {
+    // Tin nhắn gửi đến (Trái)
+    if (isPrevConsecutive && isNextConsecutive) {
+      return `${defaultBase} rounded-tl-sm rounded-bl-sm`; // Tin nhắn ở giữa
+    }
+    if (isPrevConsecutive && !isNextConsecutive) {
+      return `${defaultBase} rounded-tl-sm`; // Tin nhắn cuối nhóm
+    }
+    return `${defaultBase} rounded-bl-sm`; // Tin nhắn đầu nhóm hoặc đơn lẻ
+  } else {
+    // Tin nhắn gửi đi (Phải)
+    if (isPrevConsecutive && isNextConsecutive) {
+      return `${defaultBase} rounded-tr-sm rounded-br-sm`; // Tin nhắn ở giữa
+    }
+    if (isPrevConsecutive && !isNextConsecutive) {
+      return `${defaultBase} rounded-tr-sm`; // Tin nhắn cuối nhóm
+    }
+    return `${defaultBase} rounded-br-sm`; // Tin nhắn đầu nhóm hoặc đơn lẻ
+  }
+};
+
 // --- Custom Mini Audio Player for Voice Notes ---
-const VoiceNotePlayer = ({ url, isUser }: { url: string; isUser: boolean }) => {
+const VoiceNotePlayer = ({ 
+  url, 
+  isUser,
+  isPrevConsecutive = false,
+  isNextConsecutive = false
+}: { 
+  url: string; 
+  isUser: boolean;
+  isPrevConsecutive?: boolean;
+  isNextConsecutive?: boolean;
+}) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -79,7 +117,8 @@ const VoiceNotePlayer = ({ url, isUser }: { url: string; isUser: boolean }) => {
 
   return (
     <div className={cn(
-      "flex items-center gap-3 p-3 rounded-2xl min-w-60 shadow-sm backdrop-blur-sm border",
+      "flex items-center gap-3 p-3 min-w-60 shadow-sm backdrop-blur-sm border",
+      getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl"),
       isUser 
         ? "bg-foreground/5 border-foreground/10 text-foreground" 
         : "bg-indigo-500/10 border-indigo-500/20 text-foreground"
@@ -140,11 +179,15 @@ const VoiceNotePlayer = ({ url, isUser }: { url: string; isUser: boolean }) => {
 const AttachmentRenderer = ({ 
   attachments, 
   isUser,
-  hasTextBubble
+  hasTextBubble,
+  isPrevConsecutive = false,
+  isNextConsecutive = false
 }: { 
   attachments: MessageAttachment[]; 
   isUser: boolean;
   hasTextBubble: boolean;
+  isPrevConsecutive?: boolean;
+  isNextConsecutive?: boolean;
 }) => {
   if (!attachments || attachments.length === 0) return null;
 
@@ -166,9 +209,9 @@ const AttachmentRenderer = ({
                   "relative group overflow-hidden border border-foreground/5 shadow-md max-w-72",
                   hasTextBubble
                     ? (isUser 
-                        ? "rounded-tr-xl rounded-br-xl rounded-bl-xl rounded-tl-sm" 
-                        : "rounded-tl-xl rounded-bl-xl rounded-br-xl rounded-tr-sm")
-                    : "rounded-xl"
+                        ? cn("rounded-tr-xl rounded-br-xl rounded-tl-sm", isNextConsecutive ? "rounded-bl-sm" : "rounded-bl-xl")
+                        : cn("rounded-tl-xl rounded-bl-xl rounded-tr-sm", isNextConsecutive ? "rounded-br-sm" : "rounded-br-xl"))
+                    : getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl")
                 )}
               >
                 <motion.img 
@@ -189,9 +232,9 @@ const AttachmentRenderer = ({
                   "overflow-hidden border border-foreground/5 shadow-md max-w-72 bg-black",
                   hasTextBubble
                     ? (isUser 
-                        ? "rounded-tr-xl rounded-br-xl rounded-bl-xl rounded-tl-sm" 
-                        : "rounded-tl-xl rounded-bl-xl rounded-br-xl rounded-tr-sm")
-                    : "rounded-xl"
+                        ? cn("rounded-tr-xl rounded-br-xl rounded-tl-sm", isNextConsecutive ? "rounded-bl-sm" : "rounded-bl-xl")
+                        : cn("rounded-tl-xl rounded-bl-xl rounded-tr-sm", isNextConsecutive ? "rounded-br-sm" : "rounded-br-xl"))
+                    : getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl")
                 )}
               >
                 <video 
@@ -203,7 +246,15 @@ const AttachmentRenderer = ({
               </div>
             );
           case 'audio':
-            return <VoiceNotePlayer key={idx} url={payload.url} isUser={isUser} />;
+            return (
+              <VoiceNotePlayer 
+                key={idx} 
+                url={payload.url} 
+                isUser={isUser} 
+                isPrevConsecutive={isPrevConsecutive}
+                isNextConsecutive={isNextConsecutive}
+              />
+            );
           case 'file':
           default:
             return (
@@ -212,7 +263,10 @@ const AttachmentRenderer = ({
                 href={payload.url} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="flex items-center gap-3 p-3 rounded-xl bg-background-tertiary border border-foreground/10 hover:bg-background-secondary transition-colors text-foreground text-left max-w-72 shadow-sm"
+                className={cn(
+                  "flex items-center gap-3 p-3 bg-background-tertiary border border-foreground/10 hover:bg-background-secondary transition-colors text-foreground text-left max-w-72 shadow-sm",
+                  getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-xl")
+                )}
               >
                 <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
                   <FileText size={20} />
@@ -363,27 +417,7 @@ export const MessageBubble = memo(function MessageBubble({
 
   // Dynamic Border Radius (Bo góc dẹt phẳng thông minh chuẩn Messenger)
   const getBubbleCornersClass = () => {
-    if (isUser) {
-      // Tin nhắn gửi đến (Trái) - Bo góc dẹt cạnh trái chạm mép
-      if (isPrevConsecutive && isNextConsecutive) {
-        return "rounded-2xl rounded-tl-sm rounded-bl-sm"; // Tin nhắn ở giữa
-      }
-      if (isPrevConsecutive && !isNextConsecutive) {
-        return "rounded-2xl rounded-tl-sm"; // Tin nhắn cuối nhóm
-      }
-      // Tin nhắn đầu nhóm hoặc tin nhắn đơn lẻ
-      return "rounded-2xl rounded-bl-sm";
-    } else {
-      // Tin nhắn gửi đi (Phải) - Bo góc dẹt cạnh phải chạm mép
-      if (isPrevConsecutive && isNextConsecutive) {
-        return "rounded-2xl rounded-tr-sm rounded-br-sm"; // Tin nhắn ở giữa
-      }
-      if (isPrevConsecutive && !isNextConsecutive) {
-        return "rounded-2xl rounded-tr-sm"; // Tin nhắn cuối nhóm
-      }
-      // Tin nhắn đầu nhóm hoặc tin nhắn đơn lẻ
-      return "rounded-2xl rounded-br-sm";
-    }
+    return getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl");
   };
 
   const bubbleRef = useRef<HTMLDivElement>(null);
@@ -600,7 +634,13 @@ export const MessageBubble = memo(function MessageBubble({
                 !hasTextBubble && message.parentMessage && "-mt-[1px]"
               )}
             >
-              <AttachmentRenderer attachments={message.attachments} isUser={isUser} hasTextBubble={hasTextBubble} />
+              <AttachmentRenderer 
+                attachments={message.attachments} 
+                isUser={isUser} 
+                hasTextBubble={hasTextBubble} 
+                isPrevConsecutive={isPrevConsecutive}
+                isNextConsecutive={isNextConsecutive}
+              />
             </div>
           )}
 
