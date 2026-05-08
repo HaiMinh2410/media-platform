@@ -169,7 +169,8 @@ export async function getConversations(
         is_vip: c.is_vip,
         canonical_conversation_id: c.canonical_conversation_id,
         identity_id: c.customer_platform_mappings[0]?.identity_id ?? null,
-        is_pinned: (c as any).is_pinned
+        is_pinned: (c as any).is_pinned,
+        last_message_sender_type: lastMsg?.senderType as any
       };
     });
 

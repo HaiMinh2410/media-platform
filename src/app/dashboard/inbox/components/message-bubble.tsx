@@ -16,7 +16,7 @@ const formatFileSize = (bytes?: number) => {
 };
 
 // --- Custom Mini Audio Player for Voice Notes ---
-const VoiceNotePlayer = ({ url }: { url: string }) => {
+const VoiceNotePlayer = ({ url, isUser }: { url: string; isUser: boolean }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -77,11 +77,19 @@ const VoiceNotePlayer = ({ url }: { url: string }) => {
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-foreground min-w-[240px] shadow-sm backdrop-blur-sm">
+    <div className={cn(
+      "flex items-center gap-3 p-3 rounded-2xl min-w-[240px] shadow-sm backdrop-blur-sm border",
+      isUser 
+        ? "bg-foreground/5 border-foreground/10 text-foreground" 
+        : "bg-indigo-500/10 border-indigo-500/20 text-foreground"
+    )}>
       <button 
         type="button"
         onClick={togglePlay} 
-        className="w-10 h-10 flex items-center justify-center rounded-full bg-indigo-500 text-white hover:bg-indigo-600 transition-all shadow-md active:scale-95"
+        className={cn(
+          "w-10 h-10 flex items-center justify-center rounded-full text-white transition-all shadow-md active:scale-95 shrink-0",
+          isUser ? "bg-foreground/30 hover:bg-foreground/45" : "bg-indigo-500 hover:bg-indigo-600"
+        )}
       >
         {isPlaying ? <Pause size={18} fill="white" /> : <Play size={18} className="ml-0.5" fill="white" />}
       </button>
@@ -97,7 +105,9 @@ const VoiceNotePlayer = ({ url }: { url: string }) => {
                 key={i} 
                 className={cn(
                   "w-[3px] rounded-full transition-all duration-150", 
-                  isPassed ? "bg-indigo-500" : "bg-foreground/20"
+                  isPassed 
+                    ? (isUser ? "bg-foreground" : "bg-indigo-500") 
+                    : "bg-foreground/20"
                 )}
                 style={{ height: `${Math.max(4, Math.min(24, playHeight))}px` }}
               />
@@ -113,7 +123,10 @@ const VoiceNotePlayer = ({ url }: { url: string }) => {
             max="100" 
             value={progress} 
             onChange={handleSliderChange}
-            className="flex-1 h-1 bg-foreground/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            className={cn(
+              "flex-1 h-1 bg-foreground/10 rounded-lg appearance-none cursor-pointer",
+              isUser ? "accent-foreground" : "accent-indigo-500"
+            )}
           />
           <span>{formatTime(duration || 0)}</span>
         </div>
@@ -123,11 +136,22 @@ const VoiceNotePlayer = ({ url }: { url: string }) => {
 };
 
 // --- Multimedia Attachment Renderer ---
-const AttachmentRenderer = ({ attachments }: { attachments: MessageAttachment[] }) => {
+const AttachmentRenderer = ({ 
+  attachments, 
+  isUser,
+  hasTextBubble
+}: { 
+  attachments: MessageAttachment[]; 
+  isUser: boolean;
+  hasTextBubble: boolean;
+}) => {
   if (!attachments || attachments.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2 mt-1 max-w-full">
+    <div className={cn(
+      "flex flex-col gap-2 max-w-full",
+      hasTextBubble ? "-mt-1" : "mt-1"
+    )}>
       {attachments.map((att, idx) => {
         const { type, payload } = att;
         if (!payload?.url) return null;
@@ -135,7 +159,17 @@ const AttachmentRenderer = ({ attachments }: { attachments: MessageAttachment[] 
         switch (type) {
           case 'image':
             return (
-              <div key={idx} className="relative group overflow-hidden rounded-xl border border-foreground/5 shadow-md max-w-[280px]">
+              <div 
+                key={idx} 
+                className={cn(
+                  "relative group overflow-hidden border border-foreground/5 shadow-md max-w-[280px]",
+                  hasTextBubble
+                    ? (isUser 
+                        ? "rounded-tr-xl rounded-br-xl rounded-bl-xl rounded-tl-sm" 
+                        : "rounded-tl-xl rounded-bl-xl rounded-br-xl rounded-tr-sm")
+                    : "rounded-xl"
+                )}
+              >
                 <motion.img 
                   src={payload.url} 
                   alt={payload.title || "Image attachment"} 
@@ -148,7 +182,17 @@ const AttachmentRenderer = ({ attachments }: { attachments: MessageAttachment[] 
             );
           case 'video':
             return (
-              <div key={idx} className="rounded-xl overflow-hidden border border-foreground/5 shadow-md max-w-[280px] bg-black">
+              <div 
+                key={idx} 
+                className={cn(
+                  "overflow-hidden border border-foreground/5 shadow-md max-w-[280px] bg-black",
+                  hasTextBubble
+                    ? (isUser 
+                        ? "rounded-tr-xl rounded-br-xl rounded-bl-xl rounded-tl-sm" 
+                        : "rounded-tl-xl rounded-bl-xl rounded-br-xl rounded-tr-sm")
+                    : "rounded-xl"
+                )}
+              >
                 <video 
                   src={payload.url} 
                   controls 
@@ -158,7 +202,7 @@ const AttachmentRenderer = ({ attachments }: { attachments: MessageAttachment[] 
               </div>
             );
           case 'audio':
-            return <VoiceNotePlayer key={idx} url={payload.url} />;
+            return <VoiceNotePlayer key={idx} url={payload.url} isUser={isUser} />;
           case 'file':
           default:
             return (
@@ -380,6 +424,7 @@ export const MessageBubble = memo(function MessageBubble({
   const [isHovered, setIsHovered] = useState(false);
   const [reactions, setReactions] = useState<MessageReaction[]>(message.reactions || []);
   const [isPinned, setIsPinned] = useState(message.is_pinned || false);
+  const hasTextBubble = !!(message.content || message.parentMessage || isAi);
   const setReplyToMessage = useInboxStore(state => state.setReplyToMessage);
   const triggerRefresh = useInboxStore(state => state.triggerRefresh);
 
@@ -458,46 +503,55 @@ export const MessageBubble = memo(function MessageBubble({
         isUser ? "items-start" : "items-end"
       )}>
         
-        {/* Main Text & Media Bubble Container */}
-        <div className={cn(
-          "w-fit p-3 px-4.5 rounded-[22px] shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md",
-          isUser && "bg-background-secondary border border-foreground/10 rounded-bl-sm text-foreground",
-          isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-[0_3px_12px_rgba(99,102,241,0.25)]",
-          isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 rounded-br-sm text-foreground shadow-[0_4px_18px_rgba(168,85,247,0.12)] backdrop-blur-md"
-        )}>
-          {/* AI Robot Header Banner */}
-          {isAi && (
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-purple-400 mb-1">
-              <Sparkles size={11} className="text-purple-400 animate-pulse" />
-              <span>AI Auto-Reply</span>
-            </div>
-          )}
+        {/* 1. Text Bubble (Renders only if there's content, parent quote, or is AI auto-reply) */}
+        {(message.content || message.parentMessage || isAi) && (
+          <div className={cn(
+            "w-fit p-3 px-4.5 rounded-[22px] shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md",
+            isUser && "bg-background-secondary border border-foreground/10 rounded-bl-sm text-foreground",
+            isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-[0_3px_12px_rgba(99,102,241,0.25)]",
+            isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 rounded-br-sm text-foreground shadow-[0_4px_18px_rgba(168,85,247,0.12)] backdrop-blur-md"
+          )}>
+            {/* AI Robot Header Banner */}
+            {isAi && (
+              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-purple-400 mb-1">
+                <Sparkles size={11} className="text-purple-400 animate-pulse" />
+                <span>AI Auto-Reply</span>
+              </div>
+            )}
 
-          {/* Render Parent Quote if Threaded */}
-          {message.parentMessage && (
-            <ParentMessageQuote 
-              parent={message.parentMessage} 
-              onScrollToParent={onScrollToParent} 
-            />
-          )}
+            {/* Render Parent Quote if Threaded */}
+            {message.parentMessage && (
+              <ParentMessageQuote 
+                parent={message.parentMessage} 
+                onScrollToParent={onScrollToParent} 
+              />
+            )}
 
-          {/* Main Message Text (if any) */}
-          {message.content && (
-            <div className="text-[14px] leading-relaxed whitespace-pre-wrap">
-              {message.content}
-            </div>
-          )}
+            {/* Main Message Text */}
+            {message.content && (
+              <div className="text-[14px] leading-relaxed whitespace-pre-wrap">
+                {message.content}
+              </div>
+            )}
 
-          {/* Render Attachments (Images, Videos, Files, Audio Waves) */}
-          {message.attachments && message.attachments.length > 0 && (
-            <AttachmentRenderer attachments={message.attachments} />
-          )}
+            {/* Reactions on Text Bubble if there are NO attachments */}
+            {reactions.length > 0 && (!message.attachments || message.attachments.length === 0) && (
+              <ReactionDisplay reactions={reactions} />
+            )}
+          </div>
+        )}
 
-          {/* Interactive Reactions Bubble (Bottom Right of Bubble) */}
-          {reactions.length > 0 && (
-            <ReactionDisplay reactions={reactions} />
-          )}
-        </div>
+        {/* 2. Render Attachments Outside the Text Bubble (Images, Videos, Files, Audio Waves) */}
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="relative w-fit">
+            <AttachmentRenderer attachments={message.attachments} isUser={isUser} hasTextBubble={hasTextBubble} />
+            
+            {/* Reactions on Attachments if there are reactions */}
+            {reactions.length > 0 && (
+              <ReactionDisplay reactions={reactions} />
+            )}
+          </div>
+        )}
 
         {/* Message Delivery Status Footer */}
         {(showStatus || isPinned) && (

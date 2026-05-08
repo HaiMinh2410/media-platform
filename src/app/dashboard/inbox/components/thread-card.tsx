@@ -140,10 +140,10 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
             )}
           </div>
           
-          <div className="relative shrink-0 ml-2 min-w-[60px] h-5 flex items-center justify-end overflow-hidden">
+          <div className="relative shrink-0 ml-2 min-w-[60px] h-5 flex items-center justify-end">
             {/* If conversation is NOT pinned */}
             {!conversation.is_pinned && (
-              <>
+              <div className="relative w-full h-full flex items-center justify-end overflow-hidden">
                 {/* Timestamp - shown by default, hidden on hover */}
                 <span className="text-xs text-foreground-tertiary transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-[-10px] absolute right-0">
                   {formatTime(conversation.last_message_at)}
@@ -158,33 +158,27 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
                 >
                   <Pin size={13} className="rotate-45" />
                 </button>
-              </>
+              </div>
             )}
 
             {/* If conversation IS pinned */}
             {conversation.is_pinned && (
-              <>
-                {/* Persistent colored Pin - shown by default, hidden on hover */}
+              <div className="flex items-center gap-1 shrink-0">
+                {/* Timestamp - ALWAYS shown, no animation to prevent layout shifts */}
+                <span className="text-xs text-foreground-tertiary mr-1">
+                  {formatTime(conversation.last_message_at)}
+                </span>
+                {/* Pin Button - ALWAYS shown, turns red on hover for intuitive unpinning */}
                 <button
                   type="button"
                   onClick={handlePinClick}
                   disabled={isPinning}
-                  className="transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-[-10px] text-indigo-500 p-1 absolute right-0 flex items-center justify-center cursor-pointer border-0 bg-transparent"
+                  className="text-indigo-500 hover:text-error hover:scale-110 transition-all duration-150 p-1 rounded-full hover:bg-foreground/5 flex items-center justify-center cursor-pointer border-0 bg-transparent"
                   title="Bỏ ghim hội thoại"
                 >
                   <Pin size={13} fill="currentColor" className="rotate-45" />
                 </button>
-                {/* Timestamp revealed - hidden by default, shown on hover */}
-                <button
-                  type="button"
-                  onClick={handlePinClick}
-                  disabled={isPinning}
-                  className="opacity-0 translate-y-[10px] group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 text-xs text-foreground-tertiary hover:text-error hover:scale-105 p-1 absolute right-0 flex items-center justify-center cursor-pointer font-medium bg-transparent border-0"
-                  title="Click để bỏ ghim"
-                >
-                  <span>{formatTime(conversation.last_message_at)}</span>
-                </button>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -194,7 +188,15 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
             "text-sm text-foreground-secondary whitespace-nowrap overflow-hidden text-ellipsis",
             isUnread && "font-medium text-foreground"
           )}>
-            {conversation.last_message_content || 'No messages'}
+            {conversation.last_message_content ? (
+              (conversation.last_message_sender_type === 'agent' || conversation.last_message_sender_type === 'ai') ? (
+                `Bạn: ${conversation.last_message_content}`
+              ) : (
+                conversation.last_message_content
+              )
+            ) : (
+              'No messages'
+            )}
           </span>
           {isUnread && (
             <span className="bg-primary text-primary-content min-w-[18px] h-[18px] rounded-full px-1.5 text-xs font-semibold flex items-center justify-center shrink-0 shadow-md shadow-primary/20">

@@ -40,12 +40,12 @@ type UseSidebarRealtimeOptions = {
   onConversationDeleted?: (conversationId: string) => void;
   /**
    * Called when a new message is inserted.
-   * Use this to update the preview text in the sidebar.
    */
   onMessageReceived?: (payload: {
     conversationId: string;
     content: string;
     createdAt: Date;
+    senderType?: 'user' | 'agent' | 'ai' | null;
   }) => void;
 };
 
@@ -166,13 +166,14 @@ export function useSidebarRealtime({
           let content = row.content || '';
           const attachments = row.attachments;
           const createdAt = new Date(row.created_at || row.createdAt);
+          const senderType = row.sender_type || row.senderType;
 
           if (!content && attachments && Array.isArray(attachments) && attachments.length > 0) {
             const attType = attachments[0]?.type;
-            if (attType === 'image') content = '📷 [Hình ảnh]';
-            else if (attType === 'audio') content = '🎵 [Tin nhắn thoại]';
-            else if (attType === 'video') content = '📹 [Video]';
-            else content = '📁 [Tệp đính kèm]';
+            if (attType === 'image') content = 'Hình ảnh';
+            else if (attType === 'audio') content = 'Tin nhắn thoại';
+            else if (attType === 'video') content = 'Video';
+            else content = 'Tệp đính kèm';
           }
 
           if (conversationId && (content || (attachments && attachments.length > 0))) {
@@ -180,6 +181,7 @@ export function useSidebarRealtime({
               conversationId,
               content,
               createdAt,
+              senderType,
             });
           }
         }

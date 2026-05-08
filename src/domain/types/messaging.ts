@@ -144,6 +144,7 @@ export type ConversationWithLastMessage = {
   ai_replied?: boolean;
   tags?: string[];
   is_pinned?: boolean;
+  last_message_sender_type?: 'user' | 'agent' | 'ai' | null;
 };
 
 /**

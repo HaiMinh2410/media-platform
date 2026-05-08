@@ -217,18 +217,31 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
             : c
         );
 
-        if (sortField === 'date' && sortOrder === 'desc') {
-          return [...updated].sort(
-            (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
-          );
-        }
-        return updated;
+        return [...updated].sort((a, b) => {
+          const isPinnedA = !!a.is_pinned;
+          const isPinnedB = !!b.is_pinned;
+
+          if (isPinnedA && !isPinnedB) return -1;
+          if (!isPinnedA && isPinnedB) return 1;
+
+          if (sortField === 'date') {
+            const timeA = new Date(a.last_message_at).getTime();
+            const timeB = new Date(b.last_message_at).getTime();
+            return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+          } else {
+            const nameA = a.sender_name || '';
+            const nameB = b.sender_name || '';
+            return sortOrder === 'desc' 
+              ? nameB.localeCompare(nameA) 
+              : nameA.localeCompare(nameB);
+          }
+        });
       });
     },
     [filterBy, sortField, sortOrder]
   );
 
-  const handleMessageReceived = useCallback((payload: { conversationId: string; content: string; createdAt: Date }) => {
+  const handleMessageReceived = useCallback((payload: { conversationId: string; content: string; createdAt: Date; senderType?: 'user' | 'agent' | 'ai' | null }) => {
     setConversations(prev => {
       const existing = prev.find(c => c.id === payload.conversationId);
       if (!existing) return prev;
@@ -238,17 +251,31 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
           ? { 
               ...c, 
               last_message_content: payload.content,
-              last_message_at: payload.createdAt
+              last_message_at: payload.createdAt,
+              last_message_sender_type: payload.senderType
             } 
           : c
       );
 
-      if (sortField === 'date' && sortOrder === 'desc') {
-        return [...updated].sort(
-          (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
-        );
-      }
-      return updated;
+      return [...updated].sort((a, b) => {
+        const isPinnedA = !!a.is_pinned;
+        const isPinnedB = !!b.is_pinned;
+
+        if (isPinnedA && !isPinnedB) return -1;
+        if (!isPinnedA && isPinnedB) return 1;
+
+        if (sortField === 'date') {
+          const timeA = new Date(a.last_message_at).getTime();
+          const timeB = new Date(b.last_message_at).getTime();
+          return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+        } else {
+          const nameA = a.sender_name || '';
+          const nameB = b.sender_name || '';
+          return sortOrder === 'desc' 
+            ? nameB.localeCompare(nameA) 
+            : nameA.localeCompare(nameB);
+        }
+      });
     });
   }, [filterBy, sortField, sortOrder]);
 

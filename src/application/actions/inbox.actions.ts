@@ -103,10 +103,10 @@ export async function getConversationAction(conversationId: string): Promise<{ d
     let lastMsgContent = lastMessage?.content || '';
     if (!lastMsgContent && attachments && Array.isArray(attachments) && attachments.length > 0) {
       const attType = attachments[0]?.type;
-      if (attType === 'image') lastMsgContent = '📷 [Hình ảnh]';
-      else if (attType === 'audio') lastMsgContent = '🎵 [Tin nhắn thoại]';
-      else if (attType === 'video') lastMsgContent = '📹 [Video]';
-      else lastMsgContent = '📁 [Tệp đính kèm]';
+      if (attType === 'image') lastMsgContent = 'Hình ảnh';
+      else if (attType === 'audio') lastMsgContent = 'Tin nhắn thoại';
+      else if (attType === 'video') lastMsgContent = 'Video';
+      else lastMsgContent = 'Tệp đính kèm';
     }
 
     return {
@@ -124,7 +124,8 @@ export async function getConversationAction(conversationId: string): Promise<{ d
         sentiment: conversation.sentiment,
         tags: conversation.tags,
         is_vip: conversation.is_vip,
-        canonical_conversation_id: conversation.canonical_conversation_id
+        canonical_conversation_id: conversation.canonical_conversation_id,
+        last_message_sender_type: lastMessage?.senderType as any
       },
       error: null
     };
