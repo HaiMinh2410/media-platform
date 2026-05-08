@@ -79,7 +79,7 @@ const VoiceNotePlayer = ({ url, isUser }: { url: string; isUser: boolean }) => {
 
   return (
     <div className={cn(
-      "flex items-center gap-3 p-3 rounded-2xl min-w-[240px] shadow-sm backdrop-blur-sm border",
+      "flex items-center gap-3 p-3 rounded-2xl min-w-60 shadow-sm backdrop-blur-sm border",
       isUser 
         ? "bg-foreground/5 border-foreground/10 text-foreground" 
         : "bg-indigo-500/10 border-indigo-500/20 text-foreground"
@@ -116,7 +116,7 @@ const VoiceNotePlayer = ({ url, isUser }: { url: string; isUser: boolean }) => {
           })}
         </div>
         {/* Playback Controls & Time */}
-        <div className="flex items-center justify-between gap-2 text-[10px] text-foreground-tertiary">
+        <div className="flex items-center justify-between gap-2 text-2xs text-foreground-tertiary">
           <span>{formatTime(currentTime)}</span>
           <input 
             type="range" 
@@ -163,7 +163,7 @@ const AttachmentRenderer = ({
               <div 
                 key={idx} 
                 className={cn(
-                  "relative group overflow-hidden border border-foreground/5 shadow-md max-w-[280px]",
+                  "relative group overflow-hidden border border-foreground/5 shadow-md max-w-72",
                   hasTextBubble
                     ? (isUser 
                         ? "rounded-tr-xl rounded-br-xl rounded-bl-xl rounded-tl-sm" 
@@ -174,7 +174,7 @@ const AttachmentRenderer = ({
                 <motion.img 
                   src={payload.url} 
                   alt={payload.title || "Image attachment"} 
-                  className="max-h-[220px] object-cover cursor-pointer transition-all hover:brightness-95"
+                  className="max-h-56 object-cover cursor-pointer transition-all hover:brightness-95"
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   onClick={() => window.open(payload.url, '_blank')}
@@ -186,7 +186,7 @@ const AttachmentRenderer = ({
               <div 
                 key={idx} 
                 className={cn(
-                  "overflow-hidden border border-foreground/5 shadow-md max-w-[280px] bg-black",
+                  "overflow-hidden border border-foreground/5 shadow-md max-w-72 bg-black",
                   hasTextBubble
                     ? (isUser 
                         ? "rounded-tr-xl rounded-br-xl rounded-bl-xl rounded-tl-sm" 
@@ -198,7 +198,7 @@ const AttachmentRenderer = ({
                   src={payload.url} 
                   controls 
                   preload="metadata"
-                  className="max-h-[220px] w-full object-cover"
+                  className="max-h-56 w-full object-cover"
                 />
               </div>
             );
@@ -212,7 +212,7 @@ const AttachmentRenderer = ({
                 href={payload.url} 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="flex items-center gap-3 p-3 rounded-xl bg-background-tertiary border border-foreground/10 hover:bg-background-secondary transition-colors text-foreground text-left max-w-[280px] shadow-sm"
+                className="flex items-center gap-3 p-3 rounded-xl bg-background-tertiary border border-foreground/10 hover:bg-background-secondary transition-colors text-foreground text-left max-w-72 shadow-sm"
               >
                 <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
                   <FileText size={20} />
@@ -308,9 +308,9 @@ const ParentMessageBubble = ({
     <div 
       onClick={onScrollToParent}
       className={cn(
-        "p-2 px-3 text-[12.5px] leading-relaxed cursor-pointer transition-all duration-200 select-none max-w-[240px] border",
+        "p-2 px-3 text-xs leading-relaxed cursor-pointer transition-all duration-200 select-none max-w-60 border",
         "opacity-55 hover:opacity-100 active:scale-[0.98]",
-        isUser ? "rounded-[18px] rounded-bl-[6px]" : "rounded-[18px] rounded-br-[6px]",
+        isUser ? "rounded-xl rounded-bl-sm" : "rounded-xl rounded-br-sm",
         "bg-foreground/5 border-foreground/10 text-foreground/60"
       )}
     >
@@ -362,6 +362,27 @@ export const MessageBubble = memo(function MessageBubble({
 
   const [isRowHovered, setIsRowHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(message.is_pinned || false);
+  const [showTimePill, setShowTimePill] = useState(false);
+  const timePillTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timePillTimerRef.current) {
+        clearTimeout(timePillTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isRowHovered) {
+      if (timePillTimerRef.current) {
+        clearTimeout(timePillTimerRef.current);
+        timePillTimerRef.current = null;
+      }
+      setShowTimePill(false);
+    }
+  }, [isRowHovered]);
+
   const hasTextBubble = !!(message.content || isAi);
   const setReplyToMessage = useInboxStore(state => state.setReplyToMessage);
   const triggerRefresh = useInboxStore(state => state.triggerRefresh);
@@ -455,7 +476,7 @@ export const MessageBubble = memo(function MessageBubble({
       }}
     >
       <div className={cn(
-        "flex flex-col max-w-[80%] gap-1 relative",
+        "flex flex-col max-w-4/5 gap-1 relative",
         isUser ? "items-start" : "items-end"
       )}>
         
@@ -464,7 +485,7 @@ export const MessageBubble = memo(function MessageBubble({
           <>
             {/* Header hiển thị "[Tên] đã trả lời" */}
             <div className={cn(
-              "flex items-center gap-1 text-[11px] text-foreground-tertiary select-none opacity-80 mb-1 font-medium transition-all duration-150",
+              "flex items-center gap-1 text-2xs text-foreground-tertiary select-none opacity-80 mb-1 font-medium transition-all duration-150",
               isUser ? "justify-start pl-1" : "justify-end pr-1"
             )}>
               <Reply size={11} className="shrink-0 opacity-70" />
@@ -495,22 +516,37 @@ export const MessageBubble = memo(function MessageBubble({
         <div 
           ref={bubbleRef} 
           className="relative w-fit max-w-full flex flex-col gap-1"
+          onMouseEnter={() => {
+            if (timePillTimerRef.current) {
+              clearTimeout(timePillTimerRef.current);
+            }
+            timePillTimerRef.current = setTimeout(() => {
+              setShowTimePill(true);
+            }, 300);
+          }}
+          onMouseLeave={() => {
+            if (timePillTimerRef.current) {
+              clearTimeout(timePillTimerRef.current);
+              timePillTimerRef.current = null;
+            }
+            setShowTimePill(false);
+          }}
         >
           {/* 1. Text Bubble (Renders only if there's content or is AI auto-reply) */}
           {(message.content || isAi) && (
             <div 
               className={cn(
-                "w-fit p-3 px-4.5 rounded-[22px] shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md cursor-pointer",
+                "w-fit p-3 px-4.5 rounded-2xl shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md cursor-pointer",
                 isUser && "bg-background-secondary border border-foreground/10 rounded-bl-sm text-foreground",
-                isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-[0_3px_12px_rgba(99,102,241,0.25)]",
-                isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 rounded-br-sm text-foreground shadow-[0_4px_18px_rgba(168,85,247,0.12)] backdrop-blur-md",
+                isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-md shadow-indigo-500/25",
+                isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 rounded-br-sm text-foreground shadow-md shadow-purple-500/15 backdrop-blur-md",
                 // Bo góc và dính khít thông minh khi có tin nhắn trích dẫn (parentMessage) ở trên
-                message.parentMessage && (isUser ? "rounded-tl-[6px] -mt-[1px]" : "rounded-tr-[6px] -mt-[1px]")
+                message.parentMessage && (isUser ? "rounded-tl-sm -mt-[1px]" : "rounded-tr-sm -mt-[1px]")
               )}
             >
               {/* AI Robot Header Banner */}
               {isAi && (
-                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-purple-400 mb-1">
+                <div className="flex items-center gap-1.5 text-2xs font-bold uppercase text-purple-400 mb-1">
                   <Sparkles size={11} className="text-purple-400 animate-pulse" />
                   <span>AI Auto-Reply</span>
                 </div>
@@ -518,7 +554,7 @@ export const MessageBubble = memo(function MessageBubble({
 
               {/* Main Message Text */}
               {message.content && (
-                <div className="text-[14px] leading-relaxed whitespace-pre-wrap">
+                <div className="text-sm leading-relaxed whitespace-pre-wrap">
                   {message.content}
                 </div>
               )}
@@ -550,14 +586,14 @@ export const MessageBubble = memo(function MessageBubble({
           </AnimatePresence>
 
           {(() => {
-            if (isRowHovered) {
-              console.log("TimePill Render Check - isRowHovered:", isRowHovered, "coords:", coords, "window defined:", typeof window !== 'undefined');
+            if (showTimePill) {
+              console.log("TimePill Render Check - showTimePill:", showTimePill, "coords:", coords, "window defined:", typeof window !== 'undefined');
             }
             return null;
           })()}
           {typeof window !== 'undefined' && createPortal(
             <AnimatePresence>
-              {isRowHovered && coords && (
+              {showTimePill && coords && (
                 <div
                   key={`timepill-portal-${message.id}`}
                   style={{
@@ -577,7 +613,7 @@ export const MessageBubble = memo(function MessageBubble({
                     transition={{ type: "spring", stiffness: 450, damping: 25 }}
                     className={cn(
                       "absolute top-1/2 -translate-y-1/2 flex items-center justify-center select-none",
-                      "bg-[#1c1e21] dark:bg-[#e4e6eb] text-white dark:text-[#050505] text-[11px] font-semibold px-2.5 py-1 rounded-[10px] shadow-[0_4px_12px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.25)] border border-white/5 dark:border-black/10 whitespace-nowrap",
+                      "bg-foreground/80 backdrop-blur-lg text-background text-xs font-semibold px-2.5 py-1 rounded-md shadow-md border border-background/10 whitespace-nowrap",
                       isUser ? "-left-13" : "-right-13"
                     )}
                   >
