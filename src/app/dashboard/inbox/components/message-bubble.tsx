@@ -6,6 +6,7 @@ import { Sparkles, Play, Pause, FileText, Download, Check, CheckCheck, Loader2, 
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInboxStore } from '../store/inbox.store';
+import { createPortal } from 'react-dom';
 
 // --- Format File Size Utility ---
 const formatFileSize = (bytes?: number) => {
@@ -233,23 +234,37 @@ const AttachmentRenderer = ({
   );
 };
 
+// --- Format Bubble Time Utility ---
+const formatBubbleTime = (dateInput?: Date | string) => {
+  if (!dateInput) return '';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
 // --- Hover Actions Panel ---
 const HoverActions = ({ 
   onReplyClick,
   isPinned,
-  onPinClick
+  onPinClick,
+  isUser
 }: { 
   onReplyClick: () => void;
   isPinned: boolean;
   onPinClick: () => void;
+  isUser: boolean;
 }) => {
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.85, y: 5 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.85, y: 5 }}
+      initial={{ opacity: 0, scale: 0.85, x: isUser ? 8 : -8 }}
+      animate={{ opacity: 1, scale: 1, x: 0 }}
+      exit={{ opacity: 0, scale: 0.85, x: isUser ? 8 : -8 }}
       transition={{ type: "spring", stiffness: 450, damping: 25 }}
-      className="absolute -top-9 z-20 flex items-center gap-1 p-1 rounded-full bg-background-secondary border border-foreground/10 shadow-[0_4px_18px_rgba(0,0,0,0.12)] backdrop-blur-md"
+      className={cn(
+        "absolute top-1/2 -translate-y-1/2 z-20 flex items-center gap-1 p-1 rounded-full bg-background-secondary border border-foreground/10 shadow-[0_4px_18px_rgba(0,0,0,0.12)] backdrop-blur-md",
+        isUser ? "left-full ml-3" : "right-full mr-3"
+      )}
     >
       <motion.button
         type="button"
@@ -342,11 +357,49 @@ export const MessageBubble = memo(function MessageBubble({
   const isAi = message.senderType === 'ai';
   const isAgent = message.senderType === 'agent';
 
-  const [isHovered, setIsHovered] = useState(false);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+
+  const [isRowHovered, setIsRowHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(message.is_pinned || false);
   const hasTextBubble = !!(message.content || isAi);
   const setReplyToMessage = useInboxStore(state => state.setReplyToMessage);
   const triggerRefresh = useInboxStore(state => state.triggerRefresh);
+
+  useEffect(() => {
+    console.log("TimePill Debug - isRowHovered changed:", isRowHovered, "ref ready:", !!bubbleRef.current);
+    if (isRowHovered && bubbleRef.current) {
+      const updatePosition = () => {
+        const rect = bubbleRef.current?.getBoundingClientRect();
+        console.log("TimePill Debug - getBoundingClientRect:", rect);
+        if (rect) {
+          setCoords({
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height
+          });
+        }
+      };
+
+      updatePosition();
+
+      const scrollContainer = bubbleRef.current.closest(".overflow-y-auto");
+      if (scrollContainer) {
+        scrollContainer.addEventListener("scroll", updatePosition, { passive: true });
+      }
+      window.addEventListener("resize", updatePosition, { passive: true });
+
+      return () => {
+        if (scrollContainer) {
+          scrollContainer.removeEventListener("scroll", updatePosition);
+        }
+        window.removeEventListener("resize", updatePosition);
+      };
+    } else {
+      setCoords(null);
+    }
+  }, [isRowHovered]);
 
   useEffect(() => {
     setIsPinned(message.is_pinned || false);
@@ -396,20 +449,11 @@ export const MessageBubble = memo(function MessageBubble({
         "flex mb-5 max-w-full group/bubble relative",
         isUser ? "justify-start" : "justify-end"
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => setIsRowHovered(true)}
+      onMouseLeave={() => {
+        setIsRowHovered(false);
+      }}
     >
-      {/* Interactive Floating Hover Action Bar */}
-      <AnimatePresence>
-        {isHovered && conversationId && (
-          <HoverActions 
-            onReplyClick={() => setReplyToMessage(message)}
-            isPinned={isPinned}
-            onPinClick={handlePinClick}
-          />
-        )}
-      </AnimatePresence>
-
       <div className={cn(
         "flex flex-col max-w-[80%] gap-1 relative",
         isUser ? "items-start" : "items-end"
@@ -447,54 +491,108 @@ export const MessageBubble = memo(function MessageBubble({
           </>
         )}
 
-        {/* 1. Text Bubble (Renders only if there's content or is AI auto-reply) */}
-        {(message.content || isAi) && (
-          <div className={cn(
-            "w-fit p-3 px-4.5 rounded-[22px] shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md",
-            isUser && "bg-background-secondary border border-foreground/10 rounded-bl-sm text-foreground",
-            isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-[0_3px_12px_rgba(99,102,241,0.25)]",
-            isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 rounded-br-sm text-foreground shadow-[0_4px_18px_rgba(168,85,247,0.12)] backdrop-blur-md",
-            // Bo góc và dính khít thông minh khi có tin nhắn trích dẫn (parentMessage) ở trên
-            message.parentMessage && (isUser ? "rounded-tl-[6px] -mt-[1px]" : "rounded-tr-[6px] -mt-[1px]")
-          )}>
-            {/* AI Robot Header Banner */}
-            {isAi && (
-              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-purple-400 mb-1">
-                <Sparkles size={11} className="text-purple-400 animate-pulse" />
-                <span>AI Auto-Reply</span>
-              </div>
+        {/* Core Bubble Content Area (Bao gồm Text Bubble và Attachments để căn lề HoverActions + TimePill thẳng hàng dọc chính giữa) */}
+        <div 
+          ref={bubbleRef} 
+          className="relative w-fit max-w-full flex flex-col gap-1"
+        >
+          {/* 1. Text Bubble (Renders only if there's content or is AI auto-reply) */}
+          {(message.content || isAi) && (
+            <div 
+              className={cn(
+                "w-fit p-3 px-4.5 rounded-[22px] shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md cursor-pointer",
+                isUser && "bg-background-secondary border border-foreground/10 rounded-bl-sm text-foreground",
+                isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-[0_3px_12px_rgba(99,102,241,0.25)]",
+                isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 rounded-br-sm text-foreground shadow-[0_4px_18px_rgba(168,85,247,0.12)] backdrop-blur-md",
+                // Bo góc và dính khít thông minh khi có tin nhắn trích dẫn (parentMessage) ở trên
+                message.parentMessage && (isUser ? "rounded-tl-[6px] -mt-[1px]" : "rounded-tr-[6px] -mt-[1px]")
+              )}
+            >
+              {/* AI Robot Header Banner */}
+              {isAi && (
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-purple-400 mb-1">
+                  <Sparkles size={11} className="text-purple-400 animate-pulse" />
+                  <span>AI Auto-Reply</span>
+                </div>
+              )}
+
+              {/* Main Message Text */}
+              {message.content && (
+                <div className="text-[14px] leading-relaxed whitespace-pre-wrap">
+                  {message.content}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 2. Render Attachments Outside the Text Bubble (Images, Videos, Files, Audio Waves) */}
+          {message.attachments && message.attachments.length > 0 && (
+            <div 
+              className={cn(
+                "relative w-fit cursor-pointer",
+                !hasTextBubble && message.parentMessage && "-mt-[1px]"
+              )}
+            >
+              <AttachmentRenderer attachments={message.attachments} isUser={isUser} hasTextBubble={hasTextBubble} />
+            </div>
+          )}
+
+          {/* Interactive Floating Hover Action Bar */}
+          <AnimatePresence>
+            {isRowHovered && conversationId && (
+              <HoverActions 
+                onReplyClick={() => setReplyToMessage(message)}
+                isPinned={isPinned}
+                onPinClick={handlePinClick}
+                isUser={isUser}
+              />
             )}
+          </AnimatePresence>
 
-            {/* Main Message Text */}
-            {message.content && (
-              <div className="text-[14px] leading-relaxed whitespace-pre-wrap">
-                {message.content}
-              </div>
-            )}
-
-          </div>
-        )}
-
-        {/* 2. Render Attachments Outside the Text Bubble (Images, Videos, Files, Audio Waves) */}
-        {message.attachments && message.attachments.length > 0 && (
-          <div className={cn(
-            "relative w-fit",
-            !hasTextBubble && message.parentMessage && "-mt-[1px]"
-          )}>
-            <AttachmentRenderer attachments={message.attachments} isUser={isUser} hasTextBubble={hasTextBubble} />
-          </div>
-        )}
+          {(() => {
+            if (isRowHovered) {
+              console.log("TimePill Render Check - isRowHovered:", isRowHovered, "coords:", coords, "window defined:", typeof window !== 'undefined');
+            }
+            return null;
+          })()}
+          {typeof window !== 'undefined' && createPortal(
+            <AnimatePresence>
+              {isRowHovered && coords && (
+                <div
+                  key={`timepill-portal-${message.id}`}
+                  style={{
+                    position: 'fixed',
+                    top: `${coords.top}px`,
+                    left: `${coords.left}px`,
+                    width: `${coords.width}px`,
+                    height: `${coords.height}px`,
+                    pointerEvents: 'none',
+                    zIndex: 9999,
+                  }}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85, x: isUser ? 6 : -6 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.85, x: isUser ? 6 : -6 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                    className={cn(
+                      "absolute top-1/2 -translate-y-1/2 flex items-center justify-center select-none",
+                      "bg-[#1c1e21] dark:bg-[#e4e6eb] text-white dark:text-[#050505] text-[11px] font-semibold px-2.5 py-1 rounded-[10px] shadow-[0_4px_12px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.25)] border border-white/5 dark:border-black/10 whitespace-nowrap",
+                      isUser ? "-left-13" : "-right-13"
+                    )}
+                  >
+                    {formatBubbleTime(message.createdAt)}
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
+        </div>
 
         {/* Message Delivery Status Footer */}
         {(showStatus || isPinned) && (
           <div className="flex items-center gap-1.5 mt-0.5 select-none opacity-85">
-            {isPinned && (
-              <span className="text-2xs text-indigo-400 flex items-center gap-0.5" title="Tin nhắn đã ghim">
-                <Pin size={10} fill="currentColor" className="rotate-45 shrink-0" />
-                <span>Đã ghim</span>
-              </span>
-            )}
-            {isPinned && showStatus && <span className="text-[10px] text-foreground-tertiary">•</span>}
             {showStatus && (
               <>
                 <span className="text-[10px] text-foreground-tertiary">

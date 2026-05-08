@@ -306,7 +306,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
   }, [typingUsers.length]);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden relative">
+    <div className="flex-1 flex flex-col overflow-y-auto relative">
       {/* Glassmorphic Sticky Pinned Message Banner */}
       {pinnedMessages.length > 0 && (
         <PinnedMessageBanner 
@@ -336,7 +336,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
 
       {/* Main scrolling chat window */}
       <div 
-        className="flex-1 overflow-y-auto p-6 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent" 
+        className="flex-1 overflow-y-auto overflow-x-hidden p-md px-lg flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent" 
         ref={scrollRef}
       >
         <div ref={observerTarget} style={{ height: '1px', opacity: 0 }} />

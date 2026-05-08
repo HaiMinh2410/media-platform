@@ -130,7 +130,7 @@ export function RightPanel({
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 flex flex-col border-r border-foreground/10">
+      <div className="flex-1 flex flex-col border-r border-foreground/10 relative z-10">
         <ChatHeader 
           conversationId={conversationId}
           customerName={customerName || externalId}
