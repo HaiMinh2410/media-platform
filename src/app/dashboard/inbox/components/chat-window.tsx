@@ -349,6 +349,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
 
         {messages.map((msg, index) => {
           const prevMsg = index > 0 ? messages[index - 1] : null;
+          const nextMsg = index < messages.length - 1 ? messages[index + 1] : null;
           
           let showSeparator = false;
           if (!prevMsg) {
@@ -364,9 +365,35 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
             }
           }
 
+          let showNextSeparator = false;
+          if (nextMsg) {
+            const currDate = new Date(msg.createdAt);
+            const nextDate = new Date(nextMsg.createdAt);
+            const isNextSameDay = currDate.toDateString() === nextDate.toDateString();
+            const diffNextMins = (nextDate.getTime() - currDate.getTime()) / (1000 * 60);
+            
+            if (!isNextSameDay || diffNextMins > 20) {
+              showNextSeparator = true;
+            }
+          } else {
+            showNextSeparator = true;
+          }
+
           const isLastMessage = index === messages.length - 1;
           const isOutgoing = msg.senderType === 'ai' || msg.senderType === 'agent';
           const showStatus = isLastMessage && isOutgoing;
+
+          const isPrevMsgOutgoing = prevMsg ? (prevMsg.senderType === 'ai' || prevMsg.senderType === 'agent') : false;
+          const isPrevConsecutive = !!(prevMsg && !showSeparator && (
+            (isOutgoing && isPrevMsgOutgoing) ||
+            (!isOutgoing && !isPrevMsgOutgoing)
+          ));
+
+          const isNextMsgOutgoing = nextMsg ? (nextMsg.senderType === 'ai' || nextMsg.senderType === 'agent') : false;
+          const isNextConsecutive = !!(nextMsg && !showNextSeparator && (
+            (isOutgoing && isNextMsgOutgoing) ||
+            (!isOutgoing && !isNextMsgOutgoing)
+          ));
 
           return (
             <React.Fragment key={msg.id}>
@@ -381,6 +408,8 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
                 message={msg} 
                 showStatus={showStatus} 
                 conversationId={conversationId}
+                isNextConsecutive={isNextConsecutive}
+                isPrevConsecutive={isPrevConsecutive}
               />
             </React.Fragment>
           );

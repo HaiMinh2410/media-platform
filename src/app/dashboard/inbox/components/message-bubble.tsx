@@ -347,15 +347,44 @@ const StatusMarker = ({
 export const MessageBubble = memo(function MessageBubble({ 
   message, 
   showStatus = false,
-  conversationId = ''
+  conversationId = '',
+  isNextConsecutive = false,
+  isPrevConsecutive = false
 }: { 
   message: MessageWithSender;
   showStatus?: boolean;
   conversationId?: string;
+  isNextConsecutive?: boolean;
+  isPrevConsecutive?: boolean;
 }) {
   const isUser = message.senderType === 'user';
   const isAi = message.senderType === 'ai';
   const isAgent = message.senderType === 'agent';
+
+  // Dynamic Border Radius (Bo góc dẹt phẳng thông minh chuẩn Messenger)
+  const getBubbleCornersClass = () => {
+    if (isUser) {
+      // Tin nhắn gửi đến (Trái) - Bo góc dẹt cạnh trái chạm mép
+      if (isPrevConsecutive && isNextConsecutive) {
+        return "rounded-2xl rounded-tl-sm rounded-bl-sm"; // Tin nhắn ở giữa
+      }
+      if (isPrevConsecutive && !isNextConsecutive) {
+        return "rounded-2xl rounded-tl-sm"; // Tin nhắn cuối nhóm
+      }
+      // Tin nhắn đầu nhóm hoặc tin nhắn đơn lẻ
+      return "rounded-2xl rounded-bl-sm";
+    } else {
+      // Tin nhắn gửi đi (Phải) - Bo góc dẹt cạnh phải chạm mép
+      if (isPrevConsecutive && isNextConsecutive) {
+        return "rounded-2xl rounded-tr-sm rounded-br-sm"; // Tin nhắn ở giữa
+      }
+      if (isPrevConsecutive && !isNextConsecutive) {
+        return "rounded-2xl rounded-tr-sm"; // Tin nhắn cuối nhóm
+      }
+      // Tin nhắn đầu nhóm hoặc tin nhắn đơn lẻ
+      return "rounded-2xl rounded-br-sm";
+    }
+  };
 
   const bubbleRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
@@ -467,7 +496,8 @@ export const MessageBubble = memo(function MessageBubble({
     <div 
       id={`msg-${message.id}`} 
       className={cn(
-        "flex mb-5 max-w-full group/bubble relative",
+        "flex max-w-full group/bubble relative",
+        isNextConsecutive ? "mb-1.5" : "mb-4",
         isUser ? "justify-start" : "justify-end"
       )}
       onMouseEnter={() => setIsRowHovered(true)}
@@ -536,10 +566,11 @@ export const MessageBubble = memo(function MessageBubble({
           {(message.content || isAi) && (
             <div 
               className={cn(
-                "w-fit p-3 px-4.5 rounded-2xl shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md cursor-pointer",
-                isUser && "bg-background-secondary border border-foreground/10 rounded-bl-sm text-foreground",
-                isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-br-sm text-white shadow-md shadow-indigo-500/25",
-                isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 rounded-br-sm text-foreground shadow-md shadow-purple-500/15 backdrop-blur-md",
+                "w-fit p-3 px-4.5 shadow-sm flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px hover:shadow-md cursor-pointer",
+                getBubbleCornersClass(),
+                isUser && "bg-background-secondary border border-foreground/10 text-foreground",
+                isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/25",
+                isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 text-foreground shadow-md shadow-purple-500/15 backdrop-blur-md",
                 // Bo góc và dính khít thông minh khi có tin nhắn trích dẫn (parentMessage) ở trên
                 message.parentMessage && (isUser ? "rounded-tl-sm -mt-[1px]" : "rounded-tr-sm -mt-[1px]")
               )}
