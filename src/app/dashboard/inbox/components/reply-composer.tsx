@@ -469,7 +469,7 @@ export function ReplyComposer({
   const isSending = sendState === 'sending';
 
   return (
-    <div className="p-md px-lg">
+    <div className="p-md px-lg pt-0">
       {errorMsg && (
         <div className="p-sm px-3 mb-2 bg-status-error/10 border border-status-error/30 rounded-sm text-status-error text-sm" role="alert">
           {errorMsg}

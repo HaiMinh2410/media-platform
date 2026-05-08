@@ -333,6 +333,16 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
     }
   }, [typingUsers.length]);
 
+  // Find latest outgoing and read outgoing messages for delivery status & read receipt
+  const outgoingMessages = messages.filter(m => m.senderType === 'ai' || m.senderType === 'agent');
+  const latestOutgoingMessageId = outgoingMessages.length > 0 
+    ? outgoingMessages[outgoingMessages.length - 1].id 
+    : null;
+  const readOutgoingMessages = outgoingMessages.filter(m => m.is_read);
+  const latestReadOutgoingMessageId = readOutgoingMessages.length > 0 
+    ? readOutgoingMessages[readOutgoingMessages.length - 1].id 
+    : null;
+
   return (
     <div className="flex-1 flex flex-col overflow-y-auto relative">
       {/* Glassmorphic Sticky Pinned Message Banner */}
@@ -441,6 +451,8 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
                 customerAvatar={customerAvatar}
                 customerName={customerName}
                 showSeparator={showSeparator}
+                isLatestOutgoing={msg.id === latestOutgoingMessageId}
+                isLatestReadOutgoing={msg.id === latestReadOutgoingMessageId}
               />
             </React.Fragment>
           );

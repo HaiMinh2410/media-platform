@@ -139,6 +139,7 @@ export function RightPanel({
           platformUserName={pageName}
           tags={tags}
           onUpdateTags={handleUpdateTags}
+          customerLink={platform === 'instagram' && customerUsername ? `https://www.instagram.com/${customerUsername}/` : customerLink}
         />
         <ChatWindow 
           ref={chatRef} 

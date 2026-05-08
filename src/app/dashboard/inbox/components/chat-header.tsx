@@ -17,6 +17,7 @@ type ChatHeaderProps = {
   platformUserName: string;
   tags?: string[];
   onUpdateTags?: (tags: string[]) => void;
+  customerLink?: string;
 };
 
 export function ChatHeader({
@@ -27,6 +28,7 @@ export function ChatHeader({
   platformUserName,
   tags = [],
   onUpdateTags,
+  customerLink,
 }: ChatHeaderProps) {
   const router = useRouter();
   const triggerRefresh = useInboxStore((state) => state.triggerRefresh);
@@ -142,26 +144,42 @@ export function ChatHeader({
     return name.substring(0, 2).toUpperCase();
   };
 
+  const handleAvatarClick = () => {
+    if (customerLink) {
+      window.open(customerLink, '_blank', 'noopener,noreferrer');
+    } else {
+      toast.info(
+        platform === 'instagram'
+          ? 'Chưa đồng bộ được username Instagram. Vui lòng nhấn "Làm mới" ở cột bên phải để thử lại.'
+          : 'Facebook hạn chế liên kết trang cá nhân qua API do chính sách bảo mật.'
+      );
+    }
+  };
+
   return (
     <header className="p-4 py-3 border-b border-foreground/10 bg-background/80 backdrop-blur-xl relative z-20 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <div className="size-10 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground border border-foreground/10 overflow-hidden">
-          {customerAvatar ? (
-            <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover" />
-          ) : (
-            getInitials(customerName)
-          )}
-        </div>
-        <div className='flex item-center gap-2'>
-          <h2 className="text-lg font-semibold text-foreground mb-0.5">{customerName}</h2>
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-foreground-tertiary">via {platformUserName}</span>
-            <PlatformIcon platform={platform} size={12} className="shrink-0" />
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={handleAvatarClick}
+          className="p-1 px-1.5 -ml-1.5 rounded-lg flex items-center gap-2 transition-all duration-150 hover:bg-foreground/5 cursor-pointer select-none border border-transparent text-left"
+          title="Xem trang cá nhân khách hàng"
+        >
+          <div className="size-10 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground border border-foreground/10 overflow-hidden shrink-0">
+            {customerAvatar ? (
+              <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover" />
+            ) : (
+              getInitials(customerName)
+            )}
           </div>
+          <h2 className="text-lg font-semibold text-foreground leading-tight">{customerName}</h2>
+        </button>
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-foreground-tertiary leading-none">via {platformUserName}</span>
+          <PlatformIcon platform={platform} size={12} className="shrink-0" />
         </div>
       </div>
       <div className="flex items-center gap-2">
-
         <div className="relative" ref={dropdownRef}>
           <button
             className={cn(

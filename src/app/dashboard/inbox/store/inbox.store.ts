@@ -90,7 +90,7 @@ export const useInboxStore = create<InboxState>((set) => ({
   setReplyOnChannel: (channel) => set({ replyOnChannel: channel }),
   setReplyToMessage: (msg) => set({ replyToMessage: msg }),
 
-  isRightPanelVisible: true,
+  isRightPanelVisible: false,
   toggleRightPanel: () => set((state) => ({ isRightPanelVisible: !state.isRightPanelVisible })),
   setRightPanelVisible: (visible) => set({ isRightPanelVisible: visible }),
 

@@ -521,7 +521,9 @@ export const MessageBubble = memo(function MessageBubble({
   isPrevConsecutive = false,
   customerAvatar,
   customerName,
-  showSeparator = false
+  showSeparator = false,
+  isLatestOutgoing = false,
+  isLatestReadOutgoing = false
 }: { 
   message: MessageWithSender;
   showStatus?: boolean;
@@ -531,6 +533,8 @@ export const MessageBubble = memo(function MessageBubble({
   customerAvatar?: string;
   customerName?: string;
   showSeparator?: boolean;
+  isLatestOutgoing?: boolean;
+  isLatestReadOutgoing?: boolean;
 }) {
   const isUser = message.senderType === 'user';
   const isAi = message.senderType === 'ai';
@@ -842,19 +846,54 @@ export const MessageBubble = memo(function MessageBubble({
         </div>
 
         {/* Message Delivery Status Footer */}
-        {(showStatus || isPinned) && (
-          <div className="flex items-center gap-1.5 mt-0.5 select-none opacity-85">
-            {showStatus && (
+        {(isLatestOutgoing || isLatestReadOutgoing || isPinned) && (
+          <div className="flex items-center gap-1.5 mt-0.5 select-none opacity-85 animate-in fade-in duration-200">
+            {/* 1. Tin nhắn cuối cùng đã gửi và chưa đọc: Hiển thị trạng thái bằng chữ/icon */}
+            {isLatestOutgoing && !message.is_read && (
               <>
                 <span className="text-[10px] text-foreground-tertiary">
-                  {message.is_read ? 'Đã xem' : (message.is_delivered ? 'Đã nhận' : 'Đang gửi...')}
+                  {message.id.startsWith('temp-') || (message as any).isSending
+                    ? 'Đang gửi...'
+                    : (message.is_delivered ? 'Đã nhận' : 'Đã gửi')}
                 </span>
                 <StatusMarker 
-                  isRead={message.is_read} 
+                  isRead={false} 
                   isDelivered={message.is_delivered} 
-                  isSending={!message.is_delivered && !message.is_read} 
+                  isSending={message.id.startsWith('temp-') || (message as any).isSending} 
                 />
               </>
+            )}
+
+            {/* 2. Tin nhắn mới nhất đã được xem: Hiển thị avatar khách hàng nhỏ lơ lửng */}
+            {isLatestReadOutgoing && (
+              <motion.div
+                layoutId="seen-avatar"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 150, damping: 22 }}
+                className="flex items-center justify-center shrink-0 ml-1 select-none"
+                title="Đã xem"
+              >
+                {customerAvatar ? (
+                  <img 
+                    src={customerAvatar} 
+                    alt={customerName || "Customer"} 
+                    className="size-5 rounded-full object-cover shadow-sm border border-foreground/10" 
+                  />
+                ) : (
+                  <div className="size-5 rounded-full bg-background-tertiary flex items-center justify-center font-bold text-[8px] border border-foreground/10 text-foreground">
+                    {getInitials(customerName || "Khách hàng")}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* 3. Ghim indicator */}
+            {isPinned && (
+              <div className="flex items-center gap-1 text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-full text-[9px] font-semibold">
+                <Pin size={9} fill="currentColor" className="rotate-45" />
+                <span>Đã ghim</span>
+              </div>
             )}
           </div>
         )}
