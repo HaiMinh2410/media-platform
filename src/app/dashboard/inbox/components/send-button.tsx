@@ -41,15 +41,15 @@ export function SendButton({
           <Send size={size} className={cn("opacity-50", iconClassName)} />
         </div>
       ) : (
-        <Send 
-          size={size} 
+        <Send
+          size={size}
           className={cn(
-            "transition-transform",
+            "transition-all",
             durationClass,
-            // When hovering the button, rotate the send icon 90 degrees (if not disabled)
-            !disabled && "group-hover:rotate-45",
+            // When hovering the button, rotate the send icon 45 degrees, change to primary color and fill it with primary (if not disabled)
+            !disabled && "group-hover:rotate-45 group-hover:text-primary group-hover:fill-primary",
             iconClassName
-          )} 
+          )}
         />
       )}
     </button>

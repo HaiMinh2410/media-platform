@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { AttachmentPreview, FileAttachment } from './attachment-preview';
 import { VoiceRecorder } from './voice-recorder';
 import { SendButton } from './send-button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type SendState = 'idle' | 'sending' | 'error';
 
@@ -30,6 +31,25 @@ const SNIPPETS = [
 ];
 
 const MAX_TEXTAREA_HEIGHT = 320;
+
+const getReplyMessagePreview = (message: MessageWithSender) => {
+  if (message.content) return message.content;
+  if (!message.attachments || message.attachments.length === 0) return '[Tệp đính kèm]';
+  
+  const first = message.attachments[0];
+  switch (first.type) {
+    case 'image':
+      return '[Hình ảnh]';
+    case 'video':
+      return '[Video]';
+    case 'audio':
+      return '[Tin nhắn thoại]';
+    case 'file':
+      return '[Tài liệu]';
+    default:
+      return '[Tệp đính kèm]';
+  }
+};
 
 export function ReplyComposer({ 
   workspaceId,
@@ -456,7 +476,7 @@ export function ReplyComposer({
         </div>
       )}
       
-      <div className="flex items-center justify-between gap-3 mb-2 px-1">
+      <div className="flex items-center justify-end gap-3 mb-2 px-1">
         <div className="flex items-center gap-1">
           {(['professional', 'sales', 'warm', 'flirty'] as ToneMode[]).map((t) => (
             <button 
@@ -487,24 +507,34 @@ export function ReplyComposer({
       </div>
       
       <div className="relative">
-        {replyToMessage && (
-          <div className="flex items-center justify-between bg-black/5 border-l-2 border-indigo-500 px-3 py-2 rounded-t-lg mb-0 text-sm">
-            <div className="flex items-center gap-2 text-foreground-secondary min-w-0">
-              <Reply size={14} className="shrink-0 text-indigo-500" />
-              <div className="truncate">
-                <span className="font-bold text-indigo-500 mr-1">Đang trả lời:</span>
-                {replyToMessage.content || '[Tệp đính kèm]'}
-              </div>
-            </div>
-            <button 
-              type="button"
-              onClick={() => setReplyToMessage(null)}
-              className="text-foreground-tertiary hover:text-foreground transition-colors p-1"
+        <AnimatePresence initial={false}>
+          {replyToMessage && (
+            <motion.div
+              initial={{ height: 0, opacity: 0, y: 15 }}
+              animate={{ height: 'auto', opacity: 1, y: 0 }}
+              exit={{ height: 0, opacity: 0, y: 15 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              className="overflow-hidden"
             >
-              <X size={14} />
-            </button>
-          </div>
-        )}
+              <div className="flex items-center justify-between border-l-2 border-primary px-3 py-2 mb-0 text-sm">
+                <div className="flex items-center gap-2 text-foreground-secondary min-w-0">
+                  <Reply size={14} className="shrink-0 text-indigo-500" />
+                  <div className="truncate">
+                    <span className="font-bold text-primary mr-1">Đang trả lời:</span>
+                    {getReplyMessagePreview(replyToMessage)}
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setReplyToMessage(null)}
+                  className="text-foreground-tertiary hover:text-foreground transition-colors p-1"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {isRecording ? (
           <div className="pt-2">
@@ -516,8 +546,8 @@ export function ReplyComposer({
         ) : (
           <div 
             className={cn(
-              "flex gap-3 items-end p-3 px-md transition-all rounded-b-lg bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative outline-none",
-              !replyToMessage && "rounded-t-lg"
+              "flex gap-3 items-end p-3 px-md transition-all rounded-lg bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative outline-none",
+              replyToMessage && "rounded-tl-none"
             )}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -536,7 +566,7 @@ export function ReplyComposer({
 
               <textarea
                 ref={textareaRef}
-                className="w-full bg-transparent border-none text-foreground text-base resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto placeholder:text-foreground-tertiary"
+                className="w-full bg-transparent border-none text-foreground text-base resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto placeholder:text-foreground-tertiary caret-primary"
                 placeholder={isSending ? 'Sending…' : 'Type a message…'}
                 rows={1}
                 value={text}
@@ -611,7 +641,7 @@ export function ReplyComposer({
                 <SendButton
                   type="submit"
                   className={cn(
-                    "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-accent-primary/20",
+                    "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
                     isSending && "opacity-70"
                   )}
                   disabled={(!text.trim() && files.length === 0)}

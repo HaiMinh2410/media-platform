@@ -57,6 +57,10 @@ interface InboxState {
   activeThreads: ConversationWithLastMessage[];
   addActiveThread: (thread: ConversationWithLastMessage) => void;
   removeActiveThread: (threadId: string) => void;
+
+  // Lightbox modal state
+  lightboxImage: string | null;
+  setLightboxImage: (url: string | null) => void;
 }
 
 export const useInboxStore = create<InboxState>((set) => ({
@@ -115,4 +119,6 @@ export const useInboxStore = create<InboxState>((set) => ({
   removeActiveThread: (threadId) => set((state) => ({
     activeThreads: state.activeThreads.filter(t => t.id !== threadId)
   })),
+  lightboxImage: null,
+  setLightboxImage: (url) => set({ lightboxImage: url }),
 }));

@@ -267,6 +267,7 @@ const AttachmentRenderer = ({
   isNextConsecutive?: boolean;
   isReply?: boolean;
 }) => {
+  const setLightboxImage = useInboxStore(state => state.setLightboxImage);
   if (!attachments || attachments.length === 0) return null;
 
   return (
@@ -284,7 +285,7 @@ const AttachmentRenderer = ({
               <div 
                 key={idx} 
                 className={cn(
-                  "relative group overflow-hidden border border-foreground/5 shadow-md max-w-72",
+                  "relative group overflow-hidden border border-foreground/5 shadow-md max-w-96",
                   hasTextBubble
                     ? (isUser 
                         ? cn("rounded-tr-xl rounded-br-xl rounded-tl-sm", isNextConsecutive ? "rounded-bl-sm" : "rounded-bl-xl")
@@ -295,10 +296,10 @@ const AttachmentRenderer = ({
                 <motion.img 
                   src={payload.url} 
                   alt={payload.title || "Image attachment"} 
-                  className="max-h-56 object-cover cursor-pointer transition-all hover:brightness-95"
+                  className="max-h-72 w-full object-cover cursor-pointer transition-all hover:brightness-95"
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  onClick={() => window.open(payload.url, '_blank')}
+                  onClick={() => setLightboxImage(payload.url)}
                 />
               </div>
             );
@@ -318,6 +319,7 @@ const AttachmentRenderer = ({
                 <video 
                   src={payload.url} 
                   controls 
+                  muted
                   preload="metadata"
                   className="max-h-56 w-full object-cover"
                 />

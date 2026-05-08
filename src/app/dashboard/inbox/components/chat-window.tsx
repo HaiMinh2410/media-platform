@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { createPortal } from 'react-dom';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { MessageBubble } from './message-bubble';
 import { ChatSkeleton } from './skeletons';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, X, Pin } from 'lucide-react';
 import { useInboxStore } from '../store/inbox.store';
 import { TypingUser } from '../hooks/use-presence-typing';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export type ChatWindowRef = {
   addMessage: (message: MessageWithSender) => void;
@@ -114,6 +116,11 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
   const [pinnedMessages, setPinnedMessages] = useState<MessageWithSender[]>([]);
   const [loading, setLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -123,6 +130,22 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
 
   const refreshCounter = useInboxStore(state => state.refreshCounter);
   const triggerRefresh = useInboxStore(state => state.triggerRefresh);
+  const lightboxImage = useInboxStore(state => state.lightboxImage);
+  const setLightboxImage = useInboxStore(state => state.setLightboxImage);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setLightboxImage(null);
+      }
+    };
+    if (lightboxImage) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [lightboxImage, setLightboxImage]);
 
   const fetchPinnedMessages = useCallback(async () => {
     try {
@@ -398,8 +421,8 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
           return (
             <React.Fragment key={msg.id}>
               {showSeparator && (
-                <div className="flex justify-center items-center my-6 relative before:content-[''] before:absolute before:left-0 before:right-0 before:top-1/2 before:h-px before:bg-foreground/5">
-                  <span className="bg-base-200 px-4 py-1 rounded-full text-xs font-medium text-foreground-tertiary border border-foreground/10 relative z-10">
+                <div className="flex justify-center items-center my-6 relative">
+                  <span className="px-4 py-1 rounded-full text-xs font-semibold text-foreground/85 relative z-10">
                     {formatChatSeparator(msg.createdAt)}
                   </span>
                 </div>
@@ -440,6 +463,60 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
           <div className="p-4 text-center text-foreground-tertiary text-sm">No messages found for this conversation.</div>
         )}
       </div>
+
+      {/* Premium Lightbox Overlay rendering in document.body via Portal */}
+      {isMounted && typeof window !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {lightboxImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+              onClick={() => setLightboxImage(null)}
+            >
+              {/* Control buttons overlay */}
+              <div className="absolute top-4 right-4 flex items-center gap-3 z-10" onClick={(e) => e.stopPropagation()}>
+                <a 
+                  href={lightboxImage} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center transition-all hover:bg-white/20 active:scale-95"
+                  title="Mở tab mới"
+                >
+                  <ChevronRight className="rotate-[-45deg] stroke-[2.5]" size={18} />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setLightboxImage(null)}
+                  className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center transition-all hover:bg-white/20 active:scale-95 border-none cursor-pointer"
+                  title="Đóng"
+                >
+                  <X size={20} className="stroke-[2.5]" />
+                </button>
+              </div>
+
+              {/* Main Image Container */}
+              <motion.div
+                initial={{ scale: 0.95, y: 10 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, y: 10 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="relative max-w-full max-h-[85vh] flex items-center justify-center select-none"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img 
+                  src={lightboxImage} 
+                  alt="Full size view" 
+                  className="max-w-full max-h-[85vh] object-contain border border-white/10 pointer-events-auto"
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 });
