@@ -110,8 +110,13 @@ const PinnedMessageBanner = ({
   );
 };
 
-export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; typingUsers?: TypingUser[] }>(
-  ({ conversationId, typingUsers = [] }, ref) => {
+export const ChatWindow = forwardRef<ChatWindowRef, { 
+  conversationId: string; 
+  typingUsers?: TypingUser[];
+  customerAvatar?: string;
+  customerName?: string;
+}>(
+  ({ conversationId, typingUsers = [], customerAvatar, customerName }, ref) => {
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<MessageWithSender[]>([]);
   const [loading, setLoading] = useState(false);
@@ -383,7 +388,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
             const isSameDay = currDate.toDateString() === prevDate.toDateString();
             const diffMins = (currDate.getTime() - prevDate.getTime()) / (1000 * 60);
             
-            if (!isSameDay || diffMins > 20) {
+            if (!isSameDay || diffMins > 10) {
               showSeparator = true;
             }
           }
@@ -395,7 +400,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
             const isNextSameDay = currDate.toDateString() === nextDate.toDateString();
             const diffNextMins = (nextDate.getTime() - currDate.getTime()) / (1000 * 60);
             
-            if (!isNextSameDay || diffNextMins > 20) {
+            if (!isNextSameDay || diffNextMins > 10) {
               showNextSeparator = true;
             }
           } else {
@@ -433,6 +438,9 @@ export const ChatWindow = forwardRef<ChatWindowRef, { conversationId: string; ty
                 conversationId={conversationId}
                 isNextConsecutive={isNextConsecutive}
                 isPrevConsecutive={isPrevConsecutive}
+                customerAvatar={customerAvatar}
+                customerName={customerName}
+                showSeparator={showSeparator}
               />
             </React.Fragment>
           );

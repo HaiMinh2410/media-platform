@@ -16,6 +16,15 @@ const formatFileSize = (bytes?: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+// --- Extract Initials Utility ---
+const getInitials = (name: string) => {
+  const split = name.trim().split(' ');
+  if (split.length > 1) {
+    return (split[0][0] + split[split.length - 1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
 // --- Dynamic Border Radius Utility (Messenger-style grouping) ---
 const getDynamicCornersClass = (
   isUser: boolean,
@@ -377,6 +386,24 @@ const formatBubbleTime = (dateInput?: Date | string) => {
   return `${hours}:${minutes}`;
 };
 
+// --- Format Full Bubble Time Utility ---
+const formatFullBubbleTime = (dateInput?: Date | string) => {
+  if (!dateInput) return '';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  
+  const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+  const dayName = days[date.getDay()];
+  
+  let hours = date.getHours();
+  const ampm = hours >= 12 ? 'CH' : 'SA';
+  if (hours > 12) {
+    hours = hours - 12;
+  }
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${dayName} ${hours}:${minutes} ${ampm}`;
+};
+
 // --- Hover Actions Panel ---
 const HoverActions = ({ 
   onReplyClick,
@@ -491,13 +518,19 @@ export const MessageBubble = memo(function MessageBubble({
   showStatus = false,
   conversationId = '',
   isNextConsecutive = false,
-  isPrevConsecutive = false
+  isPrevConsecutive = false,
+  customerAvatar,
+  customerName,
+  showSeparator = false
 }: { 
   message: MessageWithSender;
   showStatus?: boolean;
   conversationId?: string;
   isNextConsecutive?: boolean;
   isPrevConsecutive?: boolean;
+  customerAvatar?: string;
+  customerName?: string;
+  showSeparator?: boolean;
 }) {
   const isUser = message.senderType === 'user';
   const isAi = message.senderType === 'ai';
@@ -618,18 +651,39 @@ export const MessageBubble = memo(function MessageBubble({
     <div 
       id={`msg-${message.id}`} 
       className={cn(
-        "flex max-w-full group/bubble relative",
+        "flex max-w-full group/bubble relative gap-2.5",
         isNextConsecutive ? "mb-1.5" : "mb-4",
-        isUser ? "justify-start" : "justify-end"
+        isUser ? "justify-start items-end" : "justify-end items-end"
       )}
       onMouseEnter={() => setIsRowHovered(true)}
       onMouseLeave={() => {
         setIsRowHovered(false);
       }}
     >
+      {/* Khách hàng Avatar cột bên trái */}
+      {isUser && (
+        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 select-none">
+          {!isNextConsecutive ? (
+            customerAvatar ? (
+              <img 
+                src={customerAvatar} 
+                alt={customerName || "Customer"} 
+                className="w-full h-full rounded-full object-cover shadow-sm border border-foreground/10" 
+              />
+            ) : (
+              <div className="w-full h-full rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-xs border border-foreground/10 text-foreground">
+                {getInitials(customerName || "Khách hàng")}
+              </div>
+            )
+          ) : (
+            <div className="w-8" />
+          )}
+        </div>
+      )}
+
       <div className={cn(
-        "flex flex-col max-w-4/5 gap-1 relative",
-        isUser ? "items-start" : "items-end"
+        "flex flex-col gap-1 relative",
+        isUser ? "items-start max-w-[calc(80%-40px)]" : "items-end max-w-4/5"
       )}>
         
         {/* Render Reply Header & Parent Bubble if Threaded */}
@@ -768,17 +822,17 @@ export const MessageBubble = memo(function MessageBubble({
                   }}
                 >
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.85, x: isUser ? 6 : -6 }}
+                    initial={{ opacity: 0, scale: 0.85, x: isUser ? -6 : 6 }}
                     animate={{ opacity: 1, scale: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.85, x: isUser ? 6 : -6 }}
+                    exit={{ opacity: 0, scale: 0.85, x: isUser ? -6 : 6 }}
                     transition={{ type: "spring", stiffness: 450, damping: 25 }}
                     className={cn(
                       "absolute top-full -translate-y-full flex items-center justify-center select-none",
                       "bg-foreground/80 backdrop-blur-lg text-background text-xs font-semibold px-2.5 py-1 rounded-md shadow-md border border-background/10 whitespace-nowrap",
-                      isUser ? "-left-13" : "-right-13"
+                      isUser ? "right-full mr-2" : "left-full ml-2"
                     )}
                   >
-                    {formatBubbleTime(message.createdAt)}
+                    {showSeparator ? formatFullBubbleTime(message.createdAt) : formatBubbleTime(message.createdAt)}
                   </motion.div>
                 </div>
               )}

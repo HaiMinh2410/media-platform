@@ -585,7 +585,7 @@ export function ReplyComposer({
                   <div className="relative" ref={snippetsRef}>
                     <button 
                       type="button" 
-                      className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5"
+                      className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-primary hover:bg-foreground/5"
                       onClick={() => setShowSnippets(!showSnippets)}
                       title="Saved Snippets"
                     >
@@ -614,7 +614,7 @@ export function ReplyComposer({
                   
                   <button 
                     type="button" 
-                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5" 
+                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-primary hover:bg-foreground/5" 
                     title="Attach file"
                     onClick={() => fileInputRef.current?.click()}
                   >
@@ -630,7 +630,7 @@ export function ReplyComposer({
 
                   <button 
                     type="button" 
-                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-red-500 hover:bg-red-500/10" 
+                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-primary hover:bg-foreground/5" 
                     title="Record voice note"
                     onClick={() => setIsRecording(true)}
                   >

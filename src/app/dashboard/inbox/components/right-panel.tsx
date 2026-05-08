@@ -144,6 +144,8 @@ export function RightPanel({
           ref={chatRef} 
           conversationId={conversationId} 
           typingUsers={typingUsers}
+          customerAvatar={customerAvatar}
+          customerName={customerName}
         />
         <ReplyComposer
           workspaceId={workspaceId}
