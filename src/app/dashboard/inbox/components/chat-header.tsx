@@ -33,7 +33,7 @@ export function ChatHeader({
   const setRightSidebarTab = useInboxStore((state) => state.setRightSidebarTab);
   const setRightPanelVisible = useInboxStore((state) => state.setRightPanelVisible);
   const isRightPanelVisible = useInboxStore((state) => state.isRightPanelVisible);
-  
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -143,28 +143,27 @@ export function ChatHeader({
   };
 
   return (
-    <header className="p-[16px_24px] border-b border-foreground/10 bg-background/80 backdrop-blur-xl relative z-20 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground border border-foreground/10 overflow-hidden">
+    <header className="p-4 py-3 border-b border-foreground/10 bg-background/80 backdrop-blur-xl relative z-20 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <div className="size-10 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground border border-foreground/10 overflow-hidden">
           {customerAvatar ? (
             <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover" />
           ) : (
             getInitials(customerName)
           )}
         </div>
-        <div>
+        <div className='flex item-center gap-2'>
           <h2 className="text-lg font-semibold text-foreground mb-0.5">{customerName}</h2>
-          <div className="flex items-center gap-2">
-            <PlatformIcon platform={platform as any} size={14} />
-            <span className="bg-foreground/10 px-2 py-0.5 rounded-sm text-xs capitalize text-foreground-secondary">{platform}</span>
-            <span className="text-sm text-foreground-tertiary">via {platformUserName}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-foreground-tertiary">via {platformUserName}</span>
+            <PlatformIcon platform={platform} size={12} className="shrink-0" />
           </div>
         </div>
       </div>
       <div className="flex items-center gap-2">
 
         <div className="relative" ref={dropdownRef}>
-          <button 
+          <button
             className={cn(
               "bg-transparent border border-foreground/10 text-foreground-secondary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-colors hover:bg-foreground/5 hover:text-foreground",
               isDropdownOpen && "bg-accent-primary/15 border-accent-primary text-accent-primary"
@@ -192,8 +191,8 @@ export function ChatHeader({
                   <span>Move to spam</span>
                 </button>
               )}
-              <button 
-                className="w-full px-4 py-2 flex items-center gap-3 text-sm text-status-error hover:bg-status-error/10 hover:text-status-error transition-colors text-left" 
+              <button
+                className="w-full px-4 py-2 flex items-center gap-3 text-sm text-status-error hover:bg-status-error/10 hover:text-status-error transition-colors text-left"
                 onClick={handleDeleteConversation}
               >
                 <Trash2 size={16} />

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Square, Send, Play, X } from 'lucide-react';
+import { Square, Send, Play, X, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -17,12 +17,13 @@ export function VoiceRecorder({
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const [duration, setDuration] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [playbackTime, setPlaybackTime] = useState(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const isCancelledRef = useRef(false);
   const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const cleanupAudio = () => {
@@ -39,13 +40,14 @@ export function VoiceRecorder({
       setPreviewUrl(null);
     }
     setIsPlayingPreview(false);
+    setPlaybackTime(0);
   };
 
   useEffect(() => {
     let active = true;
     let localStream: MediaStream | null = null;
     let localRecorder: MediaRecorder | null = null;
-    let localInterval: NodeJS.Timeout | null = null;
+    let animationFrameId: number | null = null;
 
     isCancelledRef.current = false;
 
@@ -74,10 +76,16 @@ export function VoiceRecorder({
         setIsRecording(true);
         setIsPaused(false);
 
-        localInterval = setInterval(() => {
-          setDuration(prev => prev + 1);
-        }, 1000);
-        timerRef.current = localInterval;
+        const startTime = Date.now();
+        const tick = () => {
+          if (!active || isCancelledRef.current) return;
+          const elapsedSeconds = (Date.now() - startTime) / 1000;
+          setDuration(elapsedSeconds);
+          animationFrameId = requestAnimationFrame(tick);
+          animationFrameRef.current = animationFrameId;
+        };
+        animationFrameId = requestAnimationFrame(tick);
+        animationFrameRef.current = animationFrameId;
       } catch (err) {
         console.error('Microphone access denied or error:', err);
         if (active) {
@@ -92,8 +100,11 @@ export function VoiceRecorder({
       active = false;
       isCancelledRef.current = true;
       
-      if (localInterval) {
-        clearInterval(localInterval);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
       if (localRecorder && localRecorder.state !== 'inactive') {
         try {
@@ -107,9 +118,6 @@ export function VoiceRecorder({
         });
       }
 
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         try {
           mediaRecorderRef.current.stop();
@@ -130,10 +138,16 @@ export function VoiceRecorder({
     };
   }, []);
 
+  useEffect(() => {
+    if (isRecording && duration >= 180) {
+      handlePauseRecording();
+    }
+  }, [duration, isRecording]);
+
   const handlePauseRecording = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -172,18 +186,36 @@ export function VoiceRecorder({
         audioRef.current.pause();
       }
       setIsPlayingPreview(false);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
     } else {
       if (!audioRef.current) {
         const audio = new Audio(previewUrl);
         audioRef.current = audio;
         audio.onended = () => {
           setIsPlayingPreview(false);
+          setPlaybackTime(0);
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+          }
         };
       }
+      
       audioRef.current.play().catch(err => {
         console.error('Error playing audio preview:', err);
       });
       setIsPlayingPreview(true);
+
+      const tickPlayback = () => {
+        if (audioRef.current && !audioRef.current.paused) {
+          setPlaybackTime(audioRef.current.currentTime);
+          animationFrameRef.current = requestAnimationFrame(tickPlayback);
+        }
+      };
+      animationFrameRef.current = requestAnimationFrame(tickPlayback);
     }
   };
 
@@ -191,7 +223,10 @@ export function VoiceRecorder({
     cleanupAudio();
 
     if (isRecording) {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         try {
           mediaRecorderRef.current.stop();
@@ -219,8 +254,9 @@ export function VoiceRecorder({
     cleanupAudio();
     isCancelledRef.current = true;
 
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
@@ -239,8 +275,9 @@ export function VoiceRecorder({
   };
 
   const formatTime = (time: number) => {
-    const mins = Math.floor(time / 60);
-    const secs = time % 60;
+    const totalSecs = Math.floor(time);
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
@@ -259,57 +296,43 @@ export function VoiceRecorder({
       {/* Main Messenger Blue Capsule */}
       <div className="flex-1 flex items-center justify-between h-9 bg-[#0084FF] rounded-full px-1.5 shadow-md relative overflow-hidden">
         
+        {/* Progress Fill Background Overlay */}
+        <div 
+          className="absolute inset-y-0 left-0 bg-white/15 pointer-events-none z-0"
+          style={{ width: `${isRecording ? (duration / 180) * 100 : (duration > 0 ? (playbackTime / duration) * 100 : 0)}%` }}
+        />
+
         {/* Left Side inside Capsule: White circle with stop or play button */}
         {isRecording ? (
           <button 
             type="button" 
             onClick={handlePauseRecording}
-            className="w-6.5 h-6.5 rounded-full bg-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
+            className="w-6.5 h-6.5 rounded-full bg-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.1)] z-10"
             title="Dừng ghi âm"
             style={{ width: '26px', height: '26px' }}
           >
-            <Square size={10} fill="#0084FF" className="text-[#0084FF]" />
+            <Square fill="#0084FF" className="text-[#0084FF] size-1/2" />
           </button>
         ) : (
           <button 
             type="button" 
             onClick={togglePlayPreview}
-            className="w-6.5 h-6.5 rounded-full bg-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
+            className="size-full rounded-full bg-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.1)] z-10"
             title={isPlayingPreview ? "Tạm dừng nghe thử" : "Nghe thử ghi âm"}
             style={{ width: '26px', height: '26px' }}
           >
             {isPlayingPreview ? (
-              <Square size={10} fill="#0084FF" className="text-[#0084FF]" />
+              <Pause fill="#0084FF" className="text-[#0084FF] size-2/3" />
             ) : (
-              <Play size={10} fill="#0084FF" className="text-[#0084FF] ml-0.5" />
+              <Play fill="#0084FF" className="text-[#0084FF] ml-0.5 size-2/3" />
             )}
           </button>
         )}
 
-        {/* Middle inside Capsule: Waveform Soundwave visualizer in pure white */}
-        <div className="flex-1 flex items-center justify-center gap-[3px] h-5 px-4 overflow-hidden">
-          {Array.from({ length: 22 }).map((_, i) => {
-            const height = isRecording 
-              ? Math.random() * 85 + 15 
-              : isPlayingPreview 
-                ? Math.random() * 70 + 30 
-                : 15;
-            return (
-              <motion.div 
-                key={i} 
-                className="w-[3px] bg-white rounded-full opacity-80"
-                animate={{ height: `${height}%` }}
-                transition={{ duration: 0.1, repeat: isRecording || isPlayingPreview ? Infinity : 0, repeatType: 'reverse' }}
-                style={{ height: '15%' }}
-              />
-            );
-          })}
-        </div>
-
         {/* Right Side inside Capsule: White badge containing blue timer text */}
-        <div className="bg-white rounded-full px-2.5 py-0.5 flex items-center justify-center min-w-[46px] h-6 shrink-0 shadow-sm mr-0.5">
-          <span className="font-mono text-xs font-extrabold text-[#0084FF]">
-            {formatTime(duration)}
+        <div className="bg-white rounded-full px-2.5 py-0.5 flex items-center justify-center min-w-[46px] h-6 shrink-0 shadow-sm mr-0.5 z-10">
+          <span className="font-mono text-sm font-extrabold text-[#0084FF]">
+            {formatTime(isRecording ? duration : Math.max(Math.ceil(duration - playbackTime), 0))}
           </span>
         </div>
       </div>

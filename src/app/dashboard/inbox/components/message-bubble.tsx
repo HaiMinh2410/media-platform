@@ -65,6 +65,7 @@ const VoiceNotePlayer = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const animRef = useRef<number | null>(null);
 
   useEffect(() => {
     const audio = new Audio(url);
@@ -72,7 +73,12 @@ const VoiceNotePlayer = ({
 
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
-    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const onTimeUpdate = () => {
+      // Fallback update
+      if (!isPlaying) {
+        setCurrentTime(audio.currentTime);
+      }
+    };
     const onLoadedMetadata = () => setDuration(audio.duration || 0);
     const onEnded = () => {
       setIsPlaying(false);
@@ -94,6 +100,31 @@ const VoiceNotePlayer = ({
       audio.removeEventListener('ended', onEnded);
     };
   }, [url]);
+
+  // Buttery-smooth 60fps loop for rendering playback progress & bar animation
+  useEffect(() => {
+    const updateProgress = () => {
+      if (audioRef.current && isPlaying) {
+        setCurrentTime(audioRef.current.currentTime);
+        animRef.current = requestAnimationFrame(updateProgress);
+      }
+    };
+
+    if (isPlaying) {
+      animRef.current = requestAnimationFrame(updateProgress);
+    } else {
+      if (animRef.current) {
+        cancelAnimationFrame(animRef.current);
+        animRef.current = null;
+      }
+    }
+
+    return () => {
+      if (animRef.current) {
+        cancelAnimationFrame(animRef.current);
+      }
+    };
+  }, [isPlaying]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -120,62 +151,98 @@ const VoiceNotePlayer = ({
     setCurrentTime(newTime);
   };
 
+  const barHeights = [6, 10, 14, 8, 4, 12, 16, 10, 6, 14, 12, 8, 16, 10, 4, 12, 14, 8, 6, 10, 8, 4];
+
   return (
     <div className={cn(
-      "flex items-center gap-3 p-3 min-w-60 shadow-sm backdrop-blur-sm border",
+      "flex items-center gap-3 py-6 px-4.5 min-w-40 w-56 h-11 shadow-sm relative select-none",
       getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl"),
       isUser 
-        ? "bg-foreground/5 border-foreground/10 text-foreground" 
-        : "bg-indigo-500/10 border-indigo-500/20 text-foreground"
+        ? "bg-[#e4e6eb] dark:bg-[#242526] text-[#050505] dark:text-white border-none" 
+        : "bg-[#7c3aed] text-white border-none"
     )}>
+      {/* Play/Pause Button */}
       <button 
         type="button"
         onClick={togglePlay} 
-        className={cn(
-          "w-10 h-10 flex items-center justify-center rounded-full text-white transition-all shadow-md active:scale-95 shrink-0",
-          isUser ? "bg-foreground/30 hover:bg-foreground/45" : "bg-indigo-500 hover:bg-indigo-600"
-        )}
+        className="flex items-center justify-center transition-all active:scale-90 shrink-0 cursor-pointer"
       >
-        {isPlaying ? <Pause size={18} fill="white" /> : <Play size={18} className="ml-0.5" fill="white" />}
+        {isPlaying ? (
+          <Pause 
+            size={15} 
+            fill="currentColor" 
+            className={isUser ? "text-[#050505] dark:text-white" : "text-white"} 
+          />
+        ) : (
+          <Play 
+            size={15} 
+            fill="currentColor" 
+            className={cn(
+              "ml-0.5",
+              isUser ? "text-[#050505] dark:text-white" : "text-white"
+            )} 
+          />
+        )}
       </button>
-      <div className="flex-1 flex flex-col gap-1 min-w-0">
-        {/* Dynamic Waveform Visualizer */}
-        <div className="flex items-end gap-[3px] h-6 px-1">
-          {Array.from({ length: 18 }).map((_, i) => {
-            const baseHeight = 12 + Math.sin(i * 0.5) * 8;
-            const playHeight = baseHeight + (isPlaying ? Math.random() * 8 : 0);
-            const isPassed = (i / 18) * 100 <= progress;
+
+      {/* Waveform & Playhead Container */}
+      <div className="flex-1 flex items-center relative h-6 min-w-0 mx-1">
+        {/* Waveform Bars */}
+        <div className="w-full flex items-center justify-between gap-[2px] h-4">
+          {barHeights.map((barHeight, i) => {
+            const animHeight = isPlaying 
+              ? barHeight * (0.8 + Math.sin(currentTime * 8 + i * 0.5) * 0.2) 
+              : barHeight;
+
+            // Compute exact relative sub-range progress for this bar
+            const barCount = barHeights.length;
+            const startPct = (i / barCount) * 100;
+            const endPct = ((i + 1) / barCount) * 100;
+
+            let fillPct = 0;
+            if (progress >= endPct) {
+              fillPct = 100;
+            } else if (progress <= startPct) {
+              fillPct = 0;
+            } else {
+              fillPct = ((progress - startPct) / (endPct - startPct)) * 100;
+            }
+
+            // High-contrast adaptivity using modern native CSS color-mix
+            const activeColor = isUser ? "currentColor" : "#ffffff";
+            const inactiveColor = isUser ? "color-mix(in srgb, currentColor 25%, transparent)" : "rgba(255, 255, 255, 0.3)";
+
             return (
               <div 
                 key={i} 
-                className={cn(
-                  "w-[3px] rounded-full transition-all duration-150", 
-                  isPassed 
-                    ? (isUser ? "bg-foreground" : "bg-indigo-500") 
-                    : "bg-foreground/20"
-                )}
-                style={{ height: `${Math.max(4, Math.min(24, playHeight))}px` }}
+                className="w-[2px] rounded-full transition-all duration-75" 
+                style={{ 
+                  height: `${Math.max(3, Math.min(16, animHeight))}px`,
+                  background: `linear-gradient(to right, ${activeColor} ${fillPct}%, ${inactiveColor} ${fillPct}%)`
+                }}
               />
             );
           })}
         </div>
-        {/* Playback Controls & Time */}
-        <div className="flex items-center justify-between gap-2 text-2xs text-foreground-tertiary">
-          <span>{formatTime(currentTime)}</span>
-          <input 
-            type="range" 
-            min="0" 
-            max="100" 
-            value={progress} 
-            onChange={handleSliderChange}
-            className={cn(
-              "flex-1 h-1 bg-foreground/10 rounded-lg appearance-none cursor-pointer",
-              isUser ? "accent-foreground" : "accent-indigo-500"
-            )}
-          />
-          <span>{formatTime(duration || 0)}</span>
-        </div>
+
+        {/* Transparent Range Slider for Seeking */}
+        <input 
+          type="range" 
+          min="0" 
+          max="100" 
+          value={progress} 
+          onChange={handleSliderChange}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+        />
       </div>
+
+      {/* Playback Time / Duration */}
+      <span className={cn(
+        "text-[11px] font-semibold select-none tabular-nums shrink-0 ml-1.5",
+        isUser ? "text-[#050505]/80 dark:text-white/80" : "text-white/95"
+      )}>
+        {currentTime > 0 ? formatTime(currentTime) : formatTime(duration || 0)}
+      </span>
     </div>
   );
 };
@@ -323,7 +390,7 @@ const HoverActions = ({
       exit={{ opacity: 0, scale: 0.85, x: isUser ? 8 : -8 }}
       transition={{ type: "spring", stiffness: 450, damping: 25 }}
       className={cn(
-        "absolute top-1/2 -translate-y-1/2 z-20 flex items-center gap-1 p-1 rounded-full bg-background-secondary border border-foreground/10 shadow-[0_4px_18px_rgba(0,0,0,0.12)] backdrop-blur-md",
+        "absolute top-full -translate-y-full z-20 flex items-center gap-1 p-1 rounded-full bg-background-secondary border border-foreground/10 shadow-[0_4px_18px_rgba(0,0,0,0.12)] backdrop-blur-md",
         isUser ? "left-full ml-3" : "right-full mr-3"
       )}
     >
@@ -564,7 +631,7 @@ export const MessageBubble = memo(function MessageBubble({
           <>
             {/* Header hiển thị "[Tên] đã trả lời" */}
             <div className={cn(
-              "flex items-center gap-1 text-2xs text-foreground-tertiary select-none opacity-80 mb-1 font-medium transition-all duration-150",
+              "flex items-center gap-1 text-xs text-foreground-tertiary select-none opacity-80 mb-1 font-medium transition-all duration-150",
               isUser ? "justify-start pl-1" : "justify-end pr-1"
             )}>
               <Reply size={11} className="shrink-0 opacity-70" />
@@ -700,7 +767,7 @@ export const MessageBubble = memo(function MessageBubble({
                     exit={{ opacity: 0, scale: 0.85, x: isUser ? 6 : -6 }}
                     transition={{ type: "spring", stiffness: 450, damping: 25 }}
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 flex items-center justify-center select-none",
+                      "absolute top-full -translate-y-full flex items-center justify-center select-none",
                       "bg-foreground/80 backdrop-blur-lg text-background text-xs font-semibold px-2.5 py-1 rounded-md shadow-md border border-background/10 whitespace-nowrap",
                       isUser ? "-left-13" : "-right-13"
                     )}

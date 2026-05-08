@@ -79,6 +79,15 @@ export function ReplyComposer({
     };
   }, [conversationId, onTypingStateChange]);
 
+  // Reset replyToMessage, draft text, and uploaded files when conversation changes
+  useEffect(() => {
+    setReplyToMessage(null);
+    setText('');
+    setFiles([]);
+    setSendState('idle');
+    setErrorMsg(null);
+  }, [conversationId, setReplyToMessage]);
+
   useEffect(() => {
     if (!replyAsId) setReplyAsId(platformUserName);
     if (!replyOnChannel) setReplyOnChannel(platform);
@@ -439,7 +448,7 @@ export function ReplyComposer({
   const isSending = sendState === 'sending';
 
   return (
-    <div className="p-md px-lg border-t border-foreground/10 bg-background-tertiary/40">
+    <div className="p-md px-lg">
       {errorMsg && (
         <div className="p-sm px-3 mb-2 bg-status-error/10 border border-status-error/30 rounded-sm text-status-error text-sm" role="alert">
           {errorMsg}
@@ -496,33 +505,35 @@ export function ReplyComposer({
           </div>
         )}
 
-        <div 
-          className={cn(
-            "flex gap-3 items-end p-3 px-md transition-all rounded-b-lg border bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative",
-            !replyToMessage && "rounded-t-lg",
-            isDragging ? "border-indigo-500 bg-indigo-500/5 ring-2 ring-indigo-500/20" : "border-foreground/10 focus-within:border-accent-primary/50 focus-within:bg-background-secondary focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]"
-          )}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          {isDragging && (
-            <div className="absolute inset-0 z-10 bg-indigo-500/10 backdrop-blur-[1px] flex items-center justify-center rounded-lg border-2 border-dashed border-indigo-500 text-indigo-500 font-medium">
-              Thả tệp vào đây để đính kèm
-            </div>
-          )}
-          
-          <div className="flex-1 flex flex-col min-w-0">
-            {files.length > 0 && (
-              <AttachmentPreview attachments={files} onRemove={removeFile} />
+        {isRecording ? (
+          <div className="pt-2">
+            <VoiceRecorder 
+              onCancel={() => setIsRecording(false)} 
+              onConfirm={handleVoiceConfirm} 
+            />
+          </div>
+        ) : (
+          <div 
+            className={cn(
+              "flex gap-3 items-end p-3 px-md transition-all rounded-b-lg border bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative",
+              !replyToMessage && "rounded-t-lg",
+              isDragging ? "border-indigo-500 bg-indigo-500/5 ring-2 ring-indigo-500/20" : "border-foreground/10 focus-within:border-accent-primary/50 focus-within:bg-background-secondary focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.1),inset_0_2px_4px_rgba(0,0,0,0.2)]"
             )}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {isDragging && (
+              <div className="absolute inset-0 z-10 bg-indigo-500/10 backdrop-blur-[1px] flex items-center justify-center rounded-lg border-2 border-dashed border-indigo-500 text-indigo-500 font-medium">
+                Thả tệp vào đây để đính kèm
+              </div>
+            )}
+            
+            <div className="flex-1 flex flex-col min-w-0">
+              {files.length > 0 && (
+                <AttachmentPreview attachments={files} onRemove={removeFile} />
+              )}
 
-            {isRecording ? (
-              <VoiceRecorder 
-                onCancel={() => setIsRecording(false)} 
-                onConfirm={handleVoiceConfirm} 
-              />
-            ) : (
               <textarea
                 ref={textareaRef}
                 className="w-full bg-transparent border-none text-foreground text-base resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto placeholder:text-foreground-tertiary"
@@ -538,57 +549,55 @@ export function ReplyComposer({
                   }
                 }}
               />
-            )}
-            
-            <div className="flex justify-between items-center pt-3 border-t border-foreground/5 mt-2">
-              <div className="flex items-center gap-2">
-                <div className="relative" ref={snippetsRef}>
+              
+              <div className="flex justify-between items-center pt-3 border-t border-foreground/5 mt-2">
+                <div className="flex items-center gap-2">
+                  <div className="relative" ref={snippetsRef}>
+                    <button 
+                      type="button" 
+                      className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5"
+                      onClick={() => setShowSnippets(!showSnippets)}
+                      title="Saved Snippets"
+                    >
+                      <BookOpen size={18} />
+                    </button>
+                    
+                    {showSnippets && (
+                      <div className="absolute bottom-full left-0 mb-2 w-64 bg-base-200 border border-foreground/10 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <div className="px-3 py-2 text-xs font-bold text-foreground-tertiary uppercase tracking-wider border-b border-foreground/5">Saved Snippets</div>
+                        <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
+                          {SNIPPETS.map(s => (
+                            <button 
+                              key={s.id} 
+                              type="button" 
+                              className="w-full px-3 py-2 flex flex-col gap-0.5 text-left hover:bg-foreground/5 transition-colors"
+                              onClick={() => handleSnippetClick(s.text)}
+                            >
+                              <span className="text-sm font-semibold text-foreground">{s.title}</span>
+                              <span className="text-xs text-foreground-tertiary truncate">{s.text.substring(0, 30)}...</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   <button 
                     type="button" 
-                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5"
-                    onClick={() => setShowSnippets(!showSnippets)}
-                    title="Saved Snippets"
+                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5" 
+                    title="Attach file"
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    <BookOpen size={18} />
+                    <Paperclip size={18} />
                   </button>
-                  
-                  {showSnippets && (
-                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-base-200 border border-foreground/10 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-                      <div className="px-3 py-2 text-xs font-bold text-foreground-tertiary uppercase tracking-wider border-b border-foreground/5">Saved Snippets</div>
-                      <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
-                        {SNIPPETS.map(s => (
-                          <button 
-                            key={s.id} 
-                            type="button" 
-                            className="w-full px-3 py-2 flex flex-col gap-0.5 text-left hover:bg-foreground/5 transition-colors"
-                            onClick={() => handleSnippetClick(s.text)}
-                          >
-                            <span className="text-sm font-semibold text-foreground">{s.title}</span>
-                            <span className="text-xs text-foreground-tertiary truncate">{s.text.substring(0, 30)}...</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <button 
-                  type="button" 
-                  className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-foreground hover:bg-foreground/5" 
-                  title="Attach file"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip size={18} />
-                </button>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  multiple 
-                  onChange={handleFileChange} 
-                />
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    multiple 
+                    onChange={handleFileChange} 
+                  />
 
-                {!isRecording && (
                   <button 
                     type="button" 
                     className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-red-500 hover:bg-red-500/10" 
@@ -597,30 +606,30 @@ export function ReplyComposer({
                   >
                     <Mic size={18} />
                   </button>
-                )}
-              </div>
+                </div>
 
-              <button
-                type="submit"
-                className={cn(
-                  "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground flex items-center justify-center cursor-pointer transition-all shrink-0 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-accent-primary/20",
-                  isSending && "opacity-70"
-                )}
-                disabled={(!text.trim() && files.length === 0) || isSending || isRecording}
-                aria-label="Send message"
-                onClick={() => handleSubmit()}
-              >
-                {isSending ? (
-                  <div className="animate-spin">
-                    <Send size={16} className="opacity-50" />
-                  </div>
-                ) : (
-                  <Send size={16} />
-                )}
-              </button>
+                <button
+                  type="submit"
+                  className={cn(
+                    "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground flex items-center justify-center cursor-pointer transition-all shrink-0 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-accent-primary/20",
+                    isSending && "opacity-70"
+                  )}
+                  disabled={(!text.trim() && files.length === 0) || isSending}
+                  aria-label="Send message"
+                  onClick={() => handleSubmit()}
+                >
+                  {isSending ? (
+                    <div className="animate-spin">
+                      <Send size={16} className="opacity-50" />
+                    </div>
+                  ) : (
+                    <Send size={16} />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
       
       {text.length > 0 && text.length < 5 && (
