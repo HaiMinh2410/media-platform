@@ -15,6 +15,8 @@ import { aiRoutingService } from '@/application/services/ai-routing.service';
 import { createClient } from '@supabase/supabase-js';
 import { metaParser } from '@/infrastructure/meta/meta-parser.service';
 import { processIncomingMessage } from '@/application/ai-agent';
+import { scheduleDelayedReply, aiAgentReplyWorker } from '@/application/ai-agent/reply-delay-scheduler';
+
 
 /**
  * Webhook Event Worker.
@@ -336,85 +338,17 @@ function createWebhookWorker() {
           };
         }
 
-        // Tự động trì hoãn không đồng bộ cục bộ (Background setTimeout) để gửi tin nhắn
-        console.log(`[Worker] [${job.id}] Scheduling delayed reply in ${delay}ms...`);
+        // Lên lịch gửi tin nhắn trì hoãn bền vững bằng Delayed Jobs của BullMQ (hỗ trợ Debounce tự động)
+        console.log(`[Worker] [${job.id}] Scheduling delayed reply in ${delay}ms via BullMQ...`);
         
-        // Chạy bất đồng bộ ngầm để giải phóng job BullMQ ngay lập tức
-        setTimeout(async () => {
-          try {
-            console.log(`\n⏰ [Delayed Send] Executing delayed reply for conversation ${persistResult.conversationId}`);
-            let platformBotMessageId = `bot_generated_${Date.now()}`;
-            
-            if (platform === 'meta' || platform === 'facebook' || platform === 'instagram') {
-              const tokenRecord = account.meta_tokens[0];
-              if (!tokenRecord) {
-                console.warn(`[Delayed Send] Cannot auto-send: No access token found for account ${account.id}`);
-                return;
-              }
-
-              let effectivePageId = externalPageId;
-
-              // For Instagram, we must use the linked Facebook Page ID as the sender to avoid error #3 (Capability)
-              if (platform === 'instagram') {
-                const linkedFb = await db.platformAccount.findFirst({
-                  where: {
-                    platform: 'facebook',
-                    workspaceId: account.workspaceId,
-                    metadata: { path: ['instagram_id'], equals: externalPageId }
-                  },
-                  select: { platform_user_id: true }
-                });
-                if (linkedFb) {
-                  effectivePageId = linkedFb.platform_user_id;
-                  console.log(`[Delayed Send] Resolved linked FB Page ${effectivePageId} for IG account ${externalPageId}`);
-                }
-              }
-
-              const { data: sendResult, error: sendErr } = await metaSendService.sendText({
-                platform: platform === 'instagram' ? 'instagram' : 'facebook',
-                recipientId: externalSenderId,
-                pageId: effectivePageId,
-                text: reply,
-                encryptedToken: tokenRecord.encrypted_access_token
-              });
-
-              if (sendErr) {
-                console.error(`[Delayed Send] Meta Send Service failed: ${sendErr}`);
-                return;
-              }
-              if (sendResult && sendResult.messageId) {
-                platformBotMessageId = sendResult.messageId;
-              }
-            } else {
-              console.warn(`[Delayed Send] Send API for platform ${platform} not supported yet`);
-              return;
-            }
-
-            // Persist Bot Message
-            const { data: botPersist } = await idempotentPersistMessage({
-              platform,
-              externalPageId,
-              externalSenderId,
-              platformMessageId: platformBotMessageId,
-              senderType: 'ai',
-              messageText: reply,
-              timestamp: new Date(),
-            });
-
-            if (botPersist && botPersist.isNewMessage) {
-              // Update AI log with the actual sent message ID and set status to 'sent'
-              await db.aIReplyLog.update({
-                where: { id: aiLog.id },
-                data: {
-                  messageId: botPersist.messageId,
-                  status: 'sent'
-                } as any
-              });
-              console.log(`[Delayed Send] Bot reply sent and associated with log.`);
-            }
-          } catch (err) {
-            console.error(`[Delayed Send] Failed to execute delayed reply:`, err);
-          }
+        await scheduleDelayedReply({
+          conversationId: persistResult.conversationId,
+          replyText: reply,
+          platform,
+          externalPageId,
+          externalSenderId,
+          token: account.meta_tokens[0]?.encrypted_access_token || null,
+          aiLogId: aiLog.id,
         }, delay);
 
         return {
