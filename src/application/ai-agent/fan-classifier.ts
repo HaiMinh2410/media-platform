@@ -1,4 +1,7 @@
-import type { FanType, ConversationStage, RiskLevel, ClassifierOutput } from '@/domain/types/ai-agent';
+import type { FanType, ConversationStage, RiskLevel, ClassifierOutput, FanProfile } from '@/domain/types/ai-agent';
+import { AI_MODELS } from '@/domain/types/ai';
+import { groqClient } from '@/infrastructure/ai/groq-client';
+import { classifierPrompt } from './prompts/classifier.prompt';
 
 // Define pattern matching rules for rule-based static classification
 const DRAINER_KEYWORDS = /(free|miễn phí|cho xin|xin ảnh|gửi ảnh|cho xem|xin video|gửi video|xin link|cho link|xem free|xin hình|gửi hình|coi free)/i;
@@ -152,4 +155,64 @@ export function classifyFanRuleBased(
     emotion_score: 0.5,
     risk_level: hasSensitiveWord ? 'medium' : 'low',
   };
+}
+
+/**
+ * Hybrid Fan Classifier
+ * Calls static rule-based first. If confidence < 0.65 or type is 'Unknown',
+ * falls back to Groq Llama 3.1 8B API.
+ * Includes graceful error handling to guarantee responses.
+ */
+export async function classifyFanHybrid(
+  recentMessages: { role: 'fan' | 'you'; content: string }[],
+  currentProfile?: FanProfile
+): Promise<ClassifierOutput> {
+  // 1. Run cost-effective rule-based classifier first
+  const ruleResult = classifyFanRuleBased(recentMessages);
+
+  // 2. If rule-based has high confidence, return immediately to save API cost
+  if (ruleResult.fan_type !== 'Unknown' && ruleResult.confidence >= 0.65) {
+    return ruleResult;
+  }
+
+  console.log(`[Classifier] Low confidence (${ruleResult.confidence}) or Unknown fan_type. Triggering LLM Fallback (Llama 3.1 8B)...`);
+
+  try {
+    // 3. Trigger Groq LLM Fallback
+    const response = await groqClient.complete(
+      [
+        { role: 'system', content: classifierPrompt.system },
+        { role: 'user', content: classifierPrompt.user({ recent_messages: recentMessages }) }
+      ],
+      {
+        model: AI_MODELS.CLASSIFY,
+        temperature: 0.1,
+        jsonMode: true
+      }
+    );
+
+    if (response.error || !response.data?.content) {
+      console.warn(`[Classifier] Groq Fallback failed: ${response.error || 'Empty response'}. Falling back to rule result.`);
+      return ruleResult;
+    }
+
+    // 4. Parse and validate LLM JSON response
+    const data = JSON.parse(response.data.content);
+    
+    // Safety check fields to match ClassifierOutput
+    const finalResult: ClassifierOutput = {
+      fan_type: (['Luy', 'Cool', 'Whale', 'Drainer', 'Unknown'].includes(data.fan_type) ? data.fan_type : 'Unknown') as FanType,
+      confidence: typeof data.confidence === 'number' ? data.confidence : 0.7,
+      reasoning: typeof data.reasoning === 'string' ? data.reasoning : 'Phân loại bằng mô hình AI Fallback.',
+      recommended_stage: (['G1', 'G2', 'G3'].includes(data.recommended_stage) ? data.recommended_stage : 'G1') as ConversationStage,
+      emotion_score: typeof data.emotion_score === 'number' ? data.emotion_score : 0.5,
+      risk_level: (['low', 'medium', 'high'].includes(data.risk_level) ? data.risk_level : 'low') as RiskLevel,
+    };
+
+    console.log(`[Classifier] Successful LLM Fallback classification: ${finalResult.fan_type} (conf: ${finalResult.confidence})`);
+    return finalResult;
+  } catch (err) {
+    console.error('[Classifier] Error in Hybrid Classifier fallback, returning rule-based result:', err);
+    return ruleResult;
+  }
 }

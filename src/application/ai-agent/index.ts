@@ -6,7 +6,7 @@
 
 import { retrieveContext } from './context-retriever';
 import { determineStage, assessRisk } from './state-manager';
-import { classifyFanRuleBased } from './fan-classifier';
+import { classifyFanHybrid } from './fan-classifier';
 import { decideAction } from './decision-engine';
 import { getTemplateResponse } from './templates';
 import { filterBlacklist, calculateDelay } from './safety-checker';
@@ -69,8 +69,8 @@ export async function processIncomingMessage(params: {
 
     // 3. Phân loại đối tượng Fan (Fan Classification) nếu trạng thái hiện tại là Unknown
     if (tempProfile.fanType === 'Unknown') {
-      console.log(`🔍 [Orchestrator] Fan type is 'Unknown'. Running fast rule-based classification...`);
-      const classification = classifyFanRuleBased(updatedMessages);
+      console.log(`🔍 [Orchestrator] Fan type is 'Unknown'. Running hybrid classification...`);
+      const classification = await classifyFanHybrid(updatedMessages, tempProfile);
       
       if (classification.fan_type !== 'Unknown') {
         tempProfile.fanType = classification.fan_type;
