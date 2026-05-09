@@ -23,11 +23,13 @@ export type ChatWindowRef = {
 const PinnedMessageBanner = ({
   pinnedMessages,
   onJumpToMessage,
-  onUnpin
+  onUnpin,
+  customerName
 }: {
   pinnedMessages: MessageWithSender[];
   onJumpToMessage: (id: string) => void;
   onUnpin: (id: string) => void;
+  customerName?: string;
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -57,12 +59,12 @@ const PinnedMessageBanner = ({
       onClick={() => onJumpToMessage(currentMessage.id)}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 shrink-0">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-secondary shrink-0">
           <Pin size={14} fill="currentColor" className="rotate-45" />
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
-            Tin nhắn đã ghim {pinnedMessages.length > 1 && `(${activeIndex + 1}/${pinnedMessages.length})`}
+          <span className="text-sm font-bold tracking-wider text-indigo-400">
+            {currentMessage.senderType === 'user' ? (customerName || 'Khách hàng') : 'Bạn'} {pinnedMessages.length > 1 && `(${activeIndex + 1}/${pinnedMessages.length})`}
           </span>
           <span className="text-sm text-foreground-secondary truncate max-w-full font-medium">
             {currentMessage.content || 'Ghim tập tin / phương tiện'}
@@ -289,19 +291,49 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       
-      // Gorgeous premium glowing focus ring transition
-      element.classList.add("ring-4", "ring-indigo-500/50", "ring-offset-4", "scale-[1.01]", "transition-all", "duration-500", "ease-out", "z-10");
-      const bubble = element.querySelector('.w-fit');
-      if (bubble) {
-        bubble.classList.add("shadow-xl", "shadow-indigo-500/20", "border-indigo-500/50");
-      }
-      
-      setTimeout(() => {
-        element.classList.remove("ring-4", "ring-indigo-500/50", "ring-offset-4", "scale-[1.01]");
+      const targets = element.querySelectorAll('.bubble-highlight-target');
+      if (targets.length > 0) {
+        targets.forEach(target => {
+          target.classList.add(
+            "ring-2", 
+            "ring-indigo-500", 
+            "dark:ring-white", 
+            "ring-offset-2", 
+            "ring-offset-background", 
+            "scale-[1.03]", 
+            "shadow-lg", 
+            "z-30"
+          );
+        });
+        setTimeout(() => {
+          targets.forEach(target => {
+            target.classList.remove(
+              "ring-2", 
+              "ring-indigo-500", 
+              "dark:ring-white", 
+              "ring-offset-2", 
+              "ring-offset-background", 
+              "scale-[1.03]", 
+              "shadow-lg", 
+              "z-30"
+            );
+          });
+        }, 2000);
+      } else {
+        // Fallback gorgeous focus ring if no bubble target classes are found
+        element.classList.add("ring-4", "ring-indigo-500/50", "ring-offset-4", "scale-[1.01]", "transition-all", "duration-500", "ease-out", "z-10");
+        const bubble = element.querySelector('.w-fit');
         if (bubble) {
-          bubble.classList.remove("shadow-xl", "shadow-indigo-500/20", "border-indigo-500/50");
+          bubble.classList.add("shadow-xl", "shadow-indigo-500/20", "border-indigo-500/50");
         }
-      }, 2000);
+        
+        setTimeout(() => {
+          element.classList.remove("ring-4", "ring-indigo-500/50", "ring-offset-4", "scale-[1.01]");
+          if (bubble) {
+            bubble.classList.remove("shadow-xl", "shadow-indigo-500/20", "border-indigo-500/50");
+          }
+        }, 2000);
+      }
     } else {
       console.warn(`[ChatWindow] Message ${messageId} not found in current window`);
     }
@@ -349,6 +381,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
       {pinnedMessages.length > 0 && (
         <PinnedMessageBanner 
           pinnedMessages={pinnedMessages} 
+          customerName={customerName}
           onJumpToMessage={scrollToMessage}
           onUnpin={async (id) => {
             try {
