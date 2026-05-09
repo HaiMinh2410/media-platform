@@ -21,6 +21,7 @@ model Workspace {
   platformAccounts    PlatformAccount[]
   workspace_members   workspace_members[]
   workspace_tags      WorkspaceTag[]
+  fan_profiles        FanProfile[]
 
   @@map("workspaces")
   @@schema("public")
@@ -99,6 +100,7 @@ model Conversation {
   customer_platform_mappings CustomerPlatformMapping[]
   messages                   Message[]
   notes                      ConversationNote[]
+  fan_profile                FanProfile?
 
   @@unique([account_id, platform_conversation_id])
   @@map("conversations")
@@ -152,6 +154,38 @@ model ConversationNote {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@map("conversation_notes")
+  @@schema("public")
+}
+
+model FanProfile {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id     String       @unique @map("conversation_id") @db.Uuid
+  workspace_id        String       @map("workspace_id") @db.Uuid
+  platform_user_id    String       @map("platform_user_id")
+  fan_type            String       @default("Unknown") @map("fan_type")
+  fanTypeConfidence   Float        @default(0.0) @map("fan_type_confidence")
+  stage               String       @default("G1") @map("stage")
+  day_count           Int          @default(0) @map("day_count")
+  message_count       Int          @default(0) @map("message_count")
+  emotion_score       Float        @default(0.5) @map("emotion_score")
+  emotion_trend       String       @default("stable") @map("emotion_trend")
+  flirt_level         Int          @default(0) @map("flirt_level")
+  risk_level          String       @default("low") @map("risk_level")
+  purchase_history    Json         @default("[]") @map("purchase_history")
+  objections_seen     String[]     @default([]) @map("objections_seen")
+  key_insights        String[]     @default([]) @map("key_insights")
+  next_action         String       @default("continue") @map("next_action")
+  notes               String?      @db.Text
+  last_summary        Json?        @map("last_summary")
+  link_sent_count     Int          @default(0) @map("link_sent_count")
+  last_link_sent_at   DateTime?    @map("last_link_sent_at") @db.Timestamptz(6)
+  created_at          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at          DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  conversation        Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  workspace           Workspace    @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+
+  @@map("fan_profiles")
   @@schema("public")
 }
 

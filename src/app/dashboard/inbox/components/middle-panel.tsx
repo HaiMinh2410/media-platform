@@ -201,8 +201,9 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
         if (!existing) return prev;
 
         const isNewer = new Date(updatedConv.last_message_at).getTime() > new Date(existing.last_message_at).getTime();
+        const isFromCustomer = updatedConv.last_message_sender_type === 'user' && updatedConv.last_message_sender_id !== 'system';
         
-        if (isNewer && updatedConv.id !== activeIdRef.current) {
+        if (isNewer && updatedConv.id !== activeIdRef.current && isFromCustomer) {
           toast(`New message from ${existing.sender_name}`, {
             description: new Date(updatedConv.last_message_at).toLocaleTimeString()
           });

@@ -90,8 +90,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
       href={`/dashboard/inbox/${conversation.id}`} 
       className={cn(
         "flex gap-3 p-3 rounded-xl cursor-pointer transition-all border border-transparent no-underline absolute left-3 w-[calc(100%-24px)] box-border hover:bg-foreground/5 group", 
-        isActive && "bg-foreground/5 border-foreground/10 shadow-sm", 
-        isUnread && "bg-foreground/[0.03]"
+        isActive && "bg-foreground/5 border-foreground/10 shadow-sm"
       )}
       style={style}
     >

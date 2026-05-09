@@ -125,7 +125,8 @@ export async function getConversationAction(conversationId: string): Promise<{ d
         tags: conversation.tags,
         is_vip: conversation.is_vip,
         canonical_conversation_id: conversation.canonical_conversation_id,
-        last_message_sender_type: lastMessage?.senderType as any
+        last_message_sender_type: lastMessage?.senderType as any,
+        last_message_sender_id: lastMessage?.senderId || null
       },
       error: null
     };

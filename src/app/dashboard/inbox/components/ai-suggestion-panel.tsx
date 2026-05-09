@@ -46,13 +46,11 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-bold text-accent-primary">
           <Zap size={12} fill="currentColor" />
-          <span>AI Reply</span>
-          <span className="bg-accent-primary/10 px-1.5 py-0.5 rounded text-3xs font-bold uppercase tracking-wider">
+          <span className="text-sm font-bold select-none tracking-wider">
             {formatModel(suggestion.model)}
           </span>
         </div>
-        <span className="text-3xs text-foreground-tertiary flex items-center gap-1">
-          <Clock size={10} />
+        <span className="text-xs text-foreground-tertiary flex items-center gap-1">
           {timeAgo(suggestion.createdAt)}
         </span>
       </div>
@@ -61,9 +59,9 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
         "{suggestion.response}"
       </p>
 
-      <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-2 mt-1">
         <button
-          className="flex-1 bg-accent-primary text-white py-2 rounded-lg text-sm font-bold transition-all hover:brightness-110 active:scale-[0.98]"
+          className="flex-1 bg-accent-primary text-foreground p-1.5 rounded-lg text-sm font-bold transition-all hover:brightness-110 active:scale-[0.98]"
           onClick={() => onUse(suggestion.response)}
         >
           Sử dụng
@@ -175,15 +173,10 @@ export function AiSuggestionPanel({
 
       {/* --- Suggestions Section --- */}
       <div className="px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm font-bold text-foreground uppercase tracking-wider">
-          <Zap size={14} className="text-accent-primary" />
+        <div className="flex items-center gap-3 font-bold text-foreground  tracking-wider">
+          <Zap size={14} className="text-primary" />
           <span>Gợi ý phản hồi AI</span>
         </div>
-        {visible.length > 0 && (
-          <span className="bg-accent-primary/20 text-accent-primary px-1.5 py-0.5 rounded-full text-3xs font-bold">
-            {visible.length}
-          </span>
-        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 scrollbar-thin scrollbar-thumb-foreground/10">
