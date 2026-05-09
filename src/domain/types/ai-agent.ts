@@ -155,6 +155,11 @@ export type ClassifierOutput = {
   recommended_stage: ConversationStage;
   emotion_score: number;             // 0.0 – 1.0
   risk_level: RiskLevel;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
 };
 
 /** Service-level result cho Classifier (pattern { data, error }). */
@@ -232,6 +237,12 @@ export type AgentResponse = {
 export type ResponseGeneratorResult = {
   data: AgentResponse | null;
   error: string | null;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  modelUsed?: string;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

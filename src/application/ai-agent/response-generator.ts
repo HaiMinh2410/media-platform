@@ -157,6 +157,12 @@ export async function generateResponse(
       return {
         data: finalResponse,
         error: null,
+        usage: response.data?.usage ? {
+          promptTokens: response.data.usage.promptTokens,
+          completionTokens: response.data.usage.completionTokens,
+          totalTokens: response.data.usage.totalTokens,
+        } : undefined,
+        modelUsed: currentModel,
       };
     } catch (err) {
       console.error(`❌ [ResponseGenerator] Error occurred when running model '${currentModel}':`, err);
@@ -187,6 +193,7 @@ export async function generateResponse(
     return {
       data: fallbackResponse,
       error: null,
+      modelUsed: 'Rule-based-Phase-1'
     };
   } catch (err) {
     console.error(`🚨 [ResponseGenerator] CRITICAL: Fallback template engine failed!`, err);

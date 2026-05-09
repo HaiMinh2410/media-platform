@@ -17,6 +17,12 @@ export type ObjectionHandlerResult = {
   action: NextAction;
   objectionType: ObjectionType;
   updatedProfile: Partial<FanProfile>;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  modelUsed?: string;
 };
 
 // Mẫu Regex quét từ khóa phản đối phổ biến
@@ -143,6 +149,7 @@ export async function detectAndHandleObjection(
         action: detectedType === 'want_free' ? 'soft_exit' : 'continue',
         objectionType: detectedType,
         updatedProfile,
+        modelUsed: 'Rule-based-Phase-1',
       };
     }
 
@@ -176,12 +183,23 @@ export async function detectAndHandleObjection(
     console.log(`✅ [ObjectionHandler] Elegantly handled objection '${detectedType}' via LLM.`);
     console.log(`📝 [ObjectionHandler] Reply: "${reply}"`);
 
-    return {
+    const finalObjectionResult: ObjectionHandlerResult = {
       reply,
       action,
       objectionType: detectedType,
       updatedProfile,
+      modelUsed: AI_MODELS.CLASSIFY,
     };
+
+    if (response.data?.usage) {
+      finalObjectionResult.usage = {
+        promptTokens: response.data.usage.promptTokens,
+        completionTokens: response.data.usage.completionTokens,
+        totalTokens: response.data.usage.totalTokens,
+      };
+    }
+
+    return finalObjectionResult;
   } catch (err) {
     console.error(`❌ [ObjectionHandler] Exception occurred during handling, defaulting to fallback template:`, err);
     const fallbackReply = getFallbackResponse(detectedType, availableLink);
@@ -190,6 +208,7 @@ export async function detectAndHandleObjection(
       action: detectedType === 'want_free' ? 'soft_exit' : 'continue',
       objectionType: detectedType,
       updatedProfile,
+      modelUsed: 'Rule-based-Phase-1',
     };
   }
 }

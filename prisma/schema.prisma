@@ -131,14 +131,31 @@ model Message {
 }
 
 model AIReplyLog {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  messageId  String   @map("message_id") @db.Uuid
-  prompt     String
-  response   String
-  model      String
-  created_at DateTime @default(now())
-  status     String   @default("suggested")
-  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  messageId            String   @map("message_id") @db.Uuid
+  prompt               String
+  response             String
+  model                String
+  created_at           DateTime @default(now())
+  status               String   @default("suggested")
+  
+  // Trạng thái Agent và Phân tích Fan
+  fanType              String?  @default("Unknown") @map("fan_type")
+  stage                String?  @default("G1") @map("stage")
+  strategy             String?  @map("strategy")
+  action               String?  @map("action")
+  emotionScoreBefore   Float?   @map("emotion_score_before")
+  emotionScoreAfter    Float?   @map("emotion_score_after")
+  riskLevel            String?  @map("risk_level")
+  safetyViolations     Json?    @default("[]") @map("safety_violations")
+  
+  // Chỉ số đo lường hiệu năng và token usage
+  promptTokens         Int?     @map("prompt_tokens")
+  completionTokens     Int?     @map("completion_tokens")
+  latencyMs            Int?     @map("latency_ms")
+  abTestVariant        String?  @map("ab_test_variant")
+
+  message              Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@map("ai_reply_logs")
   @@schema("public")

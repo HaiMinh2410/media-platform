@@ -209,6 +209,14 @@ export async function classifyFanHybrid(
       risk_level: (['low', 'medium', 'high'].includes(data.risk_level) ? data.risk_level : 'low') as RiskLevel,
     };
 
+    if (response.data?.usage) {
+      finalResult.usage = {
+        promptTokens: response.data.usage.promptTokens,
+        completionTokens: response.data.usage.completionTokens,
+        totalTokens: response.data.usage.totalTokens,
+      };
+    }
+
     console.log(`[Classifier] Successful LLM Fallback classification: ${finalResult.fan_type} (conf: ${finalResult.confidence})`);
     return finalResult;
   } catch (err) {

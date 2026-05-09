@@ -291,29 +291,17 @@ function createWebhookWorker() {
           return { status: 'ignored_by_bot_config', eventId: webhookEventId };
         }
 
-        // --- 3. AI Agent Rule-Based Phase 1 Pipeline ---
-        console.log(`[Worker] [${job.id}] Running Rule-based Phase 1 Pipeline...`);
-        const { reply, action, link, delay, updatedProfile } = await processIncomingMessage({
+        // --- 3. AI Agent Phase 2 Hybrid Rule + LLM Pipeline ---
+        console.log(`[Worker] [${job.id}] Running Phase 2 Hybrid Rule + LLM Pipeline...`);
+        const { reply, action, link, delay, updatedProfile, aiLogId } = await processIncomingMessage({
           conversationId: persistResult.conversationId,
           messageText,
           workspaceId: account.workspaceId,
           platformUserId: externalSenderId,
+          messageId: persistResult.messageId,
         });
 
-        console.log(`[Worker] [${job.id}] Pipeline Result: action=${action}, delay=${delay}ms`);
-
-        // --- 4. Persist AI Log ---
-        const aiLog = await db.aIReplyLog.create({
-          data: {
-            messageId: persistResult.messageId, // Link to the user message that triggered it
-            prompt: `Action: ${action} | Stage: ${updatedProfile.stage} | FanType: ${updatedProfile.fanType}`,
-            response: reply || '',
-            model: "Rule-based-Phase-1",
-            status: botConfig.auto_send ? 'suggested' : 'pending'
-          } as any
-        });
-
-        console.log(`[Worker] [${job.id}] AI Suggestion created: ${aiLog.id}`);
+        console.log(`[Worker] [${job.id}] Pipeline Result: action=${action}, delay=${delay}ms | aiLogId=${aiLogId}`);
 
         // If action is escalate_to_human, soft_exit, hard_exit, or wait (no reply needed)
         // or if reply is empty, stop here
@@ -323,7 +311,7 @@ function createWebhookWorker() {
             status: 'success_no_reply_needed',
             action,
             eventId: webhookEventId,
-            suggestionId: aiLog.id
+            suggestionId: aiLogId
           };
         }
 
@@ -333,7 +321,7 @@ function createWebhookWorker() {
           return {
             status: 'success_suggestion_only',
             eventId: webhookEventId,
-            suggestionId: aiLog.id,
+            suggestionId: aiLogId,
             reason: 'Auto-send is OFF'
           };
         }
@@ -348,7 +336,7 @@ function createWebhookWorker() {
           externalPageId,
           externalSenderId,
           token: account.meta_tokens[0]?.encrypted_access_token || null,
-          aiLogId: aiLog.id,
+          aiLogId: aiLogId,
         }, delay);
 
         return {
