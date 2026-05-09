@@ -14,6 +14,7 @@ import { triageService } from '@/application/services/triage.service';
 import { aiRoutingService } from '@/application/services/ai-routing.service';
 import { createClient } from '@supabase/supabase-js';
 import { metaParser } from '@/infrastructure/meta/meta-parser.service';
+import { processIncomingMessage } from '@/application/ai-agent';
 
 /**
  * Webhook Event Worker.
@@ -288,181 +289,140 @@ function createWebhookWorker() {
           return { status: 'ignored_by_bot_config', eventId: webhookEventId };
         }
 
-        // --- 3. AI Classification ---
-        const { data: classifyResult, error: classifyErr } = await classifyService.classify({
-          text: messageText,
-          platform
-        });
-
-        if (classifyErr || !classifyResult) {
-          throw new Error(`AI Classification failed: ${classifyErr}`);
-        }
-
-        console.log(`[Worker] [${job.id}] Classified intent: ${classifyResult.intent} (Category: ${classifyResult.category}, Sentiment: ${classifyResult.sentiment})`);
-
-        // --- 3.5 Auto-Triage ---
-        // Apply AI results to conversation metadata and auto-assign
-        const { error: triageErr } = await triageService.triage(persistResult.conversationId, classifyResult);
-        if (triageErr) {
-          console.error(`[Worker] [${job.id}] Triage failed: ${triageErr}`);
-        }
-
-        // If intent is escalate or no action, stop here (after triage is applied)
-        if (classifyResult.intent === 'ESCALATE' || classifyResult.intent === 'NO_ACTION') {
-          return {
-            status: 'success_no_reply_needed',
-            intent: classifyResult.intent,
-            eventId: webhookEventId
-          };
-        }
-
-        // --- 4. AI Verification / Generation ---
-        // Fetch last 3 messages for context
-        const recentMessages = await db.message.findMany({
-          where: { conversationId: persistResult.conversationId },
-          orderBy: { createdAt: 'desc' },
-          take: 4, // Including the current message we just saved
-          select: { content: true, senderType: true }
-        });
-
-        // Convert to history format (ignoring the latest message which is passed separately)
-        const history = recentMessages
-          .slice(1) // Remove latest
-          .reverse() // Chronological order
-          .map(m => `${m.senderType === 'user' ? 'User' : 'Bot'}: ${m.content}`);
-
-        const selectedModel = selectModel({
-          text: messageText,
-          history,
-          userConfiguredModel: (botConfig as any).model
-        });
-
-        console.log(`[Worker] [${job.id}] Auto-selected model: ${selectedModel}`);
-
-        const { reply: replyText, isAutoReply, error: genErr } = await aiRoutingService.routeAndGenerate(
-          account.id,
+        // --- 3. AI Agent Rule-Based Phase 1 Pipeline ---
+        console.log(`[Worker] [${job.id}] Running Rule-based Phase 1 Pipeline...`);
+        const { reply, action, link, delay, updatedProfile } = await processIncomingMessage({
+          conversationId: persistResult.conversationId,
           messageText,
-          classifyResult,
-          platform,
-          history
-        );
+          workspaceId: account.workspaceId,
+          platformUserId: externalSenderId,
+        });
 
-        if (genErr || !replyText) {
-          throw new Error(`AI Generation/Routing failed: ${genErr}`);
-        }
+        console.log(`[Worker] [${job.id}] Pipeline Result: action=${action}, delay=${delay}ms`);
 
-        // --- 5. Persist AI Log (Always create log if generation is successful) ---
+        // --- 4. Persist AI Log ---
         const aiLog = await db.aIReplyLog.create({
           data: {
             messageId: persistResult.messageId, // Link to the user message that triggered it
-            prompt: `Intent: ${classifyResult.intent}${(botConfig as any).system_prompt ? ` | Prompt: ${(botConfig as any).system_prompt.substring(0, 50)}...` : ''}`,
-            response: replyText,
-            model: selectedModel,
-            status: (botConfig as any).auto_send ? 'suggested' : 'pending'
+            prompt: `Action: ${action} | Stage: ${updatedProfile.stage} | FanType: ${updatedProfile.fanType}`,
+            response: reply || '',
+            model: "Rule-based-Phase-1",
+            status: botConfig.auto_send ? 'suggested' : 'pending'
           } as any
         });
 
         console.log(`[Worker] [${job.id}] AI Suggestion created: ${aiLog.id}`);
 
-        // --- 6. Auto-Send via Platform API (Only if enabled and filters match) ---
-        const allowedPriorities = (botConfig as any).auto_reply_priorities || [];
-        const allowedSentiments = (botConfig as any).auto_reply_sentiments || [];
+        // If action is escalate_to_human, soft_exit, hard_exit, or wait (no reply needed)
+        // or if reply is empty, stop here
+        if (action === 'wait' || action === 'hard_exit' || action === 'escalate_to_human' || !reply) {
+          console.log(`[Worker] [${job.id}] Action is ${action} or reply is empty. No auto-send reply needed.`);
+          return {
+            status: 'success_no_reply_needed',
+            action,
+            eventId: webhookEventId,
+            suggestionId: aiLog.id
+          };
+        }
 
-        const priorityMatch = allowedPriorities.length === 0 || allowedPriorities.includes(classifyResult.priority);
-        const sentimentMatch = allowedSentiments.length === 0 || allowedSentiments.includes(classifyResult.sentiment);
-
-        if (!botConfig.auto_send || !priorityMatch || !sentimentMatch || !isAutoReply) {
-          let reason = 'Auto-send is OFF or Routing resolved to Draft Only';
-          if (botConfig.auto_send && isAutoReply) {
-            if (!priorityMatch && !sentimentMatch) reason = `Priority (${classifyResult.priority}) and Sentiment (${classifyResult.sentiment}) not allowed`;
-            else if (!priorityMatch) reason = `Priority (${classifyResult.priority}) not allowed for auto-reply`;
-            else if (!sentimentMatch) reason = `Sentiment (${classifyResult.sentiment}) not allowed for auto-reply`;
-          }
-
-          console.log(`[Worker] [${job.id}] ${reason}. Stopping after suggestion.`);
+        // --- 5. Auto-Send via Platform API (delayed asynchronously) ---
+        if (!botConfig.auto_send) {
+          console.log(`[Worker] [${job.id}] Auto-send is OFF. Stopping after suggestion.`);
           return {
             status: 'success_suggestion_only',
             eventId: webhookEventId,
             suggestionId: aiLog.id,
-            reason
+            reason: 'Auto-send is OFF'
           };
         }
 
-        let platformBotMessageId = `bot_generated_${Date.now()}`;
-        if (platform === 'meta' || platform === 'facebook' || platform === 'instagram') {
-          const tokenRecord = account.meta_tokens[0];
-          if (!tokenRecord) {
-            console.warn(`[Worker] [${job.id}] Cannot auto-send: No access token found for account ${account.id}`);
-            return { status: 'failed_auto_send_no_token', eventId: webhookEventId, suggestionId: aiLog.id };
-          }
+        // Tự động trì hoãn không đồng bộ cục bộ (Background setTimeout) để gửi tin nhắn
+        console.log(`[Worker] [${job.id}] Scheduling delayed reply in ${delay}ms...`);
+        
+        // Chạy bất đồng bộ ngầm để giải phóng job BullMQ ngay lập tức
+        setTimeout(async () => {
+          try {
+            console.log(`\n⏰ [Delayed Send] Executing delayed reply for conversation ${persistResult.conversationId}`);
+            let platformBotMessageId = `bot_generated_${Date.now()}`;
+            
+            if (platform === 'meta' || platform === 'facebook' || platform === 'instagram') {
+              const tokenRecord = account.meta_tokens[0];
+              if (!tokenRecord) {
+                console.warn(`[Delayed Send] Cannot auto-send: No access token found for account ${account.id}`);
+                return;
+              }
 
-          let effectivePageId = externalPageId;
+              let effectivePageId = externalPageId;
 
-          // For Instagram, we must use the linked Facebook Page ID as the sender to avoid error #3 (Capability)
-          if (platform === 'instagram') {
-            const linkedFb = await db.platformAccount.findFirst({
-              where: {
-                platform: 'facebook',
-                workspaceId: account.workspaceId,
-                metadata: { path: ['instagram_id'], equals: externalPageId }
-              },
-              select: { platform_user_id: true }
-            });
-            if (linkedFb) {
-              effectivePageId = linkedFb.platform_user_id;
-              console.log(`[Worker] [${job.id}] Resolved linked FB Page ${effectivePageId} for IG account ${externalPageId}`);
+              // For Instagram, we must use the linked Facebook Page ID as the sender to avoid error #3 (Capability)
+              if (platform === 'instagram') {
+                const linkedFb = await db.platformAccount.findFirst({
+                  where: {
+                    platform: 'facebook',
+                    workspaceId: account.workspaceId,
+                    metadata: { path: ['instagram_id'], equals: externalPageId }
+                  },
+                  select: { platform_user_id: true }
+                });
+                if (linkedFb) {
+                  effectivePageId = linkedFb.platform_user_id;
+                  console.log(`[Delayed Send] Resolved linked FB Page ${effectivePageId} for IG account ${externalPageId}`);
+                }
+              }
+
+              const { data: sendResult, error: sendErr } = await metaSendService.sendText({
+                platform: platform === 'instagram' ? 'instagram' : 'facebook',
+                recipientId: externalSenderId,
+                pageId: effectivePageId,
+                text: reply,
+                encryptedToken: tokenRecord.encrypted_access_token
+              });
+
+              if (sendErr) {
+                console.error(`[Delayed Send] Meta Send Service failed: ${sendErr}`);
+                return;
+              }
+              if (sendResult && sendResult.messageId) {
+                platformBotMessageId = sendResult.messageId;
+              }
+            } else {
+              console.warn(`[Delayed Send] Send API for platform ${platform} not supported yet`);
+              return;
             }
+
+            // Persist Bot Message
+            const { data: botPersist } = await idempotentPersistMessage({
+              platform,
+              externalPageId,
+              externalSenderId,
+              platformMessageId: platformBotMessageId,
+              senderType: 'ai',
+              messageText: reply,
+              timestamp: new Date(),
+            });
+
+            if (botPersist && botPersist.isNewMessage) {
+              // Update AI log with the actual sent message ID and set status to 'sent'
+              await db.aIReplyLog.update({
+                where: { id: aiLog.id },
+                data: {
+                  messageId: botPersist.messageId,
+                  status: 'sent'
+                } as any
+              });
+              console.log(`[Delayed Send] Bot reply sent and associated with log.`);
+            }
+          } catch (err) {
+            console.error(`[Delayed Send] Failed to execute delayed reply:`, err);
           }
-
-          const { data: sendResult, error: sendErr } = await metaSendService.sendText({
-            platform: platform === 'instagram' ? 'instagram' : 'facebook',
-            recipientId: externalSenderId,
-            pageId: effectivePageId,
-            text: replyText,
-            encryptedToken: tokenRecord.encrypted_access_token
-          });
-
-          if (sendErr) {
-            console.error(`[Worker] [${job.id}] Meta Send Service failed: ${sendErr}`);
-            return { status: 'failed_auto_send_api_error', error: sendErr, eventId: webhookEventId };
-          }
-          if (sendResult && sendResult.messageId) {
-            platformBotMessageId = sendResult.messageId;
-          }
-        } else {
-          console.warn(`[Worker] [${job.id}] Send API for platform ${platform} not implemented yet`);
-          return { status: 'failed_auto_send_unsupported_platform', eventId: webhookEventId };
-        }
-
-        // --- 7. Persist Bot Message (Only if auto-sent) ---
-        const { data: botPersist, error: botPersistErr } = await idempotentPersistMessage({
-          platform,
-          externalPageId,
-          externalSenderId,
-          platformMessageId: platformBotMessageId,
-          senderType: 'ai',
-          messageText: replyText,
-          timestamp: new Date(),
-        });
-
-        if (botPersist && botPersist.isNewMessage) {
-          // Update AI log with the actual sent message ID
-          await db.aIReplyLog.update({
-            where: { id: aiLog.id },
-            data: {
-              messageId: botPersist.messageId,
-              status: 'sent'
-            } as any
-          });
-        }
-
-        console.log(`[Worker] [${job.id}] Bot reply auto-sent & persisted successfully.`);
+        }, delay);
 
         return {
           processedAt: new Date().toISOString(),
-          status: 'success_replied',
+          status: 'success_replied_scheduled',
           eventId: webhookEventId,
-          intent: classifyResult.intent
+          delayMs: delay,
+          action
         };
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
