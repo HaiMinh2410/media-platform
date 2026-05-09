@@ -24,34 +24,30 @@ export function SendButton({
   // Map numerical duration to Tailwind class (e.g. duration-200)
   const durationClass = `duration-${duration}`;
 
+  const isDisabled = disabled || isSending;
+
   return (
     <button
       type={type}
-      disabled={disabled || isSending}
+      disabled={isDisabled}
       className={cn(
         "relative transition-all shrink-0 flex items-center justify-center cursor-pointer group",
         durationClass,
-        (disabled || isSending) && "cursor-not-allowed opacity-50",
+        isDisabled && "cursor-not-allowed opacity-50",
         className
       )}
       {...props}
     >
-      {isSending ? (
-        <div className="animate-spin flex items-center justify-center">
-          <Send size={size} className={cn("opacity-50", iconClassName)} />
-        </div>
-      ) : (
-        <Send
-          size={size}
-          className={cn(
-            "transition-all",
-            durationClass,
-            // When hovering the button, rotate the send icon 45 degrees, change to primary color and fill it with primary (if not disabled)
-            !disabled && "group-hover:rotate-45 group-hover:text-primary group-hover:fill-primary",
-            iconClassName
-          )}
-        />
-      )}
+      <Send
+        size={size}
+        className={cn(
+          "transition-all",
+          durationClass,
+          // When hovering the button, rotate the send icon 45 degrees, change to primary color and fill it with primary (if not disabled)
+          !isDisabled && "group-hover:rotate-45 group-hover:text-primary group-hover:fill-primary",
+          iconClassName
+        )}
+      />
     </button>
   );
 }

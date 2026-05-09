@@ -152,100 +152,139 @@ export function ReplyComposer({
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const trimmed = text.trim();
-    if ((!trimmed && files.length === 0) || sendState === 'sending') return;
+    if (!trimmed && files.length === 0) return;
 
-    setSendState('sending');
     setErrorMsg(null);
 
-    try {
-      const messageAttachments: MessageAttachment[] = [];
+    // Capture reactive reply states
+    const parentId = replyToMessage?.id;
+    const parentMsg = replyToMessage;
+    const currentFiles = [...files];
 
-      // 1. Upload files to our local Server API (to bypass browser CORS) if any exist
-      for (const f of files) {
-        const formData = new FormData();
-        formData.append('file', f.file);
-        if (workspaceId) {
-          formData.append('workspaceId', workspaceId);
-        }
+    // Generate unique temporary message ID for Optimistic UI
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!uploadRes.ok) {
-          const uploadErrData = await uploadRes.json().catch(() => ({}));
-          const errMsg = uploadErrData.error || `Upload failed (${uploadRes.status})`;
-          throw new Error(`Failed to upload file ${f.file.name}: ${errMsg}`);
-        }
-
-        const uploadData = await uploadRes.json();
-
-        messageAttachments.push({
-          type: f.type,
-          payload: {
-            url: uploadData.publicUrl,
-            title: f.file.name,
-            fileSize: f.file.size
-          }
-        });
+    // Map files to temporary attachments layout with local object URLs for immediate previewing
+    const messageAttachments: MessageAttachment[] = currentFiles.map(f => ({
+      type: f.type,
+      payload: {
+        url: f.previewUrl || '',
+        title: f.file.name,
+        fileSize: f.file.size
       }
+    }));
 
-      // 2. Submit the message reply with uploaded public URLs
-      const res = await fetch(`/api/conversations/${conversationId}/reply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          text: trimmed,
-          platform: replyOnChannel,
-          tone: selectedTone,
-          parentMessageId: replyToMessage?.id,
-          attachments: messageAttachments
-        }),
-      });
+    // Trigger optimistic update in ChatWindow instantly
+    if (onMessageSent) {
+      onMessageSent({
+        id: tempId,
+        content: trimmed,
+        senderId: 'agent',
+        senderType: 'agent',
+        createdAt: new Date(),
+        is_delivered: false,
+        is_read: false,
+        parentMessageId: parentId || null,
+        parentMessage: parentMsg || undefined,
+        attachments: messageAttachments,
+        isSending: true
+      } as any);
+    }
 
-      if (res.ok || res.status === 207) {
-        // Clear typing timeout and emit typing_off
-        if (typingTimeoutRef.current) {
-          clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = null;
-        }
-        if (isCurrentlyTyping.current && onTypingStateChange) {
-          isCurrentlyTyping.current = false;
-          onTypingStateChange(false);
-        }
+    // Immediately clear input fields and state to allow typing next message right away
+    setText('');
+    setFiles([]);
+    setReplyToMessage(null);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
 
-        const responseData = await res.json();
-        setText('');
-        setFiles([]);
-        setReplyToMessage(null);
-        setSendState('idle');
-        if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    // Clear typing indicator status
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (isCurrentlyTyping.current && onTypingStateChange) {
+      isCurrentlyTyping.current = false;
+      onTypingStateChange(false);
+    }
 
-        if (onMessageSent && responseData.data) {
-          onMessageSent({
-            id: responseData.data.messageId,
-            content: trimmed,
-            senderId: 'agent',
-            senderType: 'agent',
-            createdAt: new Date(),
-            is_delivered: true,
-            is_read: false,
-            parentMessageId: replyToMessage?.id || null,
-            attachments: messageAttachments
+    // Perform file uploading and API message reply in the background
+    (async () => {
+      try {
+        const uploadedAttachments: MessageAttachment[] = [];
+
+        // 1. Upload files to our local Server API if any exist
+        for (const f of currentFiles) {
+          const formData = new FormData();
+          formData.append('file', f.file);
+          if (workspaceId) {
+            formData.append('workspaceId', workspaceId);
+          }
+
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!uploadRes.ok) {
+            const uploadErrData = await uploadRes.json().catch(() => ({}));
+            const errMsg = uploadErrData.error || `Upload failed (${uploadRes.status})`;
+            throw new Error(`Failed to upload file ${f.file.name}: ${errMsg}`);
+          }
+
+          const uploadData = await uploadRes.json();
+
+          uploadedAttachments.push({
+            type: f.type,
+            payload: {
+              url: uploadData.publicUrl,
+              title: f.file.name,
+              fileSize: f.file.size
+            }
           });
         }
-      } else {
-        const data = await res.json().catch(() => ({}));
-        const msg = data.error || `Send failed (${res.status})`;
-        setErrorMsg(msg);
-        setSendState('error');
+
+        // 2. Submit the message reply with uploaded public URLs
+        const res = await fetch(`/api/conversations/${conversationId}/reply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            text: trimmed,
+            platform: replyOnChannel,
+            tone: selectedTone,
+            parentMessageId: parentId,
+            attachments: uploadedAttachments
+          }),
+        });
+
+        if (res.ok || res.status === 207) {
+          const responseData = await res.json();
+          if (onMessageSent && responseData.data) {
+            onMessageSent({
+              id: responseData.data.messageId,
+              content: trimmed,
+              senderId: 'agent',
+              senderType: 'agent',
+              createdAt: new Date(),
+              is_delivered: true,
+              is_read: false,
+              parentMessageId: parentId || null,
+              parentMessage: parentMsg || undefined,
+              attachments: uploadedAttachments,
+              tempId: tempId // Send tempId to let ChatWindow replace the temporary message
+            } as any);
+          }
+        } else {
+          const data = await res.json().catch(() => ({}));
+          const msg = data.error || `Send failed (${res.status})`;
+          throw new Error(msg);
+        }
+      } catch (err: any) {
+        console.error('[ReplyComposer] Error submitting reply in background:', err);
+        setErrorMsg(err.message || 'Network error — failed to deliver message.');
       }
-    } catch (err: any) {
-      console.error('[ReplyComposer] Error submitting reply:', err);
-      setErrorMsg(err.message || 'Network error — please try again.');
-      setSendState('error');
-    }
+    })();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -334,92 +373,128 @@ export function ReplyComposer({
 
   const handleVoiceConfirm = async (blob: Blob) => {
     setIsRecording(false);
-    setSendState('sending');
     setErrorMsg(null);
 
-    try {
-      const file = new File([blob], "voice-message.m4a", { type: "audio/x-m4a" });
-      
-      // 1. Upload file immediately via backend local proxy API
-      const formData = new FormData();
-      formData.append('file', file);
-      if (workspaceId) {
-        formData.append('workspaceId', workspaceId);
+    // Capture reactive states
+    const parentId = replyToMessage?.id;
+    const parentMsg = replyToMessage;
+    const file = new File([blob], "voice-message.m4a", { type: "audio/x-m4a" });
+
+    // Generate unique temporary message ID for voice optimistic UI
+    const tempId = `temp-${Date.now()}-voice`;
+
+    // Map audio attachment using local object URL for immediate playback capability
+    const voiceUrl = URL.createObjectURL(blob);
+    const messageAttachments: MessageAttachment[] = [{
+      type: 'audio',
+      payload: {
+        url: voiceUrl,
+        title: 'voice-message.m4a',
+        fileSize: file.size
       }
+    }];
 
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!uploadRes.ok) {
-        const uploadErrData = await uploadRes.json().catch(() => ({}));
-        const errMsg = uploadErrData.error || `Upload failed (${uploadRes.status})`;
-        throw new Error(`Failed to upload voice message: ${errMsg}`);
-      }
-
-      const uploadData = await uploadRes.json();
-      const messageAttachments: MessageAttachment[] = [{
-        type: 'audio',
-        payload: {
-          url: uploadData.publicUrl,
-          title: 'voice-message.m4a',
-          fileSize: file.size
-        }
-      }];
-
-      // 2. Submit reply directly
-      const res = await fetch(`/api/conversations/${conversationId}/reply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          text: '',
-          platform: replyOnChannel,
-          tone: selectedTone,
-          parentMessageId: replyToMessage?.id,
-          attachments: messageAttachments
-        }),
-      });
-
-      if (res.ok || res.status === 207) {
-        // Clear typing status
-        if (typingTimeoutRef.current) {
-          clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = null;
-        }
-        if (isCurrentlyTyping.current && onTypingStateChange) {
-          isCurrentlyTyping.current = false;
-          onTypingStateChange(false);
-        }
-
-        const responseData = await res.json();
-        setReplyToMessage(null);
-        setSendState('idle');
-
-        if (onMessageSent && responseData.data) {
-          onMessageSent({
-            id: responseData.data.messageId,
-            content: '',
-            senderId: 'agent',
-            senderType: 'agent',
-            createdAt: new Date(),
-            is_delivered: true,
-            is_read: false,
-            parentMessageId: replyToMessage?.id || null,
-            attachments: messageAttachments
-          });
-        }
-      } else {
-        const data = await res.json().catch(() => ({}));
-        const msg = data.error || `Send failed (${res.status})`;
-        setErrorMsg(msg);
-        setSendState('error');
-      }
-    } catch (err: any) {
-      console.error('[ReplyComposer] Error sending voice message:', err);
-      setErrorMsg(err.message || 'Error sending voice message — please try again.');
-      setSendState('error');
+    // Trigger optimistic update in ChatWindow instantly
+    if (onMessageSent) {
+      onMessageSent({
+        id: tempId,
+        content: '',
+        senderId: 'agent',
+        senderType: 'agent',
+        createdAt: new Date(),
+        is_delivered: false,
+        is_read: false,
+        parentMessageId: parentId || null,
+        parentMessage: parentMsg || undefined,
+        attachments: messageAttachments,
+        isSending: true
+      } as any);
     }
+
+    // Immediately clear reply to message
+    setReplyToMessage(null);
+
+    // Clear typing status
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (isCurrentlyTyping.current && onTypingStateChange) {
+      isCurrentlyTyping.current = false;
+      onTypingStateChange(false);
+    }
+
+    // Run upload and reply in the background
+    (async () => {
+      try {
+        // 1. Upload file immediately via backend local proxy API
+        const formData = new FormData();
+        formData.append('file', file);
+        if (workspaceId) {
+          formData.append('workspaceId', workspaceId);
+        }
+
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          const uploadErrData = await uploadRes.json().catch(() => ({}));
+          const errMsg = uploadErrData.error || `Upload failed (${uploadRes.status})`;
+          throw new Error(`Failed to upload voice message: ${errMsg}`);
+        }
+
+        const uploadData = await uploadRes.json();
+        const uploadedAttachments: MessageAttachment[] = [{
+          type: 'audio',
+          payload: {
+            url: uploadData.publicUrl,
+            title: 'voice-message.m4a',
+            fileSize: file.size
+          }
+        }];
+
+        // 2. Submit reply directly
+        const res = await fetch(`/api/conversations/${conversationId}/reply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            text: '',
+            platform: replyOnChannel,
+            tone: selectedTone,
+            parentMessageId: parentId,
+            attachments: uploadedAttachments
+          }),
+        });
+
+        if (res.ok || res.status === 207) {
+          const responseData = await res.json();
+          if (onMessageSent && responseData.data) {
+            onMessageSent({
+              id: responseData.data.messageId,
+              content: '',
+              senderId: 'agent',
+              senderType: 'agent',
+              createdAt: new Date(),
+              is_delivered: true,
+              is_read: false,
+              parentMessageId: parentId || null,
+              parentMessage: parentMsg || undefined,
+              attachments: uploadedAttachments,
+              tempId: tempId // Send tempId to replace temporary message with real database message
+            } as any);
+          }
+        } else {
+          const data = await res.json().catch(() => ({}));
+          const msg = data.error || `Send failed (${res.status})`;
+          throw new Error(msg);
+        }
+      } catch (err: any) {
+        console.error('[ReplyComposer] Error sending voice message in background:', err);
+        setErrorMsg(err.message || 'Failed to send voice message.');
+      }
+    })();
   };
 
   const handleSnippetClick = (snippetText: string) => {
@@ -585,7 +660,7 @@ export function ReplyComposer({
                   <div className="relative" ref={snippetsRef}>
                     <button 
                       type="button" 
-                      className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-primary hover:bg-foreground/5"
+                      className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary"
                       onClick={() => setShowSnippets(!showSnippets)}
                       title="Saved Snippets"
                     >
@@ -614,7 +689,7 @@ export function ReplyComposer({
                   
                   <button 
                     type="button" 
-                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-primary hover:bg-foreground/5" 
+                    className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary" 
                     title="Attach file"
                     onClick={() => fileInputRef.current?.click()}
                   >
@@ -630,7 +705,7 @@ export function ReplyComposer({
 
                   <button 
                     type="button" 
-                    className="bg-transparent border-none text-foreground-tertiary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-all hover:text-primary hover:bg-foreground/5" 
+                    className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary" 
                     title="Record voice note"
                     onClick={() => setIsRecording(true)}
                   >

@@ -299,6 +299,26 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
           resolvedMessage.parentMessage = parent;
         }
       }
+
+      // Check if there is an explicit tempId to replace
+      const tempId = (message as any).tempId;
+      if (tempId) {
+        return prev.map(m => m.id === tempId ? resolvedMessage : m);
+      }
+
+      // Fallback: if this is a real agent message, search for any matching temp- message and replace it
+      if (resolvedMessage.senderType === 'agent' && !resolvedMessage.id.startsWith('temp-')) {
+        const existingTempIndex = prev.findIndex(m => 
+          m.id.startsWith('temp-') && 
+          m.content === resolvedMessage.content
+        );
+        if (existingTempIndex !== -1) {
+          const updated = [...prev];
+          updated[existingTempIndex] = resolvedMessage;
+          return updated;
+        }
+      }
+
       return [...prev, resolvedMessage];
     });
 
