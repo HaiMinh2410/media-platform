@@ -157,7 +157,7 @@ export function ChatHeader({
   };
 
   return (
-    <header className="p-4 py-3 border-b border-foreground/10 bg-background/80 backdrop-blur-xl relative z-20 flex items-center justify-between">
+    <header className="px-4 py-1 border-b-2 border-background-secondary relative z-20 flex items-center justify-between">
       <div className="flex items-center gap-1">
         <button
           type="button"

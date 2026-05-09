@@ -25,7 +25,7 @@ export function MainHeader({ workspaceId }: { workspaceId: string }) {
   }, []);
 
   return (
-    <div className="flex items-center justify-between px-6 h-[56px] border-b border-foreground/10 bg-background/80 backdrop-blur-xl sticky top-0 z-20 w-full gap-4">
+    <div className="flex items-center justify-between px-6 h-[56px] border-b-2 border-background-secondary bg-background/80 backdrop-blur-xl sticky top-0 z-20 w-full gap-4">
       {/* Left section: Inbox specific controls or placeholder */}
       <div className="flex-1 flex items-center h-full">
         {isInbox && <InboxHeaderControls workspaceId={workspaceId} />}

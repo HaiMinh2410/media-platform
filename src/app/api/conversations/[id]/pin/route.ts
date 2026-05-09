@@ -90,6 +90,24 @@ export async function POST(
         } as any
       });
 
+      // Create system event message in the conversation timeline
+      try {
+        await db.message.create({
+          data: {
+            conversationId,
+            senderId: 'system',
+            senderType: 'user', // Satisfies postgresql messages_sender_type_check constraint
+            content: isPinned ? 'Bạn đã ghim một tin nhắn.' : 'Bạn đã bỏ ghim một tin nhắn.',
+            platform_message_id: `system_${isPinned ? 'pin' : 'unpin'}_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+            is_read: true,
+            is_delivered: true
+          }
+        });
+        console.log(`[API Pin] Created system event message for message ${messageId} is_pinned=${isPinned}`);
+      } catch (dbErr) {
+        console.error('[API Pin] Failed to create system event message:', dbErr);
+      }
+
       console.log(`[API Pin] Message ${messageId} is_pinned set to ${isPinned}`);
       return NextResponse.json({ success: true, target, messageId, isPinned });
     }

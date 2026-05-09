@@ -619,10 +619,40 @@ export const MessageBubble = memo(function MessageBubble({
     const element = document.getElementById(`msg-${message.parentMessageId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      element.classList.add("ring-2", "ring-indigo-500", "ring-offset-2", "ring-offset-background", "rounded-[20px]", "animate-pulse");
-      setTimeout(() => {
-        element.classList.remove("ring-2", "ring-indigo-500", "ring-offset-2", "ring-offset-background", "rounded-[20px]", "animate-pulse");
-      }, 2000);
+      const targets = element.querySelectorAll('.bubble-highlight-target');
+      if (targets.length > 0) {
+        targets.forEach(target => {
+          target.classList.add(
+            "ring", 
+            "ring-indigo-500", 
+            "dark:ring-white", 
+            "ring-offset-2", 
+            "ring-offset-background", 
+            "scale-[1.03]", 
+            "shadow-lg", 
+            "z-30"
+          );
+        });
+        setTimeout(() => {
+          targets.forEach(target => {
+            target.classList.remove(
+              "ring", 
+              "ring-indigo-500", 
+              "dark:ring-white", 
+              "ring-offset-2", 
+              "ring-offset-background", 
+              "scale-[1.03]", 
+              "shadow-lg", 
+              "z-30"
+            );
+          });
+        }, 2000);
+      } else {
+        element.classList.add("animate-pulse");
+        setTimeout(() => {
+          element.classList.remove("animate-pulse");
+        }, 2000);
+      }
     }
   };
 
@@ -751,7 +781,7 @@ export const MessageBubble = memo(function MessageBubble({
           {(message.content || isAi) && (
             <div 
               className={cn(
-                "w-fit p-2 px-3.5 flex flex-col gap-1 relative break-words transition-all hover:-translate-y-px cursor-pointer",
+                "w-fit p-2 px-3.5 flex flex-col gap-1 relative break-words transition-all duration-300 hover:-translate-y-px cursor-pointer bubble-highlight-target",
                 message.parentMessage 
                   ? "shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.22)]" 
                   : "shadow-sm hover:shadow-md",
@@ -780,7 +810,7 @@ export const MessageBubble = memo(function MessageBubble({
 
           {/* 2. Render Attachments Outside the Text Bubble (Images, Videos, Files, Audio Waves) */}
           {message.attachments && message.attachments.length > 0 && (
-            <div className="relative w-fit cursor-pointer">
+            <div className="relative w-fit cursor-pointer transition-all duration-300 bubble-highlight-target">
               <AttachmentRenderer 
                 attachments={message.attachments} 
                 isUser={isUser} 

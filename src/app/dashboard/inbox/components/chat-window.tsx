@@ -9,7 +9,7 @@ import { useMessageRealtime } from '../hooks/use-inbox-realtime';
 import { formatChatSeparator } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
-import { ChevronLeft, ChevronRight, X, Pin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Pin, Paperclip, MoreHorizontal } from 'lucide-react';
 import { useInboxStore } from '../store/inbox.store';
 import { TypingUser } from '../hooks/use-presence-typing';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -55,18 +55,18 @@ const PinnedMessageBanner = ({
 
   return (
     <div 
-      className="sticky top-0 z-10 w-full backdrop-blur-md bg-background-secondary/70 border-b border-foreground/10 px-4.5 py-2.5 flex items-center justify-between gap-3 shadow-sm select-none transition-all hover:bg-background-secondary/80 cursor-pointer"
+      className="sticky-pinned-banner sticky top-0 z-10 w-full backdrop-blur-md border-y-2 border-background-secondary px-4.5 py-1.5 flex items-center justify-between gap-3 select-none transition-all duration-300 cursor-pointer"
       onClick={() => onJumpToMessage(currentMessage.id)}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <div className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-secondary shrink-0">
-          <Pin size={14} fill="currentColor" className="rotate-45" />
+          <Pin fill="currentColor" className="rotate-45 size-4.5" />
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="text-sm font-bold tracking-wider text-indigo-400">
-            {currentMessage.senderType === 'user' ? (customerName || 'Khách hàng') : 'Bạn'} {pinnedMessages.length > 1 && `(${activeIndex + 1}/${pinnedMessages.length})`}
+          <span className="text-xs tracking-wider text-foreground-secondary">
+            {currentMessage.senderType === 'user' ? (customerName || 'Khách hàng') : 'Bạn'}
           </span>
-          <span className="text-sm text-foreground-secondary truncate max-w-full font-medium">
+          <span className="text-sm text-foreground truncate max-w-full font-semibold">
             {currentMessage.content || 'Ghim tập tin / phương tiện'}
           </span>
         </div>
@@ -112,6 +112,24 @@ const PinnedMessageBanner = ({
   );
 };
 
+// --- Utility for getting initials of a name ---
+const getInitials = (name: string) => {
+  const split = name.trim().split(' ');
+  if (split.length > 1) {
+    return (split[0][0] + split[split.length - 1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+// --- Utility for formatting time into hours and minutes ---
+const formatBubbleTime = (dateInput?: Date | string) => {
+  if (!dateInput) return '';
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
 export const ChatWindow = forwardRef<ChatWindowRef, { 
   conversationId: string; 
   typingUsers?: TypingUser[];
@@ -121,6 +139,8 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
   ({ conversationId, typingUsers = [], customerAvatar, customerName }, ref) => {
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<MessageWithSender[]>([]);
+  const [isPinnedModalOpen, setIsPinnedModalOpen] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -168,6 +188,26 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
     }
   }, [conversationId]);
 
+  const handleUnpin = useCallback(async (messageId: string) => {
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target: 'message',
+          messageId,
+          isPinned: false
+        })
+      });
+      if (res.ok) {
+        setPinnedMessages(prev => prev.filter(m => m.id !== messageId));
+        triggerRefresh();
+      }
+    } catch (err) {
+      console.error('[ChatWindow] Failed to unpin message:', err);
+    }
+  }, [conversationId, triggerRefresh]);
+
   const fetchMessages = useCallback(async (cursor?: string | null) => {
     try {
       setLoading(true);
@@ -212,7 +252,8 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
 
   useEffect(() => {
     fetchPinnedMessages();
-  }, [fetchPinnedMessages, refreshCounter]);
+    fetchMessages(null);
+  }, [fetchPinnedMessages, fetchMessages, refreshCounter]);
 
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -383,31 +424,13 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
           pinnedMessages={pinnedMessages} 
           customerName={customerName}
           onJumpToMessage={scrollToMessage}
-          onUnpin={async (id) => {
-            try {
-              const res = await fetch(`/api/conversations/${conversationId}/pin`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  target: 'message',
-                  messageId: id,
-                  isPinned: false
-                })
-              });
-              if (res.ok) {
-                setPinnedMessages(prev => prev.filter(m => m.id !== id));
-                triggerRefresh();
-              }
-            } catch (err) {
-              console.error('Failed to unpin message:', err);
-            }
-          }}
+          onUnpin={handleUnpin}
         />
       )}
 
       {/* Main scrolling chat window */}
       <div 
-        className="flex-1 overflow-y-auto overflow-x-hidden p-md px-lg flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent" 
+        className="flex-1 overflow-y-auto overflow-x-hidden p-md px-4 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent" 
         ref={scrollRef}
       >
         <div ref={observerTarget} style={{ height: '1px', opacity: 0 }} />
@@ -419,6 +442,24 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
         {loading && messages.length === 0 && <ChatSkeleton />}
 
         {messages.map((msg, index) => {
+          if (msg.senderId === 'system') {
+            return (
+              <div key={msg.id} className="flex justify-center items-center my-1.5 select-none animate-in fade-in duration-300">
+                <span className="text-xs font-medium text-foreground-secondary/75 flex items-center gap-1.5">
+                  <span>{msg.content}</span>
+                  <button 
+                    onClick={() => {
+                      setIsPinnedModalOpen(true);
+                    }}
+                    className="text-primary transition-colors hover:underline cursor-pointer border-0 bg-transparent p-0"
+                  >
+                    Xem tất cả
+                  </button>
+                </span>
+              </div>
+            );
+          }
+
           const prevMsg = index > 0 ? messages[index - 1] : null;
           const nextMsg = index < messages.length - 1 ? messages[index + 1] : null;
           
@@ -517,58 +558,233 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
         )}
       </div>
 
-      {/* Premium Lightbox Overlay rendering in document.body via Portal */}
-      {isMounted && typeof window !== 'undefined' && createPortal(
-        <AnimatePresence>
-          {lightboxImage && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
-              onClick={() => setLightboxImage(null)}
-            >
-              {/* Control buttons overlay */}
-              <div className="absolute top-4 right-4 flex items-center gap-3 z-10" onClick={(e) => e.stopPropagation()}>
-                <a 
-                  href={lightboxImage} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center transition-all hover:bg-white/20 active:scale-95"
-                  title="Mở tab mới"
-                >
-                  <ChevronRight className="rotate-[-45deg] stroke-[2.5]" size={18} />
-                </a>
-                <button
-                  type="button"
+      {/* Premium Lightbox Overlay and Pinned Messages Modal rendering in document.body via separate Portals */}
+      {isMounted && typeof window !== 'undefined' && (
+        <>
+          {createPortal(
+            <AnimatePresence>
+              {lightboxImage && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
                   onClick={() => setLightboxImage(null)}
-                  className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center transition-all hover:bg-white/20 active:scale-95 border-none cursor-pointer"
-                  title="Đóng"
                 >
-                  <X size={20} className="stroke-[2.5]" />
-                </button>
-              </div>
+                  {/* Control buttons overlay */}
+                  <div className="absolute top-4 right-4 flex items-center gap-3 z-10" onClick={(e) => e.stopPropagation()}>
+                    <a 
+                      href={lightboxImage} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center transition-all hover:bg-white/20 active:scale-95"
+                      title="Mở tab mới"
+                    >
+                      <ChevronRight className="rotate-[-45deg] stroke-[2.5]" size={18} />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage(null)}
+                      className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center transition-all hover:bg-white/20 active:scale-95 border-none cursor-pointer"
+                      title="Đóng"
+                    >
+                      <X size={20} className="stroke-[2.5]" />
+                    </button>
+                  </div>
 
-              {/* Main Image Container */}
-              <motion.div
-                initial={{ scale: 0.95, y: 10 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.95, y: 10 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className="relative max-w-full max-h-[85vh] flex items-center justify-center select-none"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <img 
-                  src={lightboxImage} 
-                  alt="Full size view" 
-                  className="max-w-full max-h-[85vh] object-contain border border-white/10 pointer-events-auto"
-                />
-              </motion.div>
-            </motion.div>
+                  {/* Main Image Container */}
+                  <motion.div
+                    initial={{ scale: 0.95, y: 10 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.95, y: 10 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    className="relative max-w-full max-h-[85vh] flex items-center justify-center select-none"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <img 
+                      src={lightboxImage} 
+                      alt="Full size view" 
+                      className="max-w-full max-h-[85vh] object-contain border border-white/10 pointer-events-auto"
+                    />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body
           )}
-        </AnimatePresence>,
-        document.body
+
+          {createPortal(
+            <AnimatePresence>
+              {isPinnedModalOpen && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-[99998] flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px]"
+                  onClick={() => setIsPinnedModalOpen(false)}
+                >
+                  <motion.div
+                    initial={{ scale: 0.95, y: 15 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.95, y: 15 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                    className="bg-background-secondary border border-foreground/10 text-foreground rounded-xl shadow-2xl flex flex-col w-full max-w-[500px] h-[550px] overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Header */}
+                    <div className="h-16 flex items-center justify-center relative border-b border-foreground/10 shrink-0">
+                      <h3 className="text-lg font-bold text-foreground">Tin nhắn đã ghim</h3>
+                      <button
+                        type="button"
+                        onClick={() => setIsPinnedModalOpen(false)}
+                        className="absolute right-4 w-9 h-9 rounded-full hover:bg-foreground/5 flex items-center justify-center text-foreground border-none cursor-pointer"
+                        title="Đóng"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Body / List */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent">
+                      {pinnedMessages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-foreground-tertiary space-y-2 py-12 select-none">
+                          <Pin className="rotate-45 size-10 stroke-[1.5]" />
+                          <p className="text-sm font-medium">Không có tin nhắn được ghim</p>
+                        </div>
+                      ) : (
+                        pinnedMessages.map((msg, index) => {
+                          const isMsgUser = msg.senderType === 'user';
+                          const senderName = isMsgUser ? (customerName || 'Khách hàng') : 'Bạn';
+                          const avatarSrc = isMsgUser ? customerAvatar : undefined;
+                          const formattedTime = formatBubbleTime(msg.createdAt);
+
+                          return (
+                            <React.Fragment key={`modal-pinned-${msg.id}`}>
+                              <div 
+                                className="flex items-end px-2 gap-3 rounded-xl select-none group relative"
+                              >
+                                {/* Avatar */}
+                                {avatarSrc ? (
+                                  <img 
+                                    src={avatarSrc} 
+                                    alt={senderName} 
+                                    className="size-8 rounded-full object-cover shadow-sm border border-foreground/10 shrink-0" 
+                                  />
+                                ) : (
+                                  <div className="size-8 rounded-full bg-indigo-500 text-white font-semibold text-sm flex items-center justify-center border border-foreground/10 shrink-0 select-none">
+                                    {getInitials(senderName)}
+                                  </div>
+                                )}
+
+                                {/* Content */}
+                                {/** Note: relative pr-18 is not needed anymore since options is inside flex wrapper now **/}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-xs text-foreground-secondary truncate pr-2">{senderName}</span>
+                                    <span className="text-[12px] text-foreground-tertiary font-medium select-none shrink-0 pr-1">
+                                      {formattedTime}
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2 relative">
+                                    {/* Content text */}
+                                    {msg.content && (
+                                      <div className="inline-block px-3 py-2 rounded-2xl bg-foreground/5 text-[14px] text-foreground max-w-[85%] break-words border border-foreground/5 shadow-sm">
+                                        {msg.content}
+                                      </div>
+                                    )}
+
+                                    {/* Attachments preview */}
+                                    {msg.attachments && msg.attachments.length > 0 && (
+                                      <div className="space-y-1">
+                                        {msg.attachments.map((att, attIdx) => {
+                                          const payload = att.payload as any;
+                                          if (att.type === 'image') {
+                                            return (
+                                              <div key={attIdx} className="overflow-hidden rounded-xl border border-foreground/5 max-w-[150px] max-h-[150px]">
+                                                <img src={payload.url} alt="Attachment" className="object-cover w-full h-full" />
+                                              </div>
+                                            );
+                                          }
+                                          return (
+                                            <div key={attIdx} className="flex items-center gap-1.5 text-xs text-foreground-tertiary">
+                                              <Paperclip size={12} />
+                                              <span className="truncate">{payload.title || 'Tệp đính kèm'}</span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+
+                                    {/* Custom Options dropdown (Three dots) */}
+                                    <div className="relative shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => setActiveMenuId(activeMenuId === msg.id ? null : msg.id)}
+                                        className="w-8 h-8 rounded-full text-foreground-tertiary hover:text-foreground hover:bg-foreground/10 flex items-center justify-center cursor-pointer border-none bg-transparent transition-all duration-150 font-bold"
+                                        title="Tùy chọn"
+                                      >
+                                        <MoreHorizontal size={18} />
+                                      </button>
+
+                                      {/* Popover Menu matching image */}
+                                      {activeMenuId === msg.id && (
+                                        <>
+                                          <div 
+                                            className="fixed inset-0 z-[99999]" 
+                                            onClick={() => setActiveMenuId(null)} 
+                                          />
+                                          <div
+                                            className="absolute left-0 mt-2 w-48 rounded-lg bg-[#242526] border border-white/10 shadow-2xl z-[100000] p-2 text-white select-none overflow-hidden"
+                                          >
+                                            {/* Arrow pointer */}
+                                            <div className="absolute top-[-5px] left-3 w-2.5 h-2.5 bg-[#242526] border-t border-l border-white/10 rotate-45" />
+
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                scrollToMessage(msg.id);
+                                                setIsPinnedModalOpen(false);
+                                                setActiveMenuId(null);
+                                              }}
+                                              className="w-full text-left px-3 py-2 text-sm font-semibold hover:bg-white/10 transition-colors flex items-center gap-2 border-none bg-transparent text-foreground cursor-pointer rounded-md"
+                                            >
+                                              Xem trong đoạn chat
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={async () => {
+                                                await handleUnpin(msg.id);
+                                                setActiveMenuId(null);
+                                              }}
+                                              className="w-full text-left px-3 py-2 text-sm font-semibold hover:bg-white/10 transition-colors flex items-center gap-2 border-none bg-transparent text-foreground cursor-pointer rounded-md"
+                                            >
+                                              Bỏ ghim
+                                            </button>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              {index < pinnedMessages.length - 1 && (
+                                <div className="border-b border-foreground/10 my-4" />
+                              )}
+                            </React.Fragment>
+                          );
+                        })
+                      )}
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
+        </>
       )}
     </div>
   );
