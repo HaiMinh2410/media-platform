@@ -40,11 +40,6 @@ export function Sidebar() {
       icon: <BarChart3 size={20} />,
     },
     {
-      label: 'AI Analytics',
-      href: '/dashboard/ai-analytics',
-      icon: <Sparkles size={20} className="text-pink-500" />,
-    },
-    {
       label: 'Inbox',
       href: '/dashboard/inbox',
       icon: <Inbox size={20} />,
