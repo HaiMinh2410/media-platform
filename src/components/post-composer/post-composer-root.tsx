@@ -9,6 +9,8 @@ import { SchedulingPanel } from './scheduling-panel';
 import { PlatformAccount } from '@/domain/types/platform-account';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 type PostComposerRootProps = {
   accounts: PlatformAccount[];
@@ -84,9 +86,18 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
 
         {/* Editor Column */}
         <div className="space-y-10 pb-20">
-          <header className="space-y-2">
-            <h1 className="text-4xl font-bold text-white tracking-tight">Create Post</h1>
-            <p className="text-slate-400 text-lg font-medium">Compose and schedule your content across multiple platforms.</p>
+          <header className="space-y-4">
+            <Link 
+              href="/dashboard/posts" 
+              className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium group no-underline"
+            >
+              <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+              Quay lại danh sách bài viết
+            </Link>
+            <div className="space-y-1">
+              <h1 className="text-4xl font-bold text-white tracking-tight">Create Post</h1>
+              <p className="text-slate-400 text-lg font-medium">Compose and schedule your content across multiple platforms.</p>
+            </div>
           </header>
 
           <PlatformSelector

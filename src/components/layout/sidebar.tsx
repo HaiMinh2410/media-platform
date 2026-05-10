@@ -51,25 +51,15 @@ export function Sidebar() {
       icon: <Users size={20} />,
     },
     {
-      label: 'Accounts',
-      href: '/dashboard/settings/accounts',
-      icon: <Users size={20} />,
-    },
-    {
-      label: 'Composer',
-      href: '/dashboard/composer',
-      icon: <PenTool size={20} />,
-    },
-    {
       label: 'Posts',
       href: '/dashboard/posts',
       icon: <Files size={20} />,
+      matchPaths: ['/dashboard/posts', '/dashboard/composer']
     },
     {
       label: 'Settings',
-      href: '/dashboard/settings',
+      href: '/dashboard/settings/accounts',
       icon: <Settings size={20} />,
-      exact: true
     },
   ];
 
@@ -166,7 +156,9 @@ export function Sidebar() {
         {NAV_ITEMS.map((item) => {
           const isActive = item.exact 
             ? pathname === item.href 
-            : pathname.startsWith(item.href);
+            : 'matchPaths' in item && Array.isArray(item.matchPaths)
+              ? item.matchPaths.some(p => pathname.startsWith(p))
+              : pathname.startsWith(item.href);
             
           return (
             <Link 
