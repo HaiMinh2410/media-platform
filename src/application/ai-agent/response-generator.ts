@@ -83,6 +83,7 @@ export async function generateResponse(
     fan_type: input.fanProfile.fanType,
     stage: input.fanProfile.stage,
     emotion_score: input.fanProfile.emotionScore,
+    flirt_level_target: input.decision.flirtLevelTarget,
     strategy: input.strategy,
     recent_messages: mappedRecentMessages,
     incoming_message: input.incomingMessage,

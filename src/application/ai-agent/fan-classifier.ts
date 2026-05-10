@@ -224,3 +224,72 @@ export async function classifyFanHybrid(
     return ruleResult;
   }
 }
+
+/**
+ * Detects if a fan's behavior has changed significantly, which justifies
+ * running the hybrid classifier again even if they already have a classified type.
+ * Adheres to Reclassification Triggers compliance.
+ *
+ * @param profile The current FanProfile
+ * @param recentMessages The recent conversation history (including the incoming message)
+ * @returns boolean indicating if we should trigger reclassification
+ */
+export function shouldReclassifyFan(
+  profile: FanProfile,
+  recentMessages: { role: 'fan' | 'you'; content: string }[]
+): boolean {
+  // 1. If currently Unknown, always classify
+  if (profile.fanType === 'Unknown') {
+    return true;
+  }
+
+  const fanMessages = recentMessages.filter((m) => m.role === 'fan');
+  if (fanMessages.length === 0) return false;
+
+  const latestFanMsg = fanMessages[fanMessages.length - 1].content;
+
+  // 2. Condition to trigger Whale reclassification:
+  // If not already a Whale, but suddenly asks for prices, packages, payment/bank account
+  if (profile.fanType !== 'Whale' && WHALE_KEYWORDS.test(latestFanMsg)) {
+    console.log(`🎯 [Classifier] Behavioral shift detected: Fan might be a Whale! Triggering reclassification.`);
+    return true;
+  }
+
+  // 3. Condition to trigger Drainer reclassification:
+  // If not already a Drainer, but starts constantly demanding freebies
+  if (profile.fanType !== 'Drainer' && DRAINER_KEYWORDS.test(latestFanMsg)) {
+    console.log(`🎯 [Classifier] Behavioral shift detected: Fan might be a Drainer! Triggering reclassification.`);
+    return true;
+  }
+
+  // 4. Condition to trigger Luy (Warm/Emotional) reclassification:
+  // If previously classified as Cool, but they show high emotional signaling (emojis, intimate keywords)
+  if (profile.fanType === 'Cool') {
+    const hasLuyKeywords = LUY_KEYWORDS.test(latestFanMsg);
+    const emojiCount = countEmojis(latestFanMsg);
+    if (hasLuyKeywords || emojiCount >= 2 || profile.emotionScore >= 0.75) {
+      console.log(`🎯 [Classifier] Behavioral shift detected: Cool fan warming up! Triggering reclassification.`);
+      return true;
+    }
+  }
+
+  // 5. Condition to trigger Cool (Cold/Unresponsive) reclassification:
+  // If previously classified as Luy or Whale, but they become extremely short, unresponsive, and emotionScore drops significantly
+  if (profile.fanType === 'Luy' || profile.fanType === 'Whale') {
+    const wordCount = countWords(latestFanMsg);
+    const emojiCount = countEmojis(latestFanMsg);
+    if (wordCount <= 3 && emojiCount === 0 && profile.emotionScore < 0.45) {
+      console.log(`🎯 [Classifier] Behavioral shift detected: Active fan cooling down! Triggering reclassification.`);
+      return true;
+    }
+  }
+
+  // 6. Periodic re-check every 15 messages to ensure classification hasn't gone stale
+  if (profile.messageCount > 0 && profile.messageCount % 15 === 0) {
+    console.log(`🎯 [Classifier] Periodic reclassification check triggered (messageCount: ${profile.messageCount}).`);
+    return true;
+  }
+
+  return false;
+}
+

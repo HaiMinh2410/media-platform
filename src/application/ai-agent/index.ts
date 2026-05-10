@@ -6,8 +6,9 @@
 
 import * as crypto from 'crypto';
 import { retrieveContext } from './context-retriever';
-import { determineStage, assessRisk } from './state-manager';
-import { classifyFanHybrid } from './fan-classifier';
+import { determineStage, assessRisk, determineFlirtLevel } from './state-manager';
+import { scoreEmotionAndTrend } from './emotion-scorer';
+import { classifyFanHybrid, shouldReclassifyFan } from './fan-classifier';
 import { decideAction } from './decision-engine';
 import { getTemplateResponse } from './templates';
 import { filterBlacklist, calculateDelay, checkLinkRateLimit, checkSafety } from './safety-checker';
@@ -86,6 +87,19 @@ export async function processIncomingMessage(params: {
 
     const emotionScoreBefore = fanProfile.emotionScore;
 
+    // Chấm điểm cảm xúc thời gian thực (Sentiment Analysis - T157)
+    console.log(`🔍 [Orchestrator] Scoring sentiment of incoming message...`);
+    const emotionResult = await scoreEmotionAndTrend({
+      conversationHistory: recentMessages,
+      currentProfile: fanProfile,
+      newMessage: params.messageText,
+    });
+
+    if (emotionResult.usage) {
+      promptTokens += emotionResult.usage.promptTokens;
+      completionTokens += emotionResult.usage.completionTokens;
+    }
+
     // 2. Xác định Giai đoạn (Stage) & Đánh giá Rủi ro (Risk Level) từ StateManager
     const currentStage = determineStage(fanProfile);
     
@@ -96,31 +110,122 @@ export async function processIncomingMessage(params: {
     
     const currentRisk = assessRisk(fanProfile, fanMessageContents);
 
+    // Tính toán Flirt Level ban đầu trước khi phân loại (hoặc nếu đã có sẵn phân loại)
+    const initialFlirtLevel = determineFlirtLevel({
+      stage: currentStage,
+      fanType: fanProfile.fanType,
+      emotionScore: emotionResult.emotionScore,
+      flirtLevel: fanProfile.flirtLevel,
+    });
+
     // Chuẩn bị profile tạm thời chứa các trạng thái vừa tính toán
     const tempProfile: FanProfile = {
       ...fanProfile,
       stage: currentStage,
       riskLevel: currentRisk,
+      emotionScore: emotionResult.emotionScore,
+      emotionTrend: emotionResult.emotionTrend,
+      flirtLevel: initialFlirtLevel,
     };
 
-    // 3. Phân loại đối tượng Fan (Fan Classification) nếu trạng thái hiện tại là Unknown
-    if (tempProfile.fanType === 'Unknown') {
-      console.log(`🔍 [Orchestrator] Fan type is 'Unknown'. Running hybrid classification...`);
+    // 2.5 Early Short-circuit if Risk Level is High (Escalate-to-human)
+    if (tempProfile.riskLevel === 'high') {
+      console.warn(`🚨 [Orchestrator] High risk level detected! Short-circuiting and escalating immediately to human.`);
+      tempProfile.nextAction = 'escalate_to_human';
+      // Update FanProfile state immediately
+      const savedProfile = await upsertFanProfile({
+        conversationId: params.conversationId,
+        workspaceId: params.workspaceId,
+        platformUserId: params.platformUserId,
+        fanType: tempProfile.fanType,
+        fanTypeConfidence: tempProfile.fanTypeConfidence,
+        stage: tempProfile.stage,
+        riskLevel: 'high',
+        nextAction: 'escalate_to_human',
+        messageCount: tempProfile.messageCount + 1, // Count this message as received
+        linkSentCount: tempProfile.linkSentCount,
+        lastLinkSentAt: tempProfile.lastLinkSentAt,
+        emotionScore: tempProfile.emotionScore,
+        emotionTrend: tempProfile.emotionTrend,
+        flirtLevel: tempProfile.flirtLevel,
+        keyInsights: tempProfile.keyInsights as string[],
+        objectionsSeen: tempProfile.objectionsSeen as string[],
+        lastSummary: tempProfile.lastSummary ?? undefined,
+      });
+
+      if (!savedProfile) {
+        throw new Error(`[Orchestrator] Failed to save updated FanProfile in database for conversation: ${params.conversationId}`);
+      }
+
+      // Log the AI Reply Log for tracking and human review
+      const promptSummary = `Short-circuited due to high risk assessment. Incoming: "${params.messageText}"`;
+      const log = await db.aIReplyLog.create({
+        data: {
+          messageId: params.messageId,
+          prompt: promptSummary,
+          response: '',
+          model: 'System-Short-Circuit',
+          status: 'suggested',
+          fanType: tempProfile.fanType,
+          stage: tempProfile.stage,
+          strategy: 'GracefulExit',
+          action: 'escalate_to_human',
+          emotionScoreBefore: tempProfile.emotionScore,
+          emotionScoreAfter: tempProfile.emotionScore,
+          riskLevel: 'high',
+          safetyViolations: ['HIGH_RISK_KEYWORDS'] as any,
+          promptTokens: 0,
+          completionTokens: 0,
+          latencyMs: Date.now() - pipelineStart,
+          abTestVariant: 'A',
+        }
+      });
+
+      return {
+        reply: '',
+        action: 'escalate_to_human',
+        link: null,
+        delay: 0,
+        updatedProfile: savedProfile,
+        aiLogId: log.id,
+      };
+    }
+
+    // 3. Phân loại đối tượng Fan (Fan Classification) hoặc Phân loại lại nếu hành vi thay đổi rõ rệt (T159)
+    const isUnknown = tempProfile.fanType === 'Unknown';
+    const needsReclassify = shouldReclassifyFan(tempProfile, updatedMessages);
+
+    if (isUnknown || needsReclassify) {
+      if (isUnknown) {
+        console.log(`🔍 [Orchestrator] Fan type is 'Unknown'. Running hybrid classification...`);
+      } else {
+        console.log(`🔍 [Orchestrator] Triggering Fan Type reclassification from '${tempProfile.fanType}'...`);
+      }
+      
       const classification = await classifyFanHybrid(updatedMessages, tempProfile);
       
-      if (classification.fan_type !== 'Unknown') {
+      if (classification.fan_type !== tempProfile.fanType) {
+        console.log(
+          `🎯 [Orchestrator] Fan Type changed from '${tempProfile.fanType}' to '${classification.fan_type}' (Confidence: ${classification.confidence})`
+        );
         tempProfile.fanType = classification.fan_type;
         tempProfile.fanTypeConfidence = classification.confidence;
         tempProfile.emotionScore = classification.emotion_score;
-        
-        if (classification.usage) {
-          promptTokens += classification.usage.promptTokens;
-          completionTokens += classification.usage.completionTokens;
-        }
 
-        console.log(
-          `🎯 [Orchestrator] Fan classified as '${classification.fan_type}' with confidence ${classification.confidence}`
-        );
+        // Tính toán lại Flirt Level sau khi đã xác định/cập nhật được Fan Type thực tế
+        tempProfile.flirtLevel = determineFlirtLevel({
+          stage: tempProfile.stage,
+          fanType: tempProfile.fanType,
+          emotionScore: tempProfile.emotionScore,
+          flirtLevel: fanProfile.flirtLevel,
+        });
+      } else {
+        console.log(`🎯 [Orchestrator] Fan Type confirmed as '${tempProfile.fanType}' (No change)`);
+      }
+
+      if (classification.usage) {
+        promptTokens += classification.usage.promptTokens;
+        completionTokens += classification.usage.completionTokens;
       }
     }
 
@@ -190,8 +295,9 @@ export async function processIncomingMessage(params: {
           strategy,
           shouldSendLink: action === 'send_link',
           linkToSend: link,
-          flirtLevelTarget: 1 // default flirt target level
-        }
+          flirtLevelTarget: tempProfile.flirtLevel
+        },
+        contextSummary: tempProfile.lastSummary ? (tempProfile.lastSummary as any) : undefined
       });
 
       if (genResult.data) {

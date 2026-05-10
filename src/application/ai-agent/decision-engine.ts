@@ -27,6 +27,11 @@ export function canSendLink(profile: FanProfile): boolean {
  * @returns The determined NextAction
  */
 export function decideAction(profile: FanProfile): NextAction {
+  // Immediately escalate to human if risk level is high
+  if (profile.riskLevel === 'high') {
+    return 'escalate_to_human';
+  }
+
   let action: NextAction = 'continue';
 
   switch (profile.stage) {

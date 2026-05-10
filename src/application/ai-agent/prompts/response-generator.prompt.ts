@@ -133,6 +133,7 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
     fan_type: string;
     stage: string;
     emotion_score: number;
+    flirt_level_target: number;
     strategy: string;
     recent_messages: { role: 'fan' | 'you'; content: string }[];
     incoming_message: string;
@@ -144,6 +145,7 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
 - Fan Type: ${context.fan_type}
 - Stage: ${context.stage}
 - Current Emotion Score: ${context.emotion_score}
+- Target Flirt Level: ${context.flirt_level_target} (0=No Flirting, 1=Sweet/Friendly, 2=Highly Interested/Comfortable, 3=Deeply Suggestive/Teasing)
 - Strategy to Apply: ${context.strategy}
 - Should Send Link: ${context.should_send_link ? 'YES' : 'NO'}
 - Link to Send (if YES): ${context.link_to_send || 'None'}
