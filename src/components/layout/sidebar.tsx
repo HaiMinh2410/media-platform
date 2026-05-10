@@ -11,7 +11,8 @@ import {
   PenTool, 
   Files, 
   Settings,
-  Palette
+  Palette,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getCurrentWorkspaceUnreadCountAction, getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
@@ -37,6 +38,11 @@ export function Sidebar() {
       label: 'Analytics',
       href: '/dashboard/analytics',
       icon: <BarChart3 size={20} />,
+    },
+    {
+      label: 'AI Analytics',
+      href: '/dashboard/ai-analytics',
+      icon: <Sparkles size={20} className="text-pink-500" />,
     },
     {
       label: 'Inbox',
