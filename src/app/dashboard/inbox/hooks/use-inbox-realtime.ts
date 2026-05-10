@@ -142,3 +142,53 @@ export function useMetadataRealtime({
   }, [conversationId]);
 }
 
+/**
+ * useFanProfileRealtime
+ * Subscribes to Supabase Realtime postgres_changes for the `fan_profiles` table.
+ */
+export function useFanProfileRealtime({
+  conversationId,
+  onProfileUpdate,
+}: {
+  conversationId: string;
+  onProfileUpdate: (profile: any) => void;
+}): void {
+  const onProfileUpdateRef = useRef(onProfileUpdate);
+  useEffect(() => {
+    onProfileUpdateRef.current = onProfileUpdate;
+  }, [onProfileUpdate]);
+
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const supabase = createClient();
+    const channelName = `fan_profile:conversation:${conversationId}:${Math.random().toString(36).slice(2, 11)}`;
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'fan_profiles',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          console.log('[Realtime] Fan Profile updated:', payload);
+          if (payload.eventType === 'DELETE') {
+            onProfileUpdateRef.current(null);
+          } else {
+            onProfileUpdateRef.current(payload.new);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId]);
+}
+
+

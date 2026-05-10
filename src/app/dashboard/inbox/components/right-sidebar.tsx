@@ -18,6 +18,7 @@ import { ContactDetails } from './right-sidebar/detail-tab/contact-details';
 import { LeadStageSelector } from './right-sidebar/detail-tab/lead-stage-selector';
 import { TagManager } from './right-sidebar/detail-tab/tag-manager';
 import { NoteManager } from './right-sidebar/detail-tab/note-manager';
+import { AiProfileViewer } from './right-sidebar/detail-tab/ai-profile-viewer'; // T154: AI Profile Viewer Tracker
 
 type TabType = 'detail' | 'ai' | 'search';
 
@@ -51,6 +52,7 @@ type RightSidebarProps = {
   customerLink?: string;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  fanProfile?: any;
 };
 
 export function RightSidebar({
@@ -75,6 +77,7 @@ export function RightSidebar({
   onToggleCollapse,
   customerUsername,
   customerLink,
+  fanProfile,
 }: RightSidebarProps) {
   const activeTab = useInboxStore((state) => state.rightSidebarTab) as TabType;
   const setActiveTab = useInboxStore((state) => state.setRightSidebarTab);
@@ -202,6 +205,8 @@ export function RightSidebar({
               onSyncProfile={handleSyncProfile}
               onToggleCollapse={onToggleCollapse}
             />
+
+            <AiProfileViewer fanProfile={fanProfile} />
 
             <ContactDetails 
               contactInfo={contactInfo}

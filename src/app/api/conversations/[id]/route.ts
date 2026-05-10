@@ -17,7 +17,8 @@ export async function GET(
       include: {
         notes: {
           orderBy: { createdAt: 'desc' }
-        }
+        },
+        fan_profile: true
       }
     });
 

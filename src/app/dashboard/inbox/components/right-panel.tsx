@@ -6,7 +6,7 @@ import { ReplyComposer } from '@/app/dashboard/inbox/components/reply-composer';
 import { ChatHeader } from './chat-header';
 import { RightSidebar } from './right-sidebar';
 import { useAiSuggestions } from '../hooks/use-ai-suggestions';
-import { useMetadataRealtime } from '../hooks/use-inbox-realtime';
+import { useMetadataRealtime, useFanProfileRealtime } from '../hooks/use-inbox-realtime';
 import { MessageWithSender } from '@/domain/types/messaging';
 import { useInboxStore } from '../store/inbox.store';
 import { cn } from '@/lib/utils';
@@ -36,6 +36,7 @@ type RightPanelProps = {
   };
   customerUsername?: string;
   customerLink?: string;
+  initialFanProfile?: any;
 };
 
 export function RightPanel({
@@ -53,10 +54,19 @@ export function RightPanel({
   contactInfo,
   customerUsername,
   customerLink,
+  initialFanProfile,
 }: RightPanelProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [priority, setPriority] = useState<string | null>(initialPriority);
   const [sentiment, setSentiment] = useState<string | null>(initialSentiment);
+  const [fanProfile, setFanProfile] = useState<any>(initialFanProfile);
+
+  useFanProfileRealtime({
+    conversationId,
+    onProfileUpdate: (updatedProfile) => {
+      setFanProfile(updatedProfile);
+    }
+  });
   
   const [fillText, setFillText] = useState<string | undefined>(undefined);
   const fillSeqRef = useRef(0);
@@ -185,6 +195,7 @@ export function RightPanel({
           customerLink={customerLink}
           isCollapsed={!isRightPanelVisible}
           onToggleCollapse={() => setRightPanelVisible(!isRightPanelVisible)}
+          fanProfile={fanProfile}
         />
       </div>
     </div>

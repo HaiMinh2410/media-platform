@@ -15,7 +15,10 @@ export default async function ConversationPage({
   
   const conversation = await db.conversation.findUnique({
     where: { id },
-    include: { platform_accounts: true }
+    include: { 
+      platform_accounts: true,
+      fan_profile: true
+    }
   });
 
   if (!conversation) {
@@ -40,6 +43,7 @@ export default async function ConversationPage({
         priority={(conversation as any).priority || null}
         sentiment={(conversation as any).sentiment || null}
         initialTags={(conversation as any).tags || []}
+        initialFanProfile={conversation.fan_profile}
         contactInfo={{
           phone: (conversation as any).phone,
           email: (conversation as any).email,
