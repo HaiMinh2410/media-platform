@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint",
     "worker:posts": "bun run src/worker/post-publishing.worker.ts",
+    "worker:metrics": "bun run src/worker/metrics.worker.ts",
     "sim": "bun run scripts/simulate-webhook.ts",
     "test:parser": "bun test src/infrastructure/meta/__tests__/meta-parser.test.ts",
     "postinstall": "prisma generate"

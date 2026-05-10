@@ -22,6 +22,7 @@ model Workspace {
   workspace_members   workspace_members[]
   workspace_tags      WorkspaceTag[]
   fan_profiles        FanProfile[]
+  ai_agent_metrics    AIAgentMetric[]
 
   @@map("workspaces")
   @@schema("public")
@@ -203,6 +204,35 @@ model FanProfile {
   workspace           Workspace    @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
   @@map("fan_profiles")
+  @@schema("public")
+}
+
+model AIAgentMetric {
+  id                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_id             String   @map("workspace_id") @db.Uuid
+  recorded_at              DateTime @default(now()) @map("recorded_at") @db.Timestamptz(6)
+  
+  // Phân bổ loại fan dưới dạng JSON: { "Luy": 45, "Cool": 25, "Whale": 10, "Drainer": 20 }
+  fan_type_distribution    Json     @default("{}") @map("fan_type_distribution")
+  
+  // Tỷ lệ chuyển đổi chốt đơn theo loại fan: { "Luy": 0.15, "Cool": 0.05, "Whale": 0.40, "Drainer": 0.00 }
+  conversion_rate_by_type  Json     @default("{}") @map("conversion_rate_by_type")
+  
+  // Số tin nhắn trung bình để chốt đơn thành công
+  avg_messages_to_close    Float    @default(0.0) @map("avg_messages_to_close")
+  
+  // Tổng hợp hiệu năng tổng quan
+  total_conversations      Int      @default(0) @map("total_conversations")
+  total_purchases          Int      @default(0) @map("total_purchases")
+  revenue                  Float    @default(0.0) @map("revenue")
+  
+  // Các sự cố an toàn / escalate cho con người
+  flag_incidents           Int      @default(0) @map("flag_incidents")
+  escalation_count         Int      @default(0) @map("escalation_count")
+
+  workspace                Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+
+  @@map("ai_agent_metrics")
   @@schema("public")
 }
 

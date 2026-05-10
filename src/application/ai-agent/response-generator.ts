@@ -15,6 +15,7 @@ import { AIModel } from '@/domain/types/ai';
 import { groqClient } from '@/infrastructure/ai/groq-client';
 import { responseGeneratorPrompt } from './prompts/response-generator.prompt';
 import { getTemplateResponse } from './templates';
+import { db } from '@/lib/db';
 
 /**
  * Hàm làm sạch chuỗi JSON thô từ đầu ra của LLM
@@ -52,6 +53,45 @@ export async function generateResponse(
 
   // 1. Xác định danh sách các mô hình cần thử nghiệm theo độ ưu tiên (Model Routing & Cascading)
   let modelsToTry: AIModel[] = [];
+
+  // Tải cấu hình A/B Testing từ Workspace settings nếu có
+  let systemPrompt = responseGeneratorPrompt.system;
+  let modelOverride: AIModel | null = null;
+
+  try {
+    const workspace = await db.workspace.findUnique({
+      where: { id: input.fanProfile.workspaceId },
+      select: { settings: true },
+    });
+
+    const settings = (workspace?.settings || {}) as any;
+    const abTest = settings.ab_test;
+
+    if (abTest && abTest.enabled) {
+      if (input.abTestVariant === 'B') {
+        if (abTest.variant_b_prompt) {
+          systemPrompt = abTest.variant_b_prompt;
+          console.log(`📊 [ResponseGenerator] Applying A/B Test Variant B custom system prompt.`);
+        }
+        if (abTest.variant_b_model) {
+          modelOverride = abTest.variant_b_model as AIModel;
+          console.log(`📊 [ResponseGenerator] Applying A/B Test Variant B custom model override: ${modelOverride}`);
+        }
+      } else {
+        if (abTest.variant_a_prompt) {
+          systemPrompt = abTest.variant_a_prompt;
+          console.log(`📊 [ResponseGenerator] Applying A/B Test Variant A custom system prompt.`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('⚠️ [ResponseGenerator] Error loading workspace settings for A/B testing:', err);
+  }
+
+  // Nếu có model override từ A/B test (Variant B), đưa lên ưu tiên hàng đầu
+  if (modelOverride) {
+    modelsToTry.push(modelOverride);
+  }
 
   // Nếu người gọi chỉ định một model cụ thể, đưa lên ưu tiên hàng đầu
   if (input.model) {
@@ -101,7 +141,7 @@ export async function generateResponse(
     try {
       const response = await groqClient.complete(
         [
-          { role: 'system', content: responseGeneratorPrompt.system },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
         {

@@ -52,6 +52,7 @@ export interface WebhookJobPayload {
 export enum QueueName {
   WEBHOOK_EVENTS = 'webhook-events',
   ANALYTICS_SYNC = 'analytics-sync',
+  AI_AGENT_METRICS = 'ai-agent-metrics',
 }
 
 /**

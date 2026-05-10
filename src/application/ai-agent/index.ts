@@ -79,6 +79,33 @@ export async function processIncomingMessage(params: {
     const context = await retrieveContext(params.conversationId);
     const { fanProfile, recentMessages } = context;
 
+    // Xác định phiên bản thử nghiệm A/B nhất quán cho cuộc hội thoại này (A/B Test Routing)
+    // Nếu trước đó cuộc hội thoại này đã được gán variant A hoặc B, ta giữ nguyên. Ngược lại gán ngẫu nhiên 50/50.
+    let abTestVariant: 'A' | 'B' = 'A';
+    try {
+      const existingLog = await db.aIReplyLog.findFirst({
+        where: {
+          message: {
+            conversationId: params.conversationId,
+          },
+        },
+        select: {
+          abTestVariant: true,
+        },
+      });
+
+      if (existingLog?.abTestVariant) {
+        abTestVariant = existingLog.abTestVariant as 'A' | 'B';
+        console.log(`📊 [Orchestrator] Using consistent existing A/B variant: ${abTestVariant}`);
+      } else {
+        abTestVariant = Math.random() < 0.5 ? 'A' : 'B';
+        console.log(`📊 [Orchestrator] Assigned new random A/B variant: ${abTestVariant}`);
+      }
+    } catch (err) {
+      console.error('⚠️ [Orchestrator] Failed to load existing A/B variant from logs:', err);
+      abTestVariant = Math.random() < 0.5 ? 'A' : 'B';
+    }
+
     // Cập nhật tin nhắn hiện tại vào mảng recentMessages để các bộ phân loại phân tích chính xác nhất
     const updatedMessages = [
       ...recentMessages,
@@ -177,7 +204,7 @@ export async function processIncomingMessage(params: {
           promptTokens: 0,
           completionTokens: 0,
           latencyMs: Date.now() - pipelineStart,
-          abTestVariant: 'A',
+          abTestVariant,
         }
       });
 
@@ -297,7 +324,8 @@ export async function processIncomingMessage(params: {
           linkToSend: link,
           flirtLevelTarget: tempProfile.flirtLevel
         },
-        contextSummary: tempProfile.lastSummary ? (tempProfile.lastSummary as any) : undefined
+        contextSummary: tempProfile.lastSummary ? (tempProfile.lastSummary as any) : undefined,
+        abTestVariant
       });
 
       if (genResult.data) {
@@ -359,7 +387,6 @@ export async function processIncomingMessage(params: {
 
     // Đo lường latency
     latencyMs = Date.now() - pipelineStart;
-    const abTestVariant = Math.random() < 0.5 ? 'A' : 'B';
     const promptSummary = `Incoming: "${params.messageText}" | Action: ${action} | Stage: ${savedProfile.stage} | FanType: ${savedProfile.fanType}`;
 
     // 10. Ghi log đầy đủ AgentLogData sau mỗi reply (Yêu cầu T153)
