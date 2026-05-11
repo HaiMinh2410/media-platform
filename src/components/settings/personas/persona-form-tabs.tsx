@@ -1,6 +1,39 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Sparkles, Check, RotateCw, Undo2, Loader2 } from 'lucide-react';
+
+interface AutoResizingTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  maxHeight?: number;
+}
+
+function AutoResizingTextarea({ value, onChange, className, maxHeight = 200, ...props }: AutoResizingTextareaProps) {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const adjustHeight = React.useCallback(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+      textarea.style.height = `${newHeight}px`;
+    }
+  }, [maxHeight]);
+
+  React.useEffect(() => {
+    adjustHeight();
+  }, [value, adjustHeight]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={onChange}
+      className={cn("overflow-y-auto resize-none", className)}
+      style={{ maxHeight: `${maxHeight}px` }}
+      {...props}
+    />
+  );
+}
+
 
 interface PersonaFormTabsProps {
   activeTab: string;
@@ -11,6 +44,112 @@ interface PersonaFormTabsProps {
 export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTabsProps) {
   const updateSettings = (key: string, value: any) => {
     onChange({ settings: { ...persona.settings, [key]: value } });
+  };
+
+  // AI Campaign Proposal States
+  const [aiProposal, setAiProposal] = React.useState<{ currentOffer: string; scarcityMessage: string } | null>(null);
+  const [originalValues, setOriginalValues] = React.useState<{ currentOffer: string; scarcityMessage: string } | null>(null);
+  const [isGenerating, setIsGenerating] = React.useState(false);
+
+  // Debounce trigger cho Campaign Name & Objective
+  const [debouncedCampaign, setDebouncedCampaign] = React.useState({
+    name: persona.campaign_name || '',
+    objective: persona.settings?.campaign_objective || 'lead_generation'
+  });
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedCampaign({
+        name: persona.campaign_name || '',
+        objective: persona.settings?.campaign_objective || 'lead_generation'
+      });
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [persona.campaign_name, persona.settings?.campaign_objective]);
+
+  // Ref ghi nhận giá trị khởi tạo khi Component được Mount để tránh tự kích hoạt
+  const initialValuesRef = React.useRef({
+    name: persona.campaign_name || '',
+    objective: persona.settings?.campaign_objective || 'lead_generation'
+  });
+
+  const handleGenerateProposal = async (name: string, objective: string) => {
+    if (!name || isGenerating) return;
+
+    setIsGenerating(true);
+    try {
+      if (!originalValues) {
+        setOriginalValues({
+          currentOffer: persona.current_offer || '',
+          scarcityMessage: persona.scarcity_message || ''
+        });
+      }
+
+      const res = await fetch('/api/ai-personas/campaign-proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          campaignName: name, 
+          campaignObjective: objective,
+          persona: {
+            name: persona.name,
+            gender: persona.gender,
+            personality: persona.personality,
+            tone: persona.tone,
+            signature_emojis: persona.signature_emojis,
+            custom_instructions: persona.custom_instructions
+          }
+        }),
+      });
+      const data = await res.json();
+
+      if (data && !data.error) {
+        setAiProposal({
+          currentOffer: data.currentOffer,
+          scarcityMessage: data.scarcityMessage
+        });
+        
+        onChange({
+          current_offer: data.currentOffer,
+          scarcity_message: data.scarcityMessage
+        });
+      }
+    } catch (err) {
+      console.error('Failed to generate campaign proposal:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (
+      debouncedCampaign.name &&
+      (debouncedCampaign.name !== initialValuesRef.current.name ||
+       debouncedCampaign.objective !== initialValuesRef.current.objective)
+    ) {
+      handleGenerateProposal(debouncedCampaign.name, debouncedCampaign.objective);
+    }
+  }, [debouncedCampaign]);
+
+  const handleRewrite = () => {
+    handleGenerateProposal(persona.campaign_name || '', persona.settings?.campaign_objective || 'lead_generation');
+  };
+
+  const handleAcceptProposal = () => {
+    setAiProposal(null);
+    setOriginalValues(null);
+  };
+
+  const handleRejectProposal = () => {
+    if (originalValues) {
+      onChange({
+        current_offer: originalValues.currentOffer,
+        scarcity_message: originalValues.scarcityMessage
+      });
+    }
+    setAiProposal(null);
+    setOriginalValues(null);
   };
 
   if (activeTab === 'basic') {
@@ -122,24 +261,107 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
           </select>
         </div>
 
+        {/* AI Proposal Action and Info Bars */}
+        {isGenerating && (
+          <div className="bg-foreground/[0.02] border border-foreground/10 rounded-2xl p-4 flex items-center justify-between gap-4 animate-pulse">
+            <div className="flex items-center gap-3">
+              <Loader2 className="animate-spin text-primary" size={18} />
+              <div className="text-sm">
+                <span className="font-medium text-foreground block">AI đang phân tích và viết đề xuất...</span>
+                <span className="text-xs text-foreground-tertiary">Đang tối ưu hóa Lời chào hàng & Thông điệp khan hiếm tối ưu cho chiến dịch</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {aiProposal && (
+          <div className="bg-gradient-to-r from-purple-500/10 via-primary/5 to-purple-500/10 border border-purple-500/20 rounded-2xl p-4 flex flex-col gap-4 animate-in slide-in-from-top-4 duration-300">
+            <div className="flex items-start gap-3">
+              <Sparkles className="text-purple-400 shrink-0 mt-0.5 animate-bounce" size={18} />
+              <div className="text-sm">
+                <span className="font-semibold text-foreground block">✨ AI đề xuất phương án tối ưu!</span>
+                <span className="text-xs text-foreground-tertiary">Đã tự động điền. Hãy điều chỉnh trực tiếp hoặc đồng ý/viết lại ở đây nhen.</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end gap-2 border-t border-purple-500/10 pt-3">
+              <button
+                type="button"
+                onClick={handleRejectProposal}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-foreground/[0.03] border border-foreground/10 hover:bg-foreground/[0.08] transition-all text-foreground"
+                title="Khôi phục giá trị gốc"
+              >
+                <Undo2 size={14} />
+                <span>Bỏ qua</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleRewrite}
+                disabled={isGenerating}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all disabled:opacity-50"
+                title="Yêu cầu AI viết phương án khác"
+              >
+                <RotateCw className={cn("size-3.5", isGenerating && "animate-spin")} size={14} />
+                <span>Viết lại</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleAcceptProposal}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30 transition-all"
+                title="Đồng ý với đề xuất của AI"
+              >
+                <Check size={14} />
+                <span>Đồng ý</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Lời chào hàng hiện tại (Current Offer)</label>
-          <textarea
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-foreground">Lời chào hàng hiện tại (Current Offer)</label>
+            {aiProposal && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20 animate-pulse">
+                <Sparkles size={10} />
+                Đề xuất bởi AI
+              </span>
+            )}
+          </div>
+          <AutoResizingTextarea
             value={persona.current_offer || ''}
             onChange={(e) => onChange({ current_offer: e.target.value })}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px] resize-y"
+            className={cn(
+              "w-full bg-foreground/[0.03] border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[60px]",
+              aiProposal 
+                ? "border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.1)] bg-purple-500/[0.01]" 
+                : "border-foreground/10 focus:border-primary/50"
+            )}
             placeholder="VD: Giảm giá 50% cho 100 khách hàng đầu tiên mua combo X..."
+            maxHeight={200}
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Thông điệp khan hiếm (Scarcity)</label>
-          <input
-            type="text"
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-foreground">Thông điệp khan hiếm (Scarcity)</label>
+            {aiProposal && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20 animate-pulse">
+                <Sparkles size={10} />
+                Đề xuất bởi AI
+              </span>
+            )}
+          </div>
+          <AutoResizingTextarea
             value={persona.scarcity_message || ''}
             onChange={(e) => onChange({ scarcity_message: e.target.value })}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+            className={cn(
+              "w-full bg-foreground/[0.03] border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[46px]",
+              aiProposal 
+                ? "border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.1)] bg-purple-500/[0.01]" 
+                : "border-foreground/10 focus:border-primary/50"
+            )}
             placeholder="VD: Chỉ còn duy nhất 2 suất áp dụng mã giảm giá này thôi ạ..."
+            maxHeight={150}
           />
         </div>
       </div>
