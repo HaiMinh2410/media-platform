@@ -57,6 +57,7 @@ export async function GET(
     const account = await db.platformAccount.findFirst({
       where: {
         id: accountId,
+        disconnected_at: null,
         workspace: {
           workspace_members: {
             some: {
@@ -134,6 +135,7 @@ export async function PUT(
     const account = await db.platformAccount.findFirst({
       where: {
         id: accountId,
+        disconnected_at: null,
         workspace: {
           workspace_members: {
             some: {

@@ -15,8 +15,11 @@ export default async function PersonaEditPage(props: { params: Promise<{ account
   }
 
   // Verify the account belongs to a workspace the user has access to
-  const account = await db.platformAccount.findUnique({
-    where: { id: accountId },
+  const account = await db.platformAccount.findFirst({
+    where: { 
+      id: accountId,
+      disconnected_at: null,
+    },
     include: {
       ai_personas: true,
       workspace: {

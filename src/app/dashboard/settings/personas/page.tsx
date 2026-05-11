@@ -25,7 +25,10 @@ export default async function PersonasSettingsPage() {
 
   // Fetch all accounts with their AI Persona and basic stats
   const accounts = await db.platformAccount.findMany({
-    where: { workspaceId: workspace.id },
+    where: { 
+      workspaceId: workspace.id,
+      disconnected_at: null,
+    },
     include: {
       ai_personas: true,
     },
