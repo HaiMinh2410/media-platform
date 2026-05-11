@@ -954,15 +954,35 @@ model AccountGroupMembership {
 }
 
 model AIPersona {
-  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id          String          @unique @db.Uuid
-  name                String          @default("Professional")
-  tone_instructions   String          @default("Be professional, polite, and concise.")
-  emoji_usage         String          @default("minimal")
-  language_preference String          @default("vi")
-  created_at          DateTime        @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime        @default(now()) @updatedAt @db.Timestamptz(6)
-  platform_accounts   PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id             String   @unique @db.Uuid
+
+  name                   String   @default("Em")
+  gender                 String   @default("female")
+  age                    Int?
+  personality            String?  @db.Text
+  tone                   String?  @db.Text
+  speaking_style         String?  @db.Text @map("speaking_style")
+
+  signature_emojis       String[] @default([]) @map("signature_emojis")
+
+  custom_instructions    String?  @db.Text @map("custom_instructions")
+  system_prompt_override String?  @db.Text @map("system_prompt_override")
+
+  campaign_name          String?  @map("campaign_name")
+  current_offer          String?  @db.Text @map("current_offer")
+  scarcity_message       String?  @db.Text @map("scarcity_message")
+
+  settings               Json?    @default("{}") @map("settings")
+
+  tone_instructions      String   @default("Be professional, polite, and concise.")
+  emoji_usage            String   @default("minimal")
+  language_preference    String   @default("vi")
+
+  created_at             DateTime @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  platform_accounts      PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@map("ai_personas")
   @@schema("public")

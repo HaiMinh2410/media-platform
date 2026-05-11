@@ -13,7 +13,7 @@ import type {
 } from '@/domain/types/ai-agent';
 import { AIModel } from '@/domain/types/ai';
 import { groqClient } from '@/infrastructure/ai/groq-client';
-import { responseGeneratorPrompt } from './prompts/response-generator.prompt';
+import { responseGeneratorPrompt, buildDynamicSystemPrompt } from './prompts/response-generator.prompt';
 import { getTemplateResponse } from './templates';
 import { db } from '@/lib/db';
 
@@ -51,11 +51,34 @@ export async function generateResponse(
   console.log(`\n💬 [ResponseGenerator] Starting generation for Fan Type: '${input.fanProfile.fanType}', Stage: '${input.fanProfile.stage}'`);
   console.log(`🎯 [ResponseGenerator] Decided Strategy: '${input.strategy}'`);
 
+  // 0. Truy vấn cấu hình AIPersona tương ứng với cuộc hội thoại
+  let persona: any = null;
+  try {
+    const conversation = await db.conversation.findUnique({
+      where: { id: input.fanProfile.conversationId },
+      include: {
+        platform_accounts: {
+          include: {
+            ai_personas: true,
+          },
+        },
+      },
+    });
+    persona = conversation?.platform_accounts?.ai_personas || null;
+    if (persona) {
+      console.log(`👤 [ResponseGenerator] Successfully loaded custom AIPersona: "${persona.name}" for account ${conversation?.account_id}`);
+    } else {
+      console.log(`👤 [ResponseGenerator] No custom AIPersona found for conversation ${input.fanProfile.conversationId}. Using default.`);
+    }
+  } catch (err) {
+    console.error('⚠️ [ResponseGenerator] Failed to load AIPersona from database:', err);
+  }
+
   // 1. Xác định danh sách các mô hình cần thử nghiệm theo độ ưu tiên (Model Routing & Cascading)
   let modelsToTry: AIModel[] = [];
 
-  // Tải cấu hình A/B Testing từ Workspace settings nếu có
-  let systemPrompt = responseGeneratorPrompt.system;
+  // Tải cấu hình A/B Testing hoặc sinh Prompt động dựa trên Persona của tài khoản
+  let systemPrompt = buildDynamicSystemPrompt(persona);
   let modelOverride: AIModel | null = null;
 
   try {
