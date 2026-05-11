@@ -72,11 +72,30 @@ export async function scheduleDelayedReply(
 
   // Khai báo jobId duy nhất dựa trên conversationId để hỗ trợ cơ chế Debounce
   const jobId = `reply-${payload.conversationId}`;
+  let finalDelayMs = delayMs;
 
   try {
     // Tự động hủy tin nhắn cũ đã lên lịch trước đó cho hội thoại này nếu fan nhắn tin mới (Debounce)
     const existingJob = await aiAgentReplyQueue.getJob(jobId);
     if (existingJob) {
+      const state = await existingJob.getState();
+      // Chỉ debounce và giữ mốc thời gian nếu job cũ chưa được thực thi (ở trạng thái delayed hoặc waiting)
+      if (state === 'delayed' || state === 'waiting') {
+        const originalTimestamp = existingJob.timestamp;
+        const originalDelay = existingJob.opts.delay || 0;
+        const originalTargetTimestamp = originalTimestamp + originalDelay;
+        const proposedTargetTimestamp = Date.now() + delayMs;
+
+        // Chọn thời điểm gửi sớm nhất của 2 job để tránh dời thời gian chờ vô tận khi khách nhắn liên tục
+        const finalTargetTimestamp = Math.min(originalTargetTimestamp, proposedTargetTimestamp);
+        
+        // Đặt độ trễ tối thiểu (ví dụ 10 giây) để tránh gửi tin dồn dập ngay lập tức khi khách vừa nhắn xong tin mới
+        const minDelayMs = Math.min(10000, delayMs);
+        finalDelayMs = Math.max(minDelayMs, finalTargetTimestamp - Date.now());
+
+        console.log(`🔄 [DelayScheduler] Found existing job '${jobId}'. Original target: ${new Date(originalTargetTimestamp).toISOString()}, Proposed: ${new Date(proposedTargetTimestamp).toISOString()}. Adjusting final delay to: ${finalDelayMs / 1000}s`);
+      }
+      
       await existingJob.remove();
       console.log(`🔄 [DelayScheduler] Cancelled existing delayed job: '${jobId}' to debounce new message.`);
     }
@@ -84,11 +103,11 @@ export async function scheduleDelayedReply(
     console.warn(`⚠️ [DelayScheduler] Error cleaning up previous job for debouncing:`, err);
   }
 
-  console.log(`⏱️ [DelayScheduler] Scheduling delayed reply for conversation ${payload.conversationId} in ${delayMs / 1000}s`);
+  console.log(`⏱️ [DelayScheduler] Scheduling delayed reply for conversation ${payload.conversationId} in ${finalDelayMs / 1000}s`);
 
   // Thêm job trì hoãn vào Queue với tùy chọn delay
   await aiAgentReplyQueue.add('delayed-reply', payload, {
-    delay: delayMs,
+    delay: finalDelayMs,
     jobId,
   });
 }

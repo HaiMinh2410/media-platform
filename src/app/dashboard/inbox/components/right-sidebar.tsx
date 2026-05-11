@@ -89,6 +89,8 @@ export function RightSidebar({
   const setActiveTab = useInboxStore((state) => state.setRightSidebarTab);
   const { activeThreads, removeActiveThread, addActiveThread } = useInboxStore();
   
+  const isAutoReplyActive = botConfig?.is_active === true;
+  
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -181,11 +183,23 @@ export function RightSidebar({
         </button>
         <button 
           className={cn(
-            "flex-1 py-2 text-sm font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-foreground/5",
-            activeTab === 'ai' && "text-accent-primary bg-accent-primary/10"
+            "flex-1 py-2 text-sm font-semibold rounded-md transition-all flex items-center justify-center gap-1.5",
+            isAutoReplyActive 
+              ? activeTab === 'ai'
+                ? "text-success bg-success/15 border border-success/30 font-bold shadow-[0_0_12px_rgba(34,197,94,0.1)]"
+                : "text-success bg-success/5 border border-success/10 hover:bg-success/10 font-bold"
+              : activeTab === 'ai'
+                ? "text-accent-primary bg-accent-primary/10"
+                : "text-foreground-tertiary hover:text-foreground-secondary hover:bg-foreground/5"
           )}
           onClick={() => setActiveTab('ai')}
         >
+          {isAutoReplyActive && (
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+            </span>
+          )}
           AI Assist
         </button>
         {activeTab === 'search' && (

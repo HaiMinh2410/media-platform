@@ -309,122 +309,117 @@ export function AiSuggestionPanel({
   return (
     <div className="flex flex-col bg-base-200 text-foreground select-none">
 
-      {/* ================= AUTO REPLY & SCHEDULED MESSAGE STATUS ================= */}
-      {isAutoReplyActive ? (
-        <div className="mx-4 mt-4 p-4 rounded-xl border bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.05)] flex flex-col gap-3 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all duration-500" />
-          
-          <div className="flex items-center justify-between z-10">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="text-xs font-black text-emerald-400 uppercase tracking-wider">
-                Auto Reply Đang Bật
-              </span>
-            </div>
-            
-            <span className="text-[10px] px-1.5 py-0.5 rounded-md font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-              Active
-            </span>
-          </div>
-
-          {scheduledReply ? (
-            <div className="flex flex-col gap-2 bg-background-secondary/50 border border-foreground/5 p-3 rounded-lg z-10 backdrop-blur-sm">
-              <div className="flex items-center justify-between text-2xs text-foreground-tertiary">
-                <span className="flex items-center gap-1 font-bold">
-                  <Calendar size={11} className="text-teal-400" /> Hẹn giờ gửi
-                </span>
-                <span className="font-mono text-emerald-400 font-bold bg-emerald-500/5 px-1 rounded animate-pulse">
-                  {timeLeft || 'đang gửi...'}
-                </span>
-              </div>
-              
-              <div className="text-xs text-foreground-secondary leading-relaxed p-2 bg-foreground/[0.02] border border-foreground/5 rounded font-medium italic">
-                "{scheduledReply.replyText}"
-              </div>
-
-              <div className="flex gap-2 mt-1">
-                <button
-                  onClick={() => onUse(scheduledReply.replyText)}
-                  className="flex-1 py-1 px-2 bg-accent-primary text-foreground rounded text-2xs font-bold transition-all hover:brightness-110 active:scale-[0.98]"
-                >
-                  Dùng tin nhắn
-                </button>
-                <button
-                  onClick={handleCancelScheduledReply}
-                  className="py-1 px-2 bg-rose-500/15 border border-rose-500/20 text-rose-400 rounded text-2xs font-bold transition-all hover:bg-rose-500/25"
-                  disabled={cancelling}
-                >
-                  {cancelling ? 'Đang hủy...' : 'Hủy gửi'}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="text-2xs text-foreground-tertiary italic flex items-center gap-1.5 z-10 px-1">
-              <Info size={11} className="text-emerald-500/60" /> Chờ tin nhắn tiếp theo của khách để tự động xử lý...
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="mx-4 mt-4 p-3 rounded-xl border bg-foreground/[0.01] border-foreground/5 flex items-center justify-between group">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-slate-500 opacity-60"></span>
-            <span className="text-2xs font-bold text-foreground-tertiary uppercase tracking-wider">
-              Auto Reply Đang Tắt
-            </span>
-          </div>
-          <span className="text-[9px] px-1.5 py-0.5 rounded-md font-mono bg-foreground/5 text-foreground-tertiary">
-            Inactive
-          </span>
-        </div>
-      )}
-
-      {/* ================= SECTION 1: AI SUGGESTIONS ================= */}
+      {/* ================= SECTION 1: AI SUGGESTIONS & AUTO REPLY ================= */}
       <div>
-        <div className="px-4 py-2 flex items-center gap-2.5">
-          <div className="p-1 rounded bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
-            <Zap size={14} className="animate-pulse" />
+        <div className="px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className={cn(
+              "p-1 rounded border",
+              isAutoReplyActive 
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+                : "bg-accent-primary/10 text-accent-primary border-accent-primary/20"
+            )}>
+              <Zap size={14} className={isAutoReplyActive ? "animate-pulse text-emerald-400" : "animate-pulse text-accent-primary"} />
+            </div>
+            <h4 className="text-xs font-black text-foreground-secondary uppercase tracking-wider">
+              {isAutoReplyActive ? "Tự động phản hồi AI" : "Gợi ý phản hồi AI"}
+            </h4>
           </div>
-          <h4 className="text-xs font-black text-foreground-secondary uppercase tracking-wider">Gợi ý phản hồi AI</h4>
+
+          {isAutoReplyActive && (
+            <span className="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 animate-pulse flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+              Auto Active
+            </span>
+          )}
         </div>
 
         <div className="p-4 flex flex-col gap-4">
-          {loading && (
-            <div className="flex flex-col gap-4">
-              {[1, 2].map(i => (
-                <div key={i} className="bg-foreground/[0.02] border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
-                  <div className="h-3 bg-foreground/5 rounded w-1/3" />
-                  <div className="h-4 bg-foreground/5 rounded w-full" />
-                  <div className="h-4 bg-foreground/5 rounded w-4/5" />
+          {isAutoReplyActive ? (
+            /* --- Auto Reply Mode --- */
+            scheduledReply ? (
+              <div className="bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all duration-500" />
+                
+                <div className="flex items-center justify-between z-10">
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Calendar size={12} className="text-teal-400" /> Hẹn giờ gửi
+                  </span>
+                  <span className="font-mono text-emerald-400 font-black bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-2xs animate-pulse">
+                    {timeLeft || 'đang gửi...'}
+                  </span>
                 </div>
-              ))}
-              <div className="flex items-center justify-center py-5 text-foreground-tertiary text-sm gap-2">
-                <Loader2 size={16} className="animate-spin" />
-                <span>Đang tạo phản hồi...</span>
+                
+                <p className="text-xs text-foreground-secondary leading-relaxed m-0 italic z-10">
+                  "{scheduledReply.replyText}"
+                </p>
+
+                <div className="flex gap-2 mt-1 z-10">
+                  <button
+                    onClick={() => onUse(scheduledReply.replyText)}
+                    className="flex-1 bg-accent-primary text-foreground py-1.5 rounded-lg text-2xs font-bold transition-all hover:brightness-110 active:scale-[0.98]"
+                  >
+                    Dùng tin nhắn
+                  </button>
+                  <button
+                    onClick={handleCancelScheduledReply}
+                    className="py-1.5 px-3 bg-rose-500/15 border border-rose-500/20 text-rose-400 rounded-lg text-2xs font-bold transition-all hover:bg-rose-500/25"
+                    disabled={cancelling}
+                  >
+                    {cancelling ? 'Đang hủy...' : 'Hủy gửi'}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3 bg-foreground/[0.01] border border-foreground/5 rounded-xl">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <p className="text-2xs italic leading-relaxed">
+                  Hệ thống tự động phản hồi đang chạy.<br/>Đang chờ tin nhắn tiếp theo của khách...
+                </p>
+              </div>
+            )
+          ) : (
+            /* --- Regular Manual Suggestions Mode --- */
+            <>
+              {loading && (
+                <div className="flex flex-col gap-4">
+                  {[1, 2].map(i => (
+                    <div key={i} className="bg-foreground/[0.02] border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
+                      <div className="h-3 bg-foreground/5 rounded w-1/3" />
+                      <div className="h-4 bg-foreground/5 rounded w-full" />
+                      <div className="h-4 bg-foreground/5 rounded w-4/5" />
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-center py-5 text-foreground-tertiary text-sm gap-2">
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Đang tạo phản hồi...</span>
+                  </div>
+                </div>
+              )}
 
-          {!loading && visible.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3">
-              <Info size={24} />
-              <p className="text-sm italic">Chưa có gợi ý nào</p>
-            </div>
-          )}
+              {!loading && visible.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3 bg-foreground/[0.01] border border-foreground/5 rounded-xl">
+                  <Info size={24} className="text-foreground-tertiary opacity-40" />
+                  <p className="text-xs italic">Chưa có gợi ý nào</p>
+                </div>
+              )}
 
-          {!loading && visible.length > 0 && (
-            <div className="flex flex-col gap-4">
-              {visible.map((s) => (
-                <SuggestionCard
-                  key={s.id}
-                  suggestion={s}
-                  onUse={onUse}
-                  onDismiss={onDismiss}
-                />
-              ))}
-            </div>
+              {!loading && visible.length > 0 && (
+                <div className="flex flex-col gap-4">
+                  {visible.map((s) => (
+                    <SuggestionCard
+                      key={s.id}
+                      suggestion={s}
+                      onUse={onUse}
+                      onDismiss={onDismiss}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

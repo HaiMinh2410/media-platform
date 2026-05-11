@@ -82,34 +82,44 @@ export function checkSafety(text: string): SafetyCheckResult {
 }
 
 /**
- * Tính toán thời gian trì hoãn trả lời (reply delay) ngẫu nhiên từ 30 phút đến 4 giờ.
- * Nhằm giả lập hành vi nhắn tin của một con người thực sự, tránh hệ thống chống spam của Instagram dán nhãn là bot.
- * Trực tiếp tối ưu hóa thời gian phản hồi có chủ đích theo từng nhóm đối tượng fan cụ thể:
- *
- * - Fan Whale: Eager & Priority -> Cố định 30 phút (trả lời nhanh nhất có thể để giữ chân khách VIP).
- * - Fan Lụy (Luy): Warm & Engaged -> Trì hoãn từ 30 phút đến 1.5 giờ.
- * - Các loại Fan khác (Cool, Drainer, Unknown): Standard -> Trì hoãn ngẫu nhiên từ 30 phút đến 4 giờ.
+ * Tính toán thời gian trì hoãn trả lời (reply delay) ngẫu nhiên.
+ * Ưu tiên chạy theo cấu hình trên giao diện (Persona Settings). Nếu không có, hệ thống sẽ áp dụng
+ * mốc mặc định tối ưu mới từ 15 phút đến 1 giờ nhằm giả lập hành vi nhắn tin tự nhiên của con người.
  *
  * @param profile FanProfile hiện tại của khách hàng
+ * @param persona Đối tượng AIPersona chứa cấu hình của tài khoản (nếu có)
  * @returns Thời gian trì hoãn phản hồi tính bằng miliseconds (ms)
  */
-export function calculateDelay(profile: FanProfile): number {
-  const baseDelay = 30 * 60 * 1000; // 30 phút (ms)
-  const maxDelay = 4 * 60 * 60 * 1000; // 4 giờ (ms)
+export function calculateDelay(profile: FanProfile, persona?: any): number {
+  // 1. Ưu tiên cấu hình trì hoãn trên giao diện (Persona Settings)
+  const delayMin = persona?.settings?.delay_min;
+  const delayMax = persona?.settings?.delay_max;
 
-  // 1. Fan Whale (Khách Vip) -> Trả lời ưu tiên nhanh nhất (Cố định 30 phút)
+  if (typeof delayMin === 'number' && typeof delayMax === 'number' && delayMax >= delayMin) {
+    const minMs = delayMin * 1000;
+    const maxMs = delayMax * 1000;
+    const calculated = minMs + Math.random() * (maxMs - minMs);
+    console.log(`⏱️ [SafetyChecker] Calculated delay from Persona settings: min=${delayMin}s, max=${delayMax}s -> chosen=${(calculated / 1000).toFixed(2)}s`);
+    return calculated;
+  }
+
+  // 2. Dự phòng mặc định: Trì hoãn ngẫu nhiên từ 15 phút đến 1 giờ
+  const baseDelay = 15 * 60 * 1000; // 15 phút (ms)
+  const maxDelay = 60 * 60 * 1000;  // 1 giờ (ms)
+
+  // - Fan Whale (Khách Vip) -> Trả lời ưu tiên nhanh nhất (Cố định 15 phút)
   if (profile.fanType === 'Whale') {
     return baseDelay;
   }
 
-  // 2. Fan Lụy (Luy) -> Trì hoãn trung bình từ 30 phút đến 1.5 giờ
+  // - Fan Lụy (Luy) -> Trì hoãn trung bình từ 15 phút đến 30 phút
   if (profile.fanType === 'Luy') {
-    const additionalRandomMs = Math.random() * 60 * 60 * 1000; // Random thêm tối đa 1 giờ (ms)
+    const additionalRandomMs = Math.random() * 15 * 60 * 1000; // Random thêm tối đa 15 phút (ms)
     return baseDelay + additionalRandomMs;
   }
 
-  // 3. Các nhóm đối tượng khác (Cool, Drainer, Unknown) -> Trì hoãn ngẫu nhiên từ 30 phút đến 4 giờ
-  const additionalRandomMs = Math.random() * (maxDelay - baseDelay); // Random thêm tối đa 3.5 giờ (ms)
+  // - Các nhóm đối tượng khác (Cool, Drainer, Unknown) -> Trì hoãn ngẫu nhiên từ 15 phút đến 1 giờ
+  const additionalRandomMs = Math.random() * (maxDelay - baseDelay); // Random thêm tối đa 45 phút (ms)
   return baseDelay + additionalRandomMs;
 }
 

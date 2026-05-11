@@ -105,6 +105,27 @@ export async function processIncomingMessage(params: {
     const context = await retrieveContext(params.conversationId);
     const { fanProfile, recentMessages, gender } = context;
 
+    // 1.2 Nạp cấu hình Persona của tài khoản liên kết với cuộc hội thoại
+    let persona: any = null;
+    try {
+      const conversation = await db.conversation.findUnique({
+        where: { id: params.conversationId },
+        include: {
+          platform_accounts: {
+            include: {
+              ai_personas: true,
+            },
+          },
+        },
+      });
+      persona = conversation?.platform_accounts?.ai_personas || null;
+      if (persona) {
+        console.log(`👤 [Orchestrator] Successfully loaded custom AIPersona: "${persona.name}" for conversation: ${params.conversationId}`);
+      }
+    } catch (err) {
+      console.error('⚠️ [Orchestrator] Failed to load AIPersona from database:', err);
+    }
+
     // Xác định phiên bản thử nghiệm A/B nhất quán cho cuộc hội thoại này (A/B Test Routing)
     // Nếu trước đó cuộc hội thoại này đã được gán variant A hoặc B, ta giữ nguyên. Ngược lại gán ngẫu nhiên 50/50.
     let abTestVariant: 'A' | 'B' = 'A';
@@ -401,7 +422,7 @@ export async function processIncomingMessage(params: {
 
     await sendStatus('AI đã soạn thảo xong và đang lên lịch gửi...');
     // 8. Tính toán thời gian trì hoãn phản hồi ngẫu nhiên (Reply Delay)
-    const delay = calculateDelay(tempProfile);
+    const delay = calculateDelay(tempProfile, persona);
     console.log(`⏱️ [Orchestrator] Calculated delay: ${delay / 1000}s (${delay / 60000} mins)`);
 
     // 9. Lưu trữ / Cập nhật trạng thái mới nhất của FanProfile xuống Database
