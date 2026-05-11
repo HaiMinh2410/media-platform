@@ -28,7 +28,7 @@ export function canSendLink(profile: FanProfile): boolean {
  */
 export function decideAction(profile: FanProfile): NextAction {
   // Immediately escalate to human if risk level is high
-  if (profile.riskLevel === 'high') {
+  if ((profile.riskLevel as string) === 'high') {
     return 'escalate_to_human';
   }
 
@@ -79,7 +79,7 @@ export function decideAction(profile: FanProfile): NextAction {
         action = 'send_link';
       } else if (profile.fanType === 'Drainer') {
         // Drainers in G3 are hard exited if high risk, else escalated to agents
-        if (profile.riskLevel === 'high') {
+        if ((profile.riskLevel as string) === 'high') {
           action = 'hard_exit';
         } else {
           action = 'escalate_to_human';

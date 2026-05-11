@@ -3,23 +3,23 @@
 import React, { useState } from 'react';
 import type { AiSuggestion } from '@/domain/types/messaging';
 import { cn } from '@/lib/utils';
-import { 
-  Zap, 
-  Info, 
-  X, 
-  Loader2, 
-  Sparkles, 
-  Heart, 
-  AlertTriangle, 
-  Calendar, 
-  MessageSquare, 
-  ChevronDown, 
-  ChevronUp, 
-  Users, 
-  ShieldAlert, 
-  ShieldCheck, 
-  TrendingUp, 
-  TrendingDown, 
+import {
+  Zap,
+  Info,
+  X,
+  Loader2,
+  Sparkles,
+  Heart,
+  AlertTriangle,
+  Calendar,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp,
+  Users,
+  ShieldAlert,
+  ShieldCheck,
+  TrendingUp,
+  TrendingDown,
   User,
   Activity,
   Award,
@@ -96,10 +96,10 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
   );
 }
 
-export function AiSuggestionPanel({ 
-  suggestions, 
-  loading, 
-  onUse, 
+export function AiSuggestionPanel({
+  suggestions,
+  loading,
+  onUse,
   onDismiss,
   fanProfile,
   gender,
@@ -201,8 +201,56 @@ export function AiSuggestionPanel({
 
   return (
     <div className="flex flex-col bg-base-200 text-foreground select-none">
-      
-      {/* ================= SECTION 1: AI SMART PROFILE ================= */}
+
+      {/* ================= SECTION 1: AI SUGGESTIONS ================= */}
+      <div>
+        <div className="px-4 py-2 flex items-center gap-2.5">
+          <div className="p-1 rounded bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
+            <Zap size={14} className="animate-pulse" />
+          </div>
+          <h4 className="text-xs font-black text-foreground-secondary uppercase tracking-wider">Gợi ý phản hồi AI</h4>
+        </div>
+
+        <div className="p-4 flex flex-col gap-4">
+          {loading && (
+            <div className="flex flex-col gap-4">
+              {[1, 2].map(i => (
+                <div key={i} className="bg-foreground/[0.02] border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
+                  <div className="h-3 bg-foreground/5 rounded w-1/3" />
+                  <div className="h-4 bg-foreground/5 rounded w-full" />
+                  <div className="h-4 bg-foreground/5 rounded w-4/5" />
+                </div>
+              ))}
+              <div className="flex items-center justify-center py-5 text-foreground-tertiary text-sm gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                <span>Đang tạo phản hồi...</span>
+              </div>
+            </div>
+          )}
+
+          {!loading && visible.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3">
+              <Info size={24} />
+              <p className="text-sm italic">Chưa có gợi ý nào</p>
+            </div>
+          )}
+
+          {!loading && visible.length > 0 && (
+            <div className="flex flex-col gap-4">
+              {visible.map((s) => (
+                <SuggestionCard
+                  key={s.id}
+                  suggestion={s}
+                  onUse={onUse}
+                  onDismiss={onDismiss}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ================= SECTION 2: AI SMART PROFILE ================= */}
       <div className="p-4 border-b border-foreground/5 bg-foreground/[0.01] flex flex-col gap-4 relative">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -214,8 +262,8 @@ export function AiSuggestionPanel({
               <p className="text-[10px] text-foreground-tertiary">Báo cáo cập nhật thời gian thực</p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={() => setIsProfileExpanded(!isProfileExpanded)}
             className="p-1 rounded bg-foreground/5 hover:bg-foreground/10 text-foreground-secondary transition-all"
             title={isProfileExpanded ? "Thu gọn" : "Mở rộng"}
@@ -226,7 +274,7 @@ export function AiSuggestionPanel({
 
         {isProfileExpanded && (
           <div className="flex flex-col gap-4 mt-1">
-            
+
             {/* 1. Kiểu tính cách (Fan Type) - Thiết kế hàng ngang 100% cực kỳ thoáng đãng */}
             <div className="flex flex-col gap-2 p-3 bg-foreground/[0.02] border border-foreground/5 rounded-xl hover:bg-foreground/[0.04] transition-all">
               <div className="flex items-center justify-between">
@@ -262,7 +310,7 @@ export function AiSuggestionPanel({
                 <span className="text-[10px] font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
                   <User size={11} /> Xưng hô hội thoại
                 </span>
-                <select 
+                <select
                   className={cn(
                     "w-full text-2xs font-bold bg-background-secondary border border-foreground/10 rounded-lg p-1.5 outline-none transition-all focus:border-accent-primary cursor-pointer text-center",
                     gender === 'Nam' && "text-blue-400 bg-blue-500/5 border-blue-500/20",
@@ -284,7 +332,7 @@ export function AiSuggestionPanel({
                   <Activity size={11} /> Giai đoạn (Stage)
                 </span>
                 {profile && stageConfig ? (
-                  <div 
+                  <div
                     className={cn("text-2xs font-black px-2 py-1.5 rounded-lg border text-center truncate", stageConfig.style)}
                     title={`Mục tiêu: ${stageConfig.target}`}
                   >
@@ -337,9 +385,9 @@ export function AiSuggestionPanel({
                       {Math.round(profile.emotionScore * 100)}%
                     </span>
                   </div>
-                  
+
                   <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden relative mt-1">
-                    <div 
+                    <div
                       className="h-full rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-500 ease-out"
                       style={{ width: `${profile.emotionScore * 100}%` }}
                     />
@@ -357,13 +405,13 @@ export function AiSuggestionPanel({
                   </span>
                   <div className="flex gap-1">
                     {[1, 2, 3].map((val) => (
-                      <Heart 
-                        key={val} 
-                        size={13} 
+                      <Heart
+                        key={val}
+                        size={13}
                         className={cn(
                           "transition-all duration-300",
-                          val <= profile.flirtLevel 
-                            ? "fill-pink-500 text-pink-500 scale-110 drop-shadow-[0_0_4px_rgba(236,72,153,0.4)]" 
+                          val <= profile.flirtLevel
+                            ? "fill-pink-500 text-pink-500 scale-110 drop-shadow-[0_0_4px_rgba(236,72,153,0.4)]"
                             : "text-foreground-tertiary opacity-30"
                         )}
                       />
@@ -389,8 +437,8 @@ export function AiSuggestionPanel({
             {profile && profile.riskLevel !== 'low' && (
               <div className={cn(
                 "flex gap-2.5 p-3 rounded-xl border text-[11px] leading-relaxed shadow-sm",
-                profile.riskLevel === 'high' 
-                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
+                profile.riskLevel === 'high'
+                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
                   : "bg-amber-500/10 text-amber-400 border-amber-500/20"
               )}>
                 {profile.riskLevel === 'high' ? (
@@ -403,8 +451,8 @@ export function AiSuggestionPanel({
                     Cảnh báo rủi ro: {profile.riskLevel === 'high' ? 'Rất cao (Escalate)' : 'Trung bình'}
                   </p>
                   <p className="opacity-80 text-[10px]">
-                    {profile.riskLevel === 'high' 
-                      ? 'AI phát hiện hành vi bào tài nguyên cực đoan, từ khóa nhạy cảm nặng hoặc quấy rối nguy cấp. Hội thoại được tự động chuyển giao cho nhân viên trực chat can thiệp thủ công.' 
+                    {profile.riskLevel === 'high'
+                      ? 'AI phát hiện hành vi bào tài nguyên cực đoan, từ khóa nhạy cảm nặng hoặc quấy rối nguy cấp. Hội thoại được tự động chuyển giao cho nhân viên trực chat can thiệp thủ công.'
                       : 'Người dùng gửi liên kết nhiều lần hoặc có tín hiệu spam nhẹ. Cần thận trọng khi gửi thông tin.'}
                   </p>
                 </div>
@@ -414,7 +462,7 @@ export function AiSuggestionPanel({
             {/* 7. Nhận định sâu & Từ chối (Insights & Objections) - Hiển thị trực tiếp cực kỳ đẹp */}
             {profile && (profile.keyInsights.length > 0 || profile.objectionsSeen.length > 0) && (
               <div className="border-t border-foreground/5 pt-2">
-                <button 
+                <button
                   onClick={() => setShowInsights(!showInsights)}
                   className="flex justify-between items-center w-full py-1 text-[10px] font-bold text-foreground-tertiary hover:text-foreground transition-colors"
                 >
@@ -453,54 +501,6 @@ export function AiSuggestionPanel({
               </div>
             )}
 
-          </div>
-        )}
-      </div>
-
-
-
-      {/* ================= SECTION 3: AI SUGGESTIONS ================= */}
-      <div className="px-4 py-2 flex items-center gap-2.5">
-        <div className="p-1 rounded bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
-          <Zap size={14} className="animate-pulse" />
-        </div>
-        <h4 className="text-xs font-black text-foreground-secondary uppercase tracking-wider">Gợi ý phản hồi AI</h4>
-      </div>
-
-      <div className="p-4 flex flex-col gap-4">
-        {loading && (
-          <div className="flex flex-col gap-4">
-            {[1, 2].map(i => (
-              <div key={i} className="bg-foreground/[0.02] border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
-                <div className="h-3 bg-foreground/5 rounded w-1/3" />
-                <div className="h-4 bg-foreground/5 rounded w-full" />
-                <div className="h-4 bg-foreground/5 rounded w-4/5" />
-              </div>
-            ))}
-            <div className="flex items-center justify-center py-5 text-foreground-tertiary text-sm gap-2">
-              <Loader2 size={16} className="animate-spin" />
-              <span>Đang tạo phản hồi...</span>
-            </div>
-          </div>
-        )}
-
-        {!loading && visible.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3">
-            <Info size={24} />
-            <p className="text-sm italic">Chưa có gợi ý nào</p>
-          </div>
-        )}
-
-        {!loading && visible.length > 0 && (
-          <div className="flex flex-col gap-4">
-            {visible.map((s) => (
-              <SuggestionCard
-                key={s.id}
-                suggestion={s}
-                onUse={onUse}
-                onDismiss={onDismiss}
-              />
-            ))}
           </div>
         )}
       </div>

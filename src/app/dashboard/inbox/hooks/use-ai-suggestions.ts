@@ -108,6 +108,22 @@ export function useAiSuggestions({
           fetchSuggestions();
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const row = payload.new as any;
+          const incomingConvId = row.conversation_id || row.conversationId;
+          if (incomingConvId !== conversationId) return;
+
+          console.log('[Realtime] New message detected. Clearing suggestions.');
+          setSuggestions([]);
+        }
+      )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           console.log(`[Realtime] ✅ Subscribed to ai_reply_logs for conv ${conversationId}`);

@@ -29,26 +29,44 @@ export async function GET(
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
 
-    // Fetch ai_reply_logs linked to messages in this conversation
-    // Join through messages table: ai_reply_logs.message_id → messages.conversation_id
-    const logs = await db.aIReplyLog.findMany({
-      where: {
-        message: {
-          conversationId,
-        },
-      },
-      orderBy: { created_at: 'desc' },
-      take: 10,
-      select: {
-        id: true,
-        messageId: true,
-        model: true,
-        prompt: true,
-        response: true,
-        status: true,
-        created_at: true,
-      } as any,
+    // 1. Fetch the latest messages in the conversation
+    const lastMessages = await db.message.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
     });
+
+    // 2. Find the latest message from the customer (user)
+    const latestCustomerMsg = lastMessages.find((m) => m.senderType === 'user');
+
+    // 3. Check if there are any replies (agent/ai) sent after the latest customer message
+    let isReplied = false;
+    if (latestCustomerMsg) {
+      const index = lastMessages.findIndex((m) => m.id === latestCustomerMsg.id);
+      const newerMessages = lastMessages.slice(0, index);
+      isReplied = newerMessages.some((m) => m.senderType === 'agent' || m.senderType === 'ai');
+    }
+
+    // 4. Fetch ai_reply_logs ONLY for the current unreplied customer message
+    let logs: any[] = [];
+    if (latestCustomerMsg && !isReplied) {
+      logs = await db.aIReplyLog.findMany({
+        where: {
+          messageId: latestCustomerMsg.id,
+        },
+        orderBy: { created_at: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          messageId: true,
+          model: true,
+          prompt: true,
+          response: true,
+          status: true,
+          created_at: true,
+        } as any,
+      });
+    }
 
     const suggestions: AiSuggestion[] = (logs as any[]).map((log: any) => ({
       id: log.id,

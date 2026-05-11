@@ -106,9 +106,16 @@ export async function processIncomingMessage(params: {
       abTestVariant = Math.random() < 0.5 ? 'A' : 'B';
     }
 
+    // 1. Tách biệt tin nhắn mới khỏi lịch sử nếu nó đã được lưu vào DB trước đó để tránh trùng lặp
+    let historyMessages = [...recentMessages];
+    const lastMsg = historyMessages[historyMessages.length - 1];
+    if (lastMsg && lastMsg.role === 'fan' && lastMsg.content === params.messageText) {
+      historyMessages.pop(); // loại bỏ tin nhắn hiện tại ra khỏi lịch sử thực tế trước đó
+    }
+
     // Cập nhật tin nhắn hiện tại vào mảng recentMessages để các bộ phân loại phân tích chính xác nhất
     const updatedMessages = [
-      ...recentMessages,
+      ...historyMessages,
       { role: 'fan' as const, content: params.messageText }
     ];
 
@@ -117,7 +124,7 @@ export async function processIncomingMessage(params: {
     // Chấm điểm cảm xúc thời gian thực (Sentiment Analysis - T157)
     console.log(`🔍 [Orchestrator] Scoring sentiment of incoming message...`);
     const emotionResult = await scoreEmotionAndTrend({
-      conversationHistory: recentMessages,
+      conversationHistory: historyMessages, // Truyền lịch sử sạch (chưa bao gồm tin nhắn mới)
       currentProfile: fanProfile,
       newMessage: params.messageText,
     });
@@ -307,14 +314,14 @@ export async function processIncomingMessage(params: {
       // 6. Response Generator - LLM-based Generation if no objection
       console.log(`🤖 [Orchestrator] Generating response via Response Generator...`);
       
-      const mappedRecentMessages = updatedMessages.map((msg) => ({
+      const mappedHistoryMessages = historyMessages.map((msg) => ({
         role: msg.role === 'you' ? 'agent' as const : 'fan' as const,
         content: msg.content,
       }));
 
       const genResult = await generateResponse({
         fanProfile: tempProfile,
-        recentMessages: mappedRecentMessages,
+        recentMessages: mappedHistoryMessages, // Truyền lịch sử sạch (không trùng lặp tin nhắn mới)
         incomingMessage: params.messageText,
         strategy,
         decision: {

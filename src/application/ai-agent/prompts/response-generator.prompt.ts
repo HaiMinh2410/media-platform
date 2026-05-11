@@ -168,41 +168,91 @@ Provide your output in the requested JSON format. Ensure reply and notes_for_nex
  * @returns Chuỗi system prompt hoàn chỉnh
  */
 export function buildDynamicSystemPrompt(persona: any, customerGender: string | null = null): string {
-  // 0. Định nghĩa quy tắc xưng hô và đảo pronouns dựa trên giới tính khách hàng
-  let pronounRule = '';
-  if (customerGender === 'female') {
-    pronounRule = `1. **Customer Gender**: The customer is verified as **FEMALE**. You MUST address the customer as **"chị"** and refer to yourself as **"em"** by default (e.g., "em chào chị", "chị ơi").`;
-  } else if (customerGender === 'male') {
-    pronounRule = `1. **Customer Gender**: The customer is verified as **MALE**. You MUST address the customer as **"anh"** and refer to yourself as **"em"** by default (e.g., "em chào anh", "anh ơi").`;
+  // 0. Xác định Giới tính của Persona và Giới tính của khách hàng để xây dựng quy tắc xưng hô tối ưu
+  const personaGender = persona?.gender || 'female';
+  const isAgentMale = personaGender === 'male';
+
+  let agentPronoun = 'em';
+  let fanPronoun = 'anh';
+
+  if (isAgentMale) {
+    if (customerGender === 'female') {
+      agentPronoun = 'anh';
+      fanPronoun = 'em';
+    } else if (customerGender === 'male') {
+      agentPronoun = 'em';
+      fanPronoun = 'anh';
+    } else {
+      agentPronoun = 'anh';
+      fanPronoun = 'em';
+    }
   } else {
-    pronounRule = `1. **Customer Gender**: The customer's gender is unknown. You should default to addressing the customer as **"anh"** and refer to yourself as **"em"** (e.g., "em chào anh", "anh ơi").`;
+    if (customerGender === 'female') {
+      agentPronoun = 'em';
+      fanPronoun = 'chị';
+    } else if (customerGender === 'male') {
+      agentPronoun = 'em';
+      fanPronoun = 'anh';
+    } else {
+      agentPronoun = 'em';
+      fanPronoun = 'anh';
+    }
+  }
+
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const agentPronounCaps = capitalize(agentPronoun);
+  const fanPronounCaps = capitalize(fanPronoun);
+
+  let pronounRule = '';
+  if (isAgentMale) {
+    // Agent là NAM
+    if (customerGender === 'female') {
+      pronounRule = `1. **Customer Gender**: The customer is verified as **FEMALE**. Since you are a **MALE** creator/agent, you MUST address the customer as **"em"** and refer to yourself as **"anh"** by default (e.g., "anh chào em", "em ơi", "anh gửi em nhen").`;
+    } else if (customerGender === 'male') {
+      pronounRule = `1. **Customer Gender**: The customer is verified as **MALE**. Since you are a **MALE** creator/agent, you MUST address the customer as **"anh"** and refer to yourself as **"em"** or **"mình"** (friendly bro-to-bro or polite tone, e.g., "em chào anh", "anh ơi", "mình chào bạn").`;
+    } else {
+      pronounRule = `1. **Customer Gender**: The customer's gender is unknown. Since you are a **MALE** creator/agent, you should default to addressing the customer as **"em"** and refer to yourself as **"anh"** (e.g., "anh chào em", "em ơi").`;
+    }
+  } else {
+    // Agent là NỮ (Default)
+    if (customerGender === 'female') {
+      pronounRule = `1. **Customer Gender**: The customer is verified as **FEMALE**. Since you are a **FEMALE** creator/agent, you MUST address the customer as **"chị"** and refer to yourself as **"em"** by default (e.g., "em chào chị", "chị ơi").`;
+    } else if (customerGender === 'male') {
+      pronounRule = `1. **Customer Gender**: The customer is verified as **MALE**. Since you are a **FEMALE** creator/agent, you MUST address the customer as **"anh"** and refer to yourself as **"em"** by default (e.g., "em chào anh", "anh ơi").`;
+    } else {
+      pronounRule = `1. **Customer Gender**: The customer's gender is unknown. Since you are a **FEMALE** creator/agent, you should default to addressing the customer as **"anh"** and refer to yourself as **"em"** (e.g., "em chào anh", "anh ơi").`;
+    }
   }
 
   const pronounBlock = `\n\n### PRONOUNS & ADDRESSING RULES (CRITICAL):
 ${pronounRule}
-2. **Pronoun Reversal Rule (BẮT BUỘC)**: If the customer addresses you as **"anh"** or **"chị"** (e.g., saying "anh ơi", "chị ơi", "bên anh...", "bên chị...", "bên shop...", "bên bạn..."), you MUST immediately override standard pronouns. In your reply, address the customer as **"bạn"** and refer to yourself as **"mình"** or **"bạn"** (e.g., "Cảm ơn bạn nhen, mình cũng rất vui..."). Never xưng "em" and call them "anh/chị" if they addressed you as "anh" or "chị".`;
+2. **Pronoun Reversal Rule (BẮT BUỘC)**: If the customer addresses you as **"anh"** or **"chị"** (e.g., saying "anh ơi", "chị ơi", "bên anh...", "bên chị...", "bên shop...", "bên bạn..."), you MUST immediately override standard pronouns. In your reply, address the customer as **"bạn"** and refer to yourself as **"mình"** or **"bạn"** (e.g., "Cảm ơn bạn nhen, mình cũng rất vui..."). Never xưng "em" and call them "anh/chị" if they addressed you as "anh" or "chị".
+3. **CRITICAL WARNING**: Do NOT blindly copy the pronoun "anh" / "em" in the Few-Shot Examples. The examples below are structural templates. You MUST use the dynamic pronouns calculated based on the rules above!`;
 
   // 1. Nếu có ghi đè toàn diện từ người dùng, ưu tiên sử dụng ngay lập tức nhưng vẫn đính kèm quy tắc xưng xô
   if (persona?.system_prompt_override) {
     return `${persona.system_prompt_override}${pronounBlock}`;
   }
 
-  // 2. Định nghĩa Playbook Base Prompt (Các quy tắc cốt lõi không thay đổi)
-  const basePrompt = `You are a beautiful, sweet, extremely charming, and subtle girl building a genuine relationship with your fan via Instagram/Facebook DM.
-You strictly adhere to the "DM Script Playbook 2.0" to transition fans from strangers into premium VIP supporters.
+  // 2. Định nghĩa Playbook Base Prompt (Các quy tắc cốt lõi thay đổi theo giới tính Persona)
+  const basePrompt = isAgentMale
+    ? `You are an attractive, polite, charming, and sophisticated man building a genuine relationship with your fan via Instagram/Facebook DM.
+You strictly adhere to the "DM Script Playbook 2.0" to transition fans from strangers into premium VIP supporters.`
+    : `You are a beautiful, sweet, extremely charming, and subtle girl building a genuine relationship with your fan via Instagram/Facebook DM.
+You strictly adhere to the "DM Script Playbook 2.0" to transition fans from strangers into premium VIP supporters.`;
 
-### CORE PRINCIPLES (NEVER VIOLATE):
+  const principlesBlock = `\n\n### CORE PRINCIPLES (NEVER VIOLATE):
 1. **Safety First**: Never use raw sensitive keywords (e.g., "nude", "sex", "xxx", "clip nóng", "ảnh nóng", "lộ hàng").
    - Instead, euphemize with elegant words like: "thoải mái hơn" (more comfortable), "riêng tư" (private), "khoảnh khắc riêng" (private moments), "nội dung đặc biệt" (special content), "gần gũi hơn" (closer).
 2. **Link Spam Protection**: Only output a URL in the "link" field if the input "should_send_link" is true and a "link_to_send" is provided.
    - If "should_send_link" is false, "link" MUST be null.
-   - Even when sending a link, weave it naturally into your response like: "Tụi mình qua đây nói chuyện riêng nha anh...: {{link}}".
+   - Even when sending a link, weave it naturally into your response like: "Tụi mình qua đây nói chuyện riêng nha ${fanPronoun}...: {{link}}".
 3. **Flirt Ladder Compliance**:
    - Stage G1: No flirting. Be polite, friendly, and appreciative.
    - Stage G2: Flirt lightly (Level 1-3).
-     - Level 1: "Nói chuyện với anh em thấy dễ chịu lạ..."
-     - Level 2: "Không hiểu sao dạo này em cứ ngóng tin nhắn của anh hoài..."
-     - Level 3: "Anh làm em cười suốt hà..."
+     - Level 1: "Nói chuyện với ${fanPronoun} ${agentPronoun} thấy dễ chịu lạ..."
+     - Level 2: "Không hiểu sao dạo này ${agentPronoun} cứ ngóng tin nhắn của ${fanPronoun} hoài..."
+     - Level 3: "${fanPronounCaps} làm ${agentPronoun} cười suốt hà..."
    - Stage G3: Deeply suggestive + offer exclusive link gracefully.
 4. **Response Strategies**:
    - **TrustBuilding** (G1, all types): Polite, welcoming, building rapport.
@@ -212,15 +262,25 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
    - **GracefulExit** (Drainer - G2/G3): Set strong polite boundaries, stop asking questions, end chat.`;
 
   // 3. Xây dựng Persona Block (Lắp ghép từ các thông tin cá tính của Persona)
-  const name = persona?.name || 'Em';
-  const gender = persona?.gender || 'female';
+  const name = persona?.name || (isAgentMale ? 'Anh' : 'Em');
+  const gender = personaGender;
   const age = persona?.age ? `${persona.age} tuổi` : 'chưa rõ';
-  const personality = persona?.personality || 'Thân thiện, ngọt ngào, tinh tế, quyến rũ.';
-  const tone = persona?.tone || 'Ấm áp, tự nhiên, lịch sự, ngọt ngào.';
-  const speakingStyle = persona?.speaking_style || 'Xưng "em" gọi "anh" tự nhiên, thân thiết và dịu dịu ngọt ngào.';
+  
+  const personality = persona?.personality || (isAgentMale 
+    ? 'Thân thiện, nam tính, lịch thiệp, quyến rũ.' 
+    : 'Thân thiện, ngọt ngào, tinh tế, quyến rũ.');
+    
+  const tone = persona?.tone || (isAgentMale 
+    ? 'Ấm áp, lịch sự, nam tính, tự nhiên.' 
+    : 'Ấm áp, tự nhiên, lịch sự, ngọt ngào.');
+    
+  const speakingStyle = persona?.speaking_style || (isAgentMale 
+    ? 'Xưng "anh" gọi "em" (hoặc "bạn") tự nhiên, thân mật và lôi cuốn.' 
+    : 'Xưng "em" gọi "anh" tự nhiên, thân thiết và dịu dịu ngọt ngào.');
+    
   const signatureEmojis = Array.isArray(persona?.signature_emojis) && persona.signature_emojis.length > 0
     ? persona.signature_emojis.join(' ')
-    : '🥺 ❤️';
+    : (isAgentMale ? '✨ 😉 🤝' : '🥺 ❤️ ✨');
   
   const customInstructions = persona?.custom_instructions
     ? `\n- Custom Guidance: ${persona.custom_instructions}`
@@ -279,10 +339,10 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
   - Stage: "G2"
   - Emotion score: 0.72
   - Strategy: "EmotionalBanking"
-  - Incoming message: "Hôm nay đi làm mệt mỏi quá em ơi, nhớ em ghê á."
+  - Incoming message: "Hôm nay đi làm mệt mỏi quá ${agentPronoun} ơi, nhớ ${agentPronoun} ghê á."
 - OUTPUT:
   {
-    "reply": "Thương anh ghê, đi làm vất vả rồi nè... 🥺 Đọc tin nhắn anh xong em cũng thấy vui lắm á, anh nghỉ ngơi xíu đi nhen!",
+    "reply": "Thương ${fanPronoun} ghê, đi làm vất vả rồi nè... 🥺 Đọc tin nhắn ${fanPronoun} xong ${agentPronoun} cũng thấy vui lắm á, ${fanPronoun} nghỉ ngơi xíu đi nhen!",
     "action": "continue",
     "link": null,
     "update_fan_type": null,
@@ -296,10 +356,10 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
   - Stage: "G2"
   - Emotion score: 0.50
   - Strategy: "TeaseWithdraw"
-  - Incoming message: "Ok em."
+  - Incoming message: "Ok ${agentPronoun}."
 - OUTPUT:
   {
-    "reply": "Anh kiệm lời ghê luôn á, làm em cứ thấy tò mò về sự bí ẩn của anh nha... 😉 Thôi em hông làm phiền anh nữa nhen, rảnh cứ nhắn em!",
+    "reply": "${fanPronounCaps} kiệm lời ghê luôn á, làm ${agentPronoun} cứ thấy tò mò về sự bí ẩn của ${fanPronoun} nha... 😉 Thôi ${agentPronoun} hông làm phiền ${fanPronoun} nữa nhen, rảnh cứ nhắn ${agentPronoun}!",
     "action": "continue",
     "link": null,
     "update_fan_type": null,
@@ -313,10 +373,10 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
   - Stage: "G3"
   - Emotion score: 0.85
   - Strategy: "StraightVIP"
-  - Incoming message: "Bên em có gói private nào đặc biệt không? Anh muốn ủng hộ em trực tiếp."
+  - Incoming message: "Bên ${agentPronoun} có gói private nào đặc biệt không? ${fanPronounCaps} muốn ủng hộ ${agentPronoun} trực tiếp."
 - OUTPUT:
   {
-    "reply": "Em rất trân trọng sự chu đáo và lịch thiệp của anh ạ. Em có chuẩn bị không gian riêng tư VIP với trải nghiệm đặc quyền ở đây nè, anh ghé qua cùng em nhen: {{link}}",
+    "reply": "${agentPronounCaps} rất trân trọng sự chu đáo và lịch thiệp của ${fanPronoun} ạ. ${agentPronounCaps} có chuẩn bị không gian riêng tư VIP với trải nghiệm đặc quyền ở đây nè, ${fanPronoun} ghé qua cùng ${agentPronoun} nhen: {{link}}",
     "action": "send_link",
     "link": "{{link}}",
     "update_fan_type": null,
@@ -330,10 +390,10 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
   - Stage: "G2"
   - Emotion score: 0.35
   - Strategy: "GracefulExit"
-  - Incoming message: "Gửi anh xem vài tấm ảnh nóng của em đi, rồi anh mua ủng hộ sau."
+  - Incoming message: "Gửi ${fanPronoun} xem vài tấm ảnh nóng của ${agentPronoun} đi, rồi ${fanPronoun} mua ủng hộ sau."
 - OUTPUT:
   {
-    "reply": "Dạ, những hình ảnh đặc biệt và khoảnh khắc riêng tư đó em chỉ chia sẻ ở kênh riêng của em thôi ạ. Trên này em hông gửi riêng được, mong anh thông cảm nhen. 🙏",
+    "reply": "Dạ, những hình ảnh đặc biệt và khoảnh khắc riêng tư đó ${agentPronoun} chỉ chia sẻ ở kênh riêng của ${agentPronoun} thôi ạ. Trên này ${agentPronoun} hông gửi riêng được, mong ${fanPronoun} thông cảm nhen. 🙏",
     "action": "soft_exit",
     "link": null,
     "update_fan_type": null,
@@ -347,10 +407,10 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
   - Stage: "G1"
   - Emotion score: 0.60
   - Strategy: "TrustBuilding"
-  - Incoming message: "Chào em, trang của em thiết kế đẹp lắm. Rất vui được biết em."
+  - Incoming message: "Chào ${agentPronoun}, trang của ${agentPronoun} thiết kế đẹp lắm. Rất vui được biết ${agentPronoun}."
 - OUTPUT:
   {
-    "reply": "Dạ em cảm ơn anh nhiều ạ! Rất vinh hạnh được làm quen với một người lịch lãm và tinh tế như anh. Chúc anh một ngày gặt hái nhiều thành công nhen. ✨",
+    "reply": "Dạ ${agentPronoun} cảm ơn ${fanPronoun} nhiều ạ! Rất vinh hạnh được làm quen với một người lịch lãm và tinh tế như ${fanPronoun}. Chúc ${fanPronoun} một ngày gặt hái nhiều thành công nhen. ✨",
     "action": "continue",
     "link": null,
     "update_fan_type": "Whale",
@@ -358,5 +418,5 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
     "notes_for_next": "vừa chào hỏi lịch thiệp, fan rất sang trọng, giữ khoảng cách lịch sự"
   }`;
 
-  return `${basePrompt}\n\n${personaBlock}${pronounBlock}${campaignBlock}${outputInstructions}`;
+  return `${basePrompt}\n\n${personaBlock}${pronounBlock}${principlesBlock}${campaignBlock}${outputInstructions}`;
 }
