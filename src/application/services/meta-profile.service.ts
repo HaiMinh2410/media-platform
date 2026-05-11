@@ -79,12 +79,12 @@ export const metaProfileService = {
       }
 
       // Fields for profile fetch:
-      // Facebook (PSID): first_name, last_name, profile_pic (sometimes), picture
+      // Facebook (PSID): first_name, last_name, profile_pic (sometimes), picture, gender
       // Instagram (IGSID): name, profile_pic, username
       // Note: 'name' is often restricted for Facebook PSIDs, prefer first/last name.
       const fields = platform === 'instagram' 
         ? 'name,username,profile_pic' 
-        : 'first_name,last_name,link,picture.type(large)';
+        : 'first_name,last_name,link,picture.type(large),gender';
       
       let result = await graphClient.request<any>(externalSenderId, plainToken, { fields });
       
@@ -92,8 +92,8 @@ export const metaProfileService = {
       if (result.error) {
         console.warn(`[MetaProfileService] Primary profile fetch failed for ${externalSenderId} on ${platform}:`, result.error);
         
-        // Retry with minimal fields (just name or first/last name)
-        const fallbackFields = platform === 'instagram' ? 'name,username' : 'first_name,last_name';
+        // Retry with minimal fields (just name or first/last name, gender)
+        const fallbackFields = platform === 'instagram' ? 'name,username' : 'first_name,last_name,gender';
         result = await graphClient.request<any>(externalSenderId, plainToken, { fields: fallbackFields });
       }
 
@@ -120,6 +120,8 @@ export const metaProfileService = {
                      profile.profile_pic || 
                      null;
 
+      const gender = profile.gender || null;
+
       // 5. Update Conversation
       await db.conversation.update({
         where: { id: conversationId },
@@ -127,7 +129,8 @@ export const metaProfileService = {
           customer_name: name,
           customer_avatar: avatar,
           customer_username: profile.username || null,
-          customer_link: profile.link || null
+          customer_link: profile.link || null,
+          gender: gender,
         }
       });
 

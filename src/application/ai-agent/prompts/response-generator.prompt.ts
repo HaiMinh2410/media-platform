@@ -167,10 +167,24 @@ Provide your output in the requested JSON format. Ensure reply and notes_for_nex
  * @param persona Dữ liệu AIPersona lấy từ Database
  * @returns Chuỗi system prompt hoàn chỉnh
  */
-export function buildDynamicSystemPrompt(persona: any): string {
-  // 1. Nếu có ghi đè toàn diện từ người dùng, ưu tiên sử dụng ngay lập tức
+export function buildDynamicSystemPrompt(persona: any, customerGender: string | null = null): string {
+  // 0. Định nghĩa quy tắc xưng hô và đảo pronouns dựa trên giới tính khách hàng
+  let pronounRule = '';
+  if (customerGender === 'female') {
+    pronounRule = `1. **Customer Gender**: The customer is verified as **FEMALE**. You MUST address the customer as **"chị"** and refer to yourself as **"em"** by default (e.g., "em chào chị", "chị ơi").`;
+  } else if (customerGender === 'male') {
+    pronounRule = `1. **Customer Gender**: The customer is verified as **MALE**. You MUST address the customer as **"anh"** and refer to yourself as **"em"** by default (e.g., "em chào anh", "anh ơi").`;
+  } else {
+    pronounRule = `1. **Customer Gender**: The customer's gender is unknown. You should default to addressing the customer as **"anh"** and refer to yourself as **"em"** (e.g., "em chào anh", "anh ơi").`;
+  }
+
+  const pronounBlock = `\n\n### PRONOUNS & ADDRESSING RULES (CRITICAL):
+${pronounRule}
+2. **Pronoun Reversal Rule (BẮT BUỘC)**: If the customer addresses you as **"anh"** or **"chị"** (e.g., saying "anh ơi", "chị ơi", "bên anh...", "bên chị...", "bên shop...", "bên bạn..."), you MUST immediately override standard pronouns. In your reply, address the customer as **"bạn"** and refer to yourself as **"mình"** or **"bạn"** (e.g., "Cảm ơn bạn nhen, mình cũng rất vui..."). Never xưng "em" and call them "anh/chị" if they addressed you as "anh" or "chị".`;
+
+  // 1. Nếu có ghi đè toàn diện từ người dùng, ưu tiên sử dụng ngay lập tức nhưng vẫn đính kèm quy tắc xưng xô
   if (persona?.system_prompt_override) {
-    return persona.system_prompt_override;
+    return `${persona.system_prompt_override}${pronounBlock}`;
   }
 
   // 2. Định nghĩa Playbook Base Prompt (Các quy tắc cốt lõi không thay đổi)
@@ -344,5 +358,5 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
     "notes_for_next": "vừa chào hỏi lịch thiệp, fan rất sang trọng, giữ khoảng cách lịch sự"
   }`;
 
-  return `${basePrompt}\n\n${personaBlock}${campaignBlock}${outputInstructions}`;
+  return `${basePrompt}\n\n${personaBlock}${pronounBlock}${campaignBlock}${outputInstructions}`;
 }

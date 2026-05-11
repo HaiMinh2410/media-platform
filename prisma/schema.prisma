@@ -81,6 +81,7 @@ model Conversation {
   customer_name              String?
   customer_username          String?
   customer_link              String?
+  gender                     String?
   is_vip                     Boolean                   @default(false)
   /// Added in T073: Advanced Inbox Schema
   priority                   String?                   @default("medium")

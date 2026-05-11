@@ -78,7 +78,7 @@ export async function generateResponse(
   let modelsToTry: AIModel[] = [];
 
   // Tải cấu hình A/B Testing hoặc sinh Prompt động dựa trên Persona của tài khoản
-  let systemPrompt = buildDynamicSystemPrompt(persona);
+  let systemPrompt = buildDynamicSystemPrompt(persona, input.gender);
   let modelOverride: AIModel | null = null;
 
   try {

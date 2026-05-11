@@ -7,6 +7,7 @@ import { AI_AGENT_DEFAULTS } from '@/domain/types/ai-agent';
 export type ContextBundle = {
   fanProfile: FanProfile;
   recentMessages: { role: 'fan' | 'you'; content: string }[];
+  gender: string | null;
 };
 
 /**
@@ -183,9 +184,16 @@ export async function retrieveContext(conversationId: string): Promise<ContextBu
         }));
     }
 
+    // Fetch gender from Conversation
+    const conversation = await db.conversation.findUnique({
+      where: { id: conversationId },
+      select: { gender: true },
+    });
+
     return {
       fanProfile,
       recentMessages,
+      gender: conversation?.gender || null,
     };
   } catch (error) {
     console.error('❌ [ContextRetriever] Error in retrieveContext:', error);

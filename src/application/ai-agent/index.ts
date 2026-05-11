@@ -77,7 +77,7 @@ export async function processIncomingMessage(params: {
   try {
     // 1. Nạp ngữ cảnh (Retrieve Context)
     const context = await retrieveContext(params.conversationId);
-    const { fanProfile, recentMessages } = context;
+    const { fanProfile, recentMessages, gender } = context;
 
     // Xác định phiên bản thử nghiệm A/B nhất quán cho cuộc hội thoại này (A/B Test Routing)
     // Nếu trước đó cuộc hội thoại này đã được gán variant A hoặc B, ta giữ nguyên. Ngược lại gán ngẫu nhiên 50/50.
@@ -325,7 +325,8 @@ export async function processIncomingMessage(params: {
           flirtLevelTarget: tempProfile.flirtLevel
         },
         contextSummary: tempProfile.lastSummary ? (tempProfile.lastSummary as any) : undefined,
-        abTestVariant
+        abTestVariant,
+        gender
       });
 
       if (genResult.data) {

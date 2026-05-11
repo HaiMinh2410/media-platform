@@ -219,6 +219,7 @@ export type ResponseGeneratorInput = {
   contextSummary?: ConversationSummary; // Dùng khi history > 50 tin
   model?: AIModel;                   // Override model nếu cần (Whale → 120B)
   abTestVariant?: 'A' | 'B';         // Nhãn phiên bản thử nghiệm A/B
+  gender?: string | null;            // Giới tính khách hàng
 };
 
 /**
