@@ -37,6 +37,7 @@ type RightPanelProps = {
   customerUsername?: string;
   customerLink?: string;
   initialFanProfile?: any;
+  gender?: string | null;
 };
 
 export function RightPanel({
@@ -55,11 +56,13 @@ export function RightPanel({
   customerUsername,
   customerLink,
   initialFanProfile,
+  gender: initialGender,
 }: RightPanelProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [priority, setPriority] = useState<string | null>(initialPriority);
   const [sentiment, setSentiment] = useState<string | null>(initialSentiment);
   const [fanProfile, setFanProfile] = useState<any>(initialFanProfile);
+  const [gender, setGender] = useState<string | null>(initialGender || null);
 
   useFanProfileRealtime({
     conversationId,
@@ -126,9 +129,22 @@ export function RightPanel({
     }
   }, [conversationId]);
 
-  const handleRealtimeMetadata = useCallback((meta: { priority?: string | null; sentiment?: string | null }) => {
+  const handleUpdateGender = useCallback(async (newGender: string | null) => {
+    setGender(newGender);
+    try {
+      await fetch(`/api/conversations/${conversationId}/metadata`, {
+        method: 'PUT',
+        body: JSON.stringify({ gender: newGender }),
+      });
+    } catch (err) {
+      console.error('Failed to sync gender:', err);
+    }
+  }, [conversationId]);
+
+  const handleRealtimeMetadata = useCallback((meta: { priority?: string | null; sentiment?: string | null; gender?: string | null }) => {
     if (meta.priority !== undefined) setPriority(meta.priority);
     if (meta.sentiment !== undefined) setSentiment(meta.sentiment);
+    if (meta.gender !== undefined) setGender(meta.gender);
   }, []);
 
   useMetadataRealtime({
@@ -196,6 +212,8 @@ export function RightPanel({
           isCollapsed={!isRightPanelVisible}
           onToggleCollapse={() => setRightPanelVisible(!isRightPanelVisible)}
           fanProfile={fanProfile}
+          gender={gender}
+          onUpdateGender={handleUpdateGender}
         />
       </div>
     </div>

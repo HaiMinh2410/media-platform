@@ -44,6 +44,7 @@ export default async function ConversationPage({
         sentiment={(conversation as any).sentiment || null}
         initialTags={(conversation as any).tags || []}
         initialFanProfile={conversation.fan_profile}
+        gender={(conversation as any).gender || null}
         contactInfo={{
           phone: (conversation as any).phone,
           email: (conversation as any).email,

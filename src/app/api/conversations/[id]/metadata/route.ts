@@ -9,7 +9,8 @@ export async function PUT(
     const { id } = await params;
     const { 
       priority, sentiment, status, lead_status, 
-      phone, email, birthday, address, city, state, zip_code 
+      phone, email, birthday, address, city, state, zip_code,
+      gender
     } = await req.json();
 
     const data: any = {};
@@ -24,6 +25,7 @@ export async function PUT(
     if (city !== undefined) data.city = city;
     if (state !== undefined) data.state = state;
     if (zip_code !== undefined) data.zip_code = zip_code;
+    if (gender !== undefined) data.gender = gender;
 
     const updated = await db.conversation.update({
       where: { id },

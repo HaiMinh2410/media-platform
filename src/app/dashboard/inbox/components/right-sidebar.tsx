@@ -53,6 +53,8 @@ type RightSidebarProps = {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   fanProfile?: any;
+  gender?: string | null;
+  onUpdateGender?: (gender: string | null) => void;
 };
 
 export function RightSidebar({
@@ -78,6 +80,8 @@ export function RightSidebar({
   customerUsername,
   customerLink,
   fanProfile,
+  gender,
+  onUpdateGender,
 }: RightSidebarProps) {
   const activeTab = useInboxStore((state) => state.rightSidebarTab) as TabType;
   const setActiveTab = useInboxStore((state) => state.setRightSidebarTab);
@@ -206,8 +210,6 @@ export function RightSidebar({
               onToggleCollapse={onToggleCollapse}
             />
 
-            <AiProfileViewer fanProfile={fanProfile} />
-
             <ContactDetails 
               contactInfo={contactInfo}
               onEdit={() => setIsEditingContact(true)}
@@ -233,15 +235,12 @@ export function RightSidebar({
         {activeTab === 'ai' && (
           <AiSuggestionPanel
             suggestions={suggestions}
-            tags={tags}
-            priority={priority}
-            sentiment={sentiment}
             loading={loadingSuggestions}
             onUse={onUseSuggestion}
             onDismiss={onDismissSuggestion}
-            onUpdateTags={onUpdateTags}
-            onUpdatePriority={onUpdatePriority}
-            onUpdateSentiment={onUpdateSentiment}
+            fanProfile={fanProfile}
+            gender={gender}
+            onUpdateGender={onUpdateGender}
           />
         )}
 
