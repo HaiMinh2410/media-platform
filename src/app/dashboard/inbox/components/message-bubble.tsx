@@ -791,13 +791,6 @@ export const MessageBubble = memo(function MessageBubble({
                 isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 text-foreground shadow-md shadow-purple-500/15 backdrop-blur-md"
               )}
             >
-              {/* AI Robot Header Banner */}
-              {isAi && (
-                <div className="flex items-center gap-1.5 text-2xs font-bold uppercase text-purple-400 mb-1">
-                  <Sparkles size={11} className="text-purple-400 animate-pulse" />
-                  <span>AI Auto-Reply</span>
-                </div>
-              )}
 
               {/* Main Message Text */}
               {message.content && (

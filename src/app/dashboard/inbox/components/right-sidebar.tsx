@@ -89,7 +89,7 @@ export function RightSidebar({
   const setActiveTab = useInboxStore((state) => state.setRightSidebarTab);
   const { activeThreads, removeActiveThread, addActiveThread } = useInboxStore();
   
-  const isAutoReplyActive = botConfig?.is_active === true;
+  const isAutoReplyActive = botConfig?.is_active === true && botConfig?.auto_send === true;
   
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);

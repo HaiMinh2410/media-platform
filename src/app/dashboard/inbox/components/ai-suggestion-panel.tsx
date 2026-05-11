@@ -118,7 +118,7 @@ export function AiSuggestionPanel({
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [cancelling, setCancelling] = useState<boolean>(false);
 
-  const isAutoReplyActive = botConfig?.is_active === true;
+  const isAutoReplyActive = botConfig?.is_active === true && botConfig?.auto_send === true;
 
   // Fetch scheduled reply and set up realtime refresh on messages table
   useEffect(() => {
@@ -155,8 +155,14 @@ export function AiSuggestionPanel({
           filter: `conversationId=eq.${conversationId}`,
         },
         () => {
-          console.log('[Realtime] Message change detected, refreshing scheduled reply...');
+          console.log('[Realtime] Message change detected, refreshing scheduled reply with retries...');
           fetchScheduledReply();
+          
+          // Poll aggressively at key intervals to capture the newly queued BullMQ job
+          const retries = [1000, 2000, 4000, 6000, 8000];
+          retries.forEach(delay => {
+            setTimeout(fetchScheduledReply, delay);
+          });
         }
       )
       .subscribe();
@@ -370,13 +376,20 @@ export function AiSuggestionPanel({
                   </button>
                 </div>
               </div>
-            ) : (
+            ) : loading ? (
               <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3 bg-foreground/[0.01] border border-foreground/5 rounded-xl">
-                <span className="relative flex h-2 w-2">
+                <Loader2 size={18} className="animate-spin text-emerald-500" />
+                <p className="text-2xs italic leading-relaxed text-emerald-400 font-black animate-pulse">
+                  AI đang phân tích tin nhắn và soạn thảo phản hồi tự động...
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-start justify-center px-4 py-5 text-center text-foreground-tertiary gap-3 bg-foreground/[0.01] border border-foreground/5 rounded-xl relative">
+                <span className="absolute top-0 left-0 flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <p className="text-2xs italic leading-relaxed">
+                <p className="text-sm whitespace-nowrap">
                   Hệ thống tự động phản hồi đang chạy.<br/>Đang chờ tin nhắn tiếp theo của khách...
                 </p>
               </div>
