@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { AiSuggestion } from '@/domain/types/messaging';
 import { cn } from '@/lib/utils';
+import { createClient } from '@/infrastructure/supabase/client';
 import {
   Zap,
   Info,
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react';
 
 type Props = {
+  conversationId: string;
   suggestions: AiSuggestion[];
   loading: boolean;
   onUse: (text: string) => void;
@@ -35,6 +37,7 @@ type Props = {
   fanProfile?: any;
   gender?: string | null;
   onUpdateGender?: (gender: string | null) => void;
+  botConfig?: any;
 };
 
 function formatModel(model: string): string {
@@ -97,17 +100,121 @@ function SuggestionCard({ suggestion, onUse, onDismiss }: {
 }
 
 export function AiSuggestionPanel({
+  conversationId,
   suggestions,
   loading,
   onUse,
   onDismiss,
   fanProfile,
   gender,
-  onUpdateGender
+  onUpdateGender,
+  botConfig
 }: Props) {
   const visible = suggestions.slice(0, 5);
   const [isProfileExpanded, setIsProfileExpanded] = useState(true);
   const [showInsights, setShowInsights] = useState(true);
+
+  const [scheduledReply, setScheduledReply] = useState<any>(null);
+  const [timeLeft, setTimeLeft] = useState<string>('');
+  const [cancelling, setCancelling] = useState<boolean>(false);
+
+  const isAutoReplyActive = botConfig?.is_active === true;
+
+  // Fetch scheduled reply and set up realtime refresh on messages table
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const fetchScheduledReply = async () => {
+      try {
+        const res = await fetch(`/api/conversations/${conversationId}/scheduled-reply`);
+        const json = await res.json();
+        if (json.data && json.data.exists) {
+          setScheduledReply(json.data);
+        } else {
+          setScheduledReply(null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch scheduled reply:', err);
+      }
+    };
+
+    fetchScheduledReply();
+
+    const interval = setInterval(fetchScheduledReply, 10000);
+
+    const supabase = createClient();
+    const channelName = `scheduled_reply_refresh:${conversationId}:${Math.random().toString(36).slice(2, 11)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversationId=eq.${conversationId}`,
+        },
+        () => {
+          console.log('[Realtime] Message change detected, refreshing scheduled reply...');
+          fetchScheduledReply();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId]);
+
+  // Handle countdown timer ticking
+  useEffect(() => {
+    if (!scheduledReply?.scheduledAt) {
+      setTimeLeft('');
+      return;
+    }
+
+    const updateTimer = () => {
+      const diff = new Date(scheduledReply.scheduledAt).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft('đang gửi...');
+        return;
+      }
+      const totalSeconds = Math.floor(diff / 1000);
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      if (mins > 0) {
+        setTimeLeft(`${mins}m ${secs}s`);
+      } else {
+        setTimeLeft(`${secs}s`);
+      }
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [scheduledReply]);
+
+  const handleCancelScheduledReply = async () => {
+    if (!conversationId) return;
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/scheduled-reply`, {
+        method: 'DELETE',
+      });
+      const json = await res.json();
+      if (json.success) {
+        setScheduledReply(null);
+      } else {
+        alert('Hủy gửi không thành công: ' + (json.message || 'Lỗi không xác định'));
+      }
+    } catch (err) {
+      console.error('Failed to cancel scheduled reply:', err);
+      alert('Không thể kết nối đến máy chủ để hủy gửi.');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   // Chuẩn hóa trường dữ liệu của fanProfile tương tự bên AiProfileViewer để tránh lỗi crash
   const profile = fanProfile ? {
@@ -201,6 +308,78 @@ export function AiSuggestionPanel({
 
   return (
     <div className="flex flex-col bg-base-200 text-foreground select-none">
+
+      {/* ================= AUTO REPLY & SCHEDULED MESSAGE STATUS ================= */}
+      {isAutoReplyActive ? (
+        <div className="mx-4 mt-4 p-4 rounded-xl border bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.05)] flex flex-col gap-3 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all duration-500" />
+          
+          <div className="flex items-center justify-between z-10">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-xs font-black text-emerald-400 uppercase tracking-wider">
+                Auto Reply Đang Bật
+              </span>
+            </div>
+            
+            <span className="text-[10px] px-1.5 py-0.5 rounded-md font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              Active
+            </span>
+          </div>
+
+          {scheduledReply ? (
+            <div className="flex flex-col gap-2 bg-background-secondary/50 border border-foreground/5 p-3 rounded-lg z-10 backdrop-blur-sm">
+              <div className="flex items-center justify-between text-2xs text-foreground-tertiary">
+                <span className="flex items-center gap-1 font-bold">
+                  <Calendar size={11} className="text-teal-400" /> Hẹn giờ gửi
+                </span>
+                <span className="font-mono text-emerald-400 font-bold bg-emerald-500/5 px-1 rounded animate-pulse">
+                  {timeLeft || 'đang gửi...'}
+                </span>
+              </div>
+              
+              <div className="text-xs text-foreground-secondary leading-relaxed p-2 bg-foreground/[0.02] border border-foreground/5 rounded font-medium italic">
+                "{scheduledReply.replyText}"
+              </div>
+
+              <div className="flex gap-2 mt-1">
+                <button
+                  onClick={() => onUse(scheduledReply.replyText)}
+                  className="flex-1 py-1 px-2 bg-accent-primary text-foreground rounded text-2xs font-bold transition-all hover:brightness-110 active:scale-[0.98]"
+                >
+                  Dùng tin nhắn
+                </button>
+                <button
+                  onClick={handleCancelScheduledReply}
+                  className="py-1 px-2 bg-rose-500/15 border border-rose-500/20 text-rose-400 rounded text-2xs font-bold transition-all hover:bg-rose-500/25"
+                  disabled={cancelling}
+                >
+                  {cancelling ? 'Đang hủy...' : 'Hủy gửi'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-2xs text-foreground-tertiary italic flex items-center gap-1.5 z-10 px-1">
+              <Info size={11} className="text-emerald-500/60" /> Chờ tin nhắn tiếp theo của khách để tự động xử lý...
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="mx-4 mt-4 p-3 rounded-xl border bg-foreground/[0.01] border-foreground/5 flex items-center justify-between group">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-slate-500 opacity-60"></span>
+            <span className="text-2xs font-bold text-foreground-tertiary uppercase tracking-wider">
+              Auto Reply Đang Tắt
+            </span>
+          </div>
+          <span className="text-[9px] px-1.5 py-0.5 rounded-md font-mono bg-foreground/5 text-foreground-tertiary">
+            Inactive
+          </span>
+        </div>
+      )}
 
       {/* ================= SECTION 1: AI SUGGESTIONS ================= */}
       <div>

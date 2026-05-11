@@ -5,6 +5,7 @@
 // tạo nội dung phản hồi bằng LLM/Templates, bộ lọc an toàn, ghi log chi tiết, và tính toán trì hoãn.
 
 import * as crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 import { retrieveContext } from './context-retriever';
 import { determineStage, assessRisk, determineFlirtLevel } from './state-manager';
 import { scoreEmotionAndTrend } from './emotion-scorer';
@@ -17,6 +18,10 @@ import { generateResponse } from './response-generator';
 import { detectAndHandleObjection } from './objection-handler';
 import { db } from '@/lib/db';
 import type { FanProfile, NextAction, ResponseStrategy, ConversationStage, FanType } from '@/domain/types/ai-agent';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || '';
+const supabaseClient = (supabaseUrl && supabaseServiceKey) ? createClient(supabaseUrl, supabaseServiceKey) : null;
 
 /**
  * Định nghĩa cấu trúc AgentResponse trả về từ orchestrator.
@@ -74,7 +79,28 @@ export async function processIncomingMessage(params: {
   let modelUsed = 'Rule-based-Phase-1';
   let latencyMs = 0;
 
+  const statusChannel = supabaseClient ? supabaseClient.channel(`ai_status:${params.conversationId}`) : null;
+  if (statusChannel) {
+    statusChannel.subscribe();
+  }
+
+  const sendStatus = async (step: string) => {
+    console.log(`📡 [Orchestrator] Progress Broadcast: "${step}"`);
+    if (statusChannel) {
+      try {
+        await statusChannel.send({
+          type: 'broadcast',
+          event: 'progress',
+          payload: { step }
+        });
+      } catch (e) {
+        console.warn('⚠️ [Orchestrator] Failed to send broadcast status:', e);
+      }
+    }
+  };
+
   try {
+    await sendStatus('AI đang nạp lịch sử cuộc trò chuyện...');
     // 1. Nạp ngữ cảnh (Retrieve Context)
     const context = await retrieveContext(params.conversationId);
     const { fanProfile, recentMessages, gender } = context;
@@ -121,6 +147,7 @@ export async function processIncomingMessage(params: {
 
     const emotionScoreBefore = fanProfile.emotionScore;
 
+    await sendStatus('AI đang phân tích tâm trạng & cảm xúc...');
     // Chấm điểm cảm xúc thời gian thực (Sentiment Analysis - T157)
     console.log(`🔍 [Orchestrator] Scoring sentiment of incoming message...`);
     const emotionResult = await scoreEmotionAndTrend({
@@ -134,6 +161,7 @@ export async function processIncomingMessage(params: {
       completionTokens += emotionResult.usage.completionTokens;
     }
 
+    await sendStatus('AI đang xác định giai đoạn hội thoại & đánh giá rủi ro...');
     // 2. Xác định Giai đoạn (Stage) & Đánh giá Rủi ro (Risk Level) từ StateManager
     const currentStage = determineStage(fanProfile);
     
@@ -230,6 +258,7 @@ export async function processIncomingMessage(params: {
     const needsReclassify = shouldReclassifyFan(tempProfile, updatedMessages);
 
     if (isUnknown || needsReclassify) {
+      await sendStatus('AI đang phân loại đối tượng fan...');
       if (isUnknown) {
         console.log(`🔍 [Orchestrator] Fan type is 'Unknown'. Running hybrid classification...`);
       } else {
@@ -263,6 +292,7 @@ export async function processIncomingMessage(params: {
       }
     }
 
+    await sendStatus('AI đang quyết định hành động tiếp theo...');
     // 4. Quyết định hành động tiếp theo (Decision Engine) & Xác định chiến lược (Response Strategy)
     let action = decideAction(tempProfile);
     tempProfile.nextAction = action;
@@ -290,6 +320,7 @@ export async function processIncomingMessage(params: {
     let rawReply = '';
     let emotionScoreAfter = tempProfile.emotionScore;
 
+    await sendStatus('AI đang tìm kiếm và xử lý phản đối từ kịch bản...');
     // 5. Objection Handling - Early Intercept (Xử lý các tin nhắn phản đối bám sát Playbook 2.0)
     console.log(`🔍 [Orchestrator] Running Objection Handler for message...`);
     const objectionResult = await detectAndHandleObjection(params.messageText, tempProfile, link);
@@ -311,6 +342,7 @@ export async function processIncomingMessage(params: {
       }
       modelUsed = objectionResult.modelUsed || 'llama-3.1-8b-instant';
     } else {
+      await sendStatus('AI đang soạn thảo tin nhắn phản hồi...');
       // 6. Response Generator - LLM-based Generation if no objection
       console.log(`🤖 [Orchestrator] Generating response via Response Generator...`);
       
@@ -361,11 +393,13 @@ export async function processIncomingMessage(params: {
       }
     }
 
+    await sendStatus('AI đang kiểm duyệt nội dung an toàn & tuân thủ...');
     // 7. Kiểm tra và lọc từ khóa nhạy cảm qua Safety & Compliance Checker
     const safetyCheck = checkSafety(rawReply);
     const reply = safetyCheck.sanitizedReply;
     const safetyViolations = safetyCheck.violations;
 
+    await sendStatus('AI đã soạn thảo xong và đang lên lịch gửi...');
     // 8. Tính toán thời gian trì hoãn phản hồi ngẫu nhiên (Reply Delay)
     const delay = calculateDelay(tempProfile);
     console.log(`⏱️ [Orchestrator] Calculated delay: ${delay / 1000}s (${delay / 60000} mins)`);
@@ -430,6 +464,8 @@ export async function processIncomingMessage(params: {
 
     console.log(`✅ [Orchestrator] AI Pipeline executed successfully. Action decided: ${action}`);
 
+    await sendStatus('AI đã hoàn thành tất cả các bước.');
+
     // 11. Trả về kết quả đầu ra
     return {
       reply,
@@ -442,5 +478,14 @@ export async function processIncomingMessage(params: {
   } catch (error) {
     console.error('❌ [Orchestrator] Error occurred in AI Agent Pipeline Orchestrator:', error);
     throw error;
+  } finally {
+    if (statusChannel && supabaseClient) {
+      try {
+        await supabaseClient.removeChannel(statusChannel);
+        console.log(`🔌 [Orchestrator] Unsubscribed from status channel for conversation: ${params.conversationId}`);
+      } catch (err) {
+        console.warn('⚠️ [Orchestrator] Failed to unsubscribe from status channel:', err);
+      }
+    }
   }
 }

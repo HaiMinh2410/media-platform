@@ -61,6 +61,18 @@
 
   /* Animations */
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-gradient-xy: gradient-xy 6s ease infinite;
+
+  @keyframes gradient-xy {
+    0%, 100% {
+      background-size: 200% 200%;
+      background-position: left center;
+    }
+    50% {
+      background-size: 200% 200%;
+      background-position: right center;
+    }
+  }
 }
 
 @layer base {
@@ -143,6 +155,28 @@
 }
 
 @layer utilities {
+  @keyframes gradient-border-anim {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .ai-gradient-border {
+    padding: 1.5px !important;
+    border-radius: 10px !important;
+    background: linear-gradient(90deg, #ec4899, #8b5cf6, #10b981, #ec4899) !important;
+    background-size: 300% 300% !important;
+    animation: gradient-border-anim 4s ease infinite !important;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.35) !important;
+    transition: all 0.3s ease !important;
+  }
+
   .text-gradient {
     background: var(--accent-gradient);
     -webkit-background-clip: text;

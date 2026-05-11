@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageWithSender, MessageAttachment } from '@/domain/types/messaging';
-import { Wand2, BookOpen, Paperclip, Mic, X, Reply } from 'lucide-react';
+import { Wand2, BookOpen, Paperclip, Mic, X, Reply, Loader2 } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { useInboxStore, ToneMode } from '../store/inbox.store';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,7 @@ import { AttachmentPreview, FileAttachment } from './attachment-preview';
 import { VoiceRecorder } from './voice-recorder';
 import { SendButton } from './send-button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createClient } from '@/infrastructure/supabase/client';
 
 type SendState = 'idle' | 'sending' | 'error';
 
@@ -21,6 +22,7 @@ type ReplyComposerProps = {
   platform: string;
   platformUserName: string;
   onTypingStateChange?: (isTyping: boolean) => void;
+  botConfig?: any;
 };
 
 // Mock data for snippets
@@ -58,9 +60,56 @@ export function ReplyComposer({
   onMessageSent,
   platform,
   platformUserName,
-  onTypingStateChange
+  onTypingStateChange,
+  botConfig
 }: ReplyComposerProps) {
   const [text, setText] = useState('');
+  const [aiStatusText, setAiStatusText] = useState<string>('');
+  const [isAiGenerating, setIsAiGenerating] = useState<boolean>(false);
+
+  // Set up real-time broadcast listener for AI pipeline status updates
+  useEffect(() => {
+    if (!conversationId) {
+      setAiStatusText('');
+      setIsAiGenerating(false);
+      return;
+    }
+
+    const supabase = createClient();
+    const channelName = `ai_composer_status:${conversationId}:${Math.random().toString(36).slice(2, 11)}`;
+    
+    let clearTimer: NodeJS.Timeout;
+
+    const channel = supabase
+      .channel(channelName)
+      .on('broadcast', { event: 'progress' }, (payload: any) => {
+        console.log('[Composer Realtime Status] Received:', payload);
+        const step = payload?.payload?.step;
+        if (step) {
+          setAiStatusText(step);
+          
+          // Show gradient border only during creation/generation steps
+          if (step.includes('hoàn thành') || step.includes('lên lịch')) {
+            setIsAiGenerating(false);
+          } else {
+            setIsAiGenerating(true);
+          }
+          
+          // Clear status after 8 seconds of no updates
+          clearTimeout(clearTimer);
+          clearTimer = setTimeout(() => {
+            setAiStatusText('');
+            setIsAiGenerating(false);
+          }, 8000);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearTimeout(clearTimer);
+    };
+  }, [conversationId]);
   const [sendState, setSendState] = useState<SendState>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showSnippets, setShowSnippets] = useState(false);
@@ -582,6 +631,12 @@ export function ReplyComposer({
       </div>
       
       <div className="relative">
+        {aiStatusText && (
+          <div className="flex items-center gap-1.5 px-1 pb-2 text-2xs text-foreground-tertiary font-bold tracking-wide animate-pulse transition-all duration-300">
+            <Loader2 size={11} className="animate-spin text-accent-primary" />
+            <span>{aiStatusText}</span>
+          </div>
+        )}
         <AnimatePresence initial={false}>
           {replyToMessage && (
             <motion.div
@@ -619,112 +674,117 @@ export function ReplyComposer({
             />
           </div>
         ) : (
-          <div 
-            className={cn(
-              "flex gap-3 items-end p-3 px-md transition-all rounded-lg bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative outline-none",
-              replyToMessage && "rounded-tl-none"
-            )}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            {isDragging && (
-              <div className="absolute inset-0 z-10 bg-indigo-500/10 backdrop-blur-[1px] flex items-center justify-center rounded-lg border-2 border-dashed border-indigo-500 text-indigo-500 font-medium">
-                Thả tệp vào đây để đính kèm
-              </div>
-            )}
-            
-            <div className="flex-1 flex flex-col min-w-0">
-              {files.length > 0 && (
-                <AttachmentPreview attachments={files} onRemove={removeFile} />
+          <div className={cn(
+            (isAiGenerating || isRewriting) === true && "ai-gradient-border"
+          )}>
+            <div 
+              className={cn(
+                "flex gap-3 items-end p-3 px-md transition-all rounded-lg bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative outline-none",
+                replyToMessage && "rounded-tl-none",
+                (isAiGenerating || isRewriting) === true && "rounded-[8.5px] bg-background-base"
               )}
-
-              <textarea
-                ref={textareaRef}
-                className="w-full bg-transparent border-none text-foreground text-base resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto placeholder:text-foreground-tertiary caret-primary"
-                placeholder={isSending ? 'Sending…' : 'Type a message…'}
-                rows={1}
-                value={text}
-                onChange={handleChange}
-                disabled={isSending}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit();
-                  }
-                }}
-              />
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {isDragging && (
+                <div className="absolute inset-0 z-10 bg-indigo-500/10 backdrop-blur-[1px] flex items-center justify-center rounded-lg border-2 border-dashed border-indigo-500 text-indigo-500 font-medium">
+                  Thả tệp vào đây để đính kèm
+                </div>
+              )}
               
-              <div className="flex justify-between items-center pt-3 border-t border-foreground/5 mt-2">
-                <div className="flex items-center gap-2">
-                  <div className="relative" ref={snippetsRef}>
+              <div className="flex-1 flex flex-col min-w-0">
+                {files.length > 0 && (
+                  <AttachmentPreview attachments={files} onRemove={removeFile} />
+                )}
+
+                <textarea
+                  ref={textareaRef}
+                  className="w-full bg-transparent border-none text-foreground text-base resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto placeholder:text-foreground-tertiary caret-primary"
+                  placeholder={isSending ? 'Sending…' : 'Type a message…'}
+                  rows={1}
+                  value={text}
+                  onChange={handleChange}
+                  disabled={isSending}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit();
+                    }
+                  }}
+                />
+                
+                <div className="flex justify-between items-center pt-3 border-t border-foreground/5 mt-2">
+                  <div className="flex items-center gap-2">
+                    <div className="relative" ref={snippetsRef}>
+                      <button 
+                        type="button" 
+                        className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary"
+                        onClick={() => setShowSnippets(!showSnippets)}
+                        title="Saved Snippets"
+                      >
+                        <BookOpen size={18} />
+                      </button>
+                      
+                      {showSnippets && (
+                        <div className="absolute bottom-full left-0 mb-2 w-64 bg-base-200 border border-foreground/10 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                          <div className="px-3 py-2 text-xs font-bold text-foreground-tertiary uppercase tracking-wider border-b border-foreground/5">Saved Snippets</div>
+                          <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
+                            {SNIPPETS.map(s => (
+                              <button 
+                                key={s.id} 
+                                type="button" 
+                                className="w-full px-3 py-2 flex flex-col gap-0.5 text-left hover:bg-foreground/5 transition-colors"
+                                onClick={() => handleSnippetClick(s.text)}
+                              >
+                                <span className="text-sm font-semibold text-foreground">{s.title}</span>
+                                <span className="text-xs text-foreground-tertiary truncate">{s.text.substring(0, 30)}...</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
                     <button 
                       type="button" 
-                      className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary"
-                      onClick={() => setShowSnippets(!showSnippets)}
-                      title="Saved Snippets"
+                      className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary" 
+                      title="Attach file"
+                      onClick={() => fileInputRef.current?.click()}
                     >
-                      <BookOpen size={18} />
+                      <Paperclip size={18} />
                     </button>
-                    
-                    {showSnippets && (
-                      <div className="absolute bottom-full left-0 mb-2 w-64 bg-base-200 border border-foreground/10 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-                        <div className="px-3 py-2 text-xs font-bold text-foreground-tertiary uppercase tracking-wider border-b border-foreground/5">Saved Snippets</div>
-                        <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
-                          {SNIPPETS.map(s => (
-                            <button 
-                              key={s.id} 
-                              type="button" 
-                              className="w-full px-3 py-2 flex flex-col gap-0.5 text-left hover:bg-foreground/5 transition-colors"
-                              onClick={() => handleSnippetClick(s.text)}
-                            >
-                              <span className="text-sm font-semibold text-foreground">{s.title}</span>
-                              <span className="text-xs text-foreground-tertiary truncate">{s.text.substring(0, 30)}...</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      multiple 
+                      onChange={handleFileChange} 
+                    />
+
+                    <button 
+                      type="button" 
+                      className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary" 
+                      title="Record voice note"
+                      onClick={() => setIsRecording(true)}
+                    >
+                      <Mic size={18} />
+                    </button>
                   </div>
-                  
-                  <button 
-                    type="button" 
-                    className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary" 
-                    title="Attach file"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Paperclip size={18} />
-                  </button>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    multiple 
-                    onChange={handleFileChange} 
+
+                  <SendButton
+                    type="submit"
+                    className={cn(
+                      "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
+                      isSending && "opacity-70"
+                    )}
+                    disabled={(!text.trim() && files.length === 0)}
+                    isSending={isSending}
+                    aria-label="Send message"
+                    onClick={() => handleSubmit()}
+                    size={16}
                   />
-
-                  <button 
-                    type="button" 
-                    className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary" 
-                    title="Record voice note"
-                    onClick={() => setIsRecording(true)}
-                  >
-                    <Mic size={18} />
-                  </button>
                 </div>
-
-                <SendButton
-                  type="submit"
-                  className={cn(
-                    "w-8 h-8 rounded-md bg-accent-gradient border-none text-foreground hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
-                    isSending && "opacity-70"
-                  )}
-                  disabled={(!text.trim() && files.length === 0)}
-                  isSending={isSending}
-                  aria-label="Send message"
-                  onClick={() => handleSubmit()}
-                  size={16}
-                />
               </div>
             </div>
           </div>

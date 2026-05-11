@@ -55,6 +55,7 @@ type RightSidebarProps = {
   fanProfile?: any;
   gender?: string | null;
   onUpdateGender?: (gender: string | null) => void;
+  botConfig?: any;
 };
 
 export function RightSidebar({
@@ -82,6 +83,7 @@ export function RightSidebar({
   fanProfile,
   gender,
   onUpdateGender,
+  botConfig,
 }: RightSidebarProps) {
   const activeTab = useInboxStore((state) => state.rightSidebarTab) as TabType;
   const setActiveTab = useInboxStore((state) => state.setRightSidebarTab);
@@ -234,6 +236,7 @@ export function RightSidebar({
 
         {activeTab === 'ai' && (
           <AiSuggestionPanel
+            conversationId={conversationId}
             suggestions={suggestions}
             loading={loadingSuggestions}
             onUse={onUseSuggestion}
@@ -241,6 +244,7 @@ export function RightSidebar({
             fanProfile={fanProfile}
             gender={gender}
             onUpdateGender={onUpdateGender}
+            botConfig={botConfig}
           />
         )}
 

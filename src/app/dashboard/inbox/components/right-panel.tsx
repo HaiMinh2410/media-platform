@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ChatWindow, ChatWindowRef } from './chat-window';
 import { ReplyComposer } from '@/app/dashboard/inbox/components/reply-composer';
 import { ChatHeader } from './chat-header';
@@ -10,11 +10,13 @@ import { useMetadataRealtime, useFanProfileRealtime } from '../hooks/use-inbox-r
 import { MessageWithSender } from '@/domain/types/messaging';
 import { useInboxStore } from '../store/inbox.store';
 import { cn } from '@/lib/utils';
+import { createClient } from '@/infrastructure/supabase/client';
 
 import { usePresenceAndTyping } from '../hooks/use-presence-typing';
 
 type RightPanelProps = {
   workspaceId: string;
+  accountId: string;
   conversationId: string;
   platform: string;
   externalId: string;
@@ -37,11 +39,13 @@ type RightPanelProps = {
   customerUsername?: string;
   customerLink?: string;
   initialFanProfile?: any;
+  initialBotConfig?: any;
   gender?: string | null;
 };
 
 export function RightPanel({
   workspaceId,
+  accountId,
   conversationId,
   platform,
   externalId,
@@ -56,12 +60,14 @@ export function RightPanel({
   customerUsername,
   customerLink,
   initialFanProfile,
+  initialBotConfig,
   gender: initialGender,
 }: RightPanelProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const [priority, setPriority] = useState<string | null>(initialPriority);
   const [sentiment, setSentiment] = useState<string | null>(initialSentiment);
   const [fanProfile, setFanProfile] = useState<any>(initialFanProfile);
+  const [botConfig, setBotConfig] = useState<any>(initialBotConfig);
   const [gender, setGender] = useState<string | null>(initialGender || null);
 
   useFanProfileRealtime({
@@ -70,6 +76,38 @@ export function RightPanel({
       setFanProfile(updatedProfile);
     }
   });
+
+  // Realtime subscription to bot configuration changes
+  useEffect(() => {
+    if (!accountId) return;
+    const supabase = createClient();
+    const channelName = `bot_config:account:${accountId}:${Math.random().toString(36).slice(2, 11)}`;
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bot_configurations',
+          filter: `account_id=eq.${accountId}`,
+        },
+        (payload) => {
+          console.log('[Realtime] Bot config updated:', payload);
+          if (payload.eventType === 'DELETE') {
+            setBotConfig(null);
+          } else {
+            setBotConfig(payload.new);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [accountId]);
   
   const [fillText, setFillText] = useState<string | undefined>(undefined);
   const fillSeqRef = useRef(0);
@@ -182,6 +220,7 @@ export function RightPanel({
           platform={platform}
           platformUserName={pageName}
           onTypingStateChange={sendTypingState}
+          botConfig={botConfig}
         />
       </div>
 
@@ -214,6 +253,7 @@ export function RightPanel({
           fanProfile={fanProfile}
           gender={gender}
           onUpdateGender={handleUpdateGender}
+          botConfig={botConfig}
         />
       </div>
     </div>

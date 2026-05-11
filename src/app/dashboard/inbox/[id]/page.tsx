@@ -16,7 +16,11 @@ export default async function ConversationPage({
   const conversation = await db.conversation.findUnique({
     where: { id },
     include: { 
-      platform_accounts: true,
+      platform_accounts: {
+        include: {
+          bot_configurations: true
+        }
+      },
       fan_profile: true
     }
   });
@@ -33,6 +37,7 @@ export default async function ConversationPage({
     <div className="flex flex-col h-full flex-1 overflow-hidden">
       <RightPanel
         workspaceId={conversation.platform_accounts.workspaceId}
+        accountId={conversation.account_id}
         conversationId={id}
         platform={platform}
         externalId={conversation.platform_conversation_id}
@@ -44,6 +49,7 @@ export default async function ConversationPage({
         sentiment={(conversation as any).sentiment || null}
         initialTags={(conversation as any).tags || []}
         initialFanProfile={conversation.fan_profile}
+        initialBotConfig={conversation.platform_accounts.bot_configurations}
         gender={(conversation as any).gender || null}
         contactInfo={{
           phone: (conversation as any).phone,
