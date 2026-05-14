@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PlatformAccount } from '@/domain/types/platform-account';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Search, X, Check } from 'lucide-react';
+import { ChevronDown, Search, X, Check, PlusCircle } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 
 type AccountPickerProps = {
@@ -30,6 +30,13 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
 
   const toggleAccount = (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    
+    // Prevent selection of legacy accounts
+    const account = accounts.find(a => a.id === id);
+    if ((account as any)?.is_legacy) {
+      return;
+    }
+
     if (selectedIds.includes(id)) {
       onChange(selectedIds.filter(item => item !== id));
     } else {
@@ -39,7 +46,10 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
 
   const selectGroup = (platform: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const groupIds = accounts.filter(a => a.platform.toLowerCase() === platform.toLowerCase()).map(a => a.id);
+    // Only select non-legacy accounts
+    const groupIds = accounts
+      .filter(a => a.platform.toLowerCase() === platform.toLowerCase() && !(a as any).is_legacy)
+      .map(a => a.id);
     const newSelected = new Set(selectedIds);
     groupIds.forEach(id => newSelected.add(id));
     onChange(Array.from(newSelected));
@@ -150,7 +160,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
             </div>
 
             {/* Account List */}
-            <div className="overflow-y-auto pb-2">
+            <div className="overflow-y-auto max-h-[280px] pb-2">
               {fbAccounts.length > 0 && (
                 <div className="mb-2">
                   <div className="px-4 py-2 text-[11px] font-bold text-[#7a7a9a] tracking-[1px] font-mono">FACEBOOK</div>
@@ -190,15 +200,17 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
   );
 }
 
-function AccountRow({ account, isSelected, onToggle }: { account: PlatformAccount; isSelected: boolean; onToggle: () => void }) {
+function AccountRow({ account, isSelected, onToggle }: { account: any; isSelected: boolean; onToggle: () => void }) {
   const isFb = account.platform.toLowerCase() === 'facebook';
+  const isLegacy = account.is_legacy;
   
   return (
     <div 
       onClick={onToggle}
       className={cn(
         "flex items-center gap-3 px-4 py-2 cursor-pointer transition-colors border-b border-[#2a2f42]/50 last:border-0",
-        isSelected ? "bg-[#dce8ff] hover:bg-[#c5d7fa]" : "hover:bg-[#252836]"
+        isSelected ? "bg-[#dce8ff] hover:bg-[#c5d7fa]" : "hover:bg-[#252836]",
+        isLegacy && "opacity-70"
       )}
     >
       <div className="relative w-[34px] h-[34px] rounded-full flex items-center justify-center text-white font-bold shrink-0" style={{ backgroundColor: isFb ? '#1877F2' : '#E1306C' }}>
@@ -216,9 +228,16 @@ function AccountRow({ account, isSelected, onToggle }: { account: PlatformAccoun
       </div>
       
       <div className="flex-1 flex flex-col min-w-0">
-        <span className={cn("text-[13px] font-bold truncate", isSelected ? "text-[#1a3a8c]" : "text-white")}>{account.name}</span>
+        <div className="flex items-center gap-2">
+          <span className={cn("text-[13px] font-bold truncate", isSelected ? "text-[#1a3a8c]" : "text-white")}>{account.name}</span>
+          {isLegacy && (
+            <span className="flex items-center gap-1 text-[9px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded-full border border-amber-500/30 font-bold uppercase tracking-tighter">
+              Cần kết nối lại
+            </span>
+          )}
+        </div>
         <span className={cn("text-[11px] truncate", isSelected ? "text-[#4f7cff]" : "text-[#7a7a9a]")}>
-          {account.username ? `@${account.username}` : ''}
+          {account.username ? `@${account.username}` : (isLegacy ? 'Tài khoản cũ' : '')}
         </span>
       </div>
       

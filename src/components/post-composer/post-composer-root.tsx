@@ -65,6 +65,20 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
     }
   }, [content, selectedAccountIds, mediaFiles, handleAutoSave]);
 
+  // Cleanup legacy accounts from selection (e.g. if restored from a draft)
+  useEffect(() => {
+    if (selectedAccountIds.length > 0 && accounts.length > 0) {
+      const validSelectedIds = selectedAccountIds.filter(id => {
+        const account = accounts.find(a => a.id === id);
+        return account && !(account as any).is_legacy;
+      });
+
+      if (validSelectedIds.length !== selectedAccountIds.length) {
+        setSelectedAccountIds(validSelectedIds);
+      }
+    }
+  }, [accounts, selectedAccountIds]);
+
   const selectedAccounts = accounts.filter(a => selectedAccountIds.includes(a.id));
   const activePlatforms = Array.from(
     new Set(
@@ -182,7 +196,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-10">
 
           {/* LEFT COLUMN (Composer) */}
-          <div className="space-y-6 pb-20">
+          <div className="space-y-6">
             <h2 className="text-[13px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
               ✍️ SOẠN BÀI ĐĂNG
             </h2>
@@ -252,25 +266,8 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
               onChange={setScheduledAt}
               isSubmitting={isSubmitting}
               onPublish={handlePublish}
+              selectedAccountCount={selectedAccountIds.length}
             />
-
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handlePublish}
-                disabled={isSubmitting}
-                className="flex-1 bg-[#4f7cff] hover:bg-[#3d6bed] disabled:opacity-50 text-white font-bold text-[13px] h-[48px] rounded-[6px] transition-all flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? 'Đang xử lý...' : '🚀 Đăng ngay'}
-                {!isSubmitting && selectedAccountIds.length > 0 && (
-                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">[{selectedAccountIds.length}]</span>
-                )}
-              </button>
-              <button 
-                className="w-32 bg-[#252836] hover:bg-[#2a2f42] text-white font-bold text-[13px] h-[48px] rounded-[6px] transition-all border border-[#2a2f42]"
-              >
-                💾 Lưu nháp
-              </button>
-            </div>
             
           </div>
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createClient } from '@/infrastructure/supabase/server';
 import { getPublisherAccountRepository } from '@/infrastructure/repositories/publisher-account.repository';
+import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
 import { PostComposerRoot } from '@/components/post-composer/post-composer-root';
 import { redirect } from 'next/navigation';
@@ -42,12 +43,38 @@ export default async function ComposerPage() {
   }
 
   const accountRepo = getPublisherAccountRepository();
-  const { data: accounts } = await accountRepo.findByProfileId(user.id);
+  const { data: publisherAccounts } = await accountRepo.findByProfileId(user.id);
+
+  const oldAccountRepo = getPlatformAccountRepository();
+  const { data: platformAccounts } = await oldAccountRepo.findByWorkspaceId(workspace.id);
+
+  // Merge and normalize accounts, prioritizing publisher accounts
+  const mergedAccounts = [...(publisherAccounts || [])];
+  
+  if (platformAccounts) {
+    platformAccounts.forEach(oldAcc => {
+      const platformUpper = oldAcc.platform.toUpperCase();
+      const exists = mergedAccounts.some(
+        newAcc => newAcc.platform.toUpperCase() === platformUpper && 
+                 (newAcc as any).platform_id === oldAcc.externalId
+      );
+      if (!exists) {
+        mergedAccounts.push({
+          id: oldAcc.id,
+          platform: platformUpper,
+          platform_id: oldAcc.externalId,
+          name: oldAcc.name,
+          avatar_url: (oldAcc as any).avatar_url,
+          is_legacy: true
+        } as any);
+      }
+    });
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto">
       <PostComposerRoot 
-        accounts={accounts || []} 
+        accounts={mergedAccounts} 
         workspaceId={workspace.id} 
       />
     </div>

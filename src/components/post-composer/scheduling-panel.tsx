@@ -10,9 +10,16 @@ type SchedulingPanelProps = {
   onChange: (date: Date | null) => void;
   isSubmitting: boolean;
   onPublish: () => void;
+  selectedAccountCount: number;
 };
 
-export function SchedulingPanel({ scheduledAt, onChange, isSubmitting, onPublish }: SchedulingPanelProps) {
+export function SchedulingPanel({ 
+  scheduledAt, 
+  onChange, 
+  isSubmitting, 
+  onPublish,
+  selectedAccountCount
+}: SchedulingPanelProps) {
   const isScheduled = !!scheduledAt;
 
   return (
@@ -53,33 +60,47 @@ export function SchedulingPanel({ scheduledAt, onChange, isSubmitting, onPublish
         </div>
       )}
 
-      <button
-        onClick={onPublish}
-        disabled={isSubmitting}
-        className={cn(
-          "w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-sm transition-all shadow-xl shadow-primary/10",
-          isSubmitting 
-            ? "bg-background-tertiary text-foreground-tertiary cursor-not-allowed" 
-            : "bg-primary hover:brightness-110 text-primary-content hover:shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0"
-        )}
-      >
-        {isSubmitting ? (
-          <>
-            <span className="loading loading-spinner loading-xs"></span>
-            Processing...
-          </>
-        ) : isScheduled ? (
-          <>
-            <Clock size={18} />
-            Schedule Post
-          </>
-        ) : (
-          <>
-            <Zap size={18} />
-            Publish Now
-          </>
-        )}
-      </button>
+      <div className="flex gap-3">
+        <button
+          onClick={onPublish}
+          disabled={isSubmitting}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-sm transition-all shadow-xl shadow-primary/10",
+            isSubmitting 
+              ? "bg-background-tertiary text-foreground-tertiary cursor-not-allowed" 
+              : "bg-primary hover:brightness-110 text-primary-content hover:shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0"
+          )}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="loading loading-spinner loading-xs"></span>
+              Đang xử lý...
+            </>
+          ) : isScheduled ? (
+            <>
+              <Clock size={18} />
+              Lên lịch đăng
+              {selectedAccountCount > 0 && (
+                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">[{selectedAccountCount}]</span>
+              )}
+            </>
+          ) : (
+            <>
+              <Zap size={18} />
+              Đăng ngay
+              {selectedAccountCount > 0 && (
+                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">[{selectedAccountCount}]</span>
+              )}
+            </>
+          )}
+        </button>
+        
+        <button 
+          className="w-32 bg-slate-900/60 hover:bg-slate-800 text-slate-300 font-bold text-sm rounded-xl transition-all border border-white/5"
+        >
+          💾 Bản nháp
+        </button>
+      </div>
     </div>
   );
 }
