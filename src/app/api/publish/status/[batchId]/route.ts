@@ -1,21 +1,16 @@
 import { NextRequest } from 'next/server';
-import { publishJobRepository } from '@/infrastructure/repositories/publish-job.repository';
+import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * API Route cung cấp Server-Sent Events để theo dõi trạng thái của một Batch Publish Job.
- * UI sẽ subscribe vào endpoint này để nhận cập nhật realtime mà không cần polling thủ công.
+ * SSE Endpoint để theo dõi trạng thái của một Batch Publish.
  */
 export async function GET(
   req: NextRequest,
   { params }: { params: { batchId: string } }
 ) {
-  const { batchId } = params;
-
-  if (!batchId) {
-    return new Response(JSON.stringify({ error: 'Missing batchId' }), { status: 400 });
-  }
+  const { batchId } = await params;
 
   const encoder = new TextEncoder();
 
@@ -23,58 +18,83 @@ export async function GET(
     async start(controller) {
       const sendUpdate = async () => {
         try {
-          const summary = await publishJobRepository.getBatchSummary(batchId);
-          
-          if (!summary) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'BATCH_NOT_FOUND' })}\n\n`));
-            controller.close();
+          const jobs = await db.publishJob.findMany({
+            where: { batch_id: batchId },
+            include: { account: true },
+          });
+
+          if (jobs.length === 0) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Batch not found' })}\n\n`));
             return true;
           }
+
+          const total = jobs.length;
+          const completed = jobs.filter(j => j.status === 'COMPLETED').length;
+          const failed = jobs.filter(j => j.status === 'FAILED').length;
+          const running = jobs.filter(j => j.status === 'RUNNING').length;
+          const pending = jobs.filter(j => j.status === 'PENDING').length;
+
+          let batchStatus: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'PARTIAL_FAILURE' = 'RUNNING';
+          
+          if (completed + failed === total) {
+            if (failed === 0) batchStatus = 'COMPLETED';
+            else if (completed === 0) batchStatus = 'FAILED';
+            else batchStatus = 'PARTIAL_FAILURE';
+          }
+
+          const summary = {
+            batchId,
+            total,
+            completed,
+            failed,
+            running,
+            pending,
+            status: batchStatus,
+            jobs: jobs.map(j => ({
+              id: j.id,
+              account: { name: j.account?.name || 'Unknown' },
+              platform: j.platform,
+              status: j.status,
+              error_message: j.error_message
+            }))
+          };
 
           controller.enqueue(encoder.encode(`data: ${JSON.stringify(summary)}\n\n`));
-
-          // Kiểm tra xem tất cả các jobs đã kết thúc chưa (terminal states)
-          const isTerminal = summary.status === 'COMPLETED' || 
-                           summary.status === 'FAILED' || 
-                           summary.status === 'PARTIAL_FAILURE';
           
-          if (isTerminal) {
-            controller.close();
-            return true;
-          }
-          return false;
+          return completed + failed === total;
         } catch (err) {
-          console.error('[SSE Publish Status] Error:', err);
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'INTERNAL_SERVER_ERROR' })}\n\n`));
-          controller.close();
-          return true;
+          console.error('[SSE Status Error]', err);
+          return true; // Stop on error
         }
       };
 
-      // Gửi trạng thái ban đầu ngay lập tức
-      const done = await sendUpdate();
-      if (done) return;
+      // Initial send
+      const isFinished = await sendUpdate();
+      if (isFinished) {
+        controller.close();
+        return;
+      }
 
-      // Thiết lập polling interval 2 giây để kiểm tra DB
+      // Polling for updates (basic implementation of SSE without PubSub)
       const interval = setInterval(async () => {
-        const isDone = await sendUpdate();
-        if (isDone) {
+        const finished = await sendUpdate();
+        if (finished) {
           clearInterval(interval);
+          controller.close();
         }
       }, 2000);
 
-      // Dọn dẹp khi kết nối bị ngắt từ phía client
       req.signal.addEventListener('abort', () => {
         clearInterval(interval);
         controller.close();
       });
-    },
+    }
   });
 
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       'Connection': 'keep-alive',
     },
   });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { createClient } from '@/infrastructure/supabase/server';
+import { getAccountSyncService } from '@/application/services/account-sync.service';
 import { getPublisherAccountRepository } from '@/infrastructure/repositories/publisher-account.repository';
 import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
@@ -42,11 +43,16 @@ export default async function ComposerPage() {
     );
   }
 
-  const accountRepo = getPublisherAccountRepository();
-  const { data: publisherAccounts } = await accountRepo.findByProfileId(user.id);
+  const publisherRepo = getPublisherAccountRepository();
+  const platformRepo = getPlatformAccountRepository();
+  const syncService = getAccountSyncService();
 
-  const oldAccountRepo = getPlatformAccountRepository();
-  const { data: platformAccounts } = await oldAccountRepo.findByWorkspaceId(workspace.id);
+  // 1. Tự động đồng bộ tài khoản từ hệ thống cũ sang mới
+  await syncService.syncLegacyAccounts(user.id, workspace.id);
+
+  // 2. Lấy dữ liệu mới nhất sau khi đồng bộ
+  const { data: publisherAccounts } = await publisherRepo.findByProfileId(user.id);
+  const { data: platformAccounts } = await platformRepo.findByWorkspaceId(workspace.id);
 
   // Merge and normalize accounts, prioritizing publisher accounts
   const mergedAccounts = [...(publisherAccounts || [])];

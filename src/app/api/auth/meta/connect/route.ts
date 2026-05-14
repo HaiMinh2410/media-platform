@@ -23,9 +23,14 @@ export async function GET(request: Request) {
     'pages_read_engagement',
     'pages_messaging',
     'pages_manage_posts',
+    'publish_video',
     'instagram_basic',
     'instagram_manage_messages',
+    'instagram_business_basic',
     'instagram_business_content_publish',
+    'instagram_content_publish',
+    'threads_basic',
+    'threads_content_publish',
   ].join(',');
 
   const state = crypto.randomUUID();

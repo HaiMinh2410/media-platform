@@ -90,9 +90,20 @@ export default async function PostsPage({
       platform: job.platform,
       status: job.status === 'COMPLETED' ? 'SUCCESS' : 'FAILED'
     });
-    if (job.status === 'FAILED') batch.status = 'PARTIAL';
   });
-  history = Array.from(batchesMap.values());
+
+  // Final status calculation for each batch
+  history = Array.from(batchesMap.values()).map((batch: any) => {
+    const total = batch.accounts.length;
+    const success = batch.accounts.filter((a: any) => a.status === 'SUCCESS').length;
+    const failed = batch.accounts.filter((a: any) => a.status === 'FAILED').length;
+
+    if (success === total) batch.status = 'SUCCESS';
+    else if (failed === total) batch.status = 'FAILED';
+    else batch.status = 'PARTIAL';
+
+    return batch;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 space-y-12">
@@ -127,10 +138,7 @@ export default async function PostsPage({
               <BatchPublishCard 
                 key={batch.batchId} 
                 batch={batch} 
-                onRetryFailed={async (bId, ids) => {
-                  // In a real app, this would call /api/publish/retry
-                  console.log('Retry triggered for', bId, ids);
-                }}
+                workspaceId={workspace.id}
               />
             ))}
           </div>

@@ -5,6 +5,8 @@ import { format } from 'date-fns';
 import { Calendar, RefreshCcw, CheckCircle2, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { toast } from 'sonner';
+
 export type BatchPublishSummary = {
   id: string;
   batchId: string;
@@ -22,19 +24,49 @@ export type BatchPublishSummary = {
 
 type BatchPublishCardProps = {
   batch: BatchPublishSummary;
-  onRetryFailed: (batchId: string, failedAccountIds: string[]) => void;
+  workspaceId: string;
 };
 
-export function BatchPublishCard({ batch, onRetryFailed }: BatchPublishCardProps) {
+export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) {
+  const [isRetrying, setIsRetrying] = React.useState(false);
   const successCount = batch.accounts.filter(a => a.status === 'SUCCESS').length;
   const failCount = batch.accounts.filter(a => a.status === 'FAILED').length;
   const totalCount = batch.accounts.length;
 
-  const handleRetry = (e: React.MouseEvent) => {
+  const handleRetry = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const failedIds = batch.accounts.filter(a => a.status === 'FAILED').map(a => a.id);
-    onRetryFailed(batch.batchId, failedIds);
+    
+    const failedAccounts = batch.accounts
+      .filter(a => a.status === 'FAILED')
+      .map(a => ({ accountId: a.id, platform: a.platform.toUpperCase() }));
+
+    if (failedAccounts.length === 0) return;
+
+    setIsRetrying(true);
+    toast.loading('Đang khởi tạo đăng lại...', { id: 'retry-publish' });
+
+    try {
+      const response = await fetch('/api/publish/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspaceId,
+          accounts: failedAccounts,
+          content: batch.content,
+          mediaUrls: batch.mediaUrls,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to retry');
+
+      toast.success('Đã bắt đầu đăng lại các mục lỗi!', { id: 'retry-publish' });
+    } catch (error) {
+      console.error('Retry error:', error);
+      toast.error('Không thể đăng lại. Vui lòng thử lại sau.', { id: 'retry-publish' });
+    } finally {
+      setIsRetrying(false);
+    }
   };
 
   return (
@@ -43,9 +75,13 @@ export function BatchPublishCard({ batch, onRetryFailed }: BatchPublishCardProps
       <div className="absolute top-4 right-4 z-10">
         <div className={cn(
           "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-          batch.status === 'SUCCESS' ? "bg-[#22d3a0]/10 text-[#22d3a0]" : "bg-[#f5a623]/10 text-[#f5a623]"
+          batch.status === 'SUCCESS' && "bg-[#22d3a0]/10 text-[#22d3a0]",
+          batch.status === 'FAILED' && "bg-[#ff5c6a]/10 text-[#ff5c6a]",
+          batch.status === 'PARTIAL' && "bg-[#f5a623]/10 text-[#f5a623]"
         )}>
-          {batch.status === 'SUCCESS' ? 'Thành công' : 'Một phần'}
+          {batch.status === 'SUCCESS' && 'Thành công'}
+          {batch.status === 'FAILED' && 'Thất bại'}
+          {batch.status === 'PARTIAL' && 'Một phần'}
         </div>
       </div>
 
@@ -107,10 +143,18 @@ export function BatchPublishCard({ batch, onRetryFailed }: BatchPublishCardProps
           {failCount > 0 && (
             <button 
               onClick={handleRetry}
-              className="text-[#4f7cff] text-[11px] font-bold flex items-center gap-1 hover:underline group/btn"
+              disabled={isRetrying}
+              className={cn(
+                "text-[#4f7cff] text-[11px] font-bold flex items-center gap-1 hover:underline group/btn transition-opacity",
+                isRetrying && "opacity-50 cursor-not-allowed"
+              )}
             >
-              <RefreshCcw size={12} className="group-hover/btn:rotate-180 transition-transform duration-500" />
-              Đăng lại các mục lỗi
+              <RefreshCcw size={12} className={cn(
+                "transition-transform duration-500",
+                !isRetrying && "group-hover/btn:rotate-180",
+                isRetrying && "animate-spin"
+              )} />
+              {isRetrying ? 'Đang gửi...' : 'Đăng lại các mục lỗi'}
             </button>
           )}
         </div>
