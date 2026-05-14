@@ -31,7 +31,7 @@ export function PersonaEditClient({ account, initialPersona }: PersonaEditClient
       });
 
       if (!res.ok) throw new Error('Failed to save persona');
-      
+
       toast.success('Lưu cấu hình Persona thành công!');
     } catch (error) {
       console.error(error);
@@ -80,7 +80,7 @@ export function PersonaEditClient({ account, initialPersona }: PersonaEditClient
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 flex-1 min-h-0">
-        
+
         {/* Left Panel: Form */}
         <div className="flex flex-col bg-foreground/[0.02] border border-foreground/10 rounded-2xl overflow-hidden backdrop-blur-xl">
           {/* Tabs */}
@@ -104,10 +104,10 @@ export function PersonaEditClient({ account, initialPersona }: PersonaEditClient
 
           {/* Form Content */}
           <div className="flex-1 overflow-y-auto p-6 scrollbar-custom">
-            <PersonaFormTabs 
-              activeTab={activeTab} 
-              persona={persona} 
-              onChange={(updates: any) => setPersona({ ...persona, ...updates })} 
+            <PersonaFormTabs
+              activeTab={activeTab}
+              persona={persona}
+              onChange={(updates: any) => setPersona({ ...persona, ...updates })}
             />
           </div>
         </div>
