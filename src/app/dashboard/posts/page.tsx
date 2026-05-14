@@ -8,6 +8,8 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { BatchPublishTracker } from '@/components/publisher/batch-publish-tracker';
 import { FeatureFlagService, FLAGS } from '@/application/services/feature-flag.service';
+import { BatchPublishCard, BatchPublishSummary } from '@/components/publisher/batch-publish-card';
+import { db } from '@/lib/db';
 
 export default async function PostsPage({ 
   searchParams 
@@ -48,6 +50,50 @@ export default async function PostsPage({
   const postRepo = getPostRepository();
   const { data: posts } = await postRepo.findByWorkspaceId(workspace.id);
 
+  // Fetch History for the "History Card" requirement
+  let history: BatchPublishSummary[] = [];
+
+  // Let's just use the DB directly for the server component
+  const jobs = await db.publishJob.findMany({
+    where: {
+      account: {
+        profile_id: user.id
+      }
+    },
+    include: {
+      account: true
+    },
+    orderBy: {
+      created_at: 'desc'
+    },
+    take: 15 
+  });
+
+  const batchesMap = new Map();
+  jobs.forEach(job => {
+    const bId = job.batch_id || job.id;
+    if (!batchesMap.has(bId)) {
+      batchesMap.set(bId, {
+        id: job.id,
+        batchId: bId,
+        content: job.content || '',
+        mediaUrls: job.media_urls || [],
+        createdAt: job.created_at,
+        status: 'SUCCESS',
+        accounts: []
+      });
+    }
+    const batch = batchesMap.get(bId);
+    batch.accounts.push({
+      id: job.account_id,
+      name: job.account.name,
+      platform: job.platform,
+      status: job.status === 'COMPLETED' ? 'SUCCESS' : 'FAILED'
+    });
+    if (job.status === 'FAILED') batch.status = 'PARTIAL';
+  });
+  history = Array.from(batchesMap.values());
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 space-y-12">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -67,7 +113,37 @@ export default async function PostsPage({
       
       {batchId && <BatchPublishTracker batchId={batchId} />}
 
-      <PostList initialPosts={posts || []} workspaceId={workspace.id} />
+      {/* History Section */}
+      {history.length > 0 && (
+        <section className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <span className="w-2 h-6 bg-blue-600 rounded-full" />
+              Lịch sử đăng bài gần đây
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {history.map(batch => (
+              <BatchPublishCard 
+                key={batch.batchId} 
+                batch={batch} 
+                onRetryFailed={async (bId, ids) => {
+                  // In a real app, this would call /api/publish/retry
+                  console.log('Retry triggered for', bId, ids);
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="pt-8 border-t border-white/5">
+        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <span className="w-2 h-6 bg-emerald-500 rounded-full" />
+          Thư viện nội dung
+        </h2>
+        <PostList initialPosts={posts || []} workspaceId={workspace.id} />
+      </div>
     </div>
   );
 }

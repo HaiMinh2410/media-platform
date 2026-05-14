@@ -64,7 +64,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
 
   return (
     <div className="relative w-full font-sans" ref={containerRef}>
-      {/* Trigger Bar */}
+      {/* TRIGGER BAR */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center min-h-[52px] bg-[#161920] border-[1.5px] border-[#2a2f42] rounded-xl px-3 py-2 cursor-pointer hover:border-[#4f7cff]/50 transition-colors"
@@ -84,7 +84,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
                       ) : (
                         acc.name.charAt(0).toUpperCase()
                       )}
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center border border-[#161920]" style={{ background: isFb ? '#1877F2' : 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' }}>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center border border-[#161920]" style={{ background: isFb ? '#1877F2' : 'linear-gradient(45deg, #405DE6 0%, #E1306C 100%)' }}>
                         {isFb ? <Icon name="facebook" size={6} className="text-white" /> : <Icon name="instagram" size={6} className="text-white" />}
                       </div>
                     </div>
@@ -109,7 +109,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
         <ChevronDown size={16} className={cn("text-[#7a7a9a] transition-transform duration-200 ml-2", isOpen && "rotate-180")} />
       </div>
 
-      {/* Dropdown */}
+      {/* DROPDOWN */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
@@ -133,7 +133,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
               </div>
             </div>
 
-            {/* Quick Actions */}
+            {/* Quick Actions Row */}
             <div className="flex flex-wrap items-center gap-2 p-3 pb-2">
               <button onClick={(e) => selectGroup('facebook', e)} className="text-[11px] font-medium bg-[#252836] text-[#e0e0e0] px-3 py-1.5 rounded-[20px] hover:bg-[#2a2f42] transition-colors border border-[#2a2f42]">
                 ✓ Tất cả Facebook
@@ -142,7 +142,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
                 ✓ Tất cả Instagram
               </button>
               <button className="text-[11px] font-medium bg-[#252836] text-[#e0e0e0] px-3 py-1.5 rounded-[20px] hover:bg-[#2a2f42] transition-colors border border-[#2a2f42]">
-                📦 Preset
+                📦 Preset Marketing
               </button>
               <button onClick={clearAll} className="text-[11px] font-medium bg-transparent text-[#ff5c6a] px-3 py-1.5 rounded-[20px] hover:bg-[#ff5c6a]/10 transition-colors border border-transparent ml-auto">
                 ✕ Bỏ hết
@@ -210,7 +210,7 @@ function AccountRow({ account, isSelected, onToggle }: { account: PlatformAccoun
         <div className={cn(
           "absolute -bottom-1 -right-1 w-[14px] h-[14px] rounded-full flex items-center justify-center border-2",
           isSelected ? "border-[#dce8ff]" : "border-[#161920]"
-        )} style={{ background: isFb ? '#1877F2' : 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' }}>
+        )} style={{ background: isFb ? '#1877F2' : 'linear-gradient(45deg, #405DE6 0%, #E1306C 100%)' }}>
           {isFb ? <Icon name="facebook" size={7} className="text-white" /> : <Icon name="instagram" size={7} className="text-white" />}
         </div>
       </div>

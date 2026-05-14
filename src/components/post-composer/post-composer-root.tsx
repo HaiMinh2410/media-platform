@@ -5,6 +5,7 @@ import { AccountPicker } from '@/components/publisher/account-picker';
 import { ContentEditor } from './content-editor';
 import { MediaUploader, MediaFile } from './media-uploader';
 import { PostPreviewPanel } from '@/components/publisher/post-preview-panel';
+import { BatchPublishToast, AccountPublishState } from '@/components/publisher/batch-publish-toast';
 import { SchedulingPanel } from './scheduling-panel';
 import { PlatformAccount } from '@/domain/types/platform-account';
 import { toast } from 'sonner';
@@ -29,6 +30,8 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPublishToast, setShowPublishToast] = useState(false);
+  const [publishProgress, setPublishProgress] = useState<AccountPublishState[]>([]);
 
   const { handleAutoSave, clearDraft, getLocalStorageDraft } = useDraft(workspaceId);
 
@@ -62,11 +65,10 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
     }
   }, [content, selectedAccountIds, mediaFiles, handleAutoSave]);
 
+  const selectedAccounts = accounts.filter(a => selectedAccountIds.includes(a.id));
   const activePlatforms = Array.from(
     new Set(
-      accounts
-        .filter(a => selectedAccountIds.includes(a.id))
-        .map(a => a.platform.toLowerCase() as 'facebook' | 'instagram')
+      selectedAccounts.map(a => a.platform.toLowerCase() as 'facebook' | 'instagram')
     )
   );
 
@@ -105,18 +107,28 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
 
     setIsSubmitting(true);
     
+    // Prepare initial progress state for toast
+    const initialProgress: AccountPublishState[] = selectedAccounts.map(acc => ({
+      id: acc.id,
+      name: acc.name,
+      platform: acc.platform,
+      status: 'PENDING',
+      avatar_url: acc.avatar_url
+    }));
+    
+    setPublishProgress(initialProgress);
+    setShowPublishToast(true);
+    
     try {
       const response = await fetch('/api/publish/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           workspaceId,
-          accounts: accounts
-            .filter(a => selectedAccountIds.includes(a.id))
-            .map(a => ({ accountId: a.id, platform: a.platform.toUpperCase() })),
+          accounts: selectedAccounts.map(a => ({ accountId: a.id, platform: a.platform.toUpperCase() })),
           content,
           mediaUrls: mediaFiles.filter(f => f.status === 'done').map(f => f.url),
-          postId: undefined, // Sẽ được mở rộng sau nếu cần liên kết với Post model
+          postId: undefined,
         }),
       });
 
@@ -124,15 +136,18 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
 
       if (!response.ok) {
         toast.error(result.message || result.error || 'Failed to initiate publish');
+        setShowPublishToast(false);
       } else {
         toast.success('Quá trình đăng bài đã được khởi tạo!');
         await clearDraft();
-        router.push(`/dashboard/posts?batchId=${result.batchId}`);
-        router.refresh();
+        setTimeout(() => {
+          router.push(`/dashboard/posts?batchId=${result.batchId}`);
+        }, 2000);
       }
     } catch (error) {
       console.error('Submit error:', error);
       toast.error('An unexpected error occurred');
+      setShowPublishToast(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -140,8 +155,8 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
 
   const hasInstagram = activePlatforms.includes('instagram');
   const hasLink = /https?:\/\/[^\s]+/.test(content);
-  const igAccountNames = accounts
-    .filter(a => selectedAccountIds.includes(a.id) && a.platform.toLowerCase() === 'instagram')
+  const igAccountNames = selectedAccounts
+    .filter(a => a.platform.toLowerCase() === 'instagram')
     .map(a => a.name)
     .join(', ');
 
@@ -185,11 +200,12 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
-                    className="flex items-start gap-3 bg-[#fff8e7] border border-[#f5a623] rounded-lg px-4 py-3 text-[#7a5a00] shadow-sm"
+                    transition={{ duration: 0.2 }}
+                    className="flex items-start gap-3 bg-[#fff8e7] border border-[#f5a623] rounded-[8px] px-[14px] py-[10px] text-[#7a5a00] shadow-sm"
                   >
-                    <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                    <AlertTriangle size={15} className="shrink-0 mt-0.5 text-[#f5a623]" />
                     <div className="text-[13px] leading-[1.6]">
-                      <span className="font-bold">Link không nhấp được trên Instagram của:</span> {igAccountNames}
+                      Link sẽ không thể nhấp được trên Instagram của <span className="font-bold">{igAccountNames}</span>
                     </div>
                   </motion.div>
                 )}
@@ -199,14 +215,12 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.2 }}
                     className="flex items-center gap-3 bg-[#dce8ff] border-[1.5px] border-[#2d5be3] rounded-lg px-4 py-2.5 text-[#1a3a8c] shadow-sm"
                   >
                     <Lock size={15} className="shrink-0" />
                     <div className="text-[12px] flex-1">
-                      Tỷ lệ ảnh khóa theo IG: 1:1 / 4:5 / 16:9
-                    </div>
-                    <div className="text-[11px] text-[#2d5be3] font-medium">
-                      Tối đa 10 media · Strictest Rule đang áp dụng
+                      🔒 Tỷ lệ ảnh tự động khóa theo chuẩn Instagram: 1:1 / 4:5 / 16:9 — tối đa 10 media
                     </div>
                   </motion.div>
                 )}
@@ -218,8 +232,10 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                 content={content}
                 onChange={setContent}
                 maxLength={validation.effectiveLimits.maxLength}
+                mediaCount={mediaFiles.length}
                 issues={validation.issues}
                 hasInstagram={hasInstagram}
+                platformCount={activePlatforms.length}
               />
               
               <MediaUploader
@@ -268,14 +284,26 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                 content={content}
                 mediaFiles={mediaFiles}
                 activePlatforms={activePlatforms}
-                accounts={accounts.filter(a => selectedAccountIds.includes(a.id))}
+                accounts={selectedAccounts}
               />
             </div>
           </aside>
 
         </div>
       </div>
+
+      {/* Batch Publish Toast */}
+      <AnimatePresence>
+        {showPublishToast && (
+          <BatchPublishToast 
+            initialAccounts={publishProgress}
+            onClose={() => setShowPublishToast(false)}
+            onRetry={(failedIds) => {
+              console.log('Retrying for accounts:', failedIds);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-
