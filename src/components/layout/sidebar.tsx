@@ -68,11 +68,6 @@ export function Sidebar() {
       matchPaths: ['/dashboard/posts', '/dashboard/composer']
     },
     {
-      label: 'Analytics',
-      href: '/dashboard/analytics',
-      icon: <BarChart3 size={20} />,
-    },
-    {
       label: 'Settings',
       href: '/dashboard/settings/accounts',
       icon: <Settings size={20} />,

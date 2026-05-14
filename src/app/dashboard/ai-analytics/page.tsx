@@ -63,6 +63,10 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
     setLoading(true);
     try {
       const res = await fetch('/api/ai-agent/metrics');
+      if (!res.ok) {
+        console.error(`❌ AI Metrics API returned ${res.status}`);
+        return;
+      }
       const json = await res.json();
       if (json.success) {
         setData(json);

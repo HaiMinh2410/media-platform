@@ -5,7 +5,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { collectWeeklyMetricsForWorkspace } from '@/application/ai-agent/metrics-collector';
 import { evaluateABTest } from '@/application/ai-agent/ab-test-manager';
 
 export const dynamic = 'force-dynamic';
