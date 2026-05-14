@@ -162,10 +162,8 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
   const mediaIssues = issues.filter(i => i.message.includes('tệp đính kèm') || i.message.includes('Định dạng'));
 
   return (
-    <div className="space-y-4">
-      <label className="text-sm font-medium text-slate-400">Media Attachments</label>
-      
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <div className="bg-[#161920] p-4 font-sans border-t border-[#2a2f42]/50">
+      <div className="grid grid-cols-4 gap-3">
         <AnimatePresence>
           {files.map((file) => (
             <motion.div
@@ -173,51 +171,47 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="group relative aspect-square rounded-xl overflow-hidden bg-slate-900 border border-slate-800"
+              className="group relative aspect-square rounded-[8px] overflow-hidden bg-[#252836] border border-[#2a2f42]"
             >
               {file.type === 'image' ? (
                 <img src={file.url} alt="preview" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-slate-900">
-                  <Film className="text-slate-700" size={32} />
+                <div className="w-full h-full flex items-center justify-center bg-[#252836]">
+                  <Film className="text-[#7a7a9a]" size={24} />
                 </div>
               )}
               
               {file.status === 'uploading' && (
-                <div className="absolute inset-0 bg-slate-950/60 flex items-center justify-center flex-col gap-2">
-                  <Loader2 className="text-blue-500 animate-spin" size={24} />
-                  <span className="text-2xs text-blue-200 font-medium">Uploading...</span>
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center flex-col gap-2">
+                  <Loader2 className="text-[#4f7cff] animate-spin" size={20} />
                 </div>
               )}
 
               {file.status === 'transcoding' && (
-                <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center p-4">
-                  <div className="w-full bg-slate-800 rounded-full h-1.5 mb-2 overflow-hidden">
-                    <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-300" style={{ width: `${file.transcodeProgress || 0}%` }} />
+                <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-3">
+                  <div className="w-full bg-[#2a2f42] rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-[#4f7cff] h-1.5 rounded-full transition-all duration-300" style={{ width: `${file.transcodeProgress || 0}%` }} />
                   </div>
-                  <span className="text-2xs text-blue-200 font-medium whitespace-nowrap text-center px-1">
-                    Processing... {file.transcodeProgress ? `${Math.round(file.transcodeProgress)}%` : ''}
-                  </span>
                 </div>
               )}
 
               {file.status === 'error' && (
-                <div className="absolute inset-0 bg-red-950/60 flex items-center justify-center">
-                  <span className="text-2xs text-red-200 font-medium">Upload Failed</span>
+                <div className="absolute inset-0 bg-[#ff5c6a]/60 flex items-center justify-center">
+                  <span className="text-[10px] text-white font-medium">Lỗi</span>
                 </div>
               )}
 
               {file.status === 'transcode_error' && (
-                <div className="absolute inset-0 bg-red-950/80 flex flex-col items-center justify-center gap-1">
-                  <span className="text-2xs text-red-200 font-medium text-center">Video Processing Failed</span>
+                <div className="absolute inset-0 bg-[#ff5c6a]/80 flex flex-col items-center justify-center gap-1">
+                  <span className="text-[10px] text-white font-medium text-center">Lỗi xử lý</span>
                 </div>
               )}
 
               <button
                 onClick={() => removeFile(file.id)}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-950/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/80"
+                className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#ff5c6a]"
               >
-                <X size={14} />
+                <X size={12} />
               </button>
             </motion.div>
           ))}
@@ -227,31 +221,26 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
           <div
             {...getRootProps()}
             className={cn(
-              "aspect-square rounded-xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-2",
+              "aspect-square rounded-[8px] border-[1.5px] border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-2",
               isDragActive 
-                ? "border-blue-500 bg-blue-500/5" 
-                : "border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900"
+                ? "border-[#4f7cff] bg-[#4f7cff]/10" 
+                : "border-[#2a2f42] bg-[#252836] hover:border-[#7a7a9a]"
             )}
           >
             <input {...getInputProps()} />
-            <UploadCloud className={cn("transition-colors", isDragActive ? "text-blue-500" : "text-slate-600")} size={28} />
-            <span className="text-2xs font-medium text-slate-500 uppercase tracking-widest">Add Media</span>
+            <span className="text-[20px] text-[#7a7a9a] mb-1">🖼️</span>
+            <span className="text-[11px] font-medium text-[#7a7a9a] uppercase tracking-wide">Thêm</span>
           </div>
         )}
       </div>
       
-      <div className="flex flex-col gap-1">
-        <p className="text-2xs text-slate-500 italic">
-          Max {maxFiles === Infinity ? 'unlimited' : maxFiles} files. Images (JPG, PNG) or Videos (MP4).
-        </p>
-        {mediaIssues.length > 0 && (
-          <div className="flex flex-col gap-1">
-            {mediaIssues.map((issue, idx) => (
-              <span key={idx} className="text-xs font-medium text-red-400">{issue.message}</span>
-            ))}
-          </div>
-        )}
-      </div>
+      {mediaIssues.length > 0 && (
+        <div className="flex flex-col gap-1 mt-3">
+          {mediaIssues.map((issue, idx) => (
+            <span key={idx} className="text-[12px] font-medium text-[#ff5c6a]">{issue.message}</span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

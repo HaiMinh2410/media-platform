@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Type, Hash, Smile } from 'lucide-react';
+import { Image as ImageIcon, Film, Smile, Link as LinkIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
 import { ValidationIssue } from '@/lib/validation/validation-engine';
 
 type ContentEditorProps = {
@@ -11,46 +10,60 @@ type ContentEditorProps = {
   onChange: (content: string) => void;
   maxLength: number;
   issues: ValidationIssue[];
+  hasInstagram?: boolean;
 };
 
-export function ContentEditor({ content, onChange, maxLength, issues }: ContentEditorProps) {
+export function ContentEditor({ content, onChange, maxLength, issues, hasInstagram }: ContentEditorProps) {
   const charCount = content.length;
   const contentIssues = issues.filter(i => i.message.includes('ký tự') || i.message.includes('hashtag'));
   
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between px-1">
-        <label className="text-sm font-bold uppercase tracking-widest text-slate-500">Post Content</label>
-        <div className={cn(
-          "text-2xs font-bold px-3 py-1 rounded-full bg-black/40 border border-white/5 shadow-inner transition-colors",
-          charCount > maxLength ? "text-red-400 border-red-500/20" : "text-slate-500"
-        )}>
-          {charCount.toLocaleString()} <span className="opacity-40">/</span> {maxLength === Infinity ? '∞' : maxLength.toLocaleString()}
-        </div>
-      </div>
+  const isWarning = charCount > maxLength * 0.9;
+  const isError = charCount > maxLength;
 
-      <div className="relative group">
-        <textarea
-          value={content}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="What would you like to share?"
-          className="w-full min-h-[220px] bg-black/20 border border-white/5 rounded-3xl p-6 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/30 transition-all resize-none text-lg leading-relaxed shadow-inner"
-        />
-        
-        <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-0 group-focus-within:opacity-100 transition-all duration-300 translate-y-2 group-focus-within:translate-y-0">
-          <button className="p-2 rounded-xl bg-slate-800/80 text-slate-400 hover:text-white hover:bg-blue-600 transition-all shadow-lg">
-            <Smile size={18} />
-          </button>
-          <button className="p-2 rounded-xl bg-slate-800/80 text-slate-400 hover:text-white hover:bg-blue-600 transition-all shadow-lg">
-            <Hash size={18} />
-          </button>
+  return (
+    <div className="flex flex-col bg-[#161920]">
+      <textarea
+        value={content}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Nhập nội dung bài đăng..."
+        className="w-full min-h-[140px] bg-transparent border-0 p-4 text-[14px] text-white placeholder:text-[#7a7a9a] focus:ring-0 focus:outline-none resize-y leading-relaxed font-sans"
+      />
+      
+      <div className="flex flex-col gap-2 p-2 pt-0">
+        <div className="flex justify-end px-2">
+          <span className={cn(
+            "font-mono text-[11px]",
+            isError ? "text-[#ff5c6a] font-bold" : isWarning ? "text-[#f5a623]" : "text-[#7a7a9a]"
+          )}>
+            {charCount} / {maxLength === Infinity ? '∞' : maxLength}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between bg-[#f0eee8] dark:bg-[#1a1c23] rounded-b-[10px] px-2 py-1.5 border-t border-[#2a2f42]/30">
+          <div className="flex items-center gap-1">
+            <button className="p-1.5 rounded-md text-[#7a7a9a] hover:bg-[#2a2f42] hover:text-white transition-colors">
+              <ImageIcon size={18} />
+            </button>
+            <button className="p-1.5 rounded-md text-[#7a7a9a] hover:bg-[#2a2f42] hover:text-white transition-colors">
+              <Film size={18} />
+            </button>
+            <button className="p-1.5 rounded-md text-[#7a7a9a] hover:bg-[#2a2f42] hover:text-white transition-colors">
+              <Smile size={18} />
+            </button>
+            <button className="p-1.5 rounded-md text-[#7a7a9a] hover:bg-[#2a2f42] hover:text-white transition-colors">
+              <LinkIcon size={18} />
+            </button>
+          </div>
+          <div className="text-[11px] text-[#7a7a9a] pr-2">
+            {hasInstagram ? 'Tối đa 10 ảnh (IG)' : ''}
+          </div>
         </div>
       </div>
       
       {contentIssues.length > 0 && (
-        <div className="flex flex-col gap-1 px-1">
+        <div className="flex flex-col gap-1 px-4 pb-3">
           {contentIssues.map((issue, idx) => (
-            <span key={idx} className="text-xs font-medium text-red-400">{issue.message}</span>
+            <span key={idx} className="text-[12px] font-medium text-[#ff5c6a]">{issue.message}</span>
           ))}
         </div>
       )}

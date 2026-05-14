@@ -18,5 +18,7 @@ export type PlatformAccount = {
   platform: Platform;
   externalId: string;
   name: string;
+  username?: string;
+  avatar_url?: string;
   metadata?: any;
 };

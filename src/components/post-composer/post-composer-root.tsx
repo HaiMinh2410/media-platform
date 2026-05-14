@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AccountPicker } from '@/components/publisher/account-picker';
 import { ContentEditor } from './content-editor';
 import { MediaUploader, MediaFile } from './media-uploader';
@@ -10,10 +10,10 @@ import { PlatformAccount } from '@/domain/types/platform-account';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Lock } from 'lucide-react';
 import { useValidation } from '@/hooks/use-validation';
 import { useDraft } from '@/hooks/use-draft';
-import { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type PostComposerRootProps = {
   accounts: any[];
@@ -127,7 +127,6 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
       } else {
         toast.success('Quá trình đăng bài đã được khởi tạo!');
         await clearDraft();
-        // Redirect về trang theo dõi trạng thái hoặc danh sách bài viết
         router.push(`/dashboard/posts?batchId=${result.batchId}`);
         router.refresh();
       }
@@ -139,68 +138,144 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
     }
   };
 
+  const hasInstagram = activePlatforms.includes('instagram');
+  const hasLink = /https?:\/\/[^\s]+/.test(content);
+  const igAccountNames = accounts
+    .filter(a => selectedAccountIds.includes(a.id) && a.platform.toLowerCase() === 'instagram')
+    .map(a => a.name)
+    .join(', ');
+
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-10">
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr,380px] gap-12">
-
-        {/* Editor Column */}
-        <div className="space-y-10 pb-20">
-          <header className="space-y-4">
-            <Link 
-              href="/dashboard/posts" 
-              className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium group no-underline"
-            >
-              <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-              Quay lại danh sách bài viết
-            </Link>
-            <div className="space-y-1">
-              <h1 className="text-4xl font-bold text-white tracking-tight">Create Post</h1>
-              <p className="text-slate-400 text-lg font-medium">Compose and schedule your content across multiple platforms.</p>
-            </div>
-          </header>
-
-          <AccountPicker
-            accounts={accounts}
-            selectedIds={selectedAccountIds}
-            onChange={setSelectedAccountIds}
-          />
-
-          <div className="space-y-10 glass-card rounded-[2.5rem] p-8 md:p-10">
-            <ContentEditor
-              content={content}
-              onChange={setContent}
-              maxLength={validation.effectiveLimits.maxLength}
-              issues={validation.issues}
-            />
-            <MediaUploader
-              files={mediaFiles}
-              onChange={setMediaFiles}
-              workspaceId={workspaceId}
-              maxFiles={validation.effectiveLimits.maxMedia}
-              issues={validation.issues}
-            />
-          </div>
-
-          <SchedulingPanel
-            scheduledAt={scheduledAt}
-            onChange={setScheduledAt}
-            isSubmitting={isSubmitting}
-            onPublish={handlePublish}
-          />
+    <div className="min-h-screen bg-[#0d0f14] text-white font-sans selection:bg-[#4f7cff]/30">
+      {/* Top Navbar / Header */}
+      <div className="h-14 bg-[#161920] border-b border-[#2a2f42] flex items-center px-6 justify-between">
+        <Link 
+          href="/dashboard/posts" 
+          className="inline-flex items-center gap-2 text-[#7a7a9a] hover:text-white transition-colors text-sm font-medium"
+        >
+          <ArrowLeft size={16} />
+          SocialPub Pro
+        </Link>
+        <div className="flex items-center gap-4 text-[#7a7a9a] text-[11px] uppercase tracking-widest font-mono">
+          <span className="hover:text-white cursor-pointer transition-colors">📅 Lịch</span>
+          <span className="hover:text-white cursor-pointer transition-colors">📊 Báo cáo</span>
+          <span className="hover:text-white cursor-pointer transition-colors">👤 Tài khoản</span>
         </div>
+      </div>
 
-        {/* Preview Column (Sticky) */}
-        <aside className="hidden xl:block">
-          <div className="sticky top-8">
-            <PostPreviewPanel
-              content={content}
-              mediaFiles={mediaFiles}
-              activePlatforms={activePlatforms}
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-10">
+
+          {/* LEFT COLUMN (Composer) */}
+          <div className="space-y-6 pb-20">
+            <h2 className="text-[13px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
+              ✍️ SOẠN BÀI ĐĂNG
+            </h2>
+
+            <div className="space-y-4">
+              <AccountPicker
+                accounts={accounts}
+                selectedIds={selectedAccountIds}
+                onChange={setSelectedAccountIds}
+              />
+
+              <AnimatePresence>
+                {hasLink && hasInstagram && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    className="flex items-start gap-3 bg-[#fff8e7] border border-[#f5a623] rounded-lg px-4 py-3 text-[#7a5a00] shadow-sm"
+                  >
+                    <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                    <div className="text-[13px] leading-[1.6]">
+                      <span className="font-bold">Link không nhấp được trên Instagram của:</span> {igAccountNames}
+                    </div>
+                  </motion.div>
+                )}
+                
+                {hasInstagram && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    className="flex items-center gap-3 bg-[#dce8ff] border-[1.5px] border-[#2d5be3] rounded-lg px-4 py-2.5 text-[#1a3a8c] shadow-sm"
+                  >
+                    <Lock size={15} className="shrink-0" />
+                    <div className="text-[12px] flex-1">
+                      Tỷ lệ ảnh khóa theo IG: 1:1 / 4:5 / 16:9
+                    </div>
+                    <div className="text-[11px] text-[#2d5be3] font-medium">
+                      Tối đa 10 media · Strictest Rule đang áp dụng
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="bg-[#161920] border-[1.5px] border-[#2a2f42] rounded-[12px] overflow-hidden flex flex-col">
+              <ContentEditor
+                content={content}
+                onChange={setContent}
+                maxLength={validation.effectiveLimits.maxLength}
+                issues={validation.issues}
+                hasInstagram={hasInstagram}
+              />
+              
+              <MediaUploader
+                files={mediaFiles}
+                onChange={setMediaFiles}
+                workspaceId={workspaceId}
+                maxFiles={validation.effectiveLimits.maxMedia}
+                issues={validation.issues}
+              />
+            </div>
+
+            <SchedulingPanel
+              scheduledAt={scheduledAt}
+              onChange={setScheduledAt}
+              isSubmitting={isSubmitting}
+              onPublish={handlePublish}
             />
-          </div>
-        </aside>
 
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handlePublish}
+                disabled={isSubmitting}
+                className="flex-1 bg-[#4f7cff] hover:bg-[#3d6bed] disabled:opacity-50 text-white font-bold text-[13px] h-[48px] rounded-[6px] transition-all flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? 'Đang xử lý...' : '🚀 Đăng ngay'}
+                {!isSubmitting && selectedAccountIds.length > 0 && (
+                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">[{selectedAccountIds.length}]</span>
+                )}
+              </button>
+              <button 
+                className="w-32 bg-[#252836] hover:bg-[#2a2f42] text-white font-bold text-[13px] h-[48px] rounded-[6px] transition-all border border-[#2a2f42]"
+              >
+                💾 Lưu nháp
+              </button>
+            </div>
+            
+          </div>
+
+          {/* RIGHT COLUMN (Preview) */}
+          <aside className="hidden xl:block border-l border-[#2a2f42] border-dashed pl-10 relative">
+            <div className="sticky top-8">
+              <h2 className="text-[13px] font-bold text-white uppercase tracking-widest flex items-center gap-2 mb-6">
+                👁️ XEM TRƯỚC
+              </h2>
+              <PostPreviewPanel
+                content={content}
+                mediaFiles={mediaFiles}
+                activePlatforms={activePlatforms}
+                accounts={accounts.filter(a => selectedAccountIds.includes(a.id))}
+              />
+            </div>
+          </aside>
+
+        </div>
       </div>
     </div>
   );
 }
+
