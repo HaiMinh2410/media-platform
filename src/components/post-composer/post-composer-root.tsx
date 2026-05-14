@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { AccountPicker } from '@/components/publisher/account-picker';
 import { ContentEditor } from './content-editor';
 import { MediaUploader, MediaFile } from './media-uploader';
-import { PostPreview } from './post-preview';
+import { PostPreviewPanel } from '@/components/publisher/post-preview-panel';
 import { SchedulingPanel } from './scheduling-panel';
 import { PlatformAccount } from '@/domain/types/platform-account';
 import { toast } from 'sonner';
@@ -62,10 +62,13 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
     }
   }, [content, selectedAccountIds, mediaFiles, handleAutoSave]);
 
-  // Derived state for preview
-  const primaryAccountId = selectedAccountIds[0];
-  const primaryAccount = accounts.find(a => a.id === primaryAccountId);
-  const previewPlatform = primaryAccount?.platform === 'instagram' ? 'instagram' : 'facebook';
+  const activePlatforms = Array.from(
+    new Set(
+      accounts
+        .filter(a => selectedAccountIds.includes(a.id))
+        .map(a => a.platform as 'facebook' | 'instagram')
+    )
+  );
 
   const validation = useValidation({
     accounts,
@@ -186,10 +189,10 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
         {/* Preview Column (Sticky) */}
         <aside className="hidden xl:block">
           <div className="sticky top-8">
-            <PostPreview
+            <PostPreviewPanel
               content={content}
-              mediaUrls={mediaFiles.filter(f => f.status === 'done').map(f => f.url)}
-              platform={previewPlatform}
+              mediaFiles={mediaFiles}
+              activePlatforms={activePlatforms}
             />
           </div>
         </aside>

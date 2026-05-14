@@ -60,3 +60,11 @@ export type MetaIGFollowersResponse = {
   followers_count: number;
   id: string;
 };
+
+export type MetaPublishResponse = {
+  id: string;
+};
+
+export type MetaMediaContainerResponse = {
+  id: string;
+};

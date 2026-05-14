@@ -15,7 +15,8 @@ export class MetaBaseAdapter {
   async request<T>(
     accountId: string, 
     endpoint: string, 
-    params: Record<string, string> = {}
+    params: Record<string, any> = {},
+    method: 'GET' | 'POST' = 'GET'
   ): Promise<{ data: T | null; error: string | null; details?: any }> {
     
     // 1. Lấy token đã giải mã từ DB
@@ -24,10 +25,10 @@ export class MetaBaseAdapter {
     if (tokenError || !token) {
       return { data: null, error: tokenError || 'TOKEN_NOT_FOUND' };
     }
-
+ 
     // 2. Thực hiện request qua GraphClient
-    const response = await this.graphClient.request<T>(endpoint, token.accessToken, params);
-
+    const response = await this.graphClient.request<T>(endpoint, token.accessToken, params, method);
+ 
     // 3. Xử lý lỗi Meta API phổ biến (ví dụ: Token expired)
     if (response.error) {
       const errorDetail = response.details as any;
@@ -35,15 +36,14 @@ export class MetaBaseAdapter {
       // Error codes: https://developers.facebook.com/docs/graph-api/overview/error-handling
       if (errorDetail?.code === 190 || errorDetail?.code === 102) {
         console.warn(`[MetaBaseAdapter] Token for account ${accountId} is invalid or expired.`);
-        // Note: Logic refresh tự động sẽ được xử lý ở Application Layer (T174)
         return { data: null, error: 'TOKEN_INVALID', details: errorDetail };
       }
-
+ 
       if (errorDetail?.code === 4 || errorDetail?.code === 17 || errorDetail?.code === 32) {
         return { data: null, error: 'RATE_LIMIT_REACHED', details: errorDetail };
       }
     }
-
+ 
     return response;
   }
 }

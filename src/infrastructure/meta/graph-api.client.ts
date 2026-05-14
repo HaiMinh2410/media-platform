@@ -153,22 +153,51 @@ export class MetaGraphClient {
 
   /**
    * Universal fetch helper for custom Graph API calls.
+   * Supports both GET and POST.
    */
-  async request<T>(endpoint: string, accessToken: string, params: Record<string, string> = {}): Promise<MetaApiResponse<T>> {
-    const searchParams = new URLSearchParams({ ...params, access_token: accessToken });
-    const url = `${this.baseUrl}/${endpoint}?${searchParams.toString()}`;
+  async request<T>(
+    endpoint: string, 
+    accessToken: string, 
+    params: Record<string, any> = {},
+    method: 'GET' | 'POST' = 'GET'
+  ): Promise<MetaApiResponse<T>> {
+    const url = new URL(`${this.baseUrl}/${endpoint}`);
+    url.searchParams.append('access_token', accessToken);
+
+    const options: RequestInit = { method };
+
+    if (method === 'GET') {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    } else {
+      // Meta Graph API typically accepts POST parameters as x-www-form-urlencoded
+      const bodyParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          bodyParams.append(key, String(value));
+        }
+      });
+      options.body = bodyParams;
+    }
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url.toString(), options);
       const data = await response.json();
 
       if (!response.ok) {
-        return { data: null, error: data.error?.message || 'API_REQUEST_FAILED', details: data.error };
+        return { 
+          data: null, 
+          error: data.error?.message || 'API_REQUEST_FAILED', 
+          details: data.error 
+        };
       }
 
       return { data, error: null };
     } catch (err) {
-      console.error(`[MetaGraphClient] request error (${endpoint}):`, err);
+      console.error(`[MetaGraphClient] request error (${method} ${endpoint}):`, err);
       return { data: null, error: 'NETWORK_ERROR' };
     }
   }
