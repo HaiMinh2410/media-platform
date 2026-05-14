@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { BatchPublishTracker } from '@/components/publisher/batch-publish-tracker';
+import { FeatureFlagService, FLAGS } from '@/application/services/feature-flag.service';
 
 export default async function PostsPage({ 
   searchParams 
@@ -19,6 +20,22 @@ export default async function PostsPage({
 
   if (!user) {
     redirect('/auth/login');
+  }
+
+  // Canary Rollout Check
+  if (!FeatureFlagService.isEnabled(user.id, FLAGS.SOCIAL_PUBLISHER_PRO, 10)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 max-w-lg mx-auto text-center">
+        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20 mb-2">
+          <span className="text-2xl">🚀</span>
+        </div>
+        <h2 className="text-2xl font-bold text-white tracking-tight">Social Publisher Pro</h2>
+        <p className="text-slate-400 font-medium leading-relaxed">
+          Tính năng lên lịch và quản lý bài đăng đa nền tảng đang trong giai đoạn thử nghiệm (Canary Rollout).
+          Chúng tôi đang triển khai dần cho người dùng và sẽ sớm mở rộng cho tài khoản của bạn!
+        </p>
+      </div>
+    );
   }
 
   const workspaceRepo = getWorkspaceRepository();

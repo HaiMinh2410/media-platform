@@ -90,6 +90,7 @@ export async function getCurrentUserWorkspaceAction() {
     return {
       data: {
         user: {
+          id: user.id,
           name: workspaceMember.profiles.full_name || 'User',
           avatar: workspaceMember.profiles.avatar_url,
           role: workspaceMember.role

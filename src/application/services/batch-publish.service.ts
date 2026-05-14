@@ -46,6 +46,11 @@ export const batchPublishService = {
 
           await publishQueue.add('publish-task', jobPayload, {
             jobId: jobRecord.id, // Sử dụng ID từ DB làm Job ID của BullMQ để dễ tracking
+            attempts: 3,         // Cho phép retry tối đa 3 lần
+            backoff: {
+              type: 'exponential',
+              delay: 5000,       // Thời gian chờ tăng dần: 5s, 10s, 20s
+            }
           });
 
           console.log(`[BatchPublishService] Enqueued job ${jobRecord.id} for account ${target.accountId}`);
@@ -109,6 +114,11 @@ export const batchPublishService = {
 
           await publishQueue.add('publish-task', payload, {
             jobId: updatedJob.id,
+            attempts: 3,
+            backoff: {
+              type: 'exponential',
+              delay: 5000,
+            }
           });
         }
 

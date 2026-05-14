@@ -12,11 +12,13 @@ import {
   Files, 
   Settings,
   Palette,
-  Sparkles
+  Sparkles,
+  Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getCurrentWorkspaceUnreadCountAction, getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
 import { useUnreadRealtime } from '@/app/dashboard/inbox/hooks/use-unread-realtime';
+import { FeatureFlagService, FLAGS } from '@/application/services/feature-flag.service';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -24,8 +26,12 @@ export function Sidebar() {
   const [mounted, setMounted] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
-  const [userData, setUserData] = useState<{ name: string; avatar?: string | null; role: string; workspaceName: string } | null>(null);
+  const [userData, setUserData] = useState<{ id: string; name: string; avatar?: string | null; role: string; workspaceName: string } | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isPublisherProEnabled = React.useMemo(() => {
+    return FeatureFlagService.isEnabled(userData?.id, FLAGS.SOCIAL_PUBLISHER_PRO, 10);
+  }, [userData?.id]);
 
   const NAV_ITEMS = [
     {
@@ -51,10 +57,20 @@ export function Sidebar() {
       icon: <Users size={20} />,
     },
     {
+      label: 'Publisher',
+      href: '/dashboard/publisher-analytics',
+      icon: <Activity size={20} />,
+    },
+    {
       label: 'Posts',
       href: '/dashboard/posts',
       icon: <Files size={20} />,
       matchPaths: ['/dashboard/posts', '/dashboard/composer']
+    },
+    {
+      label: 'Analytics',
+      href: '/dashboard/analytics',
+      icon: <BarChart3 size={20} />,
     },
     {
       label: 'Settings',
@@ -76,6 +92,7 @@ export function Sidebar() {
       if (res.data) {
         setWorkspaceId(res.data.workspace.id);
         setUserData({
+          id: res.data.user.id,
           name: res.data.user.name,
           avatar: res.data.user.avatar,
           role: res.data.user.role,
@@ -153,7 +170,13 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 flex flex-col gap-2">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter(item => {
+          // Chỉ hiển thị các tính năng Publisher Pro cho người dùng trong nhóm Canary 10%
+          if (item.href === '/dashboard/publisher-analytics') {
+            return isPublisherProEnabled;
+          }
+          return true;
+        }).map((item) => {
           const isActive = item.exact 
             ? pathname === item.href 
             : 'matchPaths' in item && Array.isArray(item.matchPaths)

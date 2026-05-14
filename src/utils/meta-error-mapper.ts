@@ -69,3 +69,25 @@ export function mapMetaError(error: any): string {
   // Mặc định trả về thông báo lỗi gốc từ Meta nếu không mapping được
   return message || 'Lỗi không xác định từ Meta API.';
 }
+
+/**
+ * Kiểm tra xem một lỗi Meta có phải là lỗi tạm thời (transient error) và có thể retry được không.
+ * Các lỗi transient thường bao gồm: Giới hạn tần suất (Rate Limit), Lỗi server nội bộ của Meta, hoặc Video đang xử lý.
+ */
+export function isTransientMetaError(error: any): boolean {
+  if (!error || typeof error === 'string') return false;
+
+  const code = error.code;
+  const subcode = error.error_subcode;
+
+  // Lỗi giới hạn tần suất (Rate Limiting)
+  if (code === 4 || code === 17 || code === 32 || code === 613) return true;
+
+  // Lỗi hệ thống Meta (Internal server errors)
+  if (code === 1 || code === 2) return true;
+
+  // Lỗi Video IG đang xử lý (có thể xong sau vài phút)
+  if (subcode === 2207001) return true;
+
+  return false;
+}

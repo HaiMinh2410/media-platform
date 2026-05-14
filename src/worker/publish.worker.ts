@@ -1,10 +1,11 @@
-import { Worker, Job } from 'bullmq';
+import { Worker, Job, UnrecoverableError } from 'bullmq';
 import { redisConnection } from '@/infrastructure/queue/bullmq.provider';
 import { QueueName, PublishJobPayload } from '@/domain/types/queue';
 import { db } from '@/lib/db';
 import { getFBPageAdapter } from '@/infrastructure/meta/adapters/fb-page.adapter';
 import { getIGBusinessAdapter } from '@/infrastructure/meta/adapters/ig-business.adapter';
 import { publishJobRepository } from '@/infrastructure/repositories/publish-job.repository';
+import { isTransientMetaError } from '@/utils/meta-error-mapper';
 
 /**
  * Worker xử lý các jobs trong queue 'publish-events'.
@@ -41,23 +42,35 @@ const publishWorker = redisConnection ? new Worker(
         for (const url of mediaUrls) {
           const isVideo = url.match(/\.(mp4|mov|avi|wmv)$|video/i);
           if (isVideo) {
-            const { data, error } = await fbAdapter.uploadVideo(platformId, { fileUrl: url });
-            if (error || !data) throw new Error(error || 'Lỗi upload video lên Facebook');
+            const { data, error, details } = await fbAdapter.uploadVideo(platformId, { fileUrl: url });
+            if (error || !data) {
+              const msg = error || 'Lỗi upload video lên Facebook';
+              if (isTransientMetaError(details)) throw new Error(msg);
+              throw new UnrecoverableError(msg);
+            }
             mediaIds.push(data.id);
           } else {
-            const { data, error } = await fbAdapter.uploadPhoto(platformId, url);
-            if (error || !data) throw new Error(error || 'Lỗi upload ảnh lên Facebook');
+            const { data, error, details } = await fbAdapter.uploadPhoto(platformId, url);
+            if (error || !data) {
+              const msg = error || 'Lỗi upload ảnh lên Facebook';
+              if (isTransientMetaError(details)) throw new Error(msg);
+              throw new UnrecoverableError(msg);
+            }
             mediaIds.push(data.id);
           }
         }
 
         // Đăng bài viết kèm media
-        const { data: publishData, error: publishError } = await fbAdapter.publishPost(platformId, {
+        const { data: publishData, error: publishError, details: publishDetails } = await fbAdapter.publishPost(platformId, {
           message: content,
           mediaIds: mediaIds
         });
 
-        if (publishError || !publishData) throw new Error(publishError || 'Lỗi đăng bài lên Facebook');
+        if (publishError || !publishData) {
+          const msg = publishError || 'Lỗi đăng bài lên Facebook';
+          if (isTransientMetaError(publishDetails)) throw new Error(msg);
+          throw new UnrecoverableError(msg);
+        }
         platformPostId = publishData.id;
 
       } else if (platform === 'INSTAGRAM') {
@@ -70,12 +83,20 @@ const publishWorker = redisConnection ? new Worker(
           const isVideo = url.match(/\.(mp4|mov|avi|wmv)$|video/i);
           
           if (isVideo) {
-            const { data, error } = await igAdapter.createVideoContainer(platformId, url, content);
-            if (error || !data) throw new Error(error || 'Lỗi tạo container video Instagram');
+            const { data, error, details } = await igAdapter.createVideoContainer(platformId, url, content);
+            if (error || !data) {
+              const msg = error || 'Lỗi tạo container video Instagram';
+              if (isTransientMetaError(details)) throw new Error(msg);
+              throw new UnrecoverableError(msg);
+            }
             creationId = data.id;
           } else {
-            const { data, error } = await igAdapter.createImageContainer(platformId, url, content);
-            if (error || !data) throw new Error(error || 'Lỗi tạo container ảnh Instagram');
+            const { data, error, details } = await igAdapter.createImageContainer(platformId, url, content);
+            if (error || !data) {
+              const msg = error || 'Lỗi tạo container ảnh Instagram';
+              if (isTransientMetaError(details)) throw new Error(msg);
+              throw new UnrecoverableError(msg);
+            }
             creationId = data.id;
           }
         } else if (mediaUrls.length > 1) {
@@ -83,13 +104,21 @@ const publishWorker = redisConnection ? new Worker(
           const itemIds: string[] = [];
           for (const url of mediaUrls) {
             const isVideo = url.match(/\.(mp4|mov|avi|wmv)$|video/i);
-            const { data, error } = await igAdapter.createCarouselItem(platformId, url, !!isVideo);
-            if (error || !data) throw new Error(error || 'Lỗi tạo item carousel Instagram');
+            const { data, error, details } = await igAdapter.createCarouselItem(platformId, url, !!isVideo);
+            if (error || !data) {
+              const msg = error || 'Lỗi tạo item carousel Instagram';
+              if (isTransientMetaError(details)) throw new Error(msg);
+              throw new UnrecoverableError(msg);
+            }
             itemIds.push(data.id);
           }
 
-          const { data, error } = await igAdapter.createCarouselContainer(platformId, itemIds, content);
-          if (error || !data) throw new Error(error || 'Lỗi tạo carousel Instagram');
+          const { data, error, details } = await igAdapter.createCarouselContainer(platformId, itemIds, content);
+          if (error || !data) {
+            const msg = error || 'Lỗi tạo carousel Instagram';
+            if (isTransientMetaError(details)) throw new Error(msg);
+            throw new UnrecoverableError(msg);
+          }
           creationId = data.id;
         }
 
@@ -97,8 +126,12 @@ const publishWorker = redisConnection ? new Worker(
 
         // Note: Đối với IG Video, có thể cần đợi processing. 
         // BullMQ retry logic sẽ giúp handle nếu publish ngay lập tức bị lỗi.
-        const { data: publishData, error: publishError } = await igAdapter.publishContainer(platformId, creationId);
-        if (publishError || !publishData) throw new Error(publishError || 'Lỗi đăng bài lên Instagram');
+        const { data: publishData, error: publishError, details: publishDetails } = await igAdapter.publishContainer(platformId, creationId);
+        if (publishError || !publishData) {
+          const msg = publishError || 'Lỗi đăng bài lên Instagram';
+          if (isTransientMetaError(publishDetails)) throw new Error(msg);
+          throw new UnrecoverableError(msg);
+        }
         platformPostId = publishData.id;
       }
 
@@ -112,7 +145,8 @@ const publishWorker = redisConnection ? new Worker(
       console.log(`[PublishWorker] Job ${jobId} completed successfully. Post ID: ${platformPostId}`);
 
     } catch (err: any) {
-      console.error(`[PublishWorker] Job ${jobId} failed:`, err.message);
+      const isUnrecoverable = err instanceof UnrecoverableError;
+      console.error(`[PublishWorker] Job ${jobId} failed. Transient: ${!isUnrecoverable}. Error:`, err.message);
       
       // Cập nhật lỗi vào DB
       await publishJobRepository.updateStatus(jobId, {
