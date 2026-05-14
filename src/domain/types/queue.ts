@@ -54,6 +54,7 @@ export enum QueueName {
   ANALYTICS_SYNC = 'analytics-sync',
   AI_AGENT_METRICS = 'ai-agent-metrics',
   MEDIA_TRANSCODING = 'media-transcoding',
+  PUBLISH_EVENTS = 'publish-events',
 }
 
 export interface MediaTranscodingJobPayload {
@@ -61,6 +62,14 @@ export interface MediaTranscodingJobPayload {
   workspaceId: string;
   originalUrl: string;
   filePath: string;
+}
+
+export interface PublishJobPayload {
+  jobId: string;
+  accountId: string;
+  platform: 'FACEBOOK' | 'INSTAGRAM';
+  content?: string;
+  mediaUrls: string[];
 }
 
 /**

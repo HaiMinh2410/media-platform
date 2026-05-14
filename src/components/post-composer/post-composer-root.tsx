@@ -106,26 +106,29 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/posts', {
+      const response = await fetch('/api/publish/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           workspaceId,
-          accountIds: selectedAccountIds,
+          accounts: accounts
+            .filter(a => selectedAccountIds.includes(a.id))
+            .map(a => ({ accountId: a.id, platform: a.platform.toUpperCase() })),
           content,
           mediaUrls: mediaFiles.filter(f => f.status === 'done').map(f => f.url),
-          scheduledAt: scheduledAt?.toISOString(),
+          postId: undefined, // Sẽ được mở rộng sau nếu cần liên kết với Post model
         }),
       });
 
       const result = await response.json();
 
-      if (result.error) {
-        toast.error(typeof result.error === 'string' ? result.error : 'Failed to create post');
+      if (!response.ok) {
+        toast.error(result.message || result.error || 'Failed to initiate publish');
       } else {
-        toast.success(scheduledAt ? 'Post scheduled successfully' : 'Post published successfully');
+        toast.success('Quá trình đăng bài đã được khởi tạo!');
         await clearDraft();
-        router.push('/dashboard');
+        // Redirect về trang theo dõi trạng thái hoặc danh sách bài viết
+        router.push(`/dashboard/posts?batchId=${result.batchId}`);
         router.refresh();
       }
     } catch (error) {

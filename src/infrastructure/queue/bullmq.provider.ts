@@ -17,6 +17,8 @@ declare global {
   var webhookQueue: Queue | undefined;
   // eslint-disable-next-line no-var
   var mediaTranscodingQueue: Queue | undefined;
+  // eslint-disable-next-line no-var
+  var publishQueue: Queue | undefined;
 }
 
 /**
@@ -76,6 +78,25 @@ export const mediaTranscodingQueue =
 
 if (process.env.NODE_ENV !== 'production' && mediaTranscodingQueue) {
   globalThis.mediaTranscodingQueue = mediaTranscodingQueue;
+}
+
+export const publishQueue = 
+  globalThis.publishQueue ?? 
+  (redisConnection ? new Queue(QueueName.PUBLISH_EVENTS, {
+    connection: redisConnection,
+    defaultJobOptions: {
+      attempts: 5,
+      backoff: {
+        type: 'exponential',
+        delay: 2000,
+      },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  }) : undefined);
+
+if (process.env.NODE_ENV !== 'production' && publishQueue) {
+  globalThis.publishQueue = publishQueue;
 }
 
 if (!redisConnection) {
