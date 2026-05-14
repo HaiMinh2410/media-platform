@@ -134,31 +134,31 @@ model Message {
 }
 
 model AIReplyLog {
-  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  messageId            String   @map("message_id") @db.Uuid
-  prompt               String
-  response             String
-  model                String
-  created_at           DateTime @default(now())
-  status               String   @default("suggested")
-  
-  // Trạng thái Agent và Phân tích Fan
-  fanType              String?  @default("Unknown") @map("fan_type")
-  stage                String?  @default("G1") @map("stage")
-  strategy             String?  @map("strategy")
-  action               String?  @map("action")
-  emotionScoreBefore   Float?   @map("emotion_score_before")
-  emotionScoreAfter    Float?   @map("emotion_score_after")
-  riskLevel            String?  @map("risk_level")
-  safetyViolations     Json?    @default("[]") @map("safety_violations")
-  
-  // Chỉ số đo lường hiệu năng và token usage
-  promptTokens         Int?     @map("prompt_tokens")
-  completionTokens     Int?     @map("completion_tokens")
-  latencyMs            Int?     @map("latency_ms")
-  abTestVariant        String?  @map("ab_test_variant")
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  messageId  String   @map("message_id") @db.Uuid
+  prompt     String
+  response   String
+  model      String
+  created_at DateTime @default(now())
+  status     String   @default("suggested")
 
-  message              Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  // Trạng thái Agent và Phân tích Fan
+  fanType            String? @default("Unknown") @map("fan_type")
+  stage              String? @default("G1") @map("stage")
+  strategy           String? @map("strategy")
+  action             String? @map("action")
+  emotionScoreBefore Float?  @map("emotion_score_before")
+  emotionScoreAfter  Float?  @map("emotion_score_after")
+  riskLevel          String? @map("risk_level")
+  safetyViolations   Json?   @default("[]") @map("safety_violations")
+
+  // Chỉ số đo lường hiệu năng và token usage
+  promptTokens     Int?    @map("prompt_tokens")
+  completionTokens Int?    @map("completion_tokens")
+  latencyMs        Int?    @map("latency_ms")
+  abTestVariant    String? @map("ab_test_variant")
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@map("ai_reply_logs")
   @@schema("public")
@@ -178,61 +178,61 @@ model ConversationNote {
 }
 
 model FanProfile {
-  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  conversation_id     String       @unique @map("conversation_id") @db.Uuid
-  workspace_id        String       @map("workspace_id") @db.Uuid
-  platform_user_id    String       @map("platform_user_id")
-  fan_type            String       @default("Unknown") @map("fan_type")
-  fanTypeConfidence   Float        @default(0.0) @map("fan_type_confidence")
-  stage               String       @default("G1") @map("stage")
-  day_count           Int          @default(0) @map("day_count")
-  message_count       Int          @default(0) @map("message_count")
-  emotion_score       Float        @default(0.5) @map("emotion_score")
-  emotion_trend       String       @default("stable") @map("emotion_trend")
-  flirt_level         Int          @default(0) @map("flirt_level")
-  risk_level          String       @default("low") @map("risk_level")
-  purchase_history    Json         @default("[]") @map("purchase_history")
-  objections_seen     String[]     @default([]) @map("objections_seen")
-  key_insights        String[]     @default([]) @map("key_insights")
-  next_action         String       @default("continue") @map("next_action")
-  notes               String?      @db.Text
-  last_summary        Json?        @map("last_summary")
-  link_sent_count     Int          @default(0) @map("link_sent_count")
-  last_link_sent_at   DateTime?    @map("last_link_sent_at") @db.Timestamptz(6)
-  created_at          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updated_at          DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id   String    @unique @map("conversation_id") @db.Uuid
+  workspace_id      String    @map("workspace_id") @db.Uuid
+  platform_user_id  String    @map("platform_user_id")
+  fan_type          String    @default("Unknown") @map("fan_type")
+  fanTypeConfidence Float     @default(0.0) @map("fan_type_confidence")
+  stage             String    @default("G1") @map("stage")
+  day_count         Int       @default(0) @map("day_count")
+  message_count     Int       @default(0) @map("message_count")
+  emotion_score     Float     @default(0.5) @map("emotion_score")
+  emotion_trend     String    @default("stable") @map("emotion_trend")
+  flirt_level       Int       @default(0) @map("flirt_level")
+  risk_level        String    @default("low") @map("risk_level")
+  purchase_history  Json      @default("[]") @map("purchase_history")
+  objections_seen   String[]  @default([]) @map("objections_seen")
+  key_insights      String[]  @default([]) @map("key_insights")
+  next_action       String    @default("continue") @map("next_action")
+  notes             String?   @db.Text
+  last_summary      Json?     @map("last_summary")
+  link_sent_count   Int       @default(0) @map("link_sent_count")
+  last_link_sent_at DateTime? @map("last_link_sent_at") @db.Timestamptz(6)
+  created_at        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  conversation        Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
-  workspace           Workspace    @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  workspace    Workspace    @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
   @@map("fan_profiles")
   @@schema("public")
 }
 
 model AIAgentMetric {
-  id                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  workspace_id             String   @map("workspace_id") @db.Uuid
-  recorded_at              DateTime @default(now()) @map("recorded_at") @db.Timestamptz(6)
-  
-  // Phân bổ loại fan dưới dạng JSON: { "Luy": 45, "Cool": 25, "Whale": 10, "Drainer": 20 }
-  fan_type_distribution    Json     @default("{}") @map("fan_type_distribution")
-  
-  // Tỷ lệ chuyển đổi chốt đơn theo loại fan: { "Luy": 0.15, "Cool": 0.05, "Whale": 0.40, "Drainer": 0.00 }
-  conversion_rate_by_type  Json     @default("{}") @map("conversion_rate_by_type")
-  
-  // Số tin nhắn trung bình để chốt đơn thành công
-  avg_messages_to_close    Float    @default(0.0) @map("avg_messages_to_close")
-  
-  // Tổng hợp hiệu năng tổng quan
-  total_conversations      Int      @default(0) @map("total_conversations")
-  total_purchases          Int      @default(0) @map("total_purchases")
-  revenue                  Float    @default(0.0) @map("revenue")
-  
-  // Các sự cố an toàn / escalate cho con người
-  flag_incidents           Int      @default(0) @map("flag_incidents")
-  escalation_count         Int      @default(0) @map("escalation_count")
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_id String   @map("workspace_id") @db.Uuid
+  recorded_at  DateTime @default(now()) @map("recorded_at") @db.Timestamptz(6)
 
-  workspace                Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  // Phân bổ loại fan dưới dạng JSON: { "Luy": 45, "Cool": 25, "Whale": 10, "Drainer": 20 }
+  fan_type_distribution Json @default("{}") @map("fan_type_distribution")
+
+  // Tỷ lệ chuyển đổi chốt đơn theo loại fan: { "Luy": 0.15, "Cool": 0.05, "Whale": 0.40, "Drainer": 0.00 }
+  conversion_rate_by_type Json @default("{}") @map("conversion_rate_by_type")
+
+  // Số tin nhắn trung bình để chốt đơn thành công
+  avg_messages_to_close Float @default(0.0) @map("avg_messages_to_close")
+
+  // Tổng hợp hiệu năng tổng quan
+  total_conversations Int   @default(0) @map("total_conversations")
+  total_purchases     Int   @default(0) @map("total_purchases")
+  revenue             Float @default(0.0) @map("revenue")
+
+  // Các sự cố an toàn / escalate cho con người
+  flag_incidents   Int @default(0) @map("flag_incidents")
+  escalation_count Int @default(0) @map("escalation_count")
+
+  workspace Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
   @@map("ai_agent_metrics")
   @@schema("public")
@@ -810,17 +810,17 @@ model posts {
 }
 
 model Draft {
-  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  workspace_id         String    @db.Uuid
-  profile_id           String    @db.Uuid
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_id         String   @db.Uuid
+  profile_id           String   @db.Uuid
   selected_account_ids String[]
   content              String?
-  media_files          Json?     @default("[]")
-  created_at           DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  media_files          Json?    @default("[]")
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
-  workspace            Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
-  profile              profiles  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  profile   profiles  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
 
   @@unique([workspace_id, profile_id])
   @@map("drafts")
@@ -829,15 +829,15 @@ model Draft {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model profiles {
-  id                String              @id @db.Uuid
-  full_name         String?
-  avatar_url        String?
-  updated_at        DateTime            @default(now())
+  id                 String              @id @db.Uuid
+  full_name          String?
+  avatar_url         String?
+  updated_at         DateTime            @default(now())
   platform_accounts  PlatformAccount[]
   publisher_accounts Account[]
-  users             users               @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  workspace_members workspace_members[]
-  drafts            Draft[]
+  users              users               @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspace_members  workspace_members[]
+  drafts             Draft[]
 
   @@schema("public")
 }
@@ -845,16 +845,17 @@ model profiles {
 model Account {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile_id  String   @db.Uuid
-  platform    String   // "FACEBOOK", "INSTAGRAM"
-  platform_id String   // ID từ Meta (Page ID hoặc IG Business ID)
+  platform    String // "FACEBOOK", "INSTAGRAM"
+  platform_id String // ID từ Meta (Page ID hoặc IG Business ID)
   name        String
   avatar_url  String?
   is_active   Boolean  @default(true)
   created_at  DateTime @default(now()) @db.Timestamptz(6)
   updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  
-  token       AccountToken?
-  profile     profiles @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+
+  token        AccountToken?
+  profile      profiles      @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  publish_jobs PublishJob[]
 
   @@unique([profile_id, platform, platform_id])
   @@map("publisher_accounts")
@@ -862,15 +863,15 @@ model Account {
 }
 
 model AccountToken {
-  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id        String   @unique @db.Uuid
-  access_token      String   // Encrypted: iv:authTag:ciphertext
-  refresh_token     String?  // Encrypted
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id        String    @unique @db.Uuid
+  access_token      String // Encrypted: iv:authTag:ciphertext
+  refresh_token     String? // Encrypted
   scopes            String[]
   expires_at        DateTime?
-  last_validated_at DateTime @default(now()) @db.Timestamptz(6)
-  
-  account           Account  @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  last_validated_at DateTime  @default(now()) @db.Timestamptz(6)
+
+  account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@map("publisher_tokens")
   @@schema("public")
@@ -881,13 +882,14 @@ model PublishJob {
   batch_id         String?   @db.Uuid
   post_id          String?   @db.Uuid
   account_id       String    @db.Uuid
-  platform         String    // "FACEBOOK", "INSTAGRAM"
+  platform         String // "FACEBOOK", "INSTAGRAM"
   content          String?   @db.Text
   media_urls       String[]
   status           String    @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
   error_message    String?   @db.Text
   platform_post_id String?
   metadata         Json?     @default("{}")
+  retry_count      Int       @default(0)
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
   updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
   published_at     DateTime?
@@ -1033,35 +1035,35 @@ model AccountGroupMembership {
 }
 
 model AIPersona {
-  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id             String   @unique @db.Uuid
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id String @unique @db.Uuid
 
-  name                   String   @default("Em")
-  gender                 String   @default("female")
-  age                    Int?
-  personality            String?  @db.Text
-  tone                   String?  @db.Text
-  speaking_style         String?  @db.Text @map("speaking_style")
+  name           String  @default("Em")
+  gender         String  @default("female")
+  age            Int?
+  personality    String? @db.Text
+  tone           String? @db.Text
+  speaking_style String? @map("speaking_style") @db.Text
 
-  signature_emojis       String[] @default([]) @map("signature_emojis")
+  signature_emojis String[] @default([]) @map("signature_emojis")
 
-  custom_instructions    String?  @db.Text @map("custom_instructions")
-  system_prompt_override String?  @db.Text @map("system_prompt_override")
+  custom_instructions    String? @map("custom_instructions") @db.Text
+  system_prompt_override String? @map("system_prompt_override") @db.Text
 
-  campaign_name          String?  @map("campaign_name")
-  current_offer          String?  @db.Text @map("current_offer")
-  scarcity_message       String?  @db.Text @map("scarcity_message")
+  campaign_name    String? @map("campaign_name")
+  current_offer    String? @map("current_offer") @db.Text
+  scarcity_message String? @map("scarcity_message") @db.Text
 
-  settings               Json?    @default("{}") @map("settings")
+  settings Json? @default("{}") @map("settings")
 
-  tone_instructions      String   @default("Be professional, polite, and concise.")
-  emoji_usage            String   @default("minimal")
-  language_preference    String   @default("vi")
+  tone_instructions   String @default("Be professional, polite, and concise.")
+  emoji_usage         String @default("minimal")
+  language_preference String @default("vi")
 
-  created_at             DateTime @default(now()) @db.Timestamptz(6)
-  updated_at             DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
-  platform_accounts      PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@map("ai_personas")
   @@schema("public")

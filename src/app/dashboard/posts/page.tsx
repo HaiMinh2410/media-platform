@@ -6,8 +6,14 @@ import { PostList } from '@/components/posts/post-list';
 import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import { BatchPublishTracker } from '@/components/publisher/batch-publish-tracker';
 
-export default async function PostsPage() {
+export default async function PostsPage({ 
+  searchParams 
+}: { 
+  searchParams: { batchId?: string } 
+}) {
+  const { batchId } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -41,6 +47,8 @@ export default async function PostsPage() {
           Create Post
         </Link>
       </header>
+      
+      {batchId && <BatchPublishTracker batchId={batchId} />}
 
       <PostList initialPosts={posts || []} workspaceId={workspace.id} />
     </div>

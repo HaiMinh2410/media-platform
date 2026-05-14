@@ -42,11 +42,11 @@ const publishWorker = redisConnection ? new Worker(
           const isVideo = url.match(/\.(mp4|mov|avi|wmv)$|video/i);
           if (isVideo) {
             const { data, error } = await fbAdapter.uploadVideo(platformId, { fileUrl: url });
-            if (error || !data) throw new Error(`FB_VIDEO_UPLOAD_FAILED: ${error}`);
+            if (error || !data) throw new Error(error || 'Lỗi upload video lên Facebook');
             mediaIds.push(data.id);
           } else {
             const { data, error } = await fbAdapter.uploadPhoto(platformId, url);
-            if (error || !data) throw new Error(`FB_PHOTO_UPLOAD_FAILED: ${error}`);
+            if (error || !data) throw new Error(error || 'Lỗi upload ảnh lên Facebook');
             mediaIds.push(data.id);
           }
         }
@@ -57,7 +57,7 @@ const publishWorker = redisConnection ? new Worker(
           mediaIds: mediaIds
         });
 
-        if (publishError || !publishData) throw new Error(`FB_PUBLISH_FAILED: ${publishError}`);
+        if (publishError || !publishData) throw new Error(publishError || 'Lỗi đăng bài lên Facebook');
         platformPostId = publishData.id;
 
       } else if (platform === 'INSTAGRAM') {
@@ -71,11 +71,11 @@ const publishWorker = redisConnection ? new Worker(
           
           if (isVideo) {
             const { data, error } = await igAdapter.createVideoContainer(platformId, url, content);
-            if (error || !data) throw new Error(`IG_VIDEO_CONTAINER_FAILED: ${error}`);
+            if (error || !data) throw new Error(error || 'Lỗi tạo container video Instagram');
             creationId = data.id;
           } else {
             const { data, error } = await igAdapter.createImageContainer(platformId, url, content);
-            if (error || !data) throw new Error(`IG_IMAGE_CONTAINER_FAILED: ${error}`);
+            if (error || !data) throw new Error(error || 'Lỗi tạo container ảnh Instagram');
             creationId = data.id;
           }
         } else if (mediaUrls.length > 1) {
@@ -84,12 +84,12 @@ const publishWorker = redisConnection ? new Worker(
           for (const url of mediaUrls) {
             const isVideo = url.match(/\.(mp4|mov|avi|wmv)$|video/i);
             const { data, error } = await igAdapter.createCarouselItem(platformId, url, !!isVideo);
-            if (error || !data) throw new Error(`IG_CAROUSEL_ITEM_FAILED: ${error}`);
+            if (error || !data) throw new Error(error || 'Lỗi tạo item carousel Instagram');
             itemIds.push(data.id);
           }
 
           const { data, error } = await igAdapter.createCarouselContainer(platformId, itemIds, content);
-          if (error || !data) throw new Error(`IG_CAROUSEL_CONTAINER_FAILED: ${error}`);
+          if (error || !data) throw new Error(error || 'Lỗi tạo carousel Instagram');
           creationId = data.id;
         }
 
@@ -98,7 +98,7 @@ const publishWorker = redisConnection ? new Worker(
         // Note: Đối với IG Video, có thể cần đợi processing. 
         // BullMQ retry logic sẽ giúp handle nếu publish ngay lập tức bị lỗi.
         const { data: publishData, error: publishError } = await igAdapter.publishContainer(platformId, creationId);
-        if (publishError || !publishData) throw new Error(`IG_PUBLISH_FAILED: ${publishError}`);
+        if (publishError || !publishData) throw new Error(publishError || 'Lỗi đăng bài lên Instagram');
         platformPostId = publishData.id;
       }
 

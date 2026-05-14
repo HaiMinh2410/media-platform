@@ -1,5 +1,6 @@
 import { getMetaGraphClient } from '../graph-api.client';
 import { getPublisherTokenRepository } from '../../repositories/publisher-token.repository';
+import { mapMetaError } from '@/utils/meta-error-mapper';
 
 /**
  * Adapter cơ sở cho các thao tác với Meta API.
@@ -33,15 +34,20 @@ export class MetaBaseAdapter {
     if (response.error) {
       const errorDetail = response.details as any;
       
+      // Chuyển đổi sang user-friendly message
+      const friendlyMessage = mapMetaError(errorDetail);
+      
       // Error codes: https://developers.facebook.com/docs/graph-api/overview/error-handling
       if (errorDetail?.code === 190 || errorDetail?.code === 102) {
         console.warn(`[MetaBaseAdapter] Token for account ${accountId} is invalid or expired.`);
-        return { data: null, error: 'TOKEN_INVALID', details: errorDetail };
+        return { data: null, error: friendlyMessage || 'TOKEN_INVALID', details: errorDetail };
       }
  
       if (errorDetail?.code === 4 || errorDetail?.code === 17 || errorDetail?.code === 32) {
-        return { data: null, error: 'RATE_LIMIT_REACHED', details: errorDetail };
+        return { data: null, error: friendlyMessage || 'RATE_LIMIT_REACHED', details: errorDetail };
       }
+
+      return { data: null, error: friendlyMessage || response.error, details: errorDetail };
     }
  
     return response;

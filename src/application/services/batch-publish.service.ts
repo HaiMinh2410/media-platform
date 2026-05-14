@@ -66,5 +66,59 @@ export const batchPublishService = {
       console.error('[BatchPublishService] Execution error:', err);
       return { data: null, error: err.message || 'INTERNAL_SERVER_ERROR' };
     }
+  },
+
+  /**
+   * Thực hiện đăng lại các jobs bị lỗi trong một batch.
+   */
+  async retryFailedJobs(batchId: string) {
+    try {
+      const failedJobs = await db.publishJob.findMany({
+        where: {
+          batch_id: batchId,
+          status: 'FAILED'
+        }
+      });
+
+      if (failedJobs.length === 0) {
+        return { data: [], error: 'NO_FAILED_JOBS' };
+      }
+
+      const results = [];
+
+      for (const job of failedJobs) {
+        // 1. Reset trạng thái về PENDING và tăng retry_count
+        const updatedJob = await db.publishJob.update({
+          where: { id: job.id },
+          data: {
+            status: 'PENDING',
+            error_message: null,
+            retry_count: { increment: 1 }
+          }
+        });
+
+        // 2. Re-enqueue vào BullMQ
+        if (publishQueue) {
+          const payload: PublishJobPayload = {
+            jobId: updatedJob.id,
+            accountId: updatedJob.account_id,
+            platform: updatedJob.platform as 'FACEBOOK' | 'INSTAGRAM',
+            content: updatedJob.content || undefined,
+            mediaUrls: updatedJob.media_urls as string[],
+          };
+
+          await publishQueue.add('publish-task', payload, {
+            jobId: updatedJob.id,
+          });
+        }
+
+        results.push(updatedJob);
+      }
+
+      return { data: results, error: null };
+    } catch (err: any) {
+      console.error('[BatchPublishService] Retry error:', err);
+      return { data: null, error: err.message || 'INTERNAL_SERVER_ERROR' };
+    }
   }
 };

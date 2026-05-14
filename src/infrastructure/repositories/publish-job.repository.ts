@@ -28,6 +28,18 @@ export const publishJobRepository = {
   },
 
   /**
+   * Lấy danh sách các jobs thất bại trong một Batch để thực hiện retry.
+   */
+  async findFailedJobsByBatchId(batchId: string) {
+    return await db.publishJob.findMany({
+      where: {
+        batch_id: batchId,
+        status: 'FAILED'
+      }
+    });
+  },
+
+  /**
    * Cập nhật trạng thái và thông tin kết quả của một job.
    */
   async updateStatus(id: string, data: {
