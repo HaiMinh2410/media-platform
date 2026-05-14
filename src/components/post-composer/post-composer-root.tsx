@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PlatformSelector } from './platform-selector';
+import { AccountPicker } from '@/components/publisher/account-picker';
 import { ContentEditor } from './content-editor';
-import { MediaUploader } from './media-uploader';
+import { MediaUploader, MediaFile } from './media-uploader';
 import { PostPreview } from './post-preview';
 import { SchedulingPanel } from './scheduling-panel';
 import { PlatformAccount } from '@/domain/types/platform-account';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { useValidation } from '@/hooks/use-validation';
 
 type PostComposerRootProps = {
   accounts: PlatformAccount[];
@@ -23,7 +24,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
   // State
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
   const [content, setContent] = useState('');
-  const [mediaFiles, setMediaFiles] = useState<{ id: string; url: string; status: 'uploading' | 'done' | 'error'; type: 'image' | 'video'; progress: number; alt?: string }[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,6 +32,13 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
   const primaryAccountId = selectedAccountIds[0];
   const primaryAccount = accounts.find(a => a.id === primaryAccountId);
   const previewPlatform = primaryAccount?.platform === 'instagram' ? 'instagram' : 'facebook';
+
+  const validation = useValidation({
+    accounts,
+    selectedAccountIds,
+    content,
+    mediaFiles
+  });
 
   const handlePublish = async () => {
     if (selectedAccountIds.length === 0) {
@@ -42,9 +50,19 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
       return;
     }
     
-    // Check if media is still uploading
-    if (mediaFiles.some(f => f.status === 'uploading')) {
-      toast.error('Please wait for media to finish uploading');
+    // Check if media is still uploading or transcoding
+    if (mediaFiles.some(f => f.status === 'uploading' || f.status === 'transcoding')) {
+      toast.error('Please wait for media to finish uploading and processing');
+      return;
+    }
+
+    if (mediaFiles.some(f => f.status === 'error' || f.status === 'transcode_error')) {
+      toast.error('Có lỗi xảy ra với file đính kèm. Vui lòng kiểm tra lại.');
+      return;
+    }
+
+    if (!validation.isValid) {
+      toast.error('Vui lòng khắc phục các lỗi cấu hình trước khi đăng');
       return;
     }
 
@@ -100,7 +118,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
             </div>
           </header>
 
-          <PlatformSelector
+          <AccountPicker
             accounts={accounts}
             selectedIds={selectedAccountIds}
             onChange={setSelectedAccountIds}
@@ -110,11 +128,15 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
             <ContentEditor
               content={content}
               onChange={setContent}
+              maxLength={validation.effectiveLimits.maxLength}
+              issues={validation.issues}
             />
             <MediaUploader
               files={mediaFiles}
               onChange={setMediaFiles}
               workspaceId={workspaceId}
+              maxFiles={validation.effectiveLimits.maxMedia}
+              issues={validation.issues}
             />
           </div>
 

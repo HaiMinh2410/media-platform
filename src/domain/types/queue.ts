@@ -53,6 +53,14 @@ export enum QueueName {
   WEBHOOK_EVENTS = 'webhook-events',
   ANALYTICS_SYNC = 'analytics-sync',
   AI_AGENT_METRICS = 'ai-agent-metrics',
+  MEDIA_TRANSCODING = 'media-transcoding',
+}
+
+export interface MediaTranscodingJobPayload {
+  mediaId: string;
+  workspaceId: string;
+  originalUrl: string;
+  filePath: string;
 }
 
 /**

@@ -1,5 +1,5 @@
-import { webhookQueue } from '@/infrastructure/queue/bullmq.provider';
-import { WebhookJobPayload } from '@/domain/types/queue';
+import { webhookQueue, mediaTranscodingQueue } from '@/infrastructure/queue/bullmq.provider';
+import { WebhookJobPayload, MediaTranscodingJobPayload } from '@/domain/types/queue';
 
 /**
  * Service to manage job enqueuing for background processing.
@@ -34,6 +34,32 @@ export class QueueService {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown queue error';
       console.error(`[QueueService] Failed to enqueue job: ${message}`);
+      return { data: null, error: message };
+    }
+  }
+
+  /**
+   * Enqueues a video for transcoding via BullMQ.
+   */
+  async enqueueMediaTranscoding(payload: MediaTranscodingJobPayload): Promise<{ data: string | null; error: string | null }> {
+    try {
+      if (!mediaTranscodingQueue) {
+        console.error('[QueueService] mediaTranscodingQueue is not initialized.');
+        return { data: null, error: 'QUEUE_NOT_INITIALIZED' };
+      }
+
+      const job = await mediaTranscodingQueue.add(
+        'transcode-video', 
+        payload,
+        { 
+          jobId: `transcode_${payload.mediaId}`,
+        }
+      );
+
+      return { data: job.id ?? null, error: null };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown queue error';
+      console.error(`[QueueService] Failed to enqueue transcoding job: ${message}`);
       return { data: null, error: message };
     }
   }

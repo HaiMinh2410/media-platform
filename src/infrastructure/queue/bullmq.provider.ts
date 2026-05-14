@@ -15,6 +15,8 @@ declare global {
   var redisConnection: IORedis | undefined;
   // eslint-disable-next-line no-var
   var webhookQueue: Queue | undefined;
+  // eslint-disable-next-line no-var
+  var mediaTranscodingQueue: Queue | undefined;
 }
 
 /**
@@ -55,6 +57,25 @@ export const webhookQueue =
 
 if (process.env.NODE_ENV !== 'production' && webhookQueue) {
   globalThis.webhookQueue = webhookQueue;
+}
+
+export const mediaTranscodingQueue = 
+  globalThis.mediaTranscodingQueue ?? 
+  (redisConnection ? new Queue(QueueName.MEDIA_TRANSCODING, {
+    connection: redisConnection,
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 1000,
+      },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  }) : undefined);
+
+if (process.env.NODE_ENV !== 'production' && mediaTranscodingQueue) {
+  globalThis.mediaTranscodingQueue = mediaTranscodingQueue;
 }
 
 if (!redisConnection) {

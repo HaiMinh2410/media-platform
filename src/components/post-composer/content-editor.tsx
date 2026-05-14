@@ -4,13 +4,18 @@ import React from 'react';
 import { Type, Hash, Smile } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { ValidationIssue } from '@/lib/validation/validation-engine';
+
 type ContentEditorProps = {
   content: string;
   onChange: (content: string) => void;
+  maxLength: number;
+  issues: ValidationIssue[];
 };
 
-export function ContentEditor({ content, onChange }: ContentEditorProps) {
+export function ContentEditor({ content, onChange, maxLength, issues }: ContentEditorProps) {
   const charCount = content.length;
+  const contentIssues = issues.filter(i => i.message.includes('ký tự') || i.message.includes('hashtag'));
   
   return (
     <div className="space-y-4">
@@ -18,9 +23,9 @@ export function ContentEditor({ content, onChange }: ContentEditorProps) {
         <label className="text-sm font-bold uppercase tracking-widest text-slate-500">Post Content</label>
         <div className={cn(
           "text-2xs font-bold px-3 py-1 rounded-full bg-black/40 border border-white/5 shadow-inner transition-colors",
-          charCount > 2200 ? "text-red-400 border-red-500/20" : "text-slate-500"
+          charCount > maxLength ? "text-red-400 border-red-500/20" : "text-slate-500"
         )}>
-          {charCount.toLocaleString()} <span className="opacity-40">/</span> 2,200
+          {charCount.toLocaleString()} <span className="opacity-40">/</span> {maxLength === Infinity ? '∞' : maxLength.toLocaleString()}
         </div>
       </div>
 
@@ -41,6 +46,14 @@ export function ContentEditor({ content, onChange }: ContentEditorProps) {
           </button>
         </div>
       </div>
+      
+      {contentIssues.length > 0 && (
+        <div className="flex flex-col gap-1 px-1">
+          {contentIssues.map((issue, idx) => (
+            <span key={idx} className="text-xs font-medium text-red-400">{issue.message}</span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
