@@ -127,6 +127,31 @@ export class MetaGraphClient {
   }
 
   /**
+   * Exchanges a short-lived token for a long-lived token (60 days).
+   */
+  async exchangeLongLivedToken(shortLivedToken: string): Promise<MetaApiResponse<MetaTokenResponse>> {
+    const url = `${this.baseUrl}/oauth/access_token?grant_type=fb_exchange_token&client_id=${this.appId}&client_secret=${this.appSecret}&fb_exchange_token=${shortLivedToken}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { 
+          data: null, 
+          error: data.error?.message || 'FAILED_TO_EXCHANGE_TOKEN',
+          details: data.error
+        };
+      }
+
+      return { data, error: null };
+    } catch (err) {
+      console.error('[MetaGraphClient] exchangeLongLivedToken error:', err);
+      return { data: null, error: 'NETWORK_ERROR' };
+    }
+  }
+
+  /**
    * Universal fetch helper for custom Graph API calls.
    */
   async request<T>(endpoint: string, accessToken: string, params: Record<string, string> = {}): Promise<MetaApiResponse<T>> {
