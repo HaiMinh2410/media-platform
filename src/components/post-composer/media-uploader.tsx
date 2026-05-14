@@ -79,8 +79,16 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
     return () => clearInterval(interval);
   }, []);
 
+  const updateFileStatus = useCallback((id: string, status: MediaFile['status'], progress: number, url?: string, jobId?: string) => {
+    const currentFiles = filesRef.current;
+    const updatedFiles = currentFiles.map((f: MediaFile) => 
+      f.id === id ? { ...f, status, progress, url: url || f.url, ...(jobId ? { jobId } : {}) } : f
+    );
+    onChangeRef.current(updatedFiles);
+  }, []);
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const newFiles: MediaFile[] = acceptedFiles.map(file => ({
+    const placeholders: MediaFile[] = acceptedFiles.map(file => ({
       id: Math.random().toString(36).substring(7),
       url: URL.createObjectURL(file),
       type: file.type.startsWith('video') ? 'video' : 'image',
@@ -88,28 +96,32 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
       progress: 0
     }));
 
-    onChange([...files, ...newFiles]);
+    const initialFiles = [...filesRef.current, ...placeholders];
+    onChangeRef.current(initialFiles);
 
     // Handle uploads
     for (let i = 0; i < acceptedFiles.length; i++) {
       const file = acceptedFiles[i];
-      const placeholder = newFiles[i];
+      const placeholder = placeholders[i];
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${placeholder.id}.${fileExt}`;
       const filePath = `posts/${workspaceId}/${fileName}`;
 
-      const { data, error } = await supabase.storage
-        .from('media')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      try {
+        const { data, error } = await supabase.storage
+          .from('media')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-      if (error) {
-        console.error('Upload error:', error);
-        updateFileStatus(placeholder.id, 'error', 0);
-      } else {
+        if (error) {
+          console.error('Upload error:', error);
+          updateFileStatus(placeholder.id, 'error', 0);
+          continue;
+        }
+
         const { data: { publicUrl } } = supabase.storage
           .from('media')
           .getPublicUrl(filePath);
@@ -138,13 +150,12 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
         } else {
           updateFileStatus(placeholder.id, 'done', 100, publicUrl);
         }
+      } catch (err) {
+        console.error('Processing error:', err);
+        updateFileStatus(placeholder.id, 'error', 0);
       }
     }
-  }, [files, onChange, workspaceId, supabase]);
-
-  const updateFileStatus = (id: string, status: MediaFile['status'], progress: number, url?: string, jobId?: string) => {
-    onChange(files.map((f: MediaFile) => f.id === id ? { ...f, status, progress, url: url || f.url, ...(jobId ? { jobId } : {}) } : f));
-  };
+  }, [workspaceId, supabase]);
 
   const removeFile = (id: string) => {
     onChange(files.filter(f => f.id !== id));
