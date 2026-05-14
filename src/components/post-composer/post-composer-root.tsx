@@ -12,6 +12,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { useValidation } from '@/hooks/use-validation';
+import { useDraft } from '@/hooks/use-draft';
+import { useEffect } from 'react';
 
 type PostComposerRootProps = {
   accounts: PlatformAccount[];
@@ -27,6 +29,38 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { handleAutoSave, clearDraft, getLocalStorageDraft } = useDraft(workspaceId);
+
+  // Restore draft on mount
+  useEffect(() => {
+    const saved = getLocalStorageDraft();
+    if (saved && (saved.content || saved.selectedAccountIds.length > 0 || saved.mediaFiles.length > 0)) {
+      toast('Phát hiện bản nháp cũ', {
+        description: 'Bạn có muốn khôi phục lại nội dung đang viết dở không?',
+        action: {
+          label: 'Khôi phục',
+          onClick: () => {
+            if (saved.content) setContent(saved.content);
+            if (saved.selectedAccountIds) setSelectedAccountIds(saved.selectedAccountIds);
+            if (saved.mediaFiles) setMediaFiles(saved.mediaFiles);
+            toast.success('Đã khôi phục bản nháp');
+          }
+        },
+        duration: 8000,
+      });
+    }
+  }, []); // Run once on mount
+
+  // Auto-save effect
+  useEffect(() => {
+    if (content || selectedAccountIds.length > 0 || mediaFiles.length > 0) {
+      const timer = setTimeout(() => {
+        handleAutoSave({ content, selectedAccountIds, mediaFiles });
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [content, selectedAccountIds, mediaFiles, handleAutoSave]);
 
   // Derived state for preview
   const primaryAccountId = selectedAccountIds[0];
@@ -87,6 +121,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
         toast.error(typeof result.error === 'string' ? result.error : 'Failed to create post');
       } else {
         toast.success(scheduledAt ? 'Post scheduled successfully' : 'Post published successfully');
+        await clearDraft();
         router.push('/dashboard');
         router.refresh();
       }
