@@ -1,20 +1,21 @@
 import { getMetaGraphClient } from '../../infrastructure/meta/graph-api.client';
 import { getTokenEncryptionService } from '../../infrastructure/crypto/token-encryption.service';
 import { getPlatformAccountRepository } from '../../infrastructure/repositories/platform-account.repository';
+import { getPublisherAccountRepository } from '../../infrastructure/repositories/publisher-account.repository';
+import { getPublisherTokenRepository } from '../../infrastructure/repositories/publisher-token.repository';
 import { Platform } from '../../domain/types/platform-account';
 
 export class MetaConnectionService {
+  private publisherAccountRepo = getPublisherAccountRepository();
+  private publisherTokenRepo = getPublisherTokenRepository();
+
   /**
    * Completes the Meta OAuth flow: exchange code, encrypt token, save account.
-   * Logic dọn dẹp: 
-   * 1. Lấy danh sách Pages từ token mới.
-   * 2. Upsert từng Page vào Database.
-   * 3. Ngắt kết nối (soft delete) các Page cũ không có trong danh sách mới.
    */
   async connectAccount(code: string, workspaceId: string, redirectUri: string, profileId: string) {
     const metaClient = getMetaGraphClient();
     const encryption = getTokenEncryptionService();
-    const repository = getPlatformAccountRepository();
+    const repository = getPlatformAccountRepository(); // Vẫn giữ cho hệ thống cũ
 
     console.log('>>> [MetaService] Starting account connection sync...');
 
@@ -24,17 +25,29 @@ export class MetaConnectionService {
       return { data: null, error: tokenResponse.error || 'TOKEN_EXCHANGE_FAILED' };
     }
 
-    const userToken = tokenResponse.data.access_token;
+    let userToken = tokenResponse.data.access_token;
+    let userScopes: string[] = [];
 
-    // 2. Fetch Pages authorized by this token
-    const pagesResponse = await metaClient.getPages(userToken);
-    if (pagesResponse.error || !pagesResponse.data) {
-      // Fallback: If no pages, maybe it's just a user profile? 
-      // But for our platform, we usually expect pages.
-      console.warn('>>> [MetaService] No pages found for this token.');
+    // 1a. Debug token to get scopes and validity
+    const debugResponse = await metaClient.debugToken(userToken);
+    if (debugResponse.data) {
+      userScopes = debugResponse.data.data.scopes;
+      console.log(`>>> [MetaService] Scopes granted: ${userScopes.join(', ')}`);
     }
 
+    // 1b. Exchange for LONG-LIVED user token (60 days)
+    console.log('>>> [MetaService] Exchanging for long-lived user token...');
+    const longLivedResponse = await metaClient.exchangeLongLivedToken(userToken);
+    if (longLivedResponse.data) {
+      userToken = longLivedResponse.data.access_token;
+      console.log('>>> [MetaService] Long-lived token acquired.');
+    }
+
+    // 2. Fetch Pages authorized by this token
+    // Page tokens derived from long-lived user tokens are also long-lived (no expiry)
+    const pagesResponse = await metaClient.getPages(userToken);
     const pages = pagesResponse.data?.data || [];
+    
     const connectedFbIds: string[] = [];
     const connectedIgIds: string[] = [];
 
@@ -42,73 +55,82 @@ export class MetaConnectionService {
     for (const page of pages) {
       console.log(`>>> [MetaService] Syncing page: ${page.name} (${page.id})`);
       
-      const encryptedPageToken = await encryption.encrypt(page.access_token);
-      if (encryptedPageToken.error || !encryptedPageToken.data) continue;
-
-      // Upsert Facebook Page
-      const fbResult = await repository.upsert({
-        profileId,
-        workspaceId,
-        platform: 'facebook' as Platform,
-        externalId: page.id,
+      const pageToken = page.access_token;
+      
+      // --- LƯU VÀO HỆ THỐNG MỚI (Social Publisher Pro) ---
+      const publisherFb = await this.publisherAccountRepo.upsert({
+        profile_id: profileId,
+        platform: 'FACEBOOK',
+        platform_id: page.id,
         name: page.name,
-        accessToken: encryptedPageToken.data,
-        expiresAt: null,
-        metadata: {
-          category: page.category,
-          instagram_id: page.instagram_business_account?.id
-        }
+        avatar_url: `https://graph.facebook.com/${page.id}/picture?type=normal`
       });
 
-      if (fbResult.data) {
+      if (publisherFb.data) {
+        await this.publisherTokenRepo.saveToken(publisherFb.data.id, {
+          accessToken: pageToken,
+          scopes: userScopes,
+          expiresAt: undefined // Page tokens are long-lived and don't expire easily
+        });
         connectedFbIds.push(page.id);
       }
 
-      // Upsert Instagram Account if linked
+      // Instagram Account if linked
       if (page.instagram_business_account) {
         const ig = page.instagram_business_account;
         console.log(`>>> [MetaService] Found linked Instagram: ${ig.id}`);
-        
-        const igResult = await repository.upsert({
-          profileId,
-          workspaceId,
-          platform: 'instagram' as Platform,
-          externalId: ig.id,
-          name: `${page.name} (Instagram)`, // Meta doesn't return IG name here, use Page name as proxy
-          accessToken: encryptedPageToken.data, // IG Messaging uses Page Token
-          expiresAt: null,
-          metadata: {
-            facebook_page_id: page.id
-          }
+
+        const publisherIg = await this.publisherAccountRepo.upsert({
+          profile_id: profileId,
+          platform: 'INSTAGRAM',
+          platform_id: ig.id,
+          name: `${page.name} (Instagram)`,
+          avatar_url: undefined
         });
 
-        if (igResult.data) {
+        if (publisherIg.data) {
+          await this.publisherTokenRepo.saveToken(publisherIg.data.id, {
+            accessToken: pageToken,
+            scopes: userScopes,
+            expiresAt: undefined
+          });
           connectedIgIds.push(ig.id);
         }
       }
-    }
 
-    // 4. Also upsert the User Profile itself
-    const profileResponse = await metaClient.getMe(userToken);
-    if (profileResponse.data) {
-      const encryptedUserToken = await encryption.encrypt(userToken);
-      if (encryptedUserToken.data) {
+      // --- LƯU VÀO HỆ THỐNG CŨ (Inbox/Chat) ---
+      const encryptedPageToken = await encryption.encrypt(pageToken);
+      if (encryptedPageToken.data) {
         await repository.upsert({
           profileId,
           workspaceId,
           platform: 'facebook' as Platform,
-          externalId: profileResponse.data.id,
-          name: `${profileResponse.data.name} (User Profile)`,
-          accessToken: encryptedUserToken.data,
+          externalId: page.id,
+          name: page.name,
+          accessToken: encryptedPageToken.data,
           expiresAt: null,
-          metadata: { is_user_profile: true }
+          metadata: {
+            category: page.category,
+            instagram_id: page.instagram_business_account?.id
+          }
         });
-        connectedFbIds.push(profileResponse.data.id);
+
+        if (page.instagram_business_account) {
+          await repository.upsert({
+            profileId,
+            workspaceId,
+            platform: 'instagram' as Platform,
+            externalId: page.instagram_business_account.id,
+            name: `${page.name} (Instagram)`,
+            accessToken: encryptedPageToken.data,
+            expiresAt: null,
+            metadata: { facebook_page_id: page.id }
+          });
+        }
       }
     }
 
-    // 5. [CLEANUP] Ngắt kết nối các tài khoản cũ
-    console.log('>>> [MetaService] Cleaning up orphaned accounts...');
+    // 4. [CLEANUP] Ngắt kết nối các tài khoản cũ (Hệ thống cũ)
     await repository.cleanupOrphanedAccounts(workspaceId, 'facebook', connectedFbIds);
     await repository.cleanupOrphanedAccounts(workspaceId, 'instagram', connectedIgIds);
 

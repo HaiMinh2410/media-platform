@@ -22,13 +22,15 @@ export async function GET(request: Request) {
     'pages_show_list',
     'pages_read_engagement',
     'pages_messaging',
+    'pages_manage_posts',
     'instagram_basic',
     'instagram_manage_messages',
+    'instagram_business_content_publish',
   ].join(',');
 
   const state = crypto.randomUUID();
 
-  const oauthUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scopes)}`;
+  const oauthUrl = `https://www.facebook.com/v25.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=${encodeURIComponent(scopes)}`;
 
   const response = NextResponse.redirect(oauthUrl);
 

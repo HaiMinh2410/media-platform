@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 
   const finalUrl = result.error 
     ? `${baseUrl}/dashboard/settings/accounts?error=${result.error}`
-    : `${baseUrl}/dashboard/settings/accounts?success=true`;
+    : `${baseUrl}/dashboard/settings/accounts?success=true&fb=${result.data?.facebookCount || 0}&ig=${result.data?.instagramCount || 0}`;
 
   const response = NextResponse.redirect(finalUrl);
 
