@@ -16,7 +16,7 @@ import { useDraft } from '@/hooks/use-draft';
 import { useEffect } from 'react';
 
 type PostComposerRootProps = {
-  accounts: PlatformAccount[];
+  accounts: any[];
   workspaceId: string;
 };
 
@@ -66,7 +66,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
     new Set(
       accounts
         .filter(a => selectedAccountIds.includes(a.id))
-        .map(a => a.platform as 'facebook' | 'instagram')
+        .map(a => a.platform.toLowerCase() as 'facebook' | 'instagram')
     )
   );
 

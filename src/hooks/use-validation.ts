@@ -4,7 +4,7 @@ import { Platform } from '@/lib/validation/platform-constraints';
 import { PlatformAccount } from '@/domain/types/platform-account';
 
 interface UseValidationProps {
-  accounts: PlatformAccount[];
+  accounts: any[];
   selectedAccountIds: string[];
   content: string;
   mediaFiles: { type: 'image' | 'video' }[];
@@ -20,7 +20,7 @@ export function useValidation({
     // Map selected IDs to Platforms
     const selectedPlatforms = accounts
       .filter(a => selectedAccountIds.includes(a.id))
-      .map(a => a.platform as Platform);
+      .map(a => a.platform?.toLowerCase() as Platform);
       
     // Deduplicate platforms so we don't calculate limits redundantly
     const uniquePlatforms = Array.from(new Set(selectedPlatforms));

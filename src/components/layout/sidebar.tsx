@@ -30,7 +30,7 @@ export function Sidebar() {
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isPublisherProEnabled = React.useMemo(() => {
-    return FeatureFlagService.isEnabled(userData?.id, FLAGS.SOCIAL_PUBLISHER_PRO, 10);
+    return FeatureFlagService.isEnabled(userData?.id, FLAGS.SOCIAL_PUBLISHER_PRO, 100);
   }, [userData?.id]);
 
   const NAV_ITEMS = [

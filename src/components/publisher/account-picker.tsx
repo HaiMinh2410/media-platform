@@ -63,10 +63,12 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
       <div className="relative group">
         {/* Horizontal Scroll Area */}
         <div className="flex overflow-x-auto pb-4 gap-3 no-scrollbar scroll-smooth">
-          {accounts.map((account) => {
+          {accounts.map((account: any) => {
             const isSelected = selectedIds.includes(account.id);
-            const isFacebook = account.platform === 'facebook';
-            const isInstagram = account.platform === 'instagram';
+            const platformLower = account.platform?.toLowerCase();
+            const isFacebook = platformLower === 'facebook';
+            const isInstagram = platformLower === 'instagram';
+            const avatarUrl = account.avatar_url || account.metadata?.picture;
 
             return (
               <motion.button
@@ -90,8 +92,8 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
                   "relative w-8 h-8 rounded-full flex items-center justify-center overflow-hidden transition-transform duration-300",
                   isSelected ? "scale-110 shadow-lg" : "bg-slate-800"
                 )}>
-                  {account.metadata?.picture ? (
-                    <img src={account.metadata.picture} alt="" className="w-full h-full object-cover" />
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <User size={14} className={isSelected ? "text-primary" : "text-slate-500"} />
                   )}
