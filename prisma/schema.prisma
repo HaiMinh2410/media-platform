@@ -814,10 +814,45 @@ model profiles {
   full_name         String?
   avatar_url        String?
   updated_at        DateTime            @default(now())
-  platform_accounts PlatformAccount[]
+  platform_accounts  PlatformAccount[]
+  publisher_accounts Account[]
   users             users               @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   workspace_members workspace_members[]
 
+  @@schema("public")
+}
+
+model Account {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile_id  String   @db.Uuid
+  platform    String   // "FACEBOOK", "INSTAGRAM"
+  platform_id String   // ID từ Meta (Page ID hoặc IG Business ID)
+  name        String
+  avatar_url  String?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  
+  token       AccountToken?
+  profile     profiles @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+
+  @@unique([profile_id, platform, platform_id])
+  @@map("publisher_accounts")
+  @@schema("public")
+}
+
+model AccountToken {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id        String   @unique @db.Uuid
+  access_token      String   // Encrypted: iv:authTag:ciphertext
+  refresh_token     String?  // Encrypted
+  scopes            String[]
+  expires_at        DateTime?
+  last_validated_at DateTime @default(now()) @db.Timestamptz(6)
+  
+  account           Account  @relation(fields: [account_id], references: [id], onDelete: Cascade)
+
+  @@map("publisher_tokens")
   @@schema("public")
 }
 
