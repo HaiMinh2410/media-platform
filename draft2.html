@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Wireframe & Dev Prompts</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #080810;
+    --surface: #0f0f1a;
+    --card: #13131f;
+    --border: #1e1e30;
+    --border2: #2a2a3e;
+    --purple: #7c3aed;
+    --purple-light: #a78bfa;
+    --green: #10b981;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --cyan: #06b6d4;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --dim: #334155;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    font-family: 'Syne', sans-serif; 
+    background: var(--bg); 
+    color: var(--text); 
+    min-height: 100vh;
+    padding: 40px;
+  }
+
+  /* ─── HEADER ─── */
+  .doc-header {
+    text-align: center;
+    padding: 60px 0 50px;
+    position: relative;
+  }
+  .doc-header::after {
+    content: '';
+    display: block;
+    width: 120px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--purple), transparent);
+    margin: 30px auto 0;
+  }
+  .doc-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--purple-light);
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .doc-title {
+    font-size: 46px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #e2e8f0 30%, var(--purple-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .doc-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 12px;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+  }
+
+  /* ─── TABLE OF CONTENTS ─── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    max-width: 780px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .toc-title {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .toc-item:hover { background: rgba(124,58,237,0.1); }
+  .toc-num {
+    width: 24px; height: 24px;
+    background: rgba(124,58,237,0.15);
+    color: var(--purple-light);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .toc-text { font-size: 13px; font-weight: 600; }
+  .toc-desc { font-size: 11px; color: var(--muted); }
+
+  /* ─── SECTION BLOCK ─── */
+  .section-block {
+    max-width: 1000px;
+    margin: 0 auto 60px;
+  }
+  .section-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--purple-light);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 6px;
+  }
+  .section-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.6;
+    max-width: 640px;
+  }
+
+  /* ─── WIREFRAME BOX ─── */
+  .wireframe-box {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .wireframe-label {
+    background: var(--card);
+    border-bottom: 1px solid var(--border2);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .wireframe-label span { color: var(--purple-light); }
+  .wireframe-content { padding: 24px; }
+
+  /* ─── WIREFRAME ELEMENTS ─── */
+  .wf-bar { height: 8px; background: var(--border2); border-radius: 4px; margin-bottom: 8px; }
+  .wf-rect {
+    background: var(--card);
+    border: 1px dashed var(--border2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .wf-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+  .wf-grid-2 { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
+  .wf-grid-2-eq { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .wf-card { background: var(--card); border: 1px solid var(--border2); border-radius: 10px; padding: 14px; }
+  .wf-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .wf-progress { height: 4px; background: var(--border2); border-radius: 2px; margin: 8px 0; }
+  .wf-progress-fill { height: 100%; border-radius: 2px; }
+  .wf-label { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--dim); }
+  .wf-value { font-size: 18px; font-weight: 700; }
+  .wf-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+
+  /* Status dots */
+  .dot-green { background: var(--green); }
+  .dot-red { background: var(--red); }
+  .dot-amber { background: var(--amber); }
+  .fill-green { background: var(--green); }
+  .fill-amber { background: var(--amber); }
+  .fill-red { background: var(--red); }
+
+  /* ─── ANNOTATION LAYER ─── */
+  .annotations {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 16px;
+    background: rgba(124,58,237,0.04);
+    border: 1px solid rgba(124,58,237,0.15);
+    border-radius: 10px;
+  }
+  .annotation {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .annotation-num {
+    width: 20px; height: 20px;
+    background: rgba(124,58,237,0.2);
+    color: var(--purple-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+  .annotation strong { color: var(--text); }
+
+  /* ─── PROMPT BLOCK ─── */
+  .prompt-block {
+    background: #0a0a14;
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--purple);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .prompt-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--purple-light);
+    letter-spacing: 0.5px;
+  }
+  .prompt-copy {
+    font-size: 10px;
+    color: var(--dim);
+    cursor: pointer;
+    padding: 3px 10px;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+  .prompt-copy:hover { color: var(--text); }
+  .prompt-body {
+    padding: 20px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: #94a3b8;
+    white-space: pre-wrap;
+  }
+  .p-comment { color: #3d4f6e; }
+  .p-key { color: var(--purple-light); }
+  .p-val { color: var(--cyan); }
+  .p-str { color: var(--green); }
+  .p-imp { color: var(--amber); }
+  .p-section { color: #e2e8f0; font-weight: 600; }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px auto;
+    max-width: 1000px;
+  }
+
+  /* ─── DATA TABLE ─── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--card);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border2);
+  }
+  .data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(124,58,237,0.04); }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .badge-p { background: rgba(124,58,237,0.2); color: var(--purple-light); }
+  .badge-g { background: rgba(16,185,129,0.2); color: var(--green); }
+  .badge-r { background: rgba(239,68,68,0.2); color: var(--red); }
+  .badge-a { background: rgba(245,158,11,0.2); color: var(--amber); }
+
+  /* ─── TECH STACK ─── */
+  .tech-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .tech-pill {
+    padding: 4px 12px;
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+  }
+
+  /* Stats wf */
+  .wf-stat {
+    padding: 14px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+  .wf-stat:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<div class="doc-header">
+  <div class="doc-tag">Phase 1 · Dashboard Spec v1.0</div>
+  <div class="doc-title">Wireframe &<br>Dev Prompts</div>
+  <div class="doc-sub">Tài liệu kỹ thuật · 5 sections · Social Inbox Dashboard</div>
+</div>
+
+<!-- ═══════════════ TOC ═══════════════ -->
+<div class="toc" style="margin-bottom:48px;">
+  <div class="toc-title">// mục lục</div>
+  <div class="toc-grid">
+    <a class="toc-item" href="#s0">
+      <div class="toc-num">00</div>
+      <div><div class="toc-text">Stats Strip</div><div class="toc-desc">Top-level KPI bar</div></div>
+    </a>
+    <a class="toc-item" href="#s1">
+      <div class="toc-num">01</div>
+      <div><div class="toc-text">Account Health Cards</div><div class="toc-desc">4-column status grid</div></div>
+    </a>
+    <a class="toc-item" href="#s2">
+      <div class="toc-num">02</div>
+      <div><div class="toc-text">Inbox Metrics</div><div class="toc-desc">Funnel + lead tag chart</div></div>
+    </a>
+    <a class="toc-item" href="#s3">
+      <div class="toc-num">03</div>
+      <div><div class="toc-text">AI Activity Summary</div><div class="toc-desc">4-tile performance card</div></div>
+    </a>
+    <a class="toc-item" href="#s4">
+      <div class="toc-num">04</div>
+      <div><div class="toc-text">Architecture & API</div><div class="toc-desc">Data flow + state</div></div>
+    </a>
+    <a class="toc-item" href="#s5">
+      <div class="toc-num">05</div>
+      <div><div class="toc-text">Component Checklist</div><div class="toc-desc">Build order + priorities</div></div>
+    </a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+  SECTION 0: STATS STRIP
+══════════════════════════════════════ -->
+<div class="section-block" id="s0">
+  <div class="section-id">// section 00</div>
+  <div class="section-title">Stats Strip</div>
+  <div class="section-desc">Thanh KPI nằm ngay dưới header, hiển thị 4 chỉ số cốt lõi của hệ thống theo thời gian thực. Luôn visible, sticky nếu cần.</div>
+
+  <!-- Wireframe -->
+  <div class="wireframe-box">
+    <div class="wireframe-label">📐 <span>WIREFRAME</span> — Stats Strip (full width, 4 columns)</div>
+    <div class="wireframe-content">
+      <div class="wf-grid-4" style="gap:1px;background:#1e1e30;">
+        <div class="wf-stat" style="padding:16px 20px;">
+          <div class="wf-label">CONNECTED ACCOUNTS</div>
+          <div class="wf-value" style="font-size:26px;margin:4px 0;">4</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--green);">↑ 1 new this week</div>
+        </div>
+        <div class="wf-stat" style="padding:16px 20px;">
+          <div class="wf-label">TOTAL MESSAGES</div>
+          <div class="wf-value" style="font-size:26px;margin:4px 0;">1,247</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--green);">↑ 18% vs yesterday</div>
+        </div>
+        <div class="wf-stat" style="padding:16px 20px;">
+          <div class="wf-label">CONVERSATIONS</div>
+          <div class="wf-value" style="font-size:26px;margin:4px 0;">89</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--green);">↑ 7 active now</div>
+        </div>
+        <div class="wf-stat" style="padding:16px 20px;">
+          <div class="wf-label">WEBHOOK EVENTS</div>
+          <div class="wf-value" style="font-size:26px;margin:4px 0;">3,891</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--red);">↓ 4% vs yesterday</div>
+        </div>
+      </div>
+      <div class="annotations">
+        <div class="annotation"><div class="annotation-num">1</div><div><strong>Real-time update:</strong> poll mỗi 30s hoặc dùng WebSocket. Số liệu animate khi thay đổi (count-up).</div></div>
+        <div class="annotation"><div class="annotation-num">2</div><div><strong>Trend indicator:</strong> so sánh với 24h trước. Green = tăng, Red = giảm. Trend text động từ API.</div></div>
+        <div class="annotation"><div class="annotation-num">3</div><div><strong>Layout:</strong> <code>display:grid; grid-template-columns: repeat(4,1fr); gap:1px</code>. Background gap tạo divider line.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prompt -->
+  <div class="prompt-block">
+    <div class="prompt-header">
+      <div class="prompt-title">🤖 PROMPT — Stats Strip Component</div>
+      <div class="prompt-copy" onclick="copyPrompt(this)">copy</div>
+    </div>
+    <div class="prompt-body"><span class="p-section">Build a React StatsStrip component</span> for a social inbox SaaS dashboard.
+
+<span class="p-key">Design:</span>
+<span class="p-str">- Full-width bar, dark theme (#13131a background, #2a2a3a borders)
+- 4 equal columns with 1px gap separator (no card shadow, flush look)
+- Each stat: uppercase label (11px, #666), large number (28px bold, #e2e8f0),
+  trend line (12px green/red with arrow character ↑↓)</span>
+
+<span class="p-key">Props interface:</span>
+<span class="p-val">type StatItem = {
+  label: string
+  value: number | string
+  trend: string        // e.g. "↑ 18% vs yesterday"
+  trendUp: boolean     // controls green vs red color
+}
+interface StatsStripProps { stats: StatItem[] }</span>
+
+<span class="p-key">Behavior:</span>
+<span class="p-str">- Count-up animation on mount (0 → value in 800ms, easeOut)
+- Re-animate when value changes (highlight flash #7c3aed)
+- If value >= 1000, format with comma: 1,247 not 1247
+- Refresh every 30s via prop callback: onRefresh?: () => void</span>
+
+<span class="p-key">Animation (count-up):</span>
+<span class="p-val">useEffect(() => {
+  const start = 0; const duration = 800;
+  // requestAnimationFrame loop from 0 to targetValue
+  // apply easeOutExpo easing
+}, [value])</span>
+
+<span class="p-imp">No external animation library. Pure CSS + requestAnimationFrame only.</span></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════
+  SECTION 1: ACCOUNT HEALTH CARDS
+══════════════════════════════════════ -->
+<div class="section-block" id="s1">
+  <div class="section-id">// section 01</div>
+  <div class="section-title">Account Health Cards</div>
+  <div class="section-desc">Grid 4 card hiển thị trạng thái từng tài khoản kết nối. Mỗi card có 3 trạng thái: connected / error / warning với UI khác nhau.</div>
+
+  <!-- Wireframe -->
+  <div class="wireframe-box">
+    <div class="wireframe-label">📐 <span>WIREFRAME</span> — Account Health Grid (4 cards × 3 states)</div>
+    <div class="wireframe-content">
+      <div class="wf-grid-4">
+
+        <!-- Card: Connected -->
+        <div class="wf-card" style="border-color:#10b981;position:relative;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#fd5949,#d6249f);display:flex;align-items:center;justify-content:center;font-size:16px;">📸</div>
+            <div class="wf-dot dot-green" style="margin-top:4px;"></div>
+          </div>
+          <div style="font-size:13px;font-weight:700;">IG Sales</div>
+          <div style="font-size:10px;color:var(--dim);margin-bottom:10px;">@ig_sales_official</div>
+          <div class="wf-label" style="margin-bottom:4px;">Response Rate · <span style="color:var(--green);">94%</span></div>
+          <div class="wf-progress"><div class="wf-progress-fill fill-green" style="width:94%;"></div></div>
+          <div style="font-size:10px;color:var(--muted);">Pending · <span style="background:rgba(251,146,60,.2);color:#fb923c;padding:1px 6px;border-radius:10px;">3 msgs</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;">
+            <div style="height:26px;border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);">View</div>
+            <div style="height:26px;border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);">Settings</div>
+          </div>
+        </div>
+
+        <!-- Card: Error -->
+        <div class="wf-card" style="border-color:#ef4444;background:rgba(239,68,68,0.04);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:#1877f2;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;">f</div>
+            <div class="wf-dot dot-red" style="margin-top:4px;animation:pulse-r 1.5s infinite;"></div>
+          </div>
+          <div style="font-size:13px;font-weight:700;">FB Ads Page</div>
+          <div style="font-size:10px;color:var(--red);margin-bottom:8px;">⚠ Access token expired 2h ago</div>
+          <div class="wf-progress"><div class="wf-progress-fill fill-red" style="width:0%;"></div></div>
+          <div style="height:30px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--red);font-weight:600;margin-top:10px;">🔄 Reconnect Now</div>
+        </div>
+
+        <!-- Card: Warning -->
+        <div class="wf-card" style="border-color:#f59e0b;background:rgba(245,158,11,0.03);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#fd5949,#d6249f);display:flex;align-items:center;justify-content:center;font-size:16px;">📸</div>
+            <div class="wf-dot dot-amber" style="margin-top:4px;"></div>
+          </div>
+          <div style="font-size:13px;font-weight:700;">IG Brand 2</div>
+          <div style="font-size:10px;color:var(--dim);margin-bottom:10px;">@ig_brand_vn</div>
+          <div class="wf-label" style="margin-bottom:4px;">Response Rate · <span style="color:var(--amber);">67%</span></div>
+          <div class="wf-progress"><div class="wf-progress-fill fill-amber" style="width:67%;"></div></div>
+          <div style="font-size:10px;color:var(--muted);">Pending · <span style="background:rgba(251,146,60,.2);color:#fb923c;padding:1px 6px;border-radius:10px;">12 msgs</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;">
+            <div style="height:26px;border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);">View</div>
+            <div style="height:26px;border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);">Settings</div>
+          </div>
+        </div>
+
+        <!-- Card: Connected 2 -->
+        <div class="wf-card" style="border-color:#10b981;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:#1877f2;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;">f</div>
+            <div class="wf-dot dot-green" style="margin-top:4px;"></div>
+          </div>
+          <div style="font-size:13px;font-weight:700;">FB Community</div>
+          <div style="font-size:10px;color:var(--dim);margin-bottom:10px;">@community_page</div>
+          <div class="wf-label" style="margin-bottom:4px;">Response Rate · <span style="color:var(--green);">88%</span></div>
+          <div class="wf-progress"><div class="wf-progress-fill fill-green" style="width:88%;"></div></div>
+          <div style="font-size:10px;color:var(--muted);">Pending · <span style="background:rgba(251,146,60,.2);color:#fb923c;padding:1px 6px;border-radius:10px;">1 msg</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;">
+            <div style="height:26px;border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);">View</div>
+            <div style="height:26px;border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);">Settings</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="annotations" style="margin-top:16px;">
+        <div class="annotation"><div class="annotation-num">1</div><div><strong>3 states:</strong> <code>status: 'connected' | 'error' | 'warning'</code> — border màu, background tint, và nội dung bên trong thay đổi hoàn toàn.</div></div>
+        <div class="annotation"><div class="annotation-num">2</div><div><strong>Error state:</strong> Ẩn View/Settings, hiện "Reconnect" CTA + error reason text màu đỏ. Status dot animate pulse.</div></div>
+        <div class="annotation"><div class="annotation-num">3</div><div><strong>Warning state:</strong> Response rate < 80% → màu amber. Pending > 10 → pending badge đổi màu cam đậm hơn.</div></div>
+        <div class="annotation"><div class="annotation-num">4</div><div><strong>Progress bar:</strong> green nếu ≥80%, amber nếu 50–79%, red nếu <50%. Width = responseRate%.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- State Table -->
+  <div class="wireframe-box" style="margin-bottom:24px;">
+    <div class="wireframe-label">📊 <span>STATE MATRIX</span> — Card visual per status</div>
+    <div class="wireframe-content" style="padding:0;">
+      <table class="data-table">
+        <thead>
+          <tr><th>Property</th><th>connected</th><th>error</th><th>warning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Border</td><td style="color:var(--green);">#10b981</td><td style="color:var(--red);">#ef4444</td><td style="color:var(--amber);">#f59e0b</td></tr>
+          <tr><td>Status Dot</td><td><span class="badge badge-g">green pulse</span></td><td><span class="badge badge-r">red pulse fast</span></td><td><span class="badge badge-a">amber static</span></td></tr>
+          <tr><td>Background tint</td><td>none</td><td>rgba(239,68,68,.04)</td><td>rgba(245,158,11,.03)</td></tr>
+          <tr><td>Footer actions</td><td>View + Settings</td><td>Reconnect CTA</td><td>View + Settings</td></tr>
+          <tr><td>Metric display</td><td>Normal</td><td>"—" in red</td><td>Amber colored</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Prompt -->
+  <div class="prompt-block">
+    <div class="prompt-header">
+      <div class="prompt-title">🤖 PROMPT — AccountHealthCard Component</div>
+      <div class="prompt-copy" onclick="copyPrompt(this)">copy</div>
+    </div>
+    <div class="prompt-body"><span class="p-section">Build a React AccountHealthCard component</span> for a social media management dashboard.
+
+<span class="p-key">TypeScript interface:</span>
+<span class="p-val">type AccountStatus = 'connected' | 'error' | 'warning'
+type Platform = 'instagram' | 'facebook'
+
+interface AccountCardProps {
+  id: string
+  platform: Platform
+  name: string
+  handle: string
+  status: AccountStatus
+  responseRate: number        // 0-100
+  pendingCount: number
+  lastActive: string          // "2 min ago"
+  errorReason?: string        // only when status === 'error'
+  isNew?: boolean
+  onReconnect?: (id: string) => void
+  onView?: (id: string) => void
+  onSettings?: (id: string) => void
+}</span>
+
+<span class="p-key">Visual rules:</span>
+<span class="p-str">- Platform icon: IG = gradient circle emoji, FB = blue square with "f"
+- Border color: connected=#10b981, error=#ef4444, warning=#f59e0b
+- Background tint: error=rgba(239,68,68,0.04), warning=rgba(245,158,11,0.03)
+- Status dot: 10px circle. error → CSS animation pulse-red (scale + opacity)
+- Progress bar color: ≥80% green, 50-79% amber, <50% red, 0 if error
+- Pending badge: orange pill, if pendingCount > 10 → deeper orange</span>
+
+<span class="p-key">Conditional rendering:</span>
+<span class="p-str">if status === 'error':
+  - Hide View/Settings buttons
+  - Show full-width red "🔄 Reconnect Now" button
+  - Show errorReason below handle (red, 11px)
+  - responseRate display → "—" in red
+
+if isNew === true:
+  - Show <span style="badge-new"> NEW badge next to name</span></span>
+
+<span class="p-key">Grid layout (parent):</span>
+<span class="p-val">display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 14px;</span>
+
+<span class="p-imp">No hardcoded data. All props-driven. Responsive: collapse to 2-col on tablet, 1-col on mobile.</span></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════
+  SECTION 2: INBOX METRICS
+══════════════════════════════════════ -->
+<div class="section-block" id="s2">
+  <div class="section-id">// section 02</div>
+  <div class="section-title">Inbox Metrics</div>
+  <div class="section-desc">Panel lớn chiếm 58% chiều ngang. Bên trái: account switcher sidebar. Bên phải: 2 chart — funnel xử lý tin nhắn + phân bổ lead tag AI.</div>
+
+  <div class="wireframe-box">
+    <div class="wireframe-label">📐 <span>WIREFRAME</span> — Inbox Metrics Panel</div>
+    <div class="wireframe-content">
+      <!-- Panel header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div style="font-size:14px;font-weight:700;">📥 Inbox Metrics — Phễu Hội Thoại</div>
+        <div style="display:flex;gap:4px;">
+          <div style="padding:4px 10px;border-radius:6px;background:var(--purple);font-size:10px;font-family:monospace;">24h</div>
+          <div style="padding:4px 10px;border-radius:6px;border:1px solid var(--border2);font-size:10px;font-family:monospace;color:var(--dim);">7 ngày</div>
+          <div style="padding:4px 10px;border-radius:6px;border:1px solid var(--border2);font-size:10px;font-family:monospace;color:var(--dim);">30 ngày</div>
+        </div>
+      </div>
+      <!-- Body: account switcher + charts -->
+      <div style="display:grid;grid-template-columns:130px 1fr;gap:20px;">
+        <!-- Switcher -->
+        <div style="border-right:1px solid var(--border2);padding-right:16px;">
+          <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;padding:0 8px 8px;">Chọn TK</div>
+          <div style="background:rgba(124,58,237,.15);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--purple-light);font-weight:600;margin-bottom:4px;">🌐 Tất cả</div>
+          <div style="padding:8px 10px;font-size:11px;color:var(--dim);margin-bottom:4px;">📸 IG Sales</div>
+          <div style="padding:8px 10px;font-size:11px;color:var(--dim);margin-bottom:4px;">f FB Ads</div>
+          <div style="padding:8px 10px;font-size:11px;color:var(--dim);margin-bottom:4px;">📸 IG Brand 2</div>
+          <div style="padding:8px 10px;font-size:11px;color:var(--dim);">f FB Comm</div>
+        </div>
+        <!-- Charts -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <!-- Funnel Chart -->
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Phễu xử lý tin nhắn</div>
+            <div style="margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>📨 Tổng đến</span><span>1,247</span></div>
+              <div style="height:28px;background:var(--border2);border-radius:6px;overflow:hidden;">
+                <div style="height:100%;width:100%;background:linear-gradient(90deg,#6d28d9,#7c3aed);display:flex;align-items:center;padding-left:10px;font-size:11px;color:white;font-weight:600;">1,247</div>
+              </div>
+            </div>
+            <div style="margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>🤖 AI xử lý</span><span>834 (67%)</span></div>
+              <div style="height:28px;background:var(--border2);border-radius:6px;overflow:hidden;">
+                <div style="height:100%;width:67%;background:linear-gradient(90deg,#0891b2,#06b6d4);display:flex;align-items:center;padding-left:10px;font-size:11px;color:white;font-weight:600;">834</div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;"><span>👤 Cần người</span><span>413 (33%)</span></div>
+              <div style="height:28px;background:var(--border2);border-radius:6px;overflow:hidden;">
+                <div style="height:100%;width:33%;background:linear-gradient(90deg,#c2410c,#ea580c);display:flex;align-items:center;padding-left:10px;font-size:11px;color:white;font-weight:600;">413</div>
+              </div>
+            </div>
+          </div>
+          <!-- Tag Distribution -->
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Phân bổ Lead theo AI Tag</div>
+            <div style="display:flex;gap:14px;align-items:center;">
+              <div style="width:38px;height:140px;background:var(--border2);border-radius:6px;overflow:hidden;display:flex;flex-direction:column-reverse;">
+                <div style="height:32%;background:#3b82f6;width:100%;"></div>
+                <div style="height:45%;background:#f97316;width:100%;"></div>
+                <div style="height:23%;background:#ef4444;width:100%;"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:10px;height:10px;border-radius:3px;background:#ef4444;flex-shrink:0;"></div>
+                  <div><div style="font-size:13px;font-weight:700;">287 <span style="font-size:10px;color:var(--dim);font-weight:400;">23%</span></div><div style="font-size:10px;color:var(--muted);">🔥 Hot Lead</div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:10px;height:10px;border-radius:3px;background:#f97316;flex-shrink:0;"></div>
+                  <div><div style="font-size:13px;font-weight:700;">561 <span style="font-size:10px;color:var(--dim);font-weight:400;">45%</span></div><div style="font-size:10px;color:var(--muted);">🌡 Warm Lead</div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:10px;height:10px;border-radius:3px;background:#3b82f6;flex-shrink:0;"></div>
+                  <div><div style="font-size:13px;font-weight:700;">399 <span style="font-size:10px;color:var(--dim);font-weight:400;">32%</span></div><div style="font-size:10px;color:var(--muted);">❄️ Cold Lead</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="annotations" style="margin-top:16px;">
+        <div class="annotation"><div class="annotation-num">1</div><div><strong>Account switcher:</strong> click thay đổi dữ liệu cả 2 chart. State: <code>selectedAccount: string | 'all'</code>. Fetch lại data khi switch.</div></div>
+        <div class="annotation"><div class="annotation-num">2</div><div><strong>Funnel bars:</strong> width animate từ 0 → targetWidth khi mount hoặc khi data thay đổi. CSS transition: 0.8s ease.</div></div>
+        <div class="annotation"><div class="annotation-num">3</div><div><strong>Date toggle:</strong> 3 options (24h / 7d / 30d). Thay đổi query params khi fetch. Active state: purple background.</div></div>
+        <div class="annotation"><div class="annotation-num">4</div><div><strong>Stacked bar chart:</strong> 3 segment màu xếp chồng theo chiều dọc. Height % = tỉ lệ lead type. Không dùng chart library, thuần CSS.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-header">
+      <div class="prompt-title">🤖 PROMPT — InboxMetricsPanel Component</div>
+      <div class="prompt-copy" onclick="copyPrompt(this)">copy</div>
+    </div>
+    <div class="prompt-body"><span class="p-section">Build a React InboxMetricsPanel component</span> with funnel chart + lead distribution chart.
+
+<span class="p-key">Data types:</span>
+<span class="p-val">interface FunnelData {
+  total: number
+  aiHandled: number       // aiHandled / total = AI rate %
+  humanHandled: number
+}
+
+interface LeadDistribution {
+  hot: number
+  warm: number
+  cold: number
+}
+
+interface InboxMetricsProps {
+  accounts: { id: string; name: string; platform: 'ig' | 'fb' }[]
+  onFetch: (accountId: string | 'all', period: '24h' | '7d' | '30d') => Promise<{
+    funnel: FunnelData
+    leads: LeadDistribution
+  }>
+}</span>
+
+<span class="p-key">Layout (CSS Grid):</span>
+<span class="p-str">Parent: grid-template-columns: 130px 1fr
+Inner charts: grid-template-columns: 1fr 1fr
+Account switcher: flex-col, border-right divider</span>
+
+<span class="p-key">Funnel chart (no library — pure CSS):</span>
+<span class="p-str">- 3 horizontal bars: Total / AI / Human
+- Width: total=100%, ai=(aiHandled/total*100)%, human=(humanHandled/total*100)%
+- Gradients: total=purple, ai=cyan, human=orange
+- Animate width 0→target on mount and on data change
+- Show count + percentage in label row above each bar</span>
+
+<span class="p-key">Stacked bar chart (no library — pure CSS):</span>
+<span class="p-str">- Single vertical bar 38px wide × 140px tall
+- 3 segments stacked: hot(red)=top, warm(orange)=mid, cold(blue)=bottom
+- Heights proportional to counts
+- Legend right-side: color dot + count bold + percentage muted + label</span>
+
+<span class="p-key">State management:</span>
+<span class="p-val">const [selectedAccount, setSelectedAccount] = useState&lt;string&gt;('all')
+const [period, setPeriod] = useState&lt;'24h' | '7d' | '30d'&gt;('24h')
+const [data, setData] = useState&lt;...&gt;(null)
+const [loading, setLoading] = useState(true)
+
+useEffect(() => {
+  setLoading(true)
+  onFetch(selectedAccount, period).then(setData).finally(...)
+}, [selectedAccount, period])</span>
+
+<span class="p-imp">Show skeleton loader (shimmer bars) while loading. No recharts/chart.js — pure CSS only.</span></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════
+  SECTION 3: AI ACTIVITY SUMMARY
+══════════════════════════════════════ -->
+<div class="section-block" id="s3">
+  <div class="section-id">// section 03</div>
+  <div class="section-title">AI Activity Summary</div>
+  <div class="section-desc">Panel nhỏ 2×2 grid bên phải của Inbox Metrics. 4 tile hiển thị hiệu suất AI theo thời gian thực: time saved, satisfaction, message count, response latency.</div>
+
+  <div class="wireframe-box">
+    <div class="wireframe-label">📐 <span>WIREFRAME</span> — AI Summary (2×2 tile grid)</div>
+    <div class="wireframe-content">
+      <div class="wf-grid-2-eq" style="gap:10px;">
+        <!-- Tile 1 -->
+        <div style="background:var(--card);border-radius:10px;padding:14px;border:1px solid var(--border2);border-top:2px solid var(--purple);">
+          <div style="font-size:18px;margin-bottom:6px;">⏱</div>
+          <div style="font-size:22px;font-weight:700;">4.2h</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Tiết kiệm hôm nay</div>
+          <div style="font-size:10px;color:var(--green);margin-top:4px;">↑ +0.8h vs hôm qua</div>
+        </div>
+        <!-- Tile 2 -->
+        <div style="background:var(--card);border-radius:10px;padding:14px;border:1px solid var(--border2);border-top:2px solid var(--green);">
+          <div style="font-size:18px;margin-bottom:6px;">😊</div>
+          <div style="font-size:22px;font-weight:700;">85%</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Khách hài lòng với AI</div>
+          <div style="font-size:10px;color:var(--amber);margin-top:4px;">→ ổn định</div>
+        </div>
+        <!-- Tile 3 -->
+        <div style="background:var(--card);border-radius:10px;padding:14px;border:1px solid var(--border2);border-top:2px solid #2563eb;">
+          <div style="font-size:18px;margin-bottom:6px;">🤖</div>
+          <div style="font-size:22px;font-weight:700;">834</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Tin nhắn AI đã xử lý</div>
+          <div style="font-size:10px;color:var(--green);margin-top:4px;">↑ +12% vs hôm qua</div>
+        </div>
+        <!-- Tile 4 -->
+        <div style="background:var(--card);border-radius:10px;padding:14px;border:1px solid var(--border2);border-top:2px solid var(--amber);">
+          <div style="font-size:18px;margin-bottom:6px;">⚡</div>
+          <div style="font-size:22px;font-weight:700;color:var(--green);">1.2s</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Thời gian phản hồi TB</div>
+          <div style="font-size:10px;color:var(--green);margin-top:4px;">Excellent</div>
+        </div>
+      </div>
+      <!-- Shimmer -->
+      <div style="margin-top:12px;background:var(--card);border-radius:10px;padding:12px;border:1px solid var(--border2);">
+        <div style="font-size:10px;color:var(--dim);margin-bottom:8px;">AI đang soạn draft...</div>
+        <div style="height:12px;background:linear-gradient(90deg,#1a1a25 25%,#252535 50%,#1a1a25 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;width:70%;"></div>
+        <div style="height:12px;background:linear-gradient(90deg,#1a1a25 25%,#252535 50%,#1a1a25 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;width:45%;margin-top:6px;"></div>
+      </div>
+      <div class="annotations" style="margin-top:16px;">
+        <div class="annotation"><div class="annotation-num">1</div><div><strong>Top border accent:</strong> mỗi tile có <code>border-top: 2px solid [color]</code> khác nhau. Màu map theo metric type.</div></div>
+        <div class="annotation"><div class="annotation-num">2</div><div><strong>Trend logic:</strong> up (green ↑) / stable (amber →) / down (red ↓). Computed từ so sánh với previous period.</div></div>
+        <div class="annotation"><div class="annotation-num">3</div><div><strong>Response time color:</strong> <1.5s = green "Excellent", 1.5-3s = amber "Good", >3s = red "Slow".</div></div>
+        <div class="annotation"><div class="annotation-num">4</div><div><strong>Shimmer block:</strong> hiển thị khi AI đang generate draft. Hide khi không có active AI task.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-header">
+      <div class="prompt-title">🤖 PROMPT — AISummaryPanel Component</div>
+      <div class="prompt-copy" onclick="copyPrompt(this)">copy</div>
+    </div>
+    <div class="prompt-body"><span class="p-section">Build a React AISummaryPanel component</span> — 2×2 metric tile grid for AI performance.
+
+<span class="p-key">Data interface:</span>
+<span class="p-val">interface AISummaryData {
+  timeSavedHours: number         // e.g. 4.2
+  timeSavedTrend: number         // delta vs yesterday in hours
+  satisfactionRate: number       // 0-100
+  satisfactionStatus: 'up' | 'stable' | 'down'
+  messagesHandled: number
+  messagesTrendPct: number       // % change vs yesterday
+  avgResponseSec: number         // e.g. 1.2
+  isAiDrafting: boolean          // show shimmer if true
+}
+
+interface AISummaryProps {
+  data: AISummaryData
+  loading?: boolean
+}</span>
+
+<span class="p-key">Tile config (hardcode the 4 tiles):</span>
+<span class="p-str">Tile 1 — Time Saved:
+  icon: ⏱, accentColor: #7c3aed
+  value: `${timeSavedHours}h`
+  trend: `↑ +${timeSavedTrend}h vs hôm qua`
+
+Tile 2 — Satisfaction:
+  icon: 😊, accentColor: #10b981
+  value: `${satisfactionRate}%`
+  trend: status map → up=green↑, stable=amber→, down=red↓
+
+Tile 3 — Messages Handled:
+  icon: 🤖, accentColor: #2563eb
+  value: messagesHandled (formatted with comma)
+  trend: `↑ +${messagesTrendPct}% vs hôm qua`
+
+Tile 4 — Response Time:
+  icon: ⚡, accentColor: #d97706
+  value: `${avgResponseSec}s`
+  valueColor: <1.5=green, 1.5-3=amber, >3=red
+  trend: <1.5="Excellent", 1.5-3="Good", >3="Slow"</span>
+
+<span class="p-key">Shimmer block (bottom):</span>
+<span class="p-str">Show if isAiDrafting === true:
+  - "AI đang soạn draft..." label
+  - 2 animated shimmer bars (70% + 45% width)
+  - CSS: background-size 200%, keyframe slides left-to-right</span>
+
+<span class="p-imp">When loading=true: replace all tile values with skeleton shimmer rectangles.
+2×2 grid layout: display:grid; grid-template-columns:1fr 1fr; gap:12px</span></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════
+  SECTION 4: ARCHITECTURE & DATA FLOW
+══════════════════════════════════════ -->
+<div class="section-block" id="s4">
+  <div class="section-id">// section 04</div>
+  <div class="section-title">Architecture & API</div>
+  <div class="section-desc">Luồng dữ liệu từ backend → React state → components. Tech stack đề xuất và endpoint structure.</div>
+
+  <div class="wireframe-box">
+    <div class="wireframe-label">🔗 <span>DATA FLOW</span> — Dashboard state architecture</div>
+    <div class="wireframe-content">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2;color:var(--muted);">
+        <div style="color:var(--cyan);">[ Backend API / Webhook Server ]</div>
+        <div>  ↓ REST polling (30s) + optional WebSocket</div>
+        <div style="color:var(--purple-light);">[ React Query / SWR (data fetching layer) ]</div>
+        <div>  ├── useAccountsQuery()     → GET /api/accounts</div>
+        <div>  ├── useStatsQuery()        → GET /api/stats/overview</div>
+        <div>  ├── useInboxMetrics()      → GET /api/inbox/metrics?account=&period=</div>
+        <div>  └── useAISummary()         → GET /api/ai/summary</div>
+        <div style="color:var(--green);">[ Dashboard.tsx (root component) ]</div>
+        <div>  ├── &lt;StatsStrip /&gt;          (stats data)</div>
+        <div>  ├── &lt;AccountHealthGrid /&gt;  (accounts array)</div>
+        <div>  └── &lt;TwoColumnLayout&gt;</div>
+        <div>        ├── &lt;InboxMetricsPanel /&gt;</div>
+        <div>        └── &lt;AISummaryPanel /&gt;</div>
+      </div>
+      <div class="annotations" style="margin-top:16px;">
+        <div class="annotation"><div class="annotation-num">A</div><div><strong>Polling strategy:</strong> Stats + AI Summary poll mỗi 30s. Account status poll mỗi 60s. Inbox metrics chỉ fetch khi user thay đổi filter.</div></div>
+        <div class="annotation"><div class="annotation-num">B</div><div><strong>Error boundary:</strong> mỗi panel bọc trong ErrorBoundary. Nếu 1 API fail → chỉ panel đó show error state, không crash toàn dashboard.</div></div>
+        <div class="annotation"><div class="annotation-num">C</div><div><strong>WebSocket events:</strong> khi có tin nhắn mới, server push event → invalidate <code>useStatsQuery</code> để re-fetch.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wireframe-box">
+    <div class="wireframe-label">📦 <span>TECH STACK</span></div>
+    <div class="wireframe-content" style="padding:0;">
+      <table class="data-table">
+        <thead><tr><th>Layer</th><th>Thư viện / Tool</th><th>Lý do chọn</th></tr></thead>
+        <tbody>
+          <tr><td>Framework</td><td><span class="badge badge-p">React 18 + TypeScript</span></td><td>Component model phù hợp với dashboard cards</td></tr>
+          <tr><td>Styling</td><td><span class="badge badge-a">Tailwind CSS + CSS vars</span></td><td>Utility classes + dark theme via CSS variables</td></tr>
+          <tr><td>Data fetch</td><td><span class="badge badge-g">TanStack Query v5</span></td><td>Polling, caching, background refresh tự động</td></tr>
+          <tr><td>Charts</td><td><span class="badge badge-g">Pure CSS (no library)</span></td><td>Funnel + stacked bar đơn giản, không cần lib</td></tr>
+          <tr><td>Animation</td><td><span class="badge badge-p">CSS keyframes + RAF</span></td><td>Count-up, shimmer, pulse dots — không cần Framer</td></tr>
+          <tr><td>State</td><td><span class="badge badge-a">useState + useReducer</span></td><td>Local UI state, không cần Redux/Zustand</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="prompt-block">
+    <div class="prompt-header">
+      <div class="prompt-title">🤖 PROMPT — Dashboard Root + Data Fetching</div>
+      <div class="prompt-copy" onclick="copyPrompt(this)">copy</div>
+    </div>
+    <div class="prompt-body"><span class="p-section">Build the Dashboard root component</span> with TanStack Query data fetching.
+
+<span class="p-key">File: Dashboard.tsx</span>
+<span class="p-val">// Queries to set up:
+const { data: stats } = useQuery({
+  queryKey: ['stats'],
+  queryFn: () => fetch('/api/stats/overview').then(r => r.json()),
+  refetchInterval: 30_000,   // 30s polling
+})
+
+const { data: accounts } = useQuery({
+  queryKey: ['accounts'],
+  queryFn: () => fetch('/api/accounts').then(r => r.json()),
+  refetchInterval: 60_000,
+})
+
+const { data: aiSummary } = useQuery({
+  queryKey: ['ai-summary'],
+  queryFn: () => fetch('/api/ai/summary').then(r => r.json()),
+  refetchInterval: 30_000,
+})</span>
+
+<span class="p-key">Layout structure:</span>
+<span class="p-val">&lt;div className="dashboard"&gt;
+  &lt;StatsStrip stats={stats?.items ?? []} /&gt;
+  &lt;main className="dashboard-main"&gt;
+    &lt;AccountHealthGrid accounts={accounts ?? []} /&gt;
+    &lt;div className="two-col-layout"&gt;     {/* 58% + 42% */}
+      &lt;InboxMetricsPanel accounts={accounts ?? []} /&gt;
+      &lt;AISummaryPanel data={aiSummary} loading={!aiSummary} /&gt;
+    &lt;/div&gt;
+  &lt;/main&gt;
+&lt;/div&gt;</span>
+
+<span class="p-key">InboxMetrics fetch (with filters):</span>
+<span class="p-val">// Inside InboxMetricsPanel:
+const { data } = useQuery({
+  queryKey: ['inbox-metrics', selectedAccount, period],
+  queryFn: () => fetch(
+    `/api/inbox/metrics?account=${selectedAccount}&period=${period}`
+  ).then(r => r.json()),
+})</span>
+
+<span class="p-imp">Wrap each panel in React ErrorBoundary.
+Use Suspense with skeleton fallback for initial load.
+All queries share a QueryClient with staleTime: 25_000.</span></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══════════════════════════════════════
+  SECTION 5: COMPONENT CHECKLIST
+══════════════════════════════════════ -->
+<div class="section-block" id="s5">
+  <div class="section-id">// section 05</div>
+  <div class="section-title">Component Checklist</div>
+  <div class="section-desc">Thứ tự build và độ ưu tiên cho từng component. Build từ bottom-up: atoms → molecules → organisms → page.</div>
+
+  <div class="wireframe-box">
+    <div class="wireframe-label">✅ <span>BUILD ORDER</span> — Priority + estimated effort</div>
+    <div class="wireframe-content" style="padding:0;">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Component</th><th>Priority</th><th>Effort</th><th>Dependencies</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>StatusDot</code> — animated green/red/amber dot</td><td><span class="badge badge-r">P0</span></td><td>~30min</td><td>none</td></tr>
+          <tr><td>2</td><td><code>ProgressBar</code> — colored, animated fill</td><td><span class="badge badge-r">P0</span></td><td>~20min</td><td>none</td></tr>
+          <tr><td>3</td><td><code>PendingBadge</code> — count pill</td><td><span class="badge badge-r">P0</span></td><td>~15min</td><td>none</td></tr>
+          <tr><td>4</td><td><code>ShimmerBlock</code> — loading skeleton</td><td><span class="badge badge-r">P0</span></td><td>~20min</td><td>none</td></tr>
+          <tr><td>5</td><td><code>StatsStrip</code> — 4-column KPI bar</td><td><span class="badge badge-r">P0</span></td><td>~1h</td><td>count-up animation</td></tr>
+          <tr><td>6</td><td><code>AccountHealthCard</code> — 3 states</td><td><span class="badge badge-r">P0</span></td><td>~2h</td><td>StatusDot, ProgressBar, PendingBadge</td></tr>
+          <tr><td>7</td><td><code>AccountHealthGrid</code> — 4-col wrapper</td><td><span class="badge badge-r">P0</span></td><td>~30min</td><td>AccountHealthCard</td></tr>
+          <tr><td>8</td><td><code>FunnelChart</code> — 3 horizontal bars</td><td><span class="badge badge-p">P1</span></td><td>~1.5h</td><td>none (pure CSS)</td></tr>
+          <tr><td>9</td><td><code>LeadTagChart</code> — stacked vertical bar</td><td><span class="badge badge-p">P1</span></td><td>~1.5h</td><td>none (pure CSS)</td></tr>
+          <tr><td>10</td><td><code>AccountSwitcher</code> — sidebar filter list</td><td><span class="badge badge-p">P1</span></td><td>~45min</td><td>none</td></tr>
+          <tr><td>11</td><td><code>InboxMetricsPanel</code> — full panel</td><td><span class="badge badge-p">P1</span></td><td>~1h</td><td>FunnelChart, LeadTagChart, AccountSwitcher</td></tr>
+          <tr><td>12</td><td><code>AISummaryTile</code> — single metric tile</td><td><span class="badge badge-g">P2</span></td><td>~30min</td><td>none</td></tr>
+          <tr><td>13</td><td><code>AISummaryPanel</code> — 2×2 grid</td><td><span class="badge badge-g">P2</span></td><td>~1h</td><td>AISummaryTile, ShimmerBlock</td></tr>
+          <tr><td>14</td><td><code>Dashboard</code> — root + data fetching</td><td><span class="badge badge-g">P2</span></td><td>~2h</td><td>ALL above + TanStack Query</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;padding:20px;background:var(--surface);border:1px solid var(--border2);border-radius:12px;max-width:1000px;">
+    <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase;">// tech stack tổng hợp</div>
+    <div class="tech-pills">
+      <div class="tech-pill">React 18</div>
+      <div class="tech-pill">TypeScript 5</div>
+      <div class="tech-pill">TanStack Query v5</div>
+      <div class="tech-pill">Tailwind CSS 3</div>
+      <div class="tech-pill">CSS Custom Properties</div>
+      <div class="tech-pill">CSS Keyframe Animations</div>
+      <div class="tech-pill">requestAnimationFrame</div>
+      <div class="tech-pill">CSS Grid / Flexbox</div>
+      <div class="tech-pill">React Error Boundary</div>
+      <div class="tech-pill">React Suspense</div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div style="text-align:center;padding:60px 0 40px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);">
+  Dashboard Phase 1 · Wireframe & Dev Prompts · v1.0
+</div>
+
+<style>
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  @keyframes pulse-r { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+</style>
+
+<script>
+function copyPrompt(btn) {
+  const block = btn.closest('.prompt-block').querySelector('.prompt-body');
+  const text = block.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied!';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'copy'; btn.style.color = ''; }, 2000);
+  });
+}
+</script>
+
+</body>
+</html>

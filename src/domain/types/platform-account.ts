@@ -22,3 +22,17 @@ export type PlatformAccount = {
   avatar_url?: string;
   metadata?: any;
 };
+
+export interface AccountHealthData {
+  id: string;
+  platform: string;
+  platform_user_name: string;
+  platform_user_id: string;
+  status: 'connected' | 'error' | 'warning';
+  responseRate: number;
+  pendingCount: number;
+  lastActiveAt: Date | null;
+  tokenExpiresAt: Date | null;
+  errorReason: string | null;
+  isNew: boolean;
+}

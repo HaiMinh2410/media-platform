@@ -73,6 +73,20 @@
       background-position: right center;
     }
   }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  @keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  }
+
+  --animate-shimmer: shimmer 1.5s infinite linear;
+  --animate-pulse-red: pulse-red 2s infinite;
 }
 
 @layer base {
@@ -234,5 +248,9 @@
 
   .glow-badge-primary {
     box-shadow: 0 0 10px #6366f1;
+  }
+
+  .animate-pulse-red {
+    animation: pulse-red 2s infinite;
   }
 }

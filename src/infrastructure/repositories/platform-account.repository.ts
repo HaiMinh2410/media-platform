@@ -1,5 +1,5 @@
 import { db } from '../../lib/db';
-import type { CreatePlatformAccountInput, PlatformAccount, Platform } from '../../domain/types/platform-account';
+import type { CreatePlatformAccountInput, PlatformAccount, Platform, AccountHealthData } from '../../domain/types/platform-account';
 import { getTokenEncryptionService } from '../crypto/token-encryption.service';
 
 export class PlatformAccountRepository {
@@ -315,6 +315,81 @@ export class PlatformAccountRepository {
     } catch (error) {
       console.error('[PlatformAccountRepository] findWithTokensByWorkspaceId failed:', error);
       return { data: null, error: 'DATABASE_ERROR' };
+    }
+  }
+
+  /**
+   * Finds all accounts for a workspace with detailed health data.
+   */
+  async findWithHealthData(workspaceId: string): Promise<AccountHealthData[]> {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    try {
+      const accounts = await db.platformAccount.findMany({
+        where: { workspaceId, disconnected_at: null },
+        include: {
+          meta_tokens: { orderBy: { updated_at: 'desc' }, take: 1 },
+          tiktok_tokens: true,
+          conversations: {
+            select: {
+              id: true,
+              lastMessageAt: true,
+              messages: {
+                select: { senderType: true },
+                orderBy: { createdAt: 'desc' },
+                take: 1
+              }
+            }
+          }
+        }
+      });
+
+      return accounts.map(acc => {
+        const token = acc.platform === 'tiktok' ? acc.tiktok_tokens : acc.meta_tokens[0];
+        const tokenExpiresAt = token?.expires_at || null;
+        
+        const isDisconnected = acc.disconnected_at !== null;
+        const isTokenExpired = tokenExpiresAt ? tokenExpiresAt < now : false;
+        
+        const totalConvos = acc.conversations.length;
+        const pendingConvos = acc.conversations.filter(c => c.messages[0]?.senderType === 'user').length;
+        const repliedConvos = totalConvos - pendingConvos;
+        
+        const responseRate = totalConvos > 0 ? Math.round((repliedConvos / totalConvos) * 100) : 100;
+        const pendingCount = pendingConvos;
+        
+        let status: 'connected' | 'error' | 'warning' = 'connected';
+        let errorReason = null;
+
+        if (isDisconnected || isTokenExpired) {
+          status = 'error';
+          errorReason = isDisconnected ? "Account disconnected" : "Access token expired";
+        } else if (pendingCount > 10 || responseRate < 70) {
+          status = 'warning';
+        }
+
+        const lastActiveAt = acc.conversations.reduce((latest: Date | null, c) => {
+          return !latest || c.lastMessageAt > latest ? c.lastMessageAt : latest;
+        }, null as Date | null);
+
+        return {
+          id: acc.id,
+          platform: acc.platform,
+          platform_user_name: acc.platform_user_name,
+          platform_user_id: acc.platform_user_id,
+          status,
+          responseRate,
+          pendingCount,
+          lastActiveAt,
+          tokenExpiresAt,
+          errorReason,
+          isNew: acc.created_at > weekAgo
+        };
+      });
+    } catch (error) {
+      console.error('[PlatformAccountRepository] findWithHealthData failed:', error);
+      throw new Error('DATABASE_ERROR');
     }
   }
 }
