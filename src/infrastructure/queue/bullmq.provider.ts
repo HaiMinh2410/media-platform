@@ -85,17 +85,10 @@ export const publishQueue =
   (redisConnection ? new Queue(QueueName.PUBLISH_EVENTS, {
     connection: redisConnection,
     defaultJobOptions: {
-<<<<<<< Updated upstream
       attempts: 5,
       backoff: {
         type: 'exponential',
-        delay: 2000,
-=======
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
         delay: 5000, // Longer delay for social media publishing
->>>>>>> Stashed changes
       },
       removeOnComplete: true,
       removeOnFail: false,
