@@ -2,8 +2,10 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/infrastructure/supabase/server';
 import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
+import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
 import { WorkspaceCredentials } from '@/components/settings/workspace-credentials';
 import { MetaTokenUpserter } from '@/components/settings/meta-token-upserter';
+import { LinkedTokensList } from '@/components/settings/linked-tokens-list';
 import { ArrowRight } from 'lucide-react';
 
 export default async function DeveloperSettingsPage() {
@@ -26,8 +28,16 @@ export default async function DeveloperSettingsPage() {
     );
   }
 
+  // Fetch all accounts with tokens for developer info
+  const platformRepo = getPlatformAccountRepository();
+  const { data: accounts = [] } = await platformRepo.findWithTokensByWorkspaceId(workspace.id);
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
+      {/* Linked Tokens & IDs Info */}
+      <LinkedTokensList accounts={accounts as any} />
+
+      <div className="h-px bg-foreground/10" />
       {/* Workspace credentials / server meta-data */}
       <WorkspaceCredentials 
         workspaceId={workspace.id} 

@@ -55,6 +55,17 @@ export enum QueueName {
   AI_AGENT_METRICS = 'ai-agent-metrics',
   MEDIA_TRANSCODING = 'media-transcoding',
   PUBLISH_EVENTS = 'publish-events',
+<<<<<<< Updated upstream
+=======
+}
+
+export interface PublishJobPayload {
+  jobId: string;
+  accountId: string;
+  platform: 'FACEBOOK' | 'INSTAGRAM';
+  content?: string;
+  mediaUrls: string[];
+>>>>>>> Stashed changes
 }
 
 export interface MediaTranscodingJobPayload {

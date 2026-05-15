@@ -1,5 +1,6 @@
 import { db } from '../../lib/db';
 import type { CreatePlatformAccountInput, PlatformAccount, Platform } from '../../domain/types/platform-account';
+import { getTokenEncryptionService } from '../crypto/token-encryption.service';
 
 export class PlatformAccountRepository {
   /**
@@ -252,6 +253,67 @@ export class PlatformAccountRepository {
       };
     } catch (error) {
       console.error('[PlatformAccountRepository] findAllWithMetaTokens failed:', error);
+      return { data: null, error: 'DATABASE_ERROR' };
+    }
+  }
+
+  /**
+   * Finds all accounts for a workspace with their associated tokens.
+   * Useful for developer debug views.
+   */
+  async findWithTokensByWorkspaceId(workspaceId: string) {
+    try {
+      const crypto = getTokenEncryptionService();
+      const accounts = await db.platformAccount.findMany({
+        where: {
+          workspaceId,
+          disconnected_at: null,
+        },
+        include: {
+          meta_tokens: {
+            orderBy: { updated_at: 'desc' },
+            take: 1,
+          },
+          tiktok_tokens: true,
+        },
+      });
+
+      const result = await Promise.all(accounts.map(async (acc) => {
+        let rawMetaToken = null;
+        if (acc.meta_tokens[0]) {
+          const decrypted = await crypto.decrypt(acc.meta_tokens[0].encrypted_access_token);
+          rawMetaToken = {
+            id: acc.meta_tokens[0].id,
+            token: decrypted.data || 'DECRYPTION_FAILED',
+            expiresAt: acc.meta_tokens[0].expires_at,
+            updatedAt: acc.meta_tokens[0].updated_at,
+          };
+        }
+
+        let rawTiktokToken = null;
+        if (acc.tiktok_tokens) {
+          const decrypted = await crypto.decrypt(acc.tiktok_tokens.encrypted_access_token);
+          rawTiktokToken = {
+            id: acc.tiktok_tokens.id,
+            token: decrypted.data || 'DECRYPTION_FAILED',
+            expiresAt: acc.tiktok_tokens.expires_at,
+            updatedAt: acc.tiktok_tokens.updated_at,
+          };
+        }
+
+        return {
+          id: acc.id,
+          platform: acc.platform,
+          platform_user_id: acc.platform_user_id,
+          platform_user_name: acc.platform_user_name,
+          metaToken: rawMetaToken,
+          tiktokToken: rawTiktokToken,
+        };
+      }));
+
+      return { data: result, error: null };
+    } catch (error) {
+      console.error('[PlatformAccountRepository] findWithTokensByWorkspaceId failed:', error);
       return { data: null, error: 'DATABASE_ERROR' };
     }
   }
