@@ -73,10 +73,10 @@ async function DashboardContent({ workspaceId, workspaceName }: { workspaceId: s
         <StatsStrip stats={stats} />
       </ErrorBoundary>
 
-      <div className="p-6 xl:p-7 space-y-8 max-w-[1600px] mx-auto w-full">
+      <div className="p-6 xl:p-7 space-y-8 ">
 
         {/* Section 1: Account Health Command Center */}
-        <section className="space-y-4">
+        <section className="space-y-4 max-w-[1600px] mx-auto w-full">
           <SectionTitle icon="⚡" label="Account Health Command Center" />
           <ErrorBoundary fallback={<SectionError title="Account Health" />}>
             <AccountHealthGrid accounts={healthData} />

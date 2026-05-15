@@ -163,12 +163,13 @@ export function AccountHealthGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="flex overflow-x-auto gap-6 pb-4 hide-scrollbar -mx-6 px-6">
       {accounts.map(acc => (
-        <AccountHealthCard
-          key={acc.id}
-          account={acc}
-        />
+        <div key={acc.id} className="w-[340px] shrink-0">
+          <AccountHealthCard
+            account={acc}
+          />
+        </div>
       ))}
     </div>
   );
