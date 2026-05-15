@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { usePublishStatus } from '@/hooks/use-publish-status';
-import { CheckCircle2, XCircle, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, RefreshCw, AlertCircle, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -60,8 +60,9 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            Tiến độ đăng bài
-            {isLoading && <Loader2 className="animate-spin text-blue-400" size={18} />}
+            {status.status === 'SCHEDULED' ? 'Đã lên lịch đăng bài' : 'Tiến độ đăng bài'}
+            {status.status === 'RUNNING' && <Loader2 className="animate-spin text-blue-400" size={18} />}
+            {status.status === 'SCHEDULED' && <Calendar className="text-blue-400" size={18} />}
           </h3>
           <p className="text-slate-400 text-sm font-medium">
             Batch ID: <span className="font-mono text-xs">{batchId}</span>
@@ -103,10 +104,11 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
       </div>
 
       {/* Mini Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <StatBox label="Hoàn thành" value={status.completed} color="text-green-400" icon={<CheckCircle2 size={14} />} />
         <StatBox label="Lỗi" value={status.failed} color="text-red-400" icon={<XCircle size={14} />} />
         <StatBox label="Đang chạy" value={status.running} color="text-blue-400" icon={<Loader2 size={14} className="animate-spin" />} />
+        <StatBox label="Đã lên lịch" value={status.scheduled || 0} color="text-blue-300" icon={<Calendar size={14} />} />
         <StatBox label="Chờ" value={status.pending} color="text-slate-400" />
       </div>
 

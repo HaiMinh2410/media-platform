@@ -8,6 +8,8 @@ import { Search, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { BatchPublishSummary, BatchPublishCard } from '../publisher/batch-publish-card';
+import { createClient } from '@/infrastructure/supabase/client';
+import { useEffect } from 'react';
 
 type PostListProps = {
   initialPosts: Post[];
@@ -21,6 +23,108 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
   const [filter, setFilter] = useState<PostStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    // Subscribe to realtime updates for publish_jobs
+    const channel = supabase
+      .channel('public:publish_jobs')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'publish_jobs' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newJob = payload.new as any;
+            setHistory((prev) => {
+              const bId = newJob.batch_id || newJob.id;
+              const existingBatch = prev.find(b => b.batchId === bId);
+              
+              if (existingBatch) {
+                // If batch exists, just add the account if not already there
+                return prev.map(b => {
+                  if (b.batchId === bId) {
+                    if (b.accounts.some(a => a.id === newJob.account_id)) return b;
+                    return {
+                      ...b,
+                      accounts: [...b.accounts, {
+                        id: newJob.account_id,
+                        name: 'Loading...', // Temporary until refresh
+                        platform: newJob.platform,
+                        status: 'SCHEDULED'
+                      }]
+                    };
+                  }
+                  return b;
+                });
+              } else {
+                // Create new batch entry
+                const newBatch: BatchPublishSummary = {
+                  id: newJob.id,
+                  batchId: bId,
+                  content: newJob.content || '',
+                  mediaUrls: newJob.media_urls || [],
+                  createdAt: new Date(newJob.created_at),
+                  status: 'SCHEDULED',
+                  accounts: [{
+                    id: newJob.account_id,
+                    name: 'Loading...', 
+                    platform: newJob.platform,
+                    status: 'SCHEDULED'
+                  }]
+                };
+                return [newBatch, ...prev];
+              }
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedJob = payload.new as any;
+            
+            setHistory((prev) => {
+              return prev.map((batch) => {
+                if (batch.batchId !== (updatedJob.batch_id || updatedJob.id)) {
+                  return batch;
+                }
+
+                // Find and update the specific account
+                const updatedAccounts = batch.accounts.map((acc) => {
+                  if (acc.id === updatedJob.account_id) {
+                    let accountStatus: 'SUCCESS' | 'FAILED' | 'SCHEDULED' = 'FAILED';
+                    if (updatedJob.status === 'COMPLETED') accountStatus = 'SUCCESS';
+                    else if (updatedJob.status === 'PENDING' && updatedJob.scheduled_at) accountStatus = 'SCHEDULED';
+                    else if (updatedJob.status === 'PENDING' || updatedJob.status === 'RUNNING') accountStatus = 'SCHEDULED';
+                    
+                    return { ...acc, status: accountStatus };
+                  }
+                  return acc;
+                });
+
+                // Recalculate aggregate status
+                const total = updatedAccounts.length;
+                const success = updatedAccounts.filter((a) => a.status === 'SUCCESS').length;
+                const failed = updatedAccounts.filter((a) => a.status === 'FAILED').length;
+                const scheduled = updatedAccounts.filter((a) => a.status === 'SCHEDULED').length;
+
+                let newBatchStatus: 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'SCHEDULED' = 'FAILED';
+                if (scheduled > 0) newBatchStatus = 'SCHEDULED';
+                else if (success === total) newBatchStatus = 'SUCCESS';
+                else if (failed === total) newBatchStatus = 'FAILED';
+                else newBatchStatus = 'PARTIAL';
+
+                return {
+                  ...batch,
+                  status: newBatchStatus,
+                  accounts: updatedAccounts
+                };
+              });
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
 
   const fetchPosts = async () => {
     setIsLoading(true);
@@ -29,6 +133,13 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
       const result = await res.json();
       if (result.data) {
         setPosts(result.data);
+      }
+      
+      // Also refresh history manually if needed
+      const historyRes = await fetch(`/api/publish/history?workspaceId=${workspaceId}`);
+      const historyResult = await historyRes.json();
+      if (historyResult.data) {
+        setHistory(historyResult.data);
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -47,7 +158,8 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
   const filteredHistory = history.filter(batch => {
     const matchesStatus = filter === 'all' || 
                          (filter === 'published' && batch.status === 'SUCCESS') ||
-                         (filter === 'failed' && (batch.status === 'FAILED' || batch.status === 'PARTIAL'));
+                         (filter === 'failed' && (batch.status === 'FAILED' || batch.status === 'PARTIAL')) ||
+                         (filter === 'scheduled' && batch.status === 'SCHEDULED');
     const matchesSearch = batch.content?.toLowerCase().includes(search.toLowerCase());
     return matchesStatus && matchesSearch;
   });

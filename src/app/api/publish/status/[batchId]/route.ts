@@ -32,14 +32,17 @@ export async function GET(
           const completed = jobs.filter(j => j.status === 'COMPLETED').length;
           const failed = jobs.filter(j => j.status === 'FAILED').length;
           const running = jobs.filter(j => j.status === 'RUNNING').length;
-          const pending = jobs.filter(j => j.status === 'PENDING').length;
+          const scheduled = jobs.filter(j => j.status === 'PENDING' && j.scheduled_at && new Date(j.scheduled_at) > new Date()).length;
+          const pending = jobs.filter(j => j.status === 'PENDING').length - scheduled;
 
-          let batchStatus: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'PARTIAL_FAILURE' = 'RUNNING';
+          let batchStatus: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'PARTIAL_FAILURE' | 'SCHEDULED' = 'RUNNING';
           
           if (completed + failed === total) {
             if (failed === 0) batchStatus = 'COMPLETED';
             else if (completed === 0) batchStatus = 'FAILED';
             else batchStatus = 'PARTIAL_FAILURE';
+          } else if (scheduled > 0 && running === 0 && completed === 0 && failed === 0) {
+            batchStatus = 'SCHEDULED';
           }
 
           const summary = {
@@ -49,12 +52,14 @@ export async function GET(
             failed,
             running,
             pending,
+            scheduled,
             status: batchStatus,
             jobs: jobs.map(j => ({
               id: j.id,
               account: { name: j.account?.name || 'Unknown' },
               platform: j.platform,
               status: j.status,
+              scheduled_at: j.scheduled_at,
               error_message: j.error_message
             }))
           };

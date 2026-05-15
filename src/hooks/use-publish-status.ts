@@ -12,7 +12,8 @@ export interface PublishStatusSummary {
   failed: number;
   running: number;
   pending: number;
-  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'PARTIAL_FAILURE';
+  scheduled: number;
+  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'PARTIAL_FAILURE' | 'SCHEDULED';
   jobs: any[];
 }
 

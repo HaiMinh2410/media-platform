@@ -15,10 +15,18 @@ export const batchPublishService = {
     accounts: { accountId: string; platform: 'FACEBOOK' | 'INSTAGRAM' }[];
     content?: string;
     mediaUrls: string[];
+    scheduledAt?: string;
   }) {
     try {
       const results = [];
       const batchId = crypto.randomUUID();
+      const scheduledDate = payload.scheduledAt ? new Date(payload.scheduledAt) : null;
+      
+      // Tính toán delay cho BullMQ (miliseconds)
+      let delay = 0;
+      if (scheduledDate) {
+        delay = Math.max(0, scheduledDate.getTime() - Date.now());
+      }
 
       for (const target of payload.accounts) {
         // 1. Khởi tạo bản ghi PublishJob trong DB với trạng thái PENDING
@@ -30,6 +38,7 @@ export const batchPublishService = {
             platform: target.platform,
             content: payload.content,
             media_urls: payload.mediaUrls,
+            scheduled_at: scheduledDate,
             status: 'PENDING',
           }
         });
@@ -46,6 +55,7 @@ export const batchPublishService = {
 
           await publishQueue.add('publish-task', jobPayload, {
             jobId: jobRecord.id, // Sử dụng ID từ DB làm Job ID của BullMQ để dễ tracking
+            delay: delay,        // Sử dụng delay nếu là bài đăng lên lịch
             attempts: 3,         // Cho phép retry tối đa 3 lần
             backoff: {
               type: 'exponential',
@@ -98,6 +108,8 @@ export const batchPublishService = {
           data: {
             status: 'PENDING',
             error_message: null,
+            platform_post_id: null,
+            published_at: null,
             retry_count: { increment: 1 }
           }
         });

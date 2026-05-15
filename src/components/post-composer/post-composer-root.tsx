@@ -142,6 +142,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
           accounts: selectedAccounts.map(a => ({ accountId: a.id, platform: a.platform.toUpperCase() })),
           content,
           mediaUrls: mediaFiles.filter(f => f.status === 'done').map(f => f.url),
+          scheduledAt: scheduledAt?.toISOString(),
           postId: undefined,
         }),
       });

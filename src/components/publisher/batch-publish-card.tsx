@@ -12,12 +12,13 @@ export type BatchPublishSummary = {
   content: string;
   mediaUrls: string[];
   createdAt: Date;
-  status: 'SUCCESS' | 'PARTIAL' | 'FAILED';
+  scheduledAt?: Date | null;
+  status: 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'SCHEDULED';
   accounts: {
     id: string;
     name: string;
     platform: string;
-    status: 'SUCCESS' | 'FAILED';
+    status: 'SUCCESS' | 'FAILED' | 'SCHEDULED';
   }[];
 };
 
@@ -44,23 +45,27 @@ export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) 
     toast.loading('Đang khởi tạo đăng lại...', { id: 'retry-publish' });
 
     try {
-      const response = await fetch('/api/publish/batch', {
+      const response = await fetch('/api/publish/retry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          workspaceId,
-          accounts: failedAccounts,
-          content: batch.content,
-          mediaUrls: batch.mediaUrls,
+          batchId: batch.batchId,
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to retry');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to retry');
+      }
 
       toast.success('Đã bắt đầu đăng lại các mục lỗi!', { id: 'retry-publish' });
-    } catch (error) {
+      
+      // Tùy chọn: Chuyển hướng đến trang tracker nếu muốn theo dõi chi tiết
+      // window.location.href = `/dashboard/posts?batchId=${batch.batchId}`;
+      
+    } catch (error: any) {
       console.error('Retry error:', error);
-      toast.error('Không thể đăng lại. Vui lòng thử lại sau.', { id: 'retry-publish' });
+      toast.error(error.message || 'Không thể đăng lại. Vui lòng thử lại sau.', { id: 'retry-publish' });
     } finally {
       setIsRetrying(false);
     }
@@ -87,14 +92,17 @@ export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) 
             "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider border transition-colors",
             batch.status === 'SUCCESS' && "bg-emerald-600/10 text-emerald-400 border-emerald-500/30",
             batch.status === 'FAILED' && "bg-red-600/10 text-red-400 border-red-500/30",
-            batch.status === 'PARTIAL' && "bg-amber-600/10 text-amber-400 border-amber-500/30"
+            batch.status === 'PARTIAL' && "bg-amber-600/10 text-amber-400 border-amber-500/30",
+            batch.status === 'SCHEDULED' && "bg-blue-600/10 text-blue-400 border-blue-500/30"
           )}>
             {batch.status === 'SUCCESS' && <CheckCircle2 size={12} />}
             {batch.status === 'FAILED' && <XCircle size={12} />}
             {batch.status === 'PARTIAL' && <AlertCircle size={12} />}
+            {batch.status === 'SCHEDULED' && <Calendar size={12} />}
             {batch.status === 'SUCCESS' && 'Thành công'}
             {batch.status === 'FAILED' && 'Thất bại'}
             {batch.status === 'PARTIAL' && 'Một phần'}
+            {batch.status === 'SCHEDULED' && 'Đã lên lịch'}
           </div>
         </div>
 
@@ -120,9 +128,9 @@ export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) 
               key={acc.id}
               className={cn(
                 "flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border",
-                acc.status === 'SUCCESS' 
-                  ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-500" 
-                  : "bg-red-500/5 border-red-500/10 text-red-500"
+                acc.status === 'SUCCESS' && "bg-emerald-500/5 border-emerald-500/10 text-emerald-500",
+                acc.status === 'FAILED' && "bg-red-500/5 border-red-500/10 text-red-500",
+                acc.status === 'SCHEDULED' && "bg-blue-500/5 border-blue-500/10 text-blue-500"
               )}
             >
               {acc.name}
@@ -134,7 +142,12 @@ export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) 
         <div className="pt-3 border-t border-foreground/5 flex items-center justify-between">
           <div className="flex items-center gap-2 text-foreground-secondary">
             <Calendar size={12} />
-            <span className="text-11 font-medium">{format(new Date(batch.createdAt), 'HH:mm · dd/MM/yyyy')}</span>
+            <span className="text-11 font-medium">
+              {batch.status === 'SCHEDULED' && batch.scheduledAt 
+                ? `Dự kiến: ${format(new Date(batch.scheduledAt), 'HH:mm · dd/MM/yyyy')}`
+                : format(new Date(batch.createdAt), 'HH:mm · dd/MM/yyyy')
+              }
+            </span>
           </div>
 
           {failCount > 0 && (

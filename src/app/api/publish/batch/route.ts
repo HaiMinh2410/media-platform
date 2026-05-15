@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Parse và validate request body
     const body = await req.json();
-    const { accounts, content, mediaUrls, postId } = body;
+    const { accounts, content, mediaUrls, postId, scheduledAt } = body;
 
     if (!accounts || !Array.isArray(accounts) || accounts.length === 0) {
       return NextResponse.json(
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
       accounts,
       content,
       mediaUrls,
+      scheduledAt,
     });
 
     if (result.error) {

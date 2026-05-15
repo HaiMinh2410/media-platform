@@ -852,17 +852,9 @@ model Account {
   is_active   Boolean  @default(true)
   created_at  DateTime @default(now()) @db.Timestamptz(6)
   updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-<<<<<<< Updated upstream
-
   token        AccountToken?
   profile      profiles      @relation(fields: [profile_id], references: [id], onDelete: Cascade)
   publish_jobs PublishJob[]
-=======
-  
-  token       AccountToken?
-  publish_jobs PublishJob[]
-  profile     profiles @relation(fields: [profile_id], references: [id], onDelete: Cascade)
->>>>>>> Stashed changes
 
   @@unique([profile_id, platform, platform_id])
   @@map("publisher_accounts")
@@ -889,30 +881,20 @@ model PublishJob {
   batch_id         String?   @db.Uuid
   post_id          String?   @db.Uuid
   account_id       String    @db.Uuid
-<<<<<<< Updated upstream
-  platform         String // "FACEBOOK", "INSTAGRAM"
-=======
   platform         String    // "FACEBOOK", "INSTAGRAM"
->>>>>>> Stashed changes
   content          String?   @db.Text
   media_urls       String[]
   status           String    @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
   error_message    String?   @db.Text
   platform_post_id String?
   metadata         Json?     @default("{}")
-<<<<<<< Updated upstream
   retry_count      Int       @default(0)
-=======
->>>>>>> Stashed changes
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
   updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  scheduled_at     DateTime? @db.Timestamptz(6)
   published_at     DateTime?
 
-<<<<<<< Updated upstream
   account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
-=======
-  account          Account   @relation(fields: [account_id], references: [id], onDelete: Cascade)
->>>>>>> Stashed changes
 
   @@index([batch_id])
   @@map("publish_jobs")
