@@ -7,13 +7,17 @@ import { PostEmptyState } from './post-empty-state';
 import { Search, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import { BatchPublishSummary, BatchPublishCard } from '../publisher/batch-publish-card';
+
 type PostListProps = {
   initialPosts: Post[];
+  initialHistory?: BatchPublishSummary[];
   workspaceId: string;
 };
 
-export function PostList({ initialPosts, workspaceId }: PostListProps) {
+export function PostList({ initialPosts, initialHistory = [], workspaceId }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [history, setHistory] = useState<BatchPublishSummary[]>(initialHistory);
   const [filter, setFilter] = useState<PostStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +41,14 @@ export function PostList({ initialPosts, workspaceId }: PostListProps) {
     const matchesStatus = filter === 'all' || post.status === filter;
     const matchesSearch = post.content?.toLowerCase().includes(search.toLowerCase()) || 
                          post.title?.toLowerCase().includes(search.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
+
+  const filteredHistory = history.filter(batch => {
+    const matchesStatus = filter === 'all' || 
+                         (filter === 'published' && batch.status === 'SUCCESS') ||
+                         (filter === 'failed' && (batch.status === 'FAILED' || batch.status === 'PARTIAL'));
+    const matchesSearch = batch.content?.toLowerCase().includes(search.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -88,8 +100,11 @@ export function PostList({ initialPosts, workspaceId }: PostListProps) {
       </div>
 
       {/* Grid */}
-      {filteredPosts.length > 0 ? (
+      {(filteredPosts.length > 0 || filteredHistory.length > 0) ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {filteredHistory.map((batch) => (
+            <BatchPublishCard key={batch.batchId} batch={batch} workspaceId={workspaceId} />
+          ))}
           {filteredPosts.map((post) => (
             <PostCard key={post.id} post={post} onDelete={handleDelete} />
           ))}

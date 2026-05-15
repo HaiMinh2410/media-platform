@@ -2,9 +2,8 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { Calendar, RefreshCcw, CheckCircle2, XCircle } from 'lucide-react';
+import { Calendar, RefreshCcw, CheckCircle2, XCircle, AlertCircle, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
 import { toast } from 'sonner';
 
 export type BatchPublishSummary = {
@@ -29,9 +28,7 @@ type BatchPublishCardProps = {
 
 export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) {
   const [isRetrying, setIsRetrying] = React.useState(false);
-  const successCount = batch.accounts.filter(a => a.status === 'SUCCESS').length;
   const failCount = batch.accounts.filter(a => a.status === 'FAILED').length;
-  const totalCount = batch.accounts.length;
 
   const handleRetry = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -70,91 +67,84 @@ export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) 
   };
 
   return (
-    <div className="group relative bg-[#161920] border border-[#2a2f42] rounded-2xl overflow-hidden hover:border-[#4f7cff]/30 transition-all duration-300 shadow-lg">
-      {/* Status Badge */}
-      <div className="absolute top-4 right-4 z-10">
-        <div className={cn(
-          "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-          batch.status === 'SUCCESS' && "bg-[#22d3a0]/10 text-[#22d3a0]",
-          batch.status === 'FAILED' && "bg-[#ff5c6a]/10 text-[#ff5c6a]",
-          batch.status === 'PARTIAL' && "bg-[#f5a623]/10 text-[#f5a623]"
-        )}>
-          {batch.status === 'SUCCESS' && 'Thành công'}
-          {batch.status === 'FAILED' && 'Thất bại'}
-          {batch.status === 'PARTIAL' && 'Một phần'}
+    <div className="group relative bg-foreground/5 border border-foreground/10 rounded-2xl overflow-hidden hover:border-foreground/20 transition-all duration-300">
+      {/* Media Preview */}
+      <div className="aspect-video bg-base-300 relative overflow-hidden">
+        {batch.mediaUrls.length > 0 ? (
+          <img 
+            src={batch.mediaUrls[0]} 
+            alt="Batch media" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Eye className="text-foreground-tertiary" size={40} />
+          </div>
+        )}
+        
+        <div className="absolute top-3 left-3">
+          <div className={cn(
+            "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider border transition-colors",
+            batch.status === 'SUCCESS' && "bg-emerald-600/10 text-emerald-400 border-emerald-500/30",
+            batch.status === 'FAILED' && "bg-red-600/10 text-red-400 border-red-500/30",
+            batch.status === 'PARTIAL' && "bg-amber-600/10 text-amber-400 border-amber-500/30"
+          )}>
+            {batch.status === 'SUCCESS' && <CheckCircle2 size={12} />}
+            {batch.status === 'FAILED' && <XCircle size={12} />}
+            {batch.status === 'PARTIAL' && <AlertCircle size={12} />}
+            {batch.status === 'SUCCESS' && 'Thành công'}
+            {batch.status === 'FAILED' && 'Thất bại'}
+            {batch.status === 'PARTIAL' && 'Một phần'}
+          </div>
         </div>
+
+        {batch.mediaUrls.length > 1 && (
+          <div className="absolute bottom-3 right-3 bg-foreground/60 backdrop-blur-md text-background text-2xs px-2 py-1 rounded-md">
+            +{batch.mediaUrls.length - 1} more
+          </div>
+        )}
       </div>
 
-      <div className="p-5 space-y-4">
-        {/* Content Excerpt */}
+      {/* Content Area */}
+      <div className="p-4 space-y-4">
         <div className="space-y-2">
-          <p className="text-[13px] text-white/90 line-clamp-2 leading-relaxed font-medium">
-            {batch.content || <span className="text-[#7a7a9a] italic">Không có nội dung</span>}
+          <p className="text-sm text-foreground line-clamp-2 leading-relaxed">
+            {batch.content || <span className="text-foreground-tertiary italic">Không có nội dung</span>}
           </p>
-          
-          {/* Media Indicators (if any) */}
-          {batch.mediaUrls.length > 0 && (
-            <div className="flex gap-1">
-              {batch.mediaUrls.slice(0, 3).map((url, i) => (
-                <div key={i} className="w-8 h-8 rounded-md bg-[#1e2230] border border-[#2a2f42] overflow-hidden">
-                   <img src={url} alt="" className="w-full h-full object-cover" />
-                </div>
-              ))}
-              {batch.mediaUrls.length > 3 && (
-                <div className="w-8 h-8 rounded-md bg-[#1e2230] border border-[#2a2f42] flex items-center justify-center text-[10px] text-[#7a7a9a] font-bold">
-                  +{batch.mediaUrls.length - 3}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Account Chips */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {batch.accounts.map((acc) => (
             <div 
               key={acc.id}
               className={cn(
-                "flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold border transition-colors",
+                "flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border",
                 acc.status === 'SUCCESS' 
-                  ? "bg-[#22d3a0]/5 border-[#22d3a0]/20 text-[#22d3a0]" 
-                  : "bg-[#ff5c6a]/5 border-[#ff5c6a]/20 text-[#ff5c6a]"
+                  ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-500" 
+                  : "bg-red-500/5 border-red-500/10 text-red-500"
               )}
             >
-              {acc.status === 'SUCCESS' ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
               {acc.name}
             </div>
           ))}
         </div>
 
         {/* Footer Meta */}
-        <div className="pt-4 border-t border-[#2a2f42] flex items-center justify-between">
-          <div className="flex items-center gap-4 text-[#7a7a9a]">
-            <div className="flex items-center gap-1.5">
-              <Calendar size={12} />
-              <span className="text-[11px] font-medium">{format(new Date(batch.createdAt), 'HH:mm · dd/MM/yyyy')}</span>
-            </div>
-            <div className="text-[11px] font-bold">
-              <span className="text-[#22d3a0]">{successCount}✓</span>
-              {failCount > 0 && <span className="text-[#ff5c6a] ml-1.5">{failCount}✗</span>}
-            </div>
+        <div className="pt-3 border-t border-foreground/5 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-foreground-secondary">
+            <Calendar size={12} />
+            <span className="text-11 font-medium">{format(new Date(batch.createdAt), 'HH:mm · dd/MM/yyyy')}</span>
           </div>
 
           {failCount > 0 && (
             <button 
               onClick={handleRetry}
               disabled={isRetrying}
-              className={cn(
-                "text-[#4f7cff] text-[11px] font-bold flex items-center gap-1 hover:underline group/btn transition-opacity",
-                isRetrying && "opacity-50 cursor-not-allowed"
-              )}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg text-2xs font-bold transition-all"
             >
-              <RefreshCcw size={12} className={cn(
-                "transition-transform duration-500",
-                !isRetrying && "group-hover/btn:rotate-180",
-                isRetrying && "animate-spin"
-              )} />
-              {isRetrying ? 'Đang gửi...' : 'Đăng lại các mục lỗi'}
+              <RefreshCcw size={12} className={cn(isRetrying && "animate-spin")} />
+              {isRetrying ? 'Đang gửi...' : 'Đăng lại lỗi'}
             </button>
           )}
         </div>

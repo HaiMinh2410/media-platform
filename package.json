@@ -7,11 +7,14 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:full": "concurrently -n \"NEXT,PUB,WEB,MET\" -c \"cyan,magenta,green,yellow\" \"bun dev\" \"bun worker:publish\" \"bun worker:webhook\" \"bun worker:metrics\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "worker:posts": "bun run src/worker/post-publishing.worker.ts",
+    "worker:publish": "bun run src/worker/publish.worker.ts",
     "worker:metrics": "bun run src/worker/metrics.worker.ts",
+    "worker:webhook": "bun run src/worker/webhook.worker.ts",
     "sim": "bun run scripts/simulate-webhook.ts",
     "test:parser": "bun test src/infrastructure/meta/__tests__/meta-parser.test.ts",
     "postinstall": "prisma generate"

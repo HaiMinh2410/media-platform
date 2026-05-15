@@ -124,34 +124,11 @@ export default async function PostsPage({
       
       {batchId && <BatchPublishTracker batchId={batchId} />}
 
-      {/* History Section */}
-      {history.length > 0 && (
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <span className="w-2 h-6 bg-blue-600 rounded-full" />
-              Lịch sử đăng bài gần đây
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {history.map(batch => (
-              <BatchPublishCard 
-                key={batch.batchId} 
-                batch={batch} 
-                workspaceId={workspace.id}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <div className="pt-8 border-t border-white/5">
-        <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-          <span className="w-2 h-6 bg-emerald-500 rounded-full" />
-          Thư viện nội dung
-        </h2>
-        <PostList initialPosts={posts || []} workspaceId={workspace.id} />
-      </div>
+      <PostList 
+        initialPosts={posts || []} 
+        initialHistory={history}
+        workspaceId={workspace.id} 
+      />
     </div>
   );
 }
