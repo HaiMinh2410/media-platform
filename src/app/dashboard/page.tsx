@@ -74,28 +74,6 @@ async function DashboardContent({ workspaceId, workspaceName }: { workspaceId: s
       </ErrorBoundary>
 
       <div className="p-6 xl:p-7 space-y-8 max-w-[1600px] mx-auto w-full">
-        {/* Header Section */}
-        <header className="flex justify-between items-center bg-base-200/40 p-6 rounded-2xl border border-base-content/5 backdrop-blur-sm">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <Sparkles className="text-primary" size={20} />
-              <h1 className="text-2xl xl:text-3xl font-black tracking-tight text-base-content">
-                Command Center
-              </h1>
-            </div>
-            <p className="text-sm text-base-content/60 font-medium">
-              Chào mừng trở lại, {workspaceName}. Hệ thống AI đang hoạt động bình thường.
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Link 
-              href="/dashboard/composer" 
-              className="bg-primary text-primary-content px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20"
-            >
-              Soạn bài đăng
-            </Link>
-          </div>
-        </header>
 
         {/* Section 1: Account Health Command Center */}
         <section className="space-y-4">
@@ -126,25 +104,6 @@ async function DashboardContent({ workspaceId, workspaceName }: { workspaceId: s
                 initialData={aiSummary} 
               />
             </ErrorBoundary>
-
-            {/* Quick Activity Card */}
-            <div className="bg-base-200/40 rounded-3xl border border-base-content/5 p-6 flex flex-col gap-4 shadow-sm backdrop-blur-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                   <MessageSquare size={18} className="text-primary" />
-                   <h3 className="font-brand font-bold">Hoạt động gần đây</h3>
-                </div>
-                <Link href="/dashboard/inbox" className="text-primary text-xs font-bold flex items-center gap-1 hover:underline">
-                  Xem tất cả
-                  <ChevronRight size={14} />
-                </Link>
-              </div>
-              
-              <div className="flex flex-col gap-2">
-                <p className="text-xs text-base-content/50 italic px-2">Các cuộc hội thoại mới nhất sẽ hiển thị tại đây.</p>
-                {/* Integration point for real-time list in next phase */}
-              </div>
-            </div>
           </div>
         </div>
       </div>

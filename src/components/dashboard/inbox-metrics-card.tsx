@@ -37,161 +37,129 @@ export function InboxMetricsCard({ workspaceId, accounts, initialData }: InboxMe
 
   return (
     <div className="bg-base-100/50 rounded-3xl border border-base-content/5 p-8 flex flex-col gap-8 shadow-sm h-full backdrop-blur-sm transition-all duration-300 hover:shadow-lg">
-      {/* Header with Filters */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-black tracking-tight flex items-center gap-3">
-            Inbox Metrics
+      {/* Panel header */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-bold tracking-tight flex items-center gap-2">
+            <span className="text-lg">📥</span> Inbox Metrics — Phễu Hội Thoại
             {isPending && <span className="loading loading-spinner loading-xs text-primary"></span>}
           </h2>
-          <p className="text-[10px] text-base-content/40 font-black uppercase tracking-widest">Funnel & Lead Distribution</p>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          {/* Account Switcher */}
-          <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-sm bg-base-200/60 hover:bg-base-300/80 border-none normal-case px-4 rounded-xl flex items-center gap-2 transition-all">
-              {selectedAccount ? (
-                <>
-                  <div className={cn(
-                    "w-5 h-5 rounded-md flex items-center justify-center text-white",
-                    selectedAccount.platform === 'facebook' ? "bg-blue-600" : "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]"
-                  )}>
-                    <Icon name={selectedAccount.platform as any} size={10} />
-                  </div>
-                  <span className="truncate max-w-[80px] text-xs font-bold">{selectedAccount.platform_user_name}</span>
-                </>
-              ) : (
-                <>
-                  <Icon lucide={Globe} size={14} className="text-primary" />
-                  <span className="text-xs font-bold">Tất cả</span>
-                </>
+        <div className="flex items-center gap-1 bg-base-200/50 p-1 rounded-xl border border-base-content/5">
+          {(['24h', '7d', '30d'] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={cn(
+                "px-3 py-1 rounded-lg text-[10px] font-mono transition-all",
+                period === p 
+                  ? "bg-primary text-primary-content shadow-sm" 
+                  : "text-base-content/40 hover:text-base-content/70"
               )}
-              <ChevronDown size={14} className="text-base-content/30" />
-            </label>
-            <ul tabIndex={0} className="dropdown-content z-[10] menu p-2 shadow-2xl bg-base-100 border border-base-200 rounded-2xl w-64 mt-2">
-              <li>
-                <button 
-                  onClick={() => setSelectedAccountId(undefined)}
-                  className={cn("rounded-xl p-3 flex items-center gap-3", !selectedAccountId && "bg-primary/10 text-primary font-bold")}
-                >
-                  <Icon lucide={Globe} size={18} />
-                  <span>Tất cả tài khoản</span>
-                </button>
-              </li>
-              <div className="divider my-1 opacity-50 px-2"></div>
-              {accounts.map(account => (
-                <li key={account.id}>
-                  <button 
-                    onClick={() => setSelectedAccountId(account.id)}
-                    className={cn(
-                      "rounded-xl p-3 flex items-center gap-3",
-                      selectedAccountId === account.id && "bg-primary/10 text-primary font-bold"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center text-white",
-                      account.platform === 'facebook' ? "bg-blue-600" : "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]"
-                    )}>
-                      <Icon name={account.platform as any} size={16} />
-                    </div>
-                    <div className="flex flex-col items-start overflow-hidden">
-                      <span className="truncate w-full text-sm font-bold">{account.platform_user_name}</span>
-                      <span className="text-[10px] opacity-50 uppercase font-black">{account.platform}</span>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Date Toggle */}
-          <div className="bg-base-200/60 p-1 rounded-xl flex gap-1 border border-base-content/5">
-            {(['24h', '7d', '30d'] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-[10px] font-black transition-all",
-                  period === p ? "bg-primary text-primary-content shadow-md shadow-primary/20" : "text-base-content/40 hover:text-base-content/70"
-                )}
-              >
-                {p.toUpperCase()}
-              </button>
-            ))}
-          </div>
+            >
+              {p === '24h' ? '24h' : p === '7d' ? '7 ngày' : '30 ngày'}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center flex-grow">
-        {/* Funnel Chart */}
-        <div className="md:col-span-8 flex flex-col gap-6 h-full justify-center">
-          <div className="flex flex-col gap-6">
-            <FunnelBar 
-              label="Total Messages" 
-              value={metrics?.totalMessages || 0} 
-              percent={100} 
-              colorClass="from-indigo-600 to-blue-500"
-              icon={<Icon lucide={LayoutGrid} size={16} />}
-              delay="delay-0"
-            />
-            <FunnelBar 
-              label="AI Handled" 
-              value={metrics?.aiHandled || 0} 
-              percent={metrics?.aiHandledPct || 0} 
-              colorClass="from-emerald-500 to-teal-400"
-              icon={<span className="text-[10px] font-black">AI</span>}
-              delay="delay-100"
-            />
-            <FunnelBar 
-              label="Human Needed" 
-              value={metrics?.humanNeeded || 0} 
-              percent={metrics?.humanNeededPct || 0} 
-              colorClass="from-orange-500 to-amber-400"
-              icon={<Icon lucide={Users} size={16} />}
-              delay="delay-200"
-            />
-          </div>
+      {/* Body: account switcher + charts */}
+      <div className="grid grid-cols-1 md:grid-cols-[130px_1fr] gap-8 flex-grow">
+        {/* Switcher */}
+        <div className="border-r border-base-content/5 pr-4 flex flex-col gap-1 overflow-y-auto max-h-[400px]">
+          <div className="text-[9px] text-base-content/40 uppercase font-black tracking-widest px-2 mb-2">Chọn TK</div>
+          
+          <button 
+            onClick={() => setSelectedAccountId(undefined)}
+            className={cn(
+              "w-full text-left px-3 py-2 rounded-lg text-[11px] font-semibold transition-all",
+              !selectedAccountId 
+                ? "bg-primary/10 text-primary" 
+                : "text-base-content/50 hover:bg-base-200/50"
+            )}
+          >
+            🌐 Tất cả
+          </button>
+
+          {accounts.map(account => (
+            <button 
+              key={account.id}
+              onClick={() => setSelectedAccountId(account.id)}
+              className={cn(
+                "w-full text-left px-3 py-2 rounded-lg text-[11px] font-semibold transition-all truncate",
+                selectedAccountId === account.id 
+                  ? "bg-primary/10 text-primary" 
+                  : "text-base-content/50 hover:bg-base-200/50"
+              )}
+            >
+              {account.platform === 'facebook' ? 'f ' : '📸 '}{account.platform_user_name}
+            </button>
+          ))}
         </div>
 
-        {/* Tag Distribution */}
-        <div className="md:col-span-4 flex items-center justify-center h-full">
-          <TagDistributionChart distribution={metrics?.leadDistribution} />
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {/* Funnel Chart */}
+          <div className="flex flex-col">
+            <div className="text-[11px] text-base-content/40 mb-4">Phễu xử lý tin nhắn</div>
+            <div className="flex flex-col gap-4">
+              <FunnelBar 
+                label="📨 Tổng đến" 
+                value={metrics?.totalMessages || 0} 
+                percent={100} 
+                colorClass="from-[#6d28d9] to-[#7c3aed]"
+                delay="delay-0"
+              />
+              <FunnelBar 
+                label="🤖 AI xử lý" 
+                value={metrics?.aiHandled || 0} 
+                percent={metrics?.aiHandledPct || 0} 
+                colorClass="from-[#0891b2] to-[#06b6d4]"
+                delay="delay-100"
+              />
+              <FunnelBar 
+                label="👤 Cần người" 
+                value={metrics?.humanNeeded || 0} 
+                percent={metrics?.humanNeededPct || 0} 
+                colorClass="from-[#c2410c] to-[#ea580c]"
+                delay="delay-200"
+              />
+            </div>
+          </div>
+
+          {/* Tag Distribution */}
+          <div className="flex flex-col">
+            <div className="text-[11px] text-base-content/40 mb-4">Phân bổ Lead theo AI Tag</div>
+            <TagDistributionChart distribution={metrics?.leadDistribution} />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function FunnelBar({ label, value, percent, colorClass, icon, delay }: { label: string, value: number, percent: number, colorClass: string, icon: React.ReactNode, delay: string }) {
+function FunnelBar({ label, value, percent, colorClass, delay }: { label: string, value: number, percent: number, colorClass: string, delay: string }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
   return (
-    <div className="flex flex-col gap-2.5 group">
-      <div className="flex justify-between items-end px-1">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-base-200/80 border border-base-content/5 flex items-center justify-center text-base-content/60 group-hover:scale-110 transition-transform shadow-sm">
-            {icon}
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-black text-base-content/80 leading-none">{label}</span>
-            <span className="text-[10px] text-base-content/30 font-black uppercase tracking-widest">{value.toLocaleString()} messages</span>
-          </div>
-        </div>
-        <div className="flex flex-col items-end">
-           <span className="text-xl font-black tracking-tight text-base-content">{percent}%</span>
-        </div>
+    <div className="flex flex-col gap-1.5 group">
+      <div className="flex justify-between items-center px-0.5">
+        <span className="text-[10px] text-base-content/60 font-semibold">{label}</span>
+        <span className="text-[10px] text-base-content/60 font-mono">{value.toLocaleString()}{percent < 100 ? ` (${percent}%)` : ''}</span>
       </div>
-      <div className="h-5 bg-base-200/50 rounded-xl overflow-hidden p-1 border border-base-content/5 shadow-inner">
+      <div className="h-[28px] bg-base-200/50 rounded-lg overflow-hidden border border-base-content/5">
         <div 
           className={cn(
-            "h-full rounded-lg bg-gradient-to-r shadow-lg transition-all duration-1000 ease-[cubic-bezier(0.34,1.56,0.64,1)]", 
+            "h-full bg-gradient-to-r flex items-center pl-3 text-[11px] text-white font-bold transition-all duration-1000 ease-out", 
             colorClass,
             mounted ? "" : "w-0"
           )}
           style={{ width: mounted ? `${percent}%` : '0%' }}
-        />
+        >
+          {mounted && value > 0 && <span>{value.toLocaleString()}</span>}
+        </div>
       </div>
     </div>
   );
@@ -208,52 +176,61 @@ function TagDistributionChart({ distribution }: { distribution?: InboxMetrics['l
   const coldPct = total > 0 ? Math.round((distribution!.cold / total) * 100) : 0;
 
   return (
-    <div className="flex items-center gap-8 bg-base-200/30 p-6 rounded-3xl border border-base-content/5 h-full w-full justify-center">
+    <div className="flex items-center gap-6">
       {/* Vertical Stacked Bar */}
-      <div className="w-14 h-52 bg-base-200/80 rounded-2xl overflow-hidden flex flex-col-reverse p-1 border border-base-content/5 shadow-inner relative">
+      <div className="w-[38px] h-[140px] bg-base-200/50 rounded-lg overflow-hidden flex flex-col-reverse border border-base-content/5">
         <div 
-          className="bg-error rounded-t-[2px] rounded-b-xl transition-all duration-1000 ease-out shadow-sm flex items-center justify-center overflow-hidden relative group" 
-          style={{ height: mounted ? `${hotPct}%` : '0%' }}
-        >
-          {hotPct > 12 && <span className="text-[9px] font-black text-white rotate-90 whitespace-nowrap opacity-80">HOT</span>}
-          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-        <div 
-          className="bg-warning transition-all duration-1000 ease-out shadow-sm flex items-center justify-center overflow-hidden relative group" 
-          style={{ height: mounted ? `${warmPct}%` : '0%' }}
-        >
-           {warmPct > 12 && <span className="text-[9px] font-black text-warning-content rotate-90 whitespace-nowrap opacity-80">WARM</span>}
-           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-        <div 
-          className="bg-success rounded-b-[2px] rounded-t-xl transition-all duration-1000 ease-out shadow-sm flex items-center justify-center overflow-hidden relative group" 
+          className="bg-[#3b82f6] transition-all duration-1000 ease-out" 
           style={{ height: mounted ? `${coldPct}%` : '0%' }}
-        >
-           {coldPct > 12 && <span className="text-[9px] font-black text-success-content rotate-90 whitespace-nowrap opacity-80">COLD</span>}
-           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
+        />
+        <div 
+          className="bg-[#f97316] transition-all duration-1000 ease-out" 
+          style={{ height: mounted ? `${warmPct}%` : '0%' }}
+        />
+        <div 
+          className="bg-[#ef4444] transition-all duration-1000 ease-out" 
+          style={{ height: mounted ? `${hotPct}%` : '0%' }}
+        />
       </div>
 
       {/* Legend */}
-      <div className="flex flex-col gap-5">
-        <LegendItem color="bg-error" label="Hot" count={distribution?.hot || 0} percent={hotPct} />
-        <LegendItem color="bg-warning" label="Warm" count={distribution?.warm || 0} percent={warmPct} />
-        <LegendItem color="bg-success" label="Cold" count={distribution?.cold || 0} percent={coldPct} />
+      <div className="flex flex-col gap-4">
+        <LegendItem 
+          color="#ef4444" 
+          label="Hot Lead" 
+          emoji="🔥"
+          count={distribution?.hot || 0} 
+          percent={hotPct} 
+        />
+        <LegendItem 
+          color="#f97316" 
+          label="Warm Lead" 
+          emoji="🌡"
+          count={distribution?.warm || 0} 
+          percent={warmPct} 
+        />
+        <LegendItem 
+          color="#3b82f6" 
+          label="Cold Lead" 
+          emoji="❄️"
+          count={distribution?.cold || 0} 
+          percent={coldPct} 
+        />
       </div>
     </div>
   );
 }
 
-function LegendItem({ color, label, count, percent }: { color: string, label: string, count: number, percent: number }) {
+function LegendItem({ color, label, emoji, count, percent }: { color: string, label: string, emoji: string, count: number, percent: number }) {
   return (
-    <div className="flex items-center gap-4 group cursor-default">
-      <div className={cn("w-3.5 h-3.5 rounded-full shadow-lg transition-transform group-hover:scale-125", color)}></div>
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-black uppercase tracking-wider text-base-content/80">{label}</span>
-          <span className="text-[10px] font-bold text-primary">{percent}%</span>
+    <div className="flex items-center gap-2.5">
+      <div className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ backgroundColor: color }}></div>
+      <div className="flex flex-col leading-tight">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-[13px] font-bold text-base-content">{count.toLocaleString()}</span>
+          <span className="text-[10px] text-base-content/40 font-medium">{percent}%</span>
         </div>
-        <span className="text-[10px] text-base-content/40 font-black tracking-tight">{count} leads</span>
+        <span className="text-[10px] text-base-content/50">{emoji} {label}</span>
       </div>
     </div>
   );

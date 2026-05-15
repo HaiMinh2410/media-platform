@@ -39,100 +39,117 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
     {
       icon: '⏱',
       value: data?.timeSaved.value,
-      label: 'Tiết kiệm',
+      label: 'Tiết kiệm hôm nay',
       trend: data?.timeSaved.trend,
       trendDir: data?.timeSaved.trendDirection,
-      gradient: 'from-purple-500 to-indigo-500'
+      borderColor: '#7c3aed'
     },
     {
       icon: '😊',
       value: data?.satisfaction.value,
-      label: 'Hài lòng',
+      label: 'Khách hài lòng với AI',
       trend: data?.satisfaction.trend,
       trendDir: data?.satisfaction.trendDirection,
-      gradient: 'from-green-500 to-emerald-500'
+      borderColor: '#10b981'
     },
     {
       icon: '🤖',
       value: data?.messagesProcessed.value,
-      label: 'AI xử lý',
+      label: 'Tin nhắn AI đã xử lý',
       trend: data?.messagesProcessed.trend,
       trendDir: data?.messagesProcessed.trendDirection,
-      gradient: 'from-blue-500 to-cyan-500'
+      borderColor: '#2563eb'
     },
     {
       icon: '⚡',
       value: data?.avgResponseTime.value,
-      label: 'Phản hồi TB',
+      label: 'Thời gian phản hồi TB',
       trend: data?.avgResponseTime.trend,
       trendDir: data?.avgResponseTime.trendDirection,
-      gradient: 'from-amber-500 to-orange-500'
+      borderColor: '#f59e0b'
     }
   ];
 
   return (
-    <Card className="p-6 border-none bg-base-100/40 backdrop-blur-md shadow-xl ring-1 ring-white/10 relative overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-2xl">
+    <Card className="p-6 border border-base-content/5 bg-base-100/50 backdrop-blur-md shadow-sm rounded-3xl h-full flex flex-col transition-all duration-300 hover:shadow-lg">
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
           <span className="text-lg">🤖</span>
         </div>
-        <h3 className="font-brand font-bold text-lg">AI Activity Summary</h3>
+        <h3 className="font-bold text-sm tracking-tight">AI Activity Summary</h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6 flex-grow">
-        {tiles.map((tile, i) => (
-          <div key={i} className="relative bg-base-200/50 p-4 rounded-2xl border border-white/5 transition-all hover:bg-base-200/80 group">
-            <div className={`absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl bg-gradient-to-r ${tile.gradient} opacity-50`} />
-            <div className="flex flex-col gap-1">
-              <span className="text-xl opacity-80 group-hover:scale-110 transition-transform w-fit">{tile.icon}</span>
-              <span className="text-2xl font-black font-brand tracking-tight">{tile.value}</span>
-              <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{tile.label}</span>
-              <span className={cn(
-                "text-[11px] font-bold mt-1 px-2 py-0.5 rounded-full w-fit bg-white/5",
-                tile.trendDir === 'up' ? 'text-success' : 
-                tile.trendDir === 'down' ? 'text-error' : 'text-base-content/40'
-              )}>
-                {tile.trend}
-              </span>
+      <div className="grid grid-cols-2 gap-2.5 mb-6 flex-grow">
+        {tiles.map((tile, i) => {
+          // Special logic for Tile 4 (Response Time) status text
+          let statusText = tile.trend;
+          let statusColor = tile.trendDir === 'up' ? 'text-success' : tile.trendDir === 'down' ? 'text-error' : 'text-warning';
+          let valueColor = "text-base-content";
+
+          if (tile.icon === '⚡' && data?.avgResponseTime.value) {
+            const val = parseFloat(data.avgResponseTime.value);
+            if (val < 1.5) {
+              statusText = "Excellent";
+              statusColor = "text-success";
+              valueColor = "text-success";
+            } else if (val <= 3) {
+              statusText = "Good";
+              statusColor = "text-warning";
+            } else {
+              statusText = "Slow";
+              statusColor = "text-error";
+            }
+          }
+
+          return (
+            <div key={i} className="bg-base-100 rounded-xl p-3.5 border border-base-content/5 flex flex-col gap-1 relative overflow-hidden" style={{ borderTop: `2px solid ${tile.borderColor}` }}>
+              <div className="text-lg mb-1">{tile.icon}</div>
+              <div className={cn("text-2xl font-bold tracking-tight leading-none", valueColor)}>{tile.value}</div>
+              <div className="text-[10px] text-base-content/40 font-medium leading-tight">{tile.label}</div>
+              <div className={cn("text-[10px] font-bold mt-1 flex items-center gap-1", statusColor)}>
+                {tile.trendDir === 'up' && '↑'}
+                {tile.trendDir === 'down' && '↓'}
+                {tile.trendDir === 'stable' && '→'}
+                {statusText}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="bg-base-200/60 p-4 rounded-xl border border-white/5 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold opacity-50 uppercase tracking-wider italic">AI đang soạn draft...</span>
-          <div className="flex gap-1.5 items-center">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary typing-dot" />
-            <div className="w-1.5 h-1.5 rounded-full bg-primary typing-dot" />
-            <div className="w-1.5 h-1.5 rounded-full bg-primary typing-dot" />
-          </div>
+      {/* Shimmer / Active Task */}
+      <div className="bg-base-200/40 p-3 rounded-xl border border-base-content/5 flex flex-col gap-2">
+        <div className="text-[10px] text-base-content/40 font-semibold italic">AI đang soạn draft...</div>
+        <div className="flex flex-col gap-1.5">
+          <div className="h-2.5 bg-gradient-to-r from-base-content/5 via-base-content/10 to-base-content/5 bg-[length:200%_100%] animate-shimmer rounded-full w-[70%]" />
+          <div className="h-2.5 bg-gradient-to-r from-base-content/5 via-base-content/10 to-base-content/5 bg-[length:200%_100%] animate-shimmer rounded-full w-[45%]" />
         </div>
-        <Shimmer height="6px" className="rounded-full opacity-30" />
       </div>
     </Card>
+
   );
 };
 
 const AISummaryCardSkeleton = () => (
-  <Card className="p-6 border-none bg-base-100/40 backdrop-blur-md shadow-xl ring-1 ring-white/10 h-full">
+  <Card className="p-6 border border-base-content/5 bg-base-100/50 rounded-3xl h-full">
     <div className="flex items-center gap-2 mb-6">
       <Shimmer width="32px" height="32px" className="rounded-lg" />
       <Shimmer width="160px" height="20px" />
     </div>
-    <div className="grid grid-cols-2 gap-4 mb-6">
+    <div className="grid grid-cols-2 gap-2.5 mb-6">
       {[1, 2, 3, 4].map(i => (
-        <div key={i} className="bg-base-200/50 p-4 rounded-2xl">
-          <Shimmer width="24px" height="24px" className="mb-2" />
-          <Shimmer width="60px" height="24px" className="mb-2" />
-          <Shimmer width="40px" height="12px" className="mb-2" />
-          <Shimmer width="50px" height="12px" />
+        <div key={i} className="bg-base-100 rounded-xl p-3.5 border border-base-content/5 flex flex-col gap-2">
+          <Shimmer width="24px" height="24px" className="mb-1" />
+          <Shimmer width="80px" height="28px" className="mb-1" />
+          <Shimmer width="100px" height="12px" />
+          <Shimmer width="60px" height="12px" className="mt-2" />
         </div>
       ))}
     </div>
-    <div className="bg-base-200/60 p-4 rounded-xl">
-      <Shimmer width="120px" height="12px" className="mb-3" />
-      <Shimmer height="8px" className="rounded-full" />
+    <div className="bg-base-200/40 p-3 rounded-xl border border-base-content/5 flex flex-col gap-2">
+      <Shimmer width="100px" height="10px" className="mb-1" />
+      <Shimmer height="10px" className="rounded-full w-[70%] mb-1" />
+      <Shimmer height="10px" className="rounded-full w-[45%]" />
     </div>
   </Card>
 );
