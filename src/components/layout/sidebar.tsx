@@ -56,11 +56,7 @@ export function Sidebar() {
       href: '/dashboard/leads',
       icon: <Users size={20} />,
     },
-    {
-      label: 'Publisher',
-      href: '/dashboard/publisher-analytics',
-      icon: <Activity size={20} />,
-    },
+
     {
       label: 'Posts',
       href: '/dashboard/posts',
@@ -165,13 +161,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 flex flex-col gap-2">
-        {NAV_ITEMS.filter(item => {
-          // Chỉ hiển thị các tính năng Publisher Pro cho người dùng trong nhóm Canary 10%
-          if (item.href === '/dashboard/publisher-analytics') {
-            return isPublisherProEnabled;
-          }
-          return true;
-        }).map((item) => {
+        {NAV_ITEMS.map((item) => {
           const isActive = item.exact 
             ? pathname === item.href 
             : 'matchPaths' in item && Array.isArray(item.matchPaths)
