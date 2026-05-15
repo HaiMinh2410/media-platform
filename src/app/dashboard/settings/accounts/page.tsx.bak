@@ -1,0 +1,10 @@
+import React from 'react';
+
+export default function TestAccountsPage() {
+  return (
+    <div className="p-10">
+      <h1 className="text-2xl font-bold">Accounts Page Test</h1>
+      <p>If you see this, routing is working.</p>
+    </div>
+  );
+}

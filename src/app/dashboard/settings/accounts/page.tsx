@@ -12,8 +12,9 @@ export default async function AccountsSettingsPage(props: {
   searchParams: Promise<{ success?: string; error?: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const supabase = createClient();
-  const { data: { user } } = await (await supabase).auth.getUser();
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const user = data?.user;
 
   if (!user) {
     redirect('/auth/login');
