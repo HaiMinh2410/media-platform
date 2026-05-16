@@ -20,6 +20,8 @@ export type AnalyticsSummary = {
   impressions: { value: number; trend: TrendResult };
   engagement: { value: number; trend: TrendResult };
   followers: { value: number; delta: number; trend: TrendResult };
+  profileVisits: { value: number; trend: TrendResult };
+  profileLinksTaps: { value: number; trend: TrendResult };
 };
 
 /**
@@ -79,6 +81,7 @@ export function fillDateGaps(
       impressions: 0,
       engagement: 0,
       followers: lastFollowers, // Forward fill followers
+      insufficientData: false,
       createdAt: new Date()
     };
   });
@@ -89,8 +92,8 @@ export function fillDateGaps(
  */
 export function calcFollowersDelta(snapshots: AnalyticsSnapshot[]): number {
   if (snapshots.length < 2) return 0;
-  const first = snapshots[0].followers;
-  const last = snapshots[snapshots.length - 1].followers;
+  const first = snapshots[0].followers || 0;
+  const last = snapshots[snapshots.length - 1].followers || 0;
   return last - first;
 }
 
@@ -101,8 +104,8 @@ export function calcFollowersDelta(snapshots: AnalyticsSnapshot[]): number {
 export function calcSummary(data: AnalyticsPeriodData): AnalyticsSummary {
   const { current, previous, currentPostTotals, previousPostTotals } = data;
   
-  const sum = (arr: AnalyticsSnapshot[], key: keyof Pick<AnalyticsSnapshot, 'reach' | 'impressions' | 'engagement'>) => 
-    arr.reduce((acc, curr) => acc + (curr[key] as number), 0);
+  const sum = (arr: AnalyticsSnapshot[], key: string) => 
+    arr.reduce((acc, curr) => acc + ((curr as any)[key] || 0), 0);
 
   const snapReach = sum(current, 'reach');
   const curReach = snapReach > 0 ? snapReach : (currentPostTotals?.reach || 0);
@@ -119,8 +122,13 @@ export function calcSummary(data: AnalyticsPeriodData): AnalyticsSummary {
   const snapPrevEng = sum(previous, 'engagement');
   const prevEng = snapPrevEng > 0 ? snapPrevEng : (previousPostTotals?.engagement || 0);
 
-  const curFollowers = current.length > 0 ? current[current.length - 1].followers : 0;
-  const startFollowers = current.length > 0 ? current[0].followers : 0;
+  const curFollowers = current.length > 0 ? (current[current.length - 1].followers || 0) : 0;
+  const startFollowers = current.length > 0 ? (current[0].followers || 0) : 0;
+
+  const curVisits = sum(current, 'profileVisits' as any);
+  const prevVisits = sum(previous, 'profileVisits' as any);
+  const curTaps = sum(current, 'profileLinksTaps' as any);
+  const prevTaps = sum(previous, 'profileLinksTaps' as any);
 
   return {
     reach: {
@@ -139,6 +147,14 @@ export function calcSummary(data: AnalyticsPeriodData): AnalyticsSummary {
       value: curFollowers,
       delta: calcFollowersDelta(current),
       trend: calcTrend(curFollowers, startFollowers)
+    },
+    profileVisits: {
+      value: curVisits,
+      trend: calcTrend(curVisits, prevVisits)
+    },
+    profileLinksTaps: {
+      value: curTaps,
+      trend: calcTrend(curTaps, prevTaps)
     }
   };
 }

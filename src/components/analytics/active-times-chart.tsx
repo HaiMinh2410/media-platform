@@ -88,9 +88,13 @@ export function ActiveTimesChart({
         <div className="p-4 bg-white/5 rounded-2xl mb-4 border border-white/10">
           <BarChart3 className="w-8 h-8 text-white/20" />
         </div>
-        <h3 className="text-white font-bold text-lg mb-2">Not enough data</h3>
+        <h3 className="text-white font-bold text-lg mb-2">
+          {isInsufficientData ? "Not enough followers" : "Insights unavailable"}
+        </h3>
         <p className="text-[#666] text-sm max-w-[240px] leading-relaxed">
-          Your account needs 100+ followers for audience insights.
+          {isInsufficientData 
+            ? "Your account needs 100+ followers for audience insights." 
+            : "Meta hasn't provided audience activity data for this account yet. This usually takes 24-48h after connecting."}
         </p>
       </div>
     );
