@@ -1,5 +1,5 @@
 import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
-import { getAnalyticsHistory } from '@/infrastructure/repositories/analytics.repository';
+import { getAnalyticsForPeriod } from '@/infrastructure/repositories/analytics.repository';
 import { AnalyticsDashboardClient } from './analytics-client';
 
 export default async function AnalyticsPage() {
@@ -18,14 +18,9 @@ export default async function AnalyticsPage() {
   }
 
   // 2. Fetch initial data for the first account (last 30 days)
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(endDate.getDate() - 30);
-
-  const { data: initialAnalytics } = await getAnalyticsHistory({
+  const { data: initialAnalytics } = await getAnalyticsForPeriod({
     accountId: accounts[0].id,
-    startDate,
-    endDate
+    range: '30d'
   });
 
   // Map repo results to the simplified list for the selector
@@ -37,7 +32,7 @@ export default async function AnalyticsPage() {
 
   return (
     <AnalyticsDashboardClient 
-      initialData={initialAnalytics || []} 
+      initialData={initialAnalytics || undefined} 
       accounts={accountList} 
     />
   );

@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
-import type { AnalyticsSnapshot, UpsertSnapshotInput, AnalyticsFilter } from '@/domain/types/analytics';
+import type { AnalyticsSnapshot, UpsertSnapshotInput, AnalyticsFilter, AnalyticsPeriodData } from '@/domain/types/analytics';
+import { subDays, differenceInDays } from 'date-fns';
 
 /**
  * Upserts a daily analytics snapshot for a platform account.
@@ -50,16 +51,40 @@ export async function upsertAnalyticsSnapshot(input: UpsertSnapshotInput): Promi
 }
 
 /**
- * Retrieves analytics history for a platform account within an optional date range.
+ * Retrieves analytics for two consecutive periods (current vs previous).
  */
-export async function getAnalyticsHistory(filter: AnalyticsFilter): Promise<{ data: AnalyticsSnapshot[] | null; error: string | null }> {
+export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ data: AnalyticsPeriodData | null; error: string | null }> {
   try {
-    const snapshots = await db.analytics_snapshots.findMany({
+    const { accountId, range, customStart, customEnd } = filter;
+    
+    let currentEnd = new Date();
+    currentEnd.setHours(23, 59, 59, 999);
+    
+    let currentStart: Date;
+    let previousStart: Date;
+    let previousEnd: Date;
+
+    if (range === 'custom' && customStart && customEnd) {
+      currentStart = customStart;
+      currentEnd = customEnd;
+      const diff = differenceInDays(currentEnd, currentStart) + 1;
+      previousStart = subDays(currentStart, diff);
+      previousEnd = subDays(currentStart, 1);
+    } else {
+      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      currentStart = subDays(currentEnd, days - 1);
+      currentStart.setHours(0, 0, 0, 0);
+      previousStart = subDays(currentStart, days);
+      previousEnd = subDays(currentStart, 1);
+    }
+
+    // Fetch both periods in one query
+    const allSnapshots = await db.analytics_snapshots.findMany({
       where: {
-        account_id: filter.accountId,
+        account_id: accountId,
         date: {
-          gte: filter.startDate,
-          lte: filter.endDate,
+          gte: previousStart,
+          lte: currentEnd,
         },
       },
       orderBy: {
@@ -67,21 +92,42 @@ export async function getAnalyticsHistory(filter: AnalyticsFilter): Promise<{ da
       },
     });
 
+    const mapped = allSnapshots.map(s => ({
+      id: s.id,
+      accountId: s.account_id,
+      date: s.date,
+      reach: s.reach,
+      impressions: s.impressions,
+      engagement: s.engagement,
+      followers: s.followers,
+      createdAt: s.created_at,
+    }));
+
+    // Split data
+    const current = mapped.filter(s => s.date >= currentStart && s.date <= currentEnd);
+    const previous = mapped.filter(s => s.date >= previousStart && s.date <= previousEnd);
+
     return {
-      data: snapshots.map(s => ({
-        id: s.id,
-        accountId: s.account_id,
-        date: s.date,
-        reach: s.reach,
-        impressions: s.impressions,
-        engagement: s.engagement,
-        followers: s.followers,
-        createdAt: s.created_at,
-      })),
+      data: {
+        current,
+        previous,
+        range,
+        currentStart,
+        currentEnd,
+        previousStart,
+        previousEnd
+      },
       error: null,
     };
   } catch (error) {
-    console.error('[AnalyticsRepository] getHistory error:', error);
+    console.error('[AnalyticsRepository] getAnalyticsForPeriod error:', error);
     return { data: null, error: 'FAILED_TO_FETCH_ANALYTICS' };
   }
+}
+
+/**
+ * Legacy support: Retrieves analytics history (now just calls getAnalyticsForPeriod).
+ */
+export async function getAnalyticsHistory(filter: AnalyticsFilter) {
+  return getAnalyticsForPeriod(filter);
 }
