@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import type { AnalyticsSnapshot, UpsertSnapshotInput, AnalyticsFilter, AnalyticsPeriodData } from '@/domain/types/analytics';
+import type { AnalyticsSnapshot, UpsertSnapshotInput, AnalyticsFilter, AnalyticsPeriodData, PostAnalytic } from '@/domain/types/analytics';
 import { subDays, differenceInDays } from 'date-fns';
 
 /**
@@ -130,4 +130,194 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
  */
 export async function getAnalyticsHistory(filter: AnalyticsFilter) {
   return getAnalyticsForPeriod(filter);
+}
+
+export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnalytic, 'id' | 'accountId' | 'syncedAt'>): Promise<void> {
+  try {
+    await db.post_analytics.upsert({
+      where: {
+        account_id_post_id: {
+          account_id: accountId,
+          post_id: post.postId,
+        },
+      },
+      create: {
+        account_id: accountId,
+        post_id: post.postId,
+        media_type: post.mediaType,
+        caption: post.caption,
+        thumbnail_url: post.thumbnailUrl,
+        like_count: post.likeCount,
+        comments_count: post.commentsCount,
+        shares_count: post.sharesCount,
+        saved_count: post.savedCount,
+        reach: post.reach,
+        impressions: post.impressions,
+        posted_at: post.postedAt,
+        synced_at: new Date(),
+      },
+      update: {
+        like_count: post.likeCount,
+        comments_count: post.commentsCount,
+        shares_count: post.sharesCount,
+        saved_count: post.savedCount,
+        reach: post.reach,
+        impressions: post.impressions,
+        synced_at: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error('[AnalyticsRepository] upsertPostAnalytics error:', error);
+  }
+}
+
+export async function getTopPosts(accountId: string, range: AnalyticsFilter['range'], limit = 10, customStart?: Date, customEnd?: Date): Promise<{ data: PostAnalytic[] | null; error: string | null }> {
+  try {
+    let currentEnd = new Date();
+    currentEnd.setHours(23, 59, 59, 999);
+    let currentStart: Date;
+
+    if (range === 'custom' && customStart && customEnd) {
+      currentStart = customStart;
+      currentEnd = customEnd;
+    } else {
+      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      currentStart = subDays(currentEnd, days - 1);
+      currentStart.setHours(0, 0, 0, 0);
+    }
+
+    const posts = await db.post_analytics.findMany({
+      where: {
+        account_id: accountId,
+        posted_at: {
+          gte: currentStart,
+          lte: currentEnd,
+        },
+      },
+      orderBy: {
+        like_count: 'desc', // Simple sort by engagement proxy
+      },
+      take: limit,
+    });
+
+    const mapped = posts.map(p => ({
+      id: p.id,
+      accountId: p.account_id,
+      postId: p.post_id,
+      mediaType: p.media_type,
+      caption: p.caption,
+      thumbnailUrl: p.thumbnail_url,
+      likeCount: p.like_count,
+      commentsCount: p.comments_count,
+      sharesCount: p.shares_count,
+      savedCount: p.saved_count,
+      reach: p.reach,
+      impressions: p.impressions,
+      postedAt: p.posted_at,
+      syncedAt: p.synced_at,
+    }));
+
+    // Re-sort by total engagement (like + comment + share + save)
+    mapped.sort((a, b) => {
+      const engA = a.likeCount + a.commentsCount + a.sharesCount + a.savedCount;
+      const engB = b.likeCount + b.commentsCount + b.sharesCount + b.savedCount;
+      return engB - engA;
+    });
+
+    return { data: mapped.slice(0, limit), error: null };
+  } catch (error) {
+    console.error('[AnalyticsRepository] getTopPosts error:', error);
+    return { data: null, error: 'FAILED_TO_FETCH_TOP_POSTS' };
+  }
+}
+
+export async function getEngagementBreakdown(accountId: string, range: AnalyticsFilter['range'], customStart?: Date, customEnd?: Date): Promise<{ data: { likes: number; comments: number; shares: number; saves: number } | null; error: string | null }> {
+  try {
+    let currentEnd = new Date();
+    currentEnd.setHours(23, 59, 59, 999);
+    let currentStart: Date;
+
+    if (range === 'custom' && customStart && customEnd) {
+      currentStart = customStart;
+      currentEnd = customEnd;
+    } else {
+      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      currentStart = subDays(currentEnd, days - 1);
+      currentStart.setHours(0, 0, 0, 0);
+    }
+
+    const result = await db.post_analytics.aggregate({
+      where: {
+        account_id: accountId,
+        posted_at: {
+          gte: currentStart,
+          lte: currentEnd,
+        },
+      },
+      _sum: {
+        like_count: true,
+        comments_count: true,
+        shares_count: true,
+        saved_count: true,
+      },
+    });
+
+    return {
+      data: {
+        likes: result._sum.like_count || 0,
+        comments: result._sum.comments_count || 0,
+        shares: result._sum.shares_count || 0,
+        saves: result._sum.saved_count || 0,
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error('[AnalyticsRepository] getEngagementBreakdown error:', error);
+    return { data: null, error: 'FAILED_TO_FETCH_ENGAGEMENT_BREAKDOWN' };
+  }
+}
+
+export async function getPostFrequency(accountId: string, range: AnalyticsFilter['range'], customStart?: Date, customEnd?: Date): Promise<{ data: { dayOfWeek: number; count: number }[] | null; error: string | null }> {
+  try {
+    let currentEnd = new Date();
+    currentEnd.setHours(23, 59, 59, 999);
+    let currentStart: Date;
+
+    if (range === 'custom' && customStart && customEnd) {
+      currentStart = customStart;
+      currentEnd = customEnd;
+    } else {
+      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      currentStart = subDays(currentEnd, days - 1);
+      currentStart.setHours(0, 0, 0, 0);
+    }
+
+    const posts = await db.post_analytics.findMany({
+      where: {
+        account_id: accountId,
+        posted_at: {
+          gte: currentStart,
+          lte: currentEnd,
+        },
+      },
+      select: {
+        posted_at: true,
+      },
+    });
+
+    const frequencyMap = new Map<number, number>();
+    for (let i = 0; i <= 6; i++) frequencyMap.set(i, 0);
+
+    posts.forEach(p => {
+      const day = p.posted_at.getDay(); // 0 is Sunday
+      frequencyMap.set(day, (frequencyMap.get(day) || 0) + 1);
+    });
+
+    const data = Array.from(frequencyMap.entries()).map(([dayOfWeek, count]) => ({ dayOfWeek, count }));
+
+    return { data, error: null };
+  } catch (error) {
+    console.error('[AnalyticsRepository] getPostFrequency error:', error);
+    return { data: null, error: 'FAILED_TO_FETCH_POST_FREQUENCY' };
+  }
 }

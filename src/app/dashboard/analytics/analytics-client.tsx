@@ -23,6 +23,8 @@ type Props = {
   accounts: Array<{ id: string; name: string; platform: string }>;
 };
 
+type ActiveMetric = 'reach' | 'impressions' | 'engagement' | 'followers';
+
 function SkeletonStatsCard() {
   return (
     <div className="stats-card animate-pulse relative overflow-hidden">
@@ -51,31 +53,45 @@ function SkeletonChart() {
   );
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label, activeMetric }: any) {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    
+    const getMetricLabel = (m: string) => {
+      switch(m) {
+        case 'reach': return 'Reach';
+        case 'impressions': return 'Impressions';
+        case 'engagement': return 'Engagement';
+        case 'followers': return 'Followers';
+        default: return m;
+      }
+    };
+
+    const getMetricColor = (m: string) => {
+      switch(m) {
+        case 'reach': return 'bg-blue-500';
+        case 'impressions': return 'bg-purple-500';
+        case 'engagement': return 'bg-emerald-500';
+        case 'followers': return 'bg-orange-500';
+        default: return 'bg-white';
+      }
+    };
+
+    const prevKey = `prev${activeMetric.charAt(0).toUpperCase()}${activeMetric.slice(1)}`;
+    const prevValue = data[prevKey] ?? 0;
+
     return (
       <div className="custom-tooltip">
         <div className="tooltip-date">{label}</div>
         <div className="tooltip-items">
           <div className="tooltip-item">
             <div className="tooltip-item-label">
-              <div className="tooltip-item-dot bg-blue-500" />
-              <span>Reach</span>
+              <div className={`tooltip-item-dot ${getMetricColor(activeMetric)}`} />
+              <span>{getMetricLabel(activeMetric)}</span>
             </div>
             <div className="tooltip-values">
-              <span className="tooltip-value-current">{data.reach.toLocaleString()}</span>
-              <span className="tooltip-value-previous">Previous: {data.prevReach.toLocaleString()}</span>
-            </div>
-          </div>
-          <div className="tooltip-item">
-            <div className="tooltip-item-label">
-              <div className="tooltip-item-dot bg-emerald-500" />
-              <span>Engagement</span>
-            </div>
-            <div className="tooltip-values">
-              <span className="tooltip-value-current">{data.engagement.toLocaleString()}</span>
-              <span className="tooltip-value-previous">Previous: {data.prevEngagement.toLocaleString()}</span>
+              <span className="tooltip-value-current">{data[activeMetric].toLocaleString()}</span>
+              <span className="tooltip-value-previous">Previous: {prevValue.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -180,6 +196,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'general' | 'ai'>('general');
+  const [activeMetric, setActiveMetric] = useState<ActiveMetric>('reach');
   const [isSyncing, setIsSyncing] = useState(false);
   const queryClient = useQueryClient();
 
@@ -230,11 +247,25 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       date: xAxisFormatter(s.date),
       reach: s.reach,
       engagement: s.engagement,
+      impressions: s.impressions,
+      followers: s.followers,
       prevReach: prev?.reach ?? 0,
       prevEngagement: prev?.engagement ?? 0,
-      followers: s.followers
+      prevImpressions: prev?.impressions ?? 0,
+      prevFollowers: prev?.followers ?? 0,
     };
   });
+
+  const getMetricConfig = (metric: ActiveMetric) => {
+    switch (metric) {
+      case 'reach': return { color: '#3b82f6', gradientId: 'colorReach', label: 'Reach' };
+      case 'impressions': return { color: '#a855f7', gradientId: 'colorImpressions', label: 'Impressions' };
+      case 'engagement': return { color: '#10b981', gradientId: 'colorEng', label: 'Engagement' };
+      case 'followers': return { color: '#f97316', gradientId: 'colorFollowers', label: 'Followers' };
+    }
+  };
+
+  const activeConfig = getMetricConfig(activeMetric);
 
 
   return (
@@ -357,6 +388,9 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   icon={<Icon lucide={Users} className="text-blue-400" size={20} />} 
                   trend={totals.reach.trend.display} 
                   isPositive={totals.reach.trend.isPositive}
+                  isActive={activeMetric === 'reach'}
+                  onClick={() => setActiveMetric('reach')}
+                  activeColor="#3b82f6"
                 />
                 <StatsCard 
                   label="Impressions" 
@@ -364,6 +398,9 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   icon={<Icon lucide={Eye} className="text-purple-400" size={20} />} 
                   trend={totals.impressions.trend.display} 
                   isPositive={totals.impressions.trend.isPositive}
+                  isActive={activeMetric === 'impressions'}
+                  onClick={() => setActiveMetric('impressions')}
+                  activeColor="#a855f7"
                 />
                 <StatsCard 
                   label="Engagement" 
@@ -371,6 +408,9 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   icon={<Icon lucide={MousePointer2} className="text-emerald-400" size={20} />} 
                   trend={totals.engagement.trend.display} 
                   isPositive={totals.engagement.trend.isPositive}
+                  isActive={activeMetric === 'engagement'}
+                  onClick={() => setActiveMetric('engagement')}
+                  activeColor="#10b981"
                 />
                 <StatsCard 
                   label="Followers" 
@@ -379,13 +419,16 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   trend={totals.followers.trend.display} 
                   isPositive={totals.followers.trend.isPositive}
                   delta={totals.followers.delta}
+                  isActive={activeMetric === 'followers'}
+                  onClick={() => setActiveMetric('followers')}
+                  activeColor="#f97316"
                 />
               </>
             )}
           </div>
 
           <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
-            <h2 className="chart-title">Reach & Engagement Trends</h2>
+            <h2 className="chart-title">{activeConfig.label} Trend</h2>
             {isPending ? (
               <SkeletonChart />
             ) : isError || !totals ? (
@@ -394,54 +437,65 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               </div>
             ) : (
               <div style={{ width: '100%', height: '350px' }}>
-                <ResponsiveContainer>
-                  <AreaChart data={chartData}>
-                    <defs>
-                      <linearGradient id="colorReach" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorEng" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                    <XAxis 
-                      dataKey="date" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
-                      dy={10}
-                      interval={range === '30d' ? 4 : range === '90d' ? 6 : 0}
-                    />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
-                    />
-                    <Tooltip 
-                      content={<CustomTooltip />}
-                      cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="reach" 
-                      stroke="#3b82f6" 
-                      strokeWidth={3}
-                      fillOpacity={1} 
-                      fill="url(#colorReach)" 
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="engagement" 
-                      stroke="#10b981" 
-                      strokeWidth={3}
-                      fillOpacity={1} 
-                      fill="url(#colorEng)" 
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeMetric}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ width: '100%', height: '100%' }}
+                  >
+                    <ResponsiveContainer>
+                      <AreaChart data={chartData}>
+                        <defs>
+                          <linearGradient id="colorReach" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="colorImpressions" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="colorEng" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                        <XAxis 
+                          dataKey="date" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                          dy={10}
+                          interval={range === '30d' ? 4 : range === '90d' ? 6 : 0}
+                        />
+                        <YAxis 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
+                        />
+                        <Tooltip 
+                          content={<CustomTooltip activeMetric={activeMetric} />}
+                          cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey={activeMetric} 
+                          stroke={activeConfig.color} 
+                          strokeWidth={3}
+                          fillOpacity={1} 
+                          fill={`url(#${activeConfig.gradientId})`} 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </motion.div>
+                </AnimatePresence>
               </div>
             )}
           </div>
@@ -457,7 +511,10 @@ function StatsCard({
   icon, 
   trend, 
   isPositive, 
-  delta 
+  delta,
+  isActive,
+  onClick,
+  activeColor = '#3b82f6'
 }: { 
   label: string; 
   value: string; 
@@ -465,9 +522,30 @@ function StatsCard({
   trend: string;
   isPositive?: boolean;
   delta?: number;
+  isActive?: boolean;
+  onClick?: () => void;
+  activeColor?: string;
 }) {
   return (
-    <div className="stats-card">
+    <div 
+      onClick={onClick}
+      className={`stats-card cursor-pointer transition-all duration-300 select-none ${
+        isActive 
+          ? 'stats-card-active border-opacity-50 ring-1 ring-opacity-20 shadow-lg' 
+          : 'hover:bg-white/[0.04] active:scale-95'
+      }`}
+      style={isActive ? { 
+        borderColor: `${activeColor}40`, 
+        boxShadow: `0 0 20px ${activeColor}10`,
+        '--active-glow': `${activeColor}20` 
+      } as React.CSSProperties : {}}
+    >
+      {isActive && (
+        <div 
+          className="absolute inset-0 bg-gradient-to-br opacity-[0.03] pointer-events-none" 
+          style={{ background: `linear-gradient(135deg, ${activeColor}, transparent)` }}
+        />
+      )}
       <div className="flex justify-between items-start mb-4">
         <div className="p-2 bg-white/5 rounded-lg border border-white/10">
           {icon}

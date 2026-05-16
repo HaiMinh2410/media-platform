@@ -36,3 +36,20 @@ export type AnalyticsPeriodData = {
   previousStart: Date;
   previousEnd: Date;
 };
+
+export type PostAnalytic = {
+  id: string;
+  accountId: string;
+  postId: string;
+  mediaType: string;
+  caption: string | null;
+  thumbnailUrl: string | null;
+  likeCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  savedCount: number;
+  reach: number;
+  impressions: number;
+  postedAt: Date;
+  syncedAt: Date;
+};

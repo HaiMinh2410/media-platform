@@ -63,6 +63,7 @@ model PlatformAccount {
   profiles               profiles                 @relation(fields: [profile_id], references: [id], onDelete: Cascade)
   workspace              Workspace                @relation(fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   posts                  posts[]
+  post_analytics         post_analytics[]
   tiktok_token_refreshes tiktok_token_refreshes[]
   tiktok_tokens          tiktok_tokens?
 
@@ -806,6 +807,29 @@ model posts {
   title             String?
   platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
+  @@schema("public")
+}
+
+model post_analytics {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id      String          @db.Uuid
+  post_id         String
+  media_type      String
+  caption         String?
+  thumbnail_url   String?
+  like_count      Int             @default(0)
+  comments_count  Int             @default(0)
+  shares_count    Int             @default(0)
+  saved_count     Int             @default(0)
+  reach           Int             @default(0)
+  impressions     Int             @default(0)
+  posted_at       DateTime        @db.Timestamptz(6)
+  synced_at       DateTime        @default(now()) @db.Timestamptz(6)
+
+  platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+
+  @@unique([account_id, post_id])
+  @@index([account_id, posted_at(sort: Desc)], map: "idx_post_analytics_account_posted")
   @@schema("public")
 }
 

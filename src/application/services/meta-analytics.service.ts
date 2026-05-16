@@ -1,10 +1,12 @@
 import { getMetaGraphClient } from '@/infrastructure/meta/graph-api.client';
 import { getTokenEncryptionService } from '@/infrastructure/crypto/token-encryption.service';
-import { upsertAnalyticsSnapshot } from '@/infrastructure/repositories/analytics.repository';
+import { upsertAnalyticsSnapshot, upsertPostAnalytics } from '@/infrastructure/repositories/analytics.repository';
 import type { 
   MetaInsightsResponse, 
   MetaPageFansResponse, 
-  MetaIGFollowersResponse 
+  MetaIGFollowersResponse,
+  MetaMediaResponse,
+  MetaMediaInsightsResponse
 } from '@/domain/types/meta';
 
 /**
@@ -105,6 +107,56 @@ export const metaAnalyticsService = {
       if (upsertError) {
         console.error(`[MetaAnalyticsService] Upsert failed for ${accountId}:`, upsertError);
         return { success: false, error: upsertError };
+      }
+
+      // 4. Sync Posts (Currently prioritizing Instagram based on spec)
+      if (platform === 'instagram') {
+        const mediaRes = await client.request<MetaMediaResponse>(
+          `${externalId}/media`,
+          accessToken,
+          { fields: 'id,media_type,caption,thumbnail_url,like_count,comments_count,timestamp', limit: 50 }
+        );
+
+        if (mediaRes.data && Array.isArray(mediaRes.data.data)) {
+          for (const post of mediaRes.data.data) {
+            let postReach = 0;
+            let postImpressions = 0;
+            let postSaved = 0;
+            let postShares = 0;
+
+            try {
+              const postInsights = await client.request<MetaMediaInsightsResponse>(
+                `${post.id}/insights`,
+                accessToken,
+                { metric: 'reach,impressions,saved,shares' }
+              );
+
+              if (postInsights.data && Array.isArray(postInsights.data.data)) {
+                postReach = postInsights.data.data.find(i => i.name === 'reach')?.values[0]?.value || 0;
+                postImpressions = postInsights.data.data.find(i => i.name === 'impressions')?.values[0]?.value || 0;
+                postSaved = postInsights.data.data.find(i => i.name === 'saved')?.values[0]?.value || 0;
+                postShares = postInsights.data.data.find(i => i.name === 'shares')?.values[0]?.value || 0;
+              }
+            } catch (err) {
+              // Might fail due to missing scope or unsupported media type (e.g. IGTV/Stories might differ)
+              console.warn(`[MetaAnalyticsService] Could not fetch insights for post ${post.id}`, err);
+            }
+
+            await upsertPostAnalytics(accountId, {
+              postId: post.id,
+              mediaType: post.media_type,
+              caption: post.caption || null,
+              thumbnailUrl: post.thumbnail_url || null,
+              likeCount: post.like_count || 0,
+              commentsCount: post.comments_count || 0,
+              sharesCount: postShares,
+              savedCount: postSaved,
+              reach: postReach,
+              impressions: postImpressions,
+              postedAt: new Date(post.timestamp)
+            });
+          }
+        }
       }
 
       return { success: true };

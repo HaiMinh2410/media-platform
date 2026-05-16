@@ -1,6 +1,6 @@
 'use server';
 
-import { getAnalyticsForPeriod } from '@/infrastructure/repositories/analytics.repository';
+import { getAnalyticsForPeriod, getTopPosts, getEngagementBreakdown, getPostFrequency } from '@/infrastructure/repositories/analytics.repository';
 import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
 import { metaAnalyticsService } from '../services/meta-analytics.service';
 import { AnalyticsFilter, AnalyticsRange } from '@/domain/types/analytics';
@@ -59,4 +59,19 @@ export async function syncAnalyticsAction(accountId: string) {
   });
 
   return result;
+}
+
+export async function getTopPostsAction(accountId: string, range: AnalyticsRange = '30d', customStart?: Date, customEnd?: Date) {
+  const filter: AnalyticsFilter = { accountId, range, customStart, customEnd };
+  return getTopPosts(filter.accountId, filter.range, 10, filter.customStart, filter.customEnd);
+}
+
+export async function getEngagementBreakdownAction(accountId: string, range: AnalyticsRange = '30d', customStart?: Date, customEnd?: Date) {
+  const filter: AnalyticsFilter = { accountId, range, customStart, customEnd };
+  return getEngagementBreakdown(filter.accountId, filter.range, filter.customStart, filter.customEnd);
+}
+
+export async function getPostFrequencyAction(accountId: string, range: AnalyticsRange = '30d', customStart?: Date, customEnd?: Date) {
+  const filter: AnalyticsFilter = { accountId, range, customStart, customEnd };
+  return getPostFrequency(filter.accountId, filter.range, filter.customStart, filter.customEnd);
 }

@@ -68,3 +68,22 @@ export type MetaPublishResponse = {
 export type MetaMediaContainerResponse = {
   id: string;
 };
+
+export type MetaMediaResponse = {
+  data: {
+    id: string;
+    media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REELS';
+    caption?: string;
+    thumbnail_url?: string;
+    like_count: number;
+    comments_count: number;
+    timestamp: string;
+  }[];
+};
+
+export type MetaMediaInsightsResponse = {
+  data: {
+    name: string;
+    values: { value: number }[];
+  }[];
+};
