@@ -1,28 +1,24 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
 
-async function main() {
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-  const adapter = new PrismaPg(pool);
-  const db = new PrismaClient({ adapter });
+const db = new PrismaClient();
 
-  const groupsCount = await db.accountGroup.count();
-  const membersCount = await db.accountGroupMembership.count();
-  const accountsCount = await db.platformAccount.count();
-
-  const allAccounts = await db.platformAccount.findMany();
-  console.log('All Accounts:', JSON.stringify(allAccounts, null, 2));
-
-  console.log({ groupsCount, membersCount, accountsCount });
-
-  const groups = await db.accountGroup.findMany({
-    include: { members: { include: { account: true } } }
+async function checkData() {
+  const account = await db.platformAccount.findFirst();
+  if (!account) {
+    console.log('No accounts found');
+    return;
+  }
+  console.log('Checking account:', account.id, account.platform_user_name);
+  
+  const posts = await db.post_analytics.findMany({
+    where: { account_id: account.id },
+    take: 10
   });
-
-  console.log('Groups:', JSON.stringify(groups, null, 2));
-
-  await db.$disconnect();
+  
+  console.log('Posts count:', posts.length);
+  if (posts.length > 0) {
+    console.log('Sample post:', JSON.stringify(posts[0], null, 2));
+  }
 }
 
-main();
+checkData().catch(console.error).finally(() => db.$disconnect());

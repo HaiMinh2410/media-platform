@@ -240,7 +240,14 @@ export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnal
   }
 }
 
-export async function getTopPosts(accountId: string, range: AnalyticsFilter['range'], limit = 10, customStart?: Date, customEnd?: Date): Promise<{ data: PostAnalytic[] | null; error: string | null }> {
+export async function getTopPosts(
+  accountId: string, 
+  range: AnalyticsFilter['range'], 
+  limit = 10, 
+  customStart?: Date, 
+  customEnd?: Date,
+  sortBy: 'views' | 'interactions' = 'interactions'
+): Promise<{ data: PostAnalytic[] | null; error: string | null }> {
   try {
     let currentEnd = new Date();
     currentEnd.setHours(23, 59, 59, 999);
@@ -255,6 +262,10 @@ export async function getTopPosts(accountId: string, range: AnalyticsFilter['ran
       currentStart.setHours(0, 0, 0, 0);
     }
 
+    const orderBy = sortBy === 'views' 
+      ? { views: 'desc' as const } 
+      : { total_interactions: 'desc' as const };
+
     const posts = await db.post_analytics.findMany({
       where: {
         account_id: accountId,
@@ -263,9 +274,7 @@ export async function getTopPosts(accountId: string, range: AnalyticsFilter['ran
           lte: currentEnd,
         },
       },
-      orderBy: {
-        like_count: 'desc', // Simple sort by engagement proxy
-      },
+      orderBy,
       take: limit,
     });
 
@@ -289,12 +298,18 @@ export async function getTopPosts(accountId: string, range: AnalyticsFilter['ran
       syncedAt: p.synced_at,
     }));
 
-    // Re-sort by total engagement (like + comment + share + save)
-    mapped.sort((a, b) => {
-      const engA = a.likeCount + a.commentsCount + a.sharesCount + a.savedCount;
-      const engB = b.likeCount + b.commentsCount + b.sharesCount + b.savedCount;
-      return engB - engA;
-    });
+    // If we sorted by interactions in DB, we still do a final check in JS 
+    // to ensure the sum of all interactions is used (in case DB column total_interactions is slightly behind)
+    if (sortBy === 'interactions') {
+      mapped.sort((a, b) => {
+        const engA = a.likeCount + a.commentsCount + a.sharesCount + a.savedCount;
+        const engB = b.likeCount + b.commentsCount + b.sharesCount + b.savedCount;
+        return engB - engA;
+      });
+    } else {
+      // If views, trust DB sort but ensure we have valid numbers
+      mapped.sort((a, b) => (b.views || 0) - (a.views || 0));
+    }
 
     return { data: mapped.slice(0, limit), error: null };
   } catch (error) {

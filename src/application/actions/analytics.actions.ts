@@ -62,35 +62,39 @@ export async function syncAnalyticsAction(accountId: string) {
   return result;
 }
 
-export async function getTopPostsAction(accountId: string, range: AnalyticsRange = '30d', customStart?: Date, customEnd?: Date) {
-  const filter: AnalyticsFilter = { accountId, range, customStart, customEnd };
-  return getTopPosts(filter.accountId, filter.range, 10, filter.customStart, filter.customEnd);
+export async function getTopPostsAction(
+  accountId: string, 
+  range: AnalyticsRange = '30d', 
+  customStart?: Date, 
+  customEnd?: Date,
+  sortBy: 'views' | 'interactions' = 'interactions'
+) {
+  return getTopPosts(accountId, range, 10, customStart, customEnd, sortBy);
 }
 
-export async function getTopContentAction(accountId: string) {
+export async function getTopContentAction(
+  accountId: string, 
+  range: AnalyticsRange = '30d', 
+  customStart?: Date, 
+  customEnd?: Date
+) {
   try {
-    let topByViews = [];
-    let topByInteractions = [];
+    // 1. Try to get from period-specific top posts (more accurate for the current view)
+    const [viewsResult, interactionsResult] = await Promise.all([
+      getTopPosts(accountId, range, 5, customStart, customEnd, 'views'),
+      getTopPosts(accountId, range, 5, customStart, customEnd, 'interactions')
+    ]);
 
-    // 1. Check Redis cache first
-    if (redisConnection) {
-      const cachedViews = await redisConnection.get(`top_content:views:${accountId}`);
-      const cachedInteractions = await redisConnection.get(`top_content:interactions:${accountId}`);
-
-      if (cachedViews && cachedInteractions) {
-        return {
-          topByViews: JSON.parse(cachedViews),
-          topByInteractions: JSON.parse(cachedInteractions),
-          error: null
-        };
-      }
+    if ((viewsResult.data && viewsResult.data.length > 0) || (interactionsResult.data && interactionsResult.data.length > 0)) {
+      return {
+        topByViews: viewsResult.data || [],
+        topByInteractions: interactionsResult.data || [],
+        error: null
+      };
     }
 
-    // 2. Cache miss -> Query DB
+    // 2. Fallback to global top content from DB if period-specific is empty
     const result = await getTopContentFromDB(accountId);
-    
-    // Fallback: If DB query is successful, we could cache it here, but it's usually 
-    // cached by the sync worker. We'll just return it.
     return result;
   } catch (error) {
     console.error('[AnalyticsActions] getTopContentAction error:', error);

@@ -20,7 +20,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { calcSummary, fillDateGaps, getXAxisFormatter } from '@/lib/analytics-utils';
 import { ViewsCard } from '@/components/analytics/views-card';
 import { InteractionsCard } from '@/components/analytics/interactions-card';
-import { TopContentGrid } from '@/components/analytics/top-content-grid';
+import { TopContentGrid, type TopContentPost } from '@/components/analytics/top-content-grid';
 import { ActiveTimesChart } from '@/components/analytics/active-times-chart';
 import { ProfileCard } from '@/components/analytics/profile-card';
 import AIAnalyticsPage from '../ai-analytics/page';
@@ -74,11 +74,11 @@ function usePostFrequency(accountId: string, range: AnalyticsRange, customStart?
   });
 }
 
-function useTopContent(accountId: string) {
+function useTopContent(accountId: string, range: AnalyticsRange, customStart?: Date, customEnd?: Date) {
   return useQuery({
-    queryKey: ['top-content', accountId],
-    queryFn: () => getTopContentAction(accountId),
-    staleTime: 6 * 60 * 60 * 1000, // 6 hours
+    queryKey: ['top-content', accountId, range, customStart, customEnd],
+    queryFn: () => getTopContentAction(accountId, range, customStart, customEnd),
+    staleTime: getStaleTime(range),
   });
 }
 
@@ -1076,7 +1076,12 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           </div>
 
           <div className="mb-6">
-            <TopContentGridWrapper accountId={selectedAccountId} />
+            <TopContentGridWrapper 
+              accountId={selectedAccountId} 
+              range={range} 
+              customStart={cStart} 
+              customEnd={cEnd} 
+            />
           </div>
 
           <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
@@ -1303,13 +1308,23 @@ function StatsCard({
   );
 }
 
-function TopContentGridWrapper({ accountId }: { accountId: string }) {
-  const { data: result, isPending } = useTopContent(accountId);
+function TopContentGridWrapper({ 
+  accountId, 
+  range, 
+  customStart, 
+  customEnd 
+}: { 
+  accountId: string;
+  range: AnalyticsRange;
+  customStart?: Date;
+  customEnd?: Date;
+}) {
+  const { data: result, isPending } = useTopContent(accountId, range, customStart, customEnd);
   
   return (
     <TopContentGrid
-      topByViews={result?.topByViews || []}
-      topByInteractions={result?.topByInteractions || []}
+      topByViews={(result?.topByViews || []) as TopContentPost[]}
+      topByInteractions={(result?.topByInteractions || []) as TopContentPost[]}
       isLoading={isPending}
     />
   );
