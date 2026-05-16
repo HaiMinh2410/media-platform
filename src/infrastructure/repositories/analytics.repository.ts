@@ -439,3 +439,24 @@ export async function getPostFrequency(accountId: string, range: AnalyticsFilter
     return { data: null, error: 'FAILED_TO_FETCH_POST_FREQUENCY' };
   }
 }
+export async function createSyncLog(params: {
+  accountId?: string;
+  service: string;
+  status: 'success' | 'failed' | 'rate_limited';
+  errorMessage?: string;
+  errorCode?: string;
+}) {
+  try {
+    await db.sync_logs.create({
+      data: {
+        account_id: params.accountId,
+        service: params.service,
+        status: params.status,
+        error_message: params.errorMessage,
+        error_code: params.errorCode,
+      },
+    });
+  } catch (error) {
+    console.error('[AnalyticsRepository] createSyncLog error:', error);
+  }
+}

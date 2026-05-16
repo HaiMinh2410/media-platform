@@ -39,17 +39,6 @@ export const metaAnalyticsService = {
 
       const client = getMetaGraphClient();
 
-      // Helper for backoff
-      const requestWithBackoff = async <T>(endpoint: string, params: Record<string, any>, attempt = 0): Promise<MetaApiResponse<T>> => {
-        const res = await client.request<T>(endpoint, accessToken, params);
-        if (res.error && (res.details?.code === 429 || res.error.toLowerCase().includes('rate limit')) && attempt < 3) {
-          const delay = Math.pow(2, attempt) * 1000;
-          await new Promise(resolve => setTimeout(resolve, delay));
-          return requestWithBackoff(endpoint, params, attempt + 1);
-        }
-        return res;
-      };
-
       let reach = 0;
       let impressions = 0;
       let engagement = 0;
@@ -67,9 +56,12 @@ export const metaAnalyticsService = {
       // 2. Fetch platform-specific metrics
       if (platform === 'facebook' || platform === 'meta') {
         // Facebook Page Insights (Reach & Engagement)
-        const insightsRes = await requestWithBackoff<MetaInsightsResponse>(
+        const insightsRes = await client.request<MetaInsightsResponse>(
           `${externalId}/insights`,
-          { metric: 'page_impressions_unique,page_post_engagements,page_impressions', period: 'day' }
+          accessToken,
+          { metric: 'page_impressions_unique,page_post_engagements,page_impressions', period: 'day' },
+          'GET',
+          accountId
         );
 
         if (insightsRes.data && Array.isArray(insightsRes.data.data)) {
@@ -78,17 +70,23 @@ export const metaAnalyticsService = {
           engagement = insightsRes.data.data.find((i: any) => i.name === 'page_post_engagements')?.values[0]?.value || 0;
         }
 
-        const pageRes = await requestWithBackoff<MetaPageFansResponse>(
+        const pageRes = await client.request<MetaPageFansResponse>(
           externalId,
-          { fields: 'fan_count' }
+          accessToken,
+          { fields: 'fan_count' },
+          'GET',
+          accountId
         );
         followers = pageRes.data?.fan_count || 0;
 
       } else if (platform === 'instagram') {
         // A. Get followers count first to check 100 followers limit
-        const igRes = await requestWithBackoff<MetaIGFollowersResponse>(
+        const igRes = await client.request<MetaIGFollowersResponse>(
           externalId,
-          { fields: 'followers_count' }
+          accessToken,
+          { fields: 'followers_count' },
+          'GET',
+          accountId
         );
         followers = igRes.data?.followers_count || 0;
         insufficientData = followers < 100;
@@ -96,36 +94,36 @@ export const metaAnalyticsService = {
         // B. Prepare parallel requests
         const promises = [
           // 1. Core daily insights
-          requestWithBackoff<MetaInsightsResponse>(`${externalId}/insights`, { 
+          client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
             metric: 'reach,impressions,profile_links_taps', 
             period: 'day' 
-          }),
+          }, 'GET', accountId),
           // 2. Reach by follower type
-          requestWithBackoff<MetaInsightsResponse>(`${externalId}/insights`, { 
+          client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
             metric: 'reach', 
             breakdown: 'follower_type', 
             period: 'day' 
-          }),
+          }, 'GET', accountId),
           // 3. Views by media product type
-          requestWithBackoff<MetaInsightsResponse>(`${externalId}/insights`, { 
+          client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
             metric: 'views', 
             breakdown: 'media_product_type', 
             period: 'day' 
-          }),
+          }, 'GET', accountId),
           // 4. Media list for aggregation (Top 50)
-          requestWithBackoff<MetaMediaResponse>(`${externalId}/media`, { 
+          client.request<MetaMediaResponse>(`${externalId}/media`, accessToken, { 
             fields: 'id,media_type,caption,media_url,thumbnail_url,children{media_url,media_type},like_count,comments_count,timestamp', 
             limit: 50 
-          })
+          }, 'GET', accountId)
         ];
 
         // 5. Lifetime metrics (only if followers >= 100)
         if (!insufficientData) {
           promises.push(
-            requestWithBackoff<MetaInsightsResponse>(`${externalId}/insights`, { 
+            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
               metric: 'online_followers,follower_demographics', 
               period: 'lifetime' 
-            })
+            }, 'GET', accountId)
           );
         }
 
@@ -191,9 +189,9 @@ export const metaAnalyticsService = {
           for (let i = 0; i < mediaData.data.length; i += chunkSize) {
             const batch = mediaData.data.slice(i, i + chunkSize);
             const batchPromises = batch.map(post => 
-              requestWithBackoff<MetaMediaInsightsResponse>(`${post.id}/insights`, { 
+              client.request<MetaMediaInsightsResponse>(`${post.id}/insights`, accessToken, { 
                 metric: 'reach,impressions,saved,shares,profile_visits' 
-              }).then(res => ({ post, res }))
+              }, 'GET', accountId).then(res => ({ post, res }))
             );
             const batchResults = await Promise.allSettled(batchPromises);
             mediaInsights.push(...batchResults);

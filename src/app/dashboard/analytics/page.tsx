@@ -27,7 +27,8 @@ export default async function AnalyticsPage() {
   const accountList = accounts.map(a => ({
     id: a.id,
     name: a.name || a.externalId,
-    platform: a.platform
+    platform: a.platform,
+    needs_reauth: a.needs_reauth
   }));
 
   return (

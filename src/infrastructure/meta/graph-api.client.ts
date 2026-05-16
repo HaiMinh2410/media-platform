@@ -4,10 +4,11 @@ import {
   MetaDebugTokenData, 
   MetaApiResponse 
 } from '@/domain/types/meta';
+import { metaFetch } from '@/lib/meta-fetch';
 
 /**
  * Client for interacting with Meta Graph API (Facebook/Instagram).
- * Base URL: https://graph.facebook.com/v19.0
+ * Base URL: https://graph.facebook.com/v25.0
  */
 export class MetaGraphClient {
   private readonly baseUrl = 'https://graph.facebook.com/v25.0';
@@ -28,102 +29,32 @@ export class MetaGraphClient {
    */
   async getAccessToken(code: string, redirectUri: string): Promise<MetaApiResponse<MetaTokenResponse>> {
     const url = `${this.baseUrl}/oauth/access_token?client_id=${this.appId}&redirect_uri=${redirectUri}&client_secret=${this.appSecret}&code=${code}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { 
-          data: null, 
-          error: data.error?.message || 'FAILED_TO_GET_ACCESS_TOKEN',
-          details: data.error
-        };
-      }
-
-      return { data, error: null };
-    } catch (err) {
-      console.error('[MetaGraphClient] getAccessToken error:', err);
-      return { data: null, error: 'NETWORK_ERROR' };
-    }
+    return metaFetch<MetaTokenResponse>(url, '', { serviceName: 'meta-auth' });
   }
 
   /**
    * Inspects an access token to see its validity, scopes, and user ID.
-   * Requires an App Access Token (client_id|client_secret) or a valid user token.
    */
   async debugToken(inputToken: string): Promise<MetaApiResponse<MetaDebugTokenData>> {
-    // App access token is used to inspect other tokens
     const appToken = `${this.appId}|${this.appSecret}`;
-    const url = `${this.baseUrl}/debug_token?input_token=${inputToken}&access_token=${appToken}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { 
-          data: null, 
-          error: data.error?.message || 'FAILED_TO_DEBUG_TOKEN',
-          details: data.error
-        };
-      }
-
-      return { data, error: null };
-    } catch (err) {
-      console.error('[MetaGraphClient] debugToken error:', err);
-      return { data: null, error: 'NETWORK_ERROR' };
-    }
+    const url = `${this.baseUrl}/debug_token?input_token=${inputToken}`;
+    return metaFetch<MetaDebugTokenData>(url, appToken, { serviceName: 'meta-debug' });
   }
 
   /**
    * Fetches basic profile information for the authenticated user.
    */
   async getMe(accessToken: string): Promise<MetaApiResponse<MetaUserProfile>> {
-    const url = `${this.baseUrl}/me?fields=id,name,email,picture&access_token=${accessToken}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { 
-          data: null, 
-          error: data.error?.message || 'FAILED_TO_GET_USER_PROFILE',
-          details: data.error
-        };
-      }
-
-      return { data, error: null };
-    } catch (err) {
-      console.error('[MetaGraphClient] getMe error:', err);
-      return { data: null, error: 'NETWORK_ERROR' };
-    }
+    const url = `${this.baseUrl}/me?fields=id,name,email,picture`;
+    return metaFetch<MetaUserProfile>(url, accessToken, { serviceName: 'meta-me' });
   }
 
   /**
    * Fetches the list of Facebook Pages that the user has access to.
    */
   async getPages(accessToken: string): Promise<MetaApiResponse<{ data: any[] }>> {
-    const url = `${this.baseUrl}/me/accounts?fields=id,name,access_token,category,instagram_business_account&access_token=${accessToken}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { 
-          data: null, 
-          error: data.error?.message || 'FAILED_TO_GET_PAGES',
-          details: data.error
-        };
-      }
-
-      return { data, error: null };
-    } catch (err) {
-      console.error('[MetaGraphClient] getPages error:', err);
-      return { data: null, error: 'NETWORK_ERROR' };
-    }
+    const url = `${this.baseUrl}/me/accounts?fields=id,name,access_token,category,instagram_business_account`;
+    return metaFetch<{ data: any[] }>(url, accessToken, { serviceName: 'meta-pages' });
   }
 
   /**
@@ -131,24 +62,7 @@ export class MetaGraphClient {
    */
   async exchangeLongLivedToken(shortLivedToken: string): Promise<MetaApiResponse<MetaTokenResponse>> {
     const url = `${this.baseUrl}/oauth/access_token?grant_type=fb_exchange_token&client_id=${this.appId}&client_secret=${this.appSecret}&fb_exchange_token=${shortLivedToken}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { 
-          data: null, 
-          error: data.error?.message || 'FAILED_TO_EXCHANGE_TOKEN',
-          details: data.error
-        };
-      }
-
-      return { data, error: null };
-    } catch (err) {
-      console.error('[MetaGraphClient] exchangeLongLivedToken error:', err);
-      return { data: null, error: 'NETWORK_ERROR' };
-    }
+    return metaFetch<MetaTokenResponse>(url, '', { serviceName: 'meta-refresh' });
   }
 
   /**
@@ -159,12 +73,10 @@ export class MetaGraphClient {
     endpoint: string, 
     accessToken: string, 
     params: Record<string, any> = {},
-    method: 'GET' | 'POST' = 'GET'
+    method: 'GET' | 'POST' = 'GET',
+    accountId?: string
   ): Promise<MetaApiResponse<T>> {
     const url = new URL(`${this.baseUrl}/${endpoint}`);
-    url.searchParams.append('access_token', accessToken);
-
-    const options: RequestInit = { method };
 
     if (method === 'GET') {
       Object.entries(params).forEach(([key, value]) => {
@@ -172,33 +84,28 @@ export class MetaGraphClient {
           url.searchParams.append(key, String(value));
         }
       });
+      return metaFetch<T>(url.toString(), accessToken, { accountId, serviceName: `meta-${endpoint.split('/')[1] || endpoint}` });
     } else {
-      // Meta Graph API typically accepts POST parameters as x-www-form-urlencoded
+      // For POST, metaFetch needs to be extended to support body if needed.
+      // Currently, most Meta Analytics calls are GET.
+      // If POST is needed, we'll use raw fetch for now or extend metaFetch.
       const bodyParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           bodyParams.append(key, String(value));
         }
       });
-      options.body = bodyParams;
-    }
-
-    try {
-      const response = await fetch(url.toString(), options);
-      const data = await response.json();
-
-      if (!response.ok) {
-        return { 
-          data: null, 
-          error: data.error?.message || 'API_REQUEST_FAILED', 
-          details: data.error 
-        };
+      
+      try {
+        const urlWithToken = new URL(url.toString());
+        urlWithToken.searchParams.append('access_token', accessToken);
+        const response = await fetch(urlWithToken.toString(), { method, body: bodyParams });
+        const data = await response.json();
+        if (!response.ok) return { data: null, error: data.error?.message || 'API_REQUEST_FAILED', details: data.error };
+        return { data, error: null };
+      } catch (err: any) {
+        return { data: null, error: 'NETWORK_ERROR', details: err };
       }
-
-      return { data, error: null };
-    } catch (err) {
-      console.error(`[MetaGraphClient] request error (${method} ${endpoint}):`, err);
-      return { data: null, error: 'NETWORK_ERROR' };
     }
   }
 }

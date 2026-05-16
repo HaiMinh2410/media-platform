@@ -23,6 +23,8 @@ export class PlatformAccountRepository {
             platform_user_name: input.name,
             workspaceId: input.workspaceId,
             disconnected_at: null, // Reactivate if it was disconnected
+            needs_reauth: false,
+            token_expires_at: input.expiresAt || null,
             metadata: input.metadata || {},
           },
           create: {
@@ -56,6 +58,10 @@ export class PlatformAccountRepository {
                 updated_at: new Date(),
               }
             });
+            await tx.platformAccount.update({
+              where: { id: account.id },
+              data: { token_expires_at: input.expiresAt || new Date(Date.now() + 60 * 60 * 24 * 60 * 1000) }
+            });
             console.log('>>> [Repository] Meta Token updated.');
           } else {
             await tx.meta_tokens.create({
@@ -64,6 +70,10 @@ export class PlatformAccountRepository {
                 encrypted_access_token: input.accessToken,
                 expires_at: input.expiresAt || new Date(Date.now() + 60 * 60 * 24 * 60 * 1000),
               }
+            });
+            await tx.platformAccount.update({
+              where: { id: account.id },
+              data: { token_expires_at: input.expiresAt || new Date(Date.now() + 60 * 60 * 24 * 60 * 1000) }
             });
             console.log('>>> [Repository] Meta Token created.');
           }
@@ -249,6 +259,8 @@ export class PlatformAccountRepository {
           name: acc.platform_user_name,
           platform: acc.platform,
           encryptedToken: acc.meta_tokens[0]?.encrypted_access_token,
+          needs_reauth: acc.needs_reauth,
+          token_expires_at: acc.token_expires_at,
         })).filter(acc => !!acc.encryptedToken),
         error: null,
       };
@@ -376,7 +388,7 @@ export class PlatformAccountRepository {
 
         return {
           id: acc.id,
-          platform: acc.platform,
+          platform: acc.platform as any,
           platform_user_name: acc.platform_user_name,
           platform_user_id: acc.platform_user_id,
           status,
@@ -390,7 +402,63 @@ export class PlatformAccountRepository {
       });
     } catch (error) {
       console.error('[PlatformAccountRepository] findWithHealthData failed:', error);
-      throw new Error('DATABASE_ERROR');
+      return [];
+    }
+  }
+
+  /**
+   * Finds all accounts with Meta tokens expiring within a certain number of days.
+   */
+  async findExpiringMetaAccounts(withinDays: number = 7) {
+    const threshold = new Date();
+    threshold.setDate(threshold.getDate() + withinDays);
+
+    try {
+      const accounts = await db.platformAccount.findMany({
+        where: {
+          platform: { in: ['facebook', 'instagram'] },
+          disconnected_at: null,
+          token_expires_at: { lt: threshold }
+        }
+      });
+
+      // We need the tokens too
+      const tokens = await db.meta_tokens.findMany({
+        where: {
+          account_id: { in: accounts.map(a => a.id) }
+        },
+        orderBy: { updated_at: 'desc' }
+      });
+
+      return {
+        data: accounts.map(acc => ({
+          id: acc.id,
+          externalId: acc.platform_user_id,
+          platform: acc.platform,
+          encryptedToken: tokens.find(t => t.account_id === acc.id)?.encrypted_access_token,
+          expiresAt: acc.token_expires_at,
+        })),
+        error: null,
+      };
+    } catch (error) {
+      console.error('[PlatformAccountRepository] findExpiringMetaAccounts failed:', error);
+      return { data: null, error: 'DATABASE_ERROR' };
+    }
+  }
+
+  /**
+   * Updates the reauth status of an account.
+   */
+  async updateReauthStatus(id: string, needsReauth: boolean) {
+    try {
+      await db.platformAccount.update({
+        where: { id },
+        data: { needs_reauth: needsReauth }
+      });
+      return { success: true, error: null };
+    } catch (error) {
+      console.error('[PlatformAccountRepository] updateReauthStatus failed:', error);
+      return { success: false, error: 'DATABASE_ERROR' };
     }
   }
 }
