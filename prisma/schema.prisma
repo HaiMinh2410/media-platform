@@ -717,6 +717,18 @@ model analytics_snapshots {
   impressions       Int?
   engagement        Int?
   followers         Int?
+  
+  // New fields T501 (Professional Dashboard)
+  profile_visits      Int?
+  profile_links_taps   Int?
+  accounts_reached    Int?
+  followers_pct       Float?
+  nonfollowers_pct    Float?
+  by_content_views     Json?
+  by_content_interactions Json?
+  active_times        Json?
+  insufficient_data   Boolean         @default(false)
+  
   created_at        DateTime        @default(now())
   platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
@@ -800,10 +812,13 @@ model post_analytics {
   media_type        String
   caption           String?
   thumbnail_url     String?
+  media_url         String?         // Added in T501 for Top Content display
   like_count        Int             @default(0)
   comments_count    Int             @default(0)
   shares_count      Int             @default(0)
   saved_count       Int             @default(0)
+  total_interactions Int            @default(0) // Aggregated interactions for easy ranking
+  views             Int             @default(0) // Video views
   reach             Int             @default(0)
   impressions       Int             @default(0)
   posted_at         DateTime        @db.Timestamptz(6)

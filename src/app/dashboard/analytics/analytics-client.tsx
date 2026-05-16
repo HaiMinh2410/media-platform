@@ -18,6 +18,7 @@ import {
 import { AnalyticsPeriodData, AnalyticsRange } from '@/domain/types/analytics';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { calcSummary, fillDateGaps, getXAxisFormatter } from '@/lib/analytics-utils';
+import { ViewsCard } from '@/components/analytics/views-card';
 import AIAnalyticsPage from '../ai-analytics/page';
 import './analytics.css';
 
@@ -783,6 +784,17 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   };
 
   const activeConfig = getMetricConfig(activeMetric);
+  
+  // Find the latest snapshot with advanced metrics
+  const latestWithAdvanced = [...(data?.data?.current || [])].reverse().find(s => s.byContentViews);
+  
+  const viewsData = {
+    totalViews: totals?.impressions?.value || 0,
+    followersPct: latestWithAdvanced?.followersPct || 0,
+    nonfollowersPct: latestWithAdvanced?.nonfollowersPct || 0,
+    accountsReached: latestWithAdvanced?.accountsReached || (totals?.reach?.value || 0),
+    byContentViews: latestWithAdvanced?.byContentViews || null,
+  };
 
 
   return (
@@ -919,7 +931,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   icon={<Icon lucide={Users} className="text-blue-400" size={20} />} 
                   trend={totals.reach.trend.display} 
                   isPositive={totals.reach.trend.isPositive}
-                  sparklineData={chartData.map(d => d.reach)}
+                  sparklineData={chartData.map(d => d.reach || 0)}
                   isActive={activeMetric === 'reach'}
                   onClick={() => setActiveMetric('reach')}
                   activeColor="#3b82f6"
@@ -930,7 +942,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   icon={<Icon lucide={Eye} className="text-purple-400" size={20} />} 
                   trend={totals.impressions.trend.display} 
                   isPositive={totals.impressions.trend.isPositive}
-                  sparklineData={chartData.map(d => d.impressions)}
+                  sparklineData={chartData.map(d => d.impressions || 0)}
                   isActive={activeMetric === 'impressions'}
                   onClick={() => setActiveMetric('impressions')}
                   activeColor="#a855f7"
@@ -941,7 +953,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   icon={<Icon lucide={MousePointer2} className="text-emerald-400" size={20} />} 
                   trend={totals.engagement.trend.display} 
                   isPositive={totals.engagement.trend.isPositive}
-                  sparklineData={chartData.map(d => d.engagement)}
+                  sparklineData={chartData.map(d => d.engagement || 0)}
                   isActive={activeMetric === 'engagement'}
                   onClick={() => setActiveMetric('engagement')}
                   activeColor="#10b981"
@@ -953,13 +965,20 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   trend={totals.followers.trend.display} 
                   isPositive={totals.followers.trend.isPositive}
                   delta={totals.followers.delta}
-                  sparklineData={chartData.map(d => d.followers)}
+                  sparklineData={chartData.map(d => d.followers || 0)}
                   isActive={activeMetric === 'followers'}
                   onClick={() => setActiveMetric('followers')}
                   activeColor="#f97316"
                 />
               </>
             )}
+          </div>
+
+          <div className="mt-6 mb-6">
+            <ViewsCard 
+              {...viewsData}
+              isLoading={isPending}
+            />
           </div>
 
           <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>

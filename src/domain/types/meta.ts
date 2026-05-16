@@ -34,7 +34,7 @@ export type MetaApiResponse<T> = {
 };
 
 export type MetaInsightValue = {
-  value: number;
+  value: any; // Can be number or Record<string, number> for breakdowns
   end_time: string;
 };
 
@@ -42,9 +42,9 @@ export type MetaInsightItem = {
   name: string;
   period: string;
   values: MetaInsightValue[];
-  title: string;
-  description: string;
-  id: string;
+  title?: string;
+  description?: string;
+  id?: string;
 };
 
 export type MetaInsightsResponse = {

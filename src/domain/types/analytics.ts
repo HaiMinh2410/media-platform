@@ -1,21 +1,53 @@
+export type ContentBreakdown = {
+  posts: number;
+  reels: number;
+  stories: number;
+};
+
+export type ViewsBreakdown = {
+  all: ContentBreakdown;
+  followers: ContentBreakdown;
+  nonfollowers: ContentBreakdown;
+};
+
+export type ActiveTimes = Record<string, number[]>;
+
 export type AnalyticsSnapshot = {
   id: string;
   accountId: string;
   date: Date;
-  reach: number;
-  impressions: number;
-  engagement: number;
-  followers: number;
+  reach: number | null;
+  impressions: number | null;
+  engagement: number | null;
+  followers: number | null;
+  profileVisits?: number | null;
+  profileLinksTaps?: number | null;
+  accountsReached?: number | null;
+  followersPct?: number | null;
+  nonfollowersPct?: number | null;
+  byContentViews?: ViewsBreakdown | null;
+  byContentInteractions?: ContentBreakdown | null;
+  activeTimes?: ActiveTimes | null;
+  insufficientData: boolean;
   createdAt: Date;
 };
 
 export type UpsertSnapshotInput = {
   accountId: string;
   date: Date;
-  reach: number;
-  impressions: number;
-  engagement: number;
-  followers: number;
+  reach?: number | null;
+  impressions?: number | null;
+  engagement?: number | null;
+  followers?: number | null;
+  profileVisits?: number | null;
+  profileLinksTaps?: number | null;
+  accountsReached?: number | null;
+  followersPct?: number | null;
+  nonfollowersPct?: number | null;
+  byContentViews?: ViewsBreakdown | null;
+  byContentInteractions?: ContentBreakdown | null;
+  activeTimes?: ActiveTimes | null;
+  insufficientData?: boolean;
 };
 
 export type AnalyticsRange = '7d' | '30d' | '90d' | 'custom';
@@ -54,10 +86,13 @@ export type PostAnalytic = {
   mediaType: string;
   caption: string | null;
   thumbnailUrl: string | null;
+  mediaUrl: string | null;
   likeCount: number;
   commentsCount: number;
   sharesCount: number;
   savedCount: number;
+  totalInteractions: number;
+  views: number;
   reach: number;
   impressions: number;
   postedAt: Date;

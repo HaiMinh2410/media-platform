@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference lib="deno.ns" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -86,6 +87,14 @@ Deno.serve(async (req: Request) => {
         let impressions = 0;
         let engagement = 0;
         let followers = 0;
+        let profileVisits = 0;
+        let profileLinksTaps = 0;
+        let accountsReached = 0;
+        let followersPct = 0;
+        let nonfollowersPct = 0;
+        let byContentViews: any = null;
+        let byContentInteractions: any = null;
+        let activeTimes: any = null;
 
         const baseUrl = 'https://graph.facebook.com/v20.0';
 
@@ -106,23 +115,98 @@ Deno.serve(async (req: Request) => {
           followers = fansData.fan_count || 0;
 
         } else if (platform === 'instagram') {
-          const insightsRes = await fetch(`${baseUrl}/${externalId}/insights?metric=impressions,reach,engagement&period=day&access_token=${accessToken}`);
-          const insightsData = await insightsRes.json();
-          if (insightsData.data) {
-            impressions = insightsData.data.find((i: any) => i.name === 'impressions')?.values[0]?.value || 0;
-            reach = insightsData.data.find((i: any) => i.name === 'reach')?.values[0]?.value || 0;
-            engagement = insightsData.data.find((i: any) => i.name === 'engagement')?.values[0]?.value || 0;
-          }
-
+          // A. Followers count first
           const followersRes = await fetch(`${baseUrl}/${externalId}?fields=followers_count&access_token=${accessToken}`);
           const followersData = await followersRes.json();
           followers = followersData.followers_count || 0;
+          const insufficientData = followers < 100;
+
+          // B. Parallel requests for IG
+          const metricsPromises = [
+            // 1. Core daily
+            fetch(`${baseUrl}/${externalId}/insights?metric=reach,impressions,profile_links_taps&period=day&access_token=${accessToken}`).then(r => r.json()),
+            // 2. Reach breakdown
+            fetch(`${baseUrl}/${externalId}/insights?metric=reach&breakdown=follower_type&period=day&access_token=${accessToken}`).then(r => r.json()),
+            // 3. Views breakdown
+            fetch(`${baseUrl}/${externalId}/insights?metric=views&breakdown=media_product_type&period=day&access_token=${accessToken}`).then(r => r.json()),
+            // 4. Media for aggregation
+            fetch(`${baseUrl}/${externalId}/media?fields=id,media_type,like_count,comments_count,timestamp&limit=50&access_token=${accessToken}`).then(r => r.json())
+          ];
+
+          if (!insufficientData) {
+            metricsPromises.push(
+              fetch(`${baseUrl}/${externalId}/insights?metric=online_followers&period=lifetime&access_token=${accessToken}`).then(r => r.json())
+            );
+          }
+
+          const [coreRes, reachBrRes, viewsBrRes, mediaRes, onlineRes] = await Promise.all(metricsPromises);
+
+          // C. Process Core & Breakdowns
+          if (coreRes.data) {
+            reach = coreRes.data.find((i: any) => i.name === 'reach')?.values[0]?.value || 0;
+            impressions = coreRes.data.find((i: any) => i.name === 'impressions')?.values[0]?.value || 0;
+            profileLinksTaps = coreRes.data.find((i: any) => i.name === 'profile_links_taps')?.values[0]?.value || 0;
+            accountsReached = reach;
+          }
+
+          if (reachBrRes.data) {
+            const rVal = reachBrRes.data.find((i: any) => i.name === 'reach')?.values[0]?.value;
+            if (rVal && typeof rVal === 'object') {
+              const total = (rVal.follower || 0) + (rVal['non-follower'] || 0);
+              if (total > 0) {
+                followersPct = (rVal.follower || 0) / total;
+                nonfollowersPct = (rVal['non-follower'] || 0) / total;
+              }
+            }
+          }
+
+          if (viewsBrRes.data) {
+            const vVal = viewsBrRes.data.find((i: any) => i.name === 'views')?.values[0]?.value;
+            if (vVal && typeof vVal === 'object') {
+              byContentViews = {
+                all: { posts: vVal.POST || 0, reels: vVal.REELS || 0, stories: vVal.STORY || 0 },
+                followers: { posts: 0, reels: 0, stories: 0 },
+                nonfollowers: { posts: 0, reels: 0, stories: 0 }
+              };
+            }
+          }
+
+          if (onlineRes && onlineRes.data) {
+            activeTimes = onlineRes.data.find((i: any) => i.name === 'online_followers')?.values[0]?.value || null;
+          }
+
+          // D. Aggregation (Media Level)
+          if (mediaRes.data) {
+            let totalPV = 0;
+            let postInt = 0, reelInt = 0, storyInt = 0;
+
+            const mediaBatch = mediaRes.data.map(async (m: any) => {
+              try {
+                const mInsightsRes = await fetch(`${baseUrl}/${m.id}/insights?metric=reach,impressions,saved,shares,profile_visits&access_token=${accessToken}`);
+                const mInsights = await mInsightsRes.json();
+                if (mInsights.data) {
+                  const pVisits = mInsights.data.find((i: any) => i.name === 'profile_visits')?.values[0]?.value || 0;
+                  totalPV += pVisits;
+
+                  const saved = mInsights.data.find((i: any) => i.name === 'saved')?.values[0]?.value || 0;
+                  const shares = mInsights.data.find((i: any) => i.name === 'shares')?.values[0]?.value || 0;
+                  const total = (m.like_count || 0) + (m.comments_count || 0) + saved + shares;
+
+                  if (m.media_type === 'IMAGE' || m.media_type === 'CAROUSEL_ALBUM') postInt += total;
+                  else if (m.media_type === 'VIDEO' || m.media_type === 'REELS') reelInt += total;
+                }
+              } catch (e) { /* skip */ }
+            });
+
+            await Promise.allSettled(mediaBatch);
+            profileVisits = totalPV;
+            byContentInteractions = { posts: postInt, reels: reelInt, stories: storyInt };
+          }
         }
 
         // Upsert analytics_snapshots
-        const todayStr = new Date().toISOString().split('T')[0]; // UTC midnight equivalent for date type
+        const todayStr = new Date().toISOString().split('T')[0]; 
         
-        // Supabase JS doesn't have upsert with compound unique constraint natively without specifying onConflict
         const { error: upsertError } = await supabase
           .from('analytics_snapshots')
           .upsert({
@@ -132,6 +216,15 @@ Deno.serve(async (req: Request) => {
             impressions,
             engagement,
             followers,
+            profile_visits: profileVisits,
+            profile_links_taps: profileLinksTaps,
+            accounts_reached: accountsReached,
+            followers_pct: followersPct,
+            nonfollowers_pct: nonfollowersPct,
+            by_content_views: byContentViews,
+            by_content_interactions: byContentInteractions,
+            active_times: activeTimes,
+            insufficient_data: followers < 100
           }, { onConflict: 'account_id, date' });
 
         if (upsertError) throw upsertError;

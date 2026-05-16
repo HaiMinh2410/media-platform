@@ -22,12 +22,30 @@ export async function upsertAnalyticsSnapshot(input: UpsertSnapshotInput): Promi
         impressions: input.impressions,
         engagement: input.engagement,
         followers: input.followers,
+        profile_visits: input.profileVisits,
+        profile_links_taps: input.profileLinksTaps,
+        accounts_reached: input.accountsReached,
+        followers_pct: input.followersPct,
+        nonfollowers_pct: input.nonfollowersPct,
+        by_content_views: input.byContentViews as any,
+        by_content_interactions: input.byContentInteractions as any,
+        active_times: input.activeTimes as any,
+        insufficient_data: input.insufficientData ?? false,
       } as any,
       update: {
         reach: input.reach,
         impressions: input.impressions,
         engagement: input.engagement,
         followers: input.followers,
+        profile_visits: input.profileVisits,
+        profile_links_taps: input.profileLinksTaps,
+        accounts_reached: input.accountsReached,
+        followers_pct: input.followersPct,
+        nonfollowers_pct: input.nonfollowersPct,
+        by_content_views: input.byContentViews as any,
+        by_content_interactions: input.byContentInteractions as any,
+        active_times: input.activeTimes as any,
+        insufficient_data: input.insufficientData ?? false,
       } as any,
     });
 
@@ -40,6 +58,15 @@ export async function upsertAnalyticsSnapshot(input: UpsertSnapshotInput): Promi
         impressions: data.impressions,
         engagement: data.engagement,
         followers: data.followers,
+        profileVisits: data.profile_visits,
+        profileLinksTaps: data.profile_links_taps,
+        accountsReached: data.accounts_reached,
+        followersPct: data.followers_pct,
+        nonfollowersPct: data.nonfollowers_pct,
+        byContentViews: data.by_content_views as any,
+        byContentInteractions: data.by_content_interactions as any,
+        activeTimes: data.active_times as any,
+        insufficientData: data.insufficient_data,
         createdAt: data.created_at,
       },
       error: null,
@@ -100,6 +127,15 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
       impressions: s.impressions,
       engagement: s.engagement,
       followers: s.followers,
+      profileVisits: s.profile_visits,
+      profileLinksTaps: s.profile_links_taps,
+      accountsReached: s.accounts_reached,
+      followersPct: s.followers_pct,
+      nonfollowersPct: s.nonfollowers_pct,
+      byContentViews: s.by_content_views as any,
+      byContentInteractions: s.by_content_interactions as any,
+      activeTimes: s.active_times as any,
+      insufficientData: s.insufficient_data,
       createdAt: s.created_at,
     }));
 
@@ -171,27 +207,33 @@ export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnal
         media_type: post.mediaType,
         caption: post.caption,
         thumbnail_url: post.thumbnailUrl,
+        media_url: post.mediaUrl,
         like_count: post.likeCount,
         comments_count: post.commentsCount,
         shares_count: post.sharesCount,
         saved_count: post.savedCount,
+        total_interactions: post.totalInteractions,
+        views: post.views,
         reach: post.reach,
         impressions: post.impressions,
         posted_at: post.postedAt,
         synced_at: new Date(),
-      },
+      } as any,
       update: {
         media_type: post.mediaType,
         caption: post.caption,
         thumbnail_url: post.thumbnailUrl,
+        media_url: post.mediaUrl,
         like_count: post.likeCount,
         comments_count: post.commentsCount,
         shares_count: post.sharesCount,
         saved_count: post.savedCount,
+        total_interactions: post.totalInteractions,
+        views: post.views,
         reach: post.reach,
         impressions: post.impressions,
         synced_at: new Date(),
-      },
+      } as any,
     });
   } catch (error) {
     console.error('[AnalyticsRepository] upsertPostAnalytics error:', error);
@@ -234,10 +276,13 @@ export async function getTopPosts(accountId: string, range: AnalyticsFilter['ran
       mediaType: p.media_type,
       caption: p.caption,
       thumbnailUrl: p.thumbnail_url,
+      mediaUrl: p.media_url,
       likeCount: p.like_count,
       commentsCount: p.comments_count,
       sharesCount: p.shares_count,
       savedCount: p.saved_count,
+      totalInteractions: p.total_interactions,
+      views: p.views,
       reach: p.reach,
       impressions: p.impressions,
       postedAt: p.posted_at,
@@ -255,6 +300,52 @@ export async function getTopPosts(accountId: string, range: AnalyticsFilter['ran
   } catch (error) {
     console.error('[AnalyticsRepository] getTopPosts error:', error);
     return { data: null, error: 'FAILED_TO_FETCH_TOP_POSTS' };
+  }
+}
+
+export async function getTopContentFromDB(accountId: string): Promise<{ topByViews: PostAnalytic[]; topByInteractions: PostAnalytic[]; error: string | null }> {
+  try {
+    const [viewsPosts, interactionsPosts] = await Promise.all([
+      db.post_analytics.findMany({
+        where: { account_id: accountId },
+        orderBy: { views: 'desc' },
+        take: 5,
+      }),
+      db.post_analytics.findMany({
+        where: { account_id: accountId },
+        orderBy: { total_interactions: 'desc' },
+        take: 5,
+      })
+    ]);
+
+    const mapPost = (p: any): PostAnalytic => ({
+      id: p.id,
+      accountId: p.account_id,
+      postId: p.post_id,
+      mediaType: p.media_type,
+      caption: p.caption,
+      thumbnailUrl: p.thumbnail_url,
+      mediaUrl: p.media_url,
+      likeCount: p.like_count,
+      commentsCount: p.comments_count,
+      sharesCount: p.shares_count,
+      savedCount: p.saved_count,
+      totalInteractions: p.total_interactions,
+      views: p.views,
+      reach: p.reach,
+      impressions: p.impressions,
+      postedAt: p.posted_at,
+      syncedAt: p.synced_at,
+    });
+
+    return {
+      topByViews: viewsPosts.map(mapPost),
+      topByInteractions: interactionsPosts.map(mapPost),
+      error: null
+    };
+  } catch (error) {
+    console.error('[AnalyticsRepository] getTopContentFromDB error:', error);
+    return { topByViews: [], topByInteractions: [], error: 'FAILED_TO_FETCH_TOP_CONTENT' };
   }
 }
 
