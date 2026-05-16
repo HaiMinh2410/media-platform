@@ -16,7 +16,7 @@ export function useAnalytics(
       if (error) throw new Error(error);
       return data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, 
     placeholderData: keepPreviousData,
     initialData,
     enabled: !!accountId && (range !== 'custom' || (!!customStart && !!customEnd)),

@@ -128,7 +128,7 @@ function AccountSelector({
             {selected?.name || 'Chọn tài khoản'}
           </span>
         </div>
-        <ChevronDown size={16} className={`text-white/30 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <Icon lucide={ChevronDown} size={16} className={`text-white/30 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -186,12 +186,16 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const cStart = range === 'custom' && customStart ? new Date(customStart) : undefined;
   const cEnd = range === 'custom' && customEnd ? new Date(customEnd) : undefined;
 
-  const { data, isPending, isError } = useAnalytics(
+  // Only use initialData if we are on the first account and default range
+  // otherwise it will pollute the state of other accounts
+  const isInitialState = selectedAccountId === accounts[0]?.id && range === '30d';
+
+  const { data, isPending, isError, isFetching } = useAnalytics(
     selectedAccountId, 
     range, 
     cStart, 
     cEnd, 
-    initialData
+    isInitialState ? initialData : undefined
   );
 
   async function handleSync() {
@@ -245,7 +249,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               : 'border-transparent text-white/40 hover:text-white/80 hover:bg-white/[0.01]'
           }`}
         >
-          <BarChart3 size={14} />
+          <Icon lucide={BarChart3} size={14} />
           <span>Tổng quan Kênh</span>
         </button>
         <button
@@ -256,7 +260,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               : 'border-transparent text-white/40 hover:text-white/80 hover:bg-white/[0.01]'
           }`}
         >
-          <Sparkles size={14} className={activeTab === 'ai' ? "text-pink-500 animate-pulse" : "text-white/30"} />
+          <Icon lucide={Sparkles} size={14} className={activeTab === 'ai' ? "text-pink-500 animate-pulse" : "text-white/30"} />
           <span>Phân tích AI Agent</span>
         </button>
       </div>
@@ -328,12 +332,12 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                 }`}
                 title="Đồng bộ dữ liệu ngay"
               >
-                <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
+                <Icon lucide={RefreshCw} size={16} className={isSyncing ? 'animate-spin' : ''} />
               </button>
             </div>
           </div>
 
-          <div className="stats-grid">
+          <div className={`stats-grid transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
             {isPending ? (
               <>
                 <SkeletonStatsCard />
@@ -350,28 +354,28 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                 <StatsCard 
                   label="Total Reach" 
                   value={totals.reach.value.toLocaleString()} 
-                  icon={<Users className="text-blue-400" size={20} />} 
+                  icon={<Icon lucide={Users} className="text-blue-400" size={20} />} 
                   trend={totals.reach.trend.display} 
                   isPositive={totals.reach.trend.isPositive}
                 />
                 <StatsCard 
                   label="Impressions" 
                   value={totals.impressions.value.toLocaleString()} 
-                  icon={<Eye className="text-purple-400" size={20} />} 
+                  icon={<Icon lucide={Eye} className="text-purple-400" size={20} />} 
                   trend={totals.impressions.trend.display} 
                   isPositive={totals.impressions.trend.isPositive}
                 />
                 <StatsCard 
                   label="Engagement" 
                   value={totals.engagement.value.toLocaleString()} 
-                  icon={<MousePointer2 className="text-emerald-400" size={20} />} 
+                  icon={<Icon lucide={MousePointer2} className="text-emerald-400" size={20} />} 
                   trend={totals.engagement.trend.display} 
                   isPositive={totals.engagement.trend.isPositive}
                 />
                 <StatsCard 
                   label="Followers" 
                   value={totals.followers.value.toLocaleString()} 
-                  icon={<TrendingUp className="text-orange-400" size={20} />} 
+                  icon={<Icon lucide={TrendingUp} className="text-orange-400" size={20} />} 
                   trend={totals.followers.trend.display} 
                   isPositive={totals.followers.trend.isPositive}
                   delta={totals.followers.delta}
@@ -380,7 +384,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             )}
           </div>
 
-          <div className="chart-container">
+          <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
             <h2 className="chart-title">Reach & Engagement Trends</h2>
             {isPending ? (
               <SkeletonChart />
