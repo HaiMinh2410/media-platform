@@ -1,11 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area 
 } from 'recharts';
-import { Users, BarChart3, Eye, MousePointer2, TrendingUp, Calendar, Sparkles } from 'lucide-react';
-import { getAnalyticsAction } from '@/application/actions/analytics.actions';
+import { 
+  Users, BarChart3, Eye, MousePointer2, TrendingUp, Calendar, Sparkles, RefreshCw, 
+  ChevronDown 
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Icon } from '@/components/ui/icon';
+import { getAnalyticsAction, syncAnalyticsAction } from '@/application/actions/analytics.actions';
 import { AnalyticsPeriodData, AnalyticsRange } from '@/domain/types/analytics';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { useQueryClient } from '@tanstack/react-query';
@@ -80,6 +85,94 @@ function CustomTooltip({ active, payload, label }: any) {
   return null;
 }
 
+function AccountSelector({ 
+  accounts, 
+  selectedId, 
+  onSelect 
+}: { 
+  accounts: Props['accounts'], 
+  selectedId: string, 
+  onSelect: (id: string) => void 
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const selected = accounts.find(a => a.id === selectedId) || accounts[0];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'facebook': return <Icon name="facebook" size={14} className="text-blue-400" />;
+      case 'instagram': return <Icon name="instagram" size={14} className="text-pink-400" />;
+      default: return <Icon lucide={Users} size={14} className="text-white/40" />;
+    }
+  };
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 min-w-[200px] justify-between group"
+      >
+        <div className="flex items-center gap-2">
+          {selected && getIcon(selected.platform)}
+          <span className="text-sm font-medium text-white/90 group-hover:text-white">
+            {selected?.name || 'Chọn tài khoản'}
+          </span>
+        </div>
+        <ChevronDown size={16} className={`text-white/30 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute right-0 mt-2 w-full min-w-[240px] bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl z-50 overflow-hidden"
+          >
+            <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+              {accounts.map(acc => (
+                <button
+                  key={acc.id}
+                  onClick={() => {
+                    onSelect(acc.id);
+                    setIsOpen(false);
+                  }}
+                  className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+                    acc.id === selectedId 
+                      ? 'bg-blue-500/10 text-blue-400' 
+                      : 'hover:bg-white/5 text-white/60 hover:text-white'
+                  }`}
+                >
+                  <div className={`p-1.5 rounded-lg border transition-colors ${
+                    acc.id === selectedId ? 'bg-blue-500/20 border-blue-500/30' : 'bg-white/5 border-white/10 group-hover:border-white/20'
+                  }`}>
+                    {getIcon(acc.platform)}
+                  </div>
+                  <div className="flex flex-col items-start overflow-hidden">
+                    <span className="text-sm font-semibold truncate w-full">{acc.name}</span>
+                    <span className="text-[10px] opacity-40 uppercase tracking-widest">{acc.platform}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 
 export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const [selectedAccountId, setSelectedAccountId] = useState<string>(accounts[0]?.id || '');
@@ -87,6 +180,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'general' | 'ai'>('general');
+  const [isSyncing, setIsSyncing] = useState(false);
   const queryClient = useQueryClient();
 
   const cStart = range === 'custom' && customStart ? new Date(customStart) : undefined;
@@ -100,16 +194,24 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     initialData
   );
 
-  function handleAccountHover(accountId: string) {
-    queryClient.prefetchQuery({
-      queryKey: ['analytics', accountId, range, cStart?.toISOString(), cEnd?.toISOString()],
-      queryFn: async () => {
-        const result = await getAnalyticsAction(accountId, range, cStart, cEnd);
-        if (result.error) throw new Error(result.error);
-        return result.data;
-      },
-      staleTime: 5 * 60 * 1000,
-    });
+  async function handleSync() {
+    if (!selectedAccountId || isSyncing) return;
+    
+    setIsSyncing(true);
+    try {
+      const result = await syncAnalyticsAction(selectedAccountId);
+      if (result.success) {
+        // Refetch the data
+        queryClient.invalidateQueries({ queryKey: ['analytics', selectedAccountId] });
+      } else {
+        console.error('Sync failed:', result.error);
+        alert(`Sync failed: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('Sync error:', err);
+    } finally {
+      setIsSyncing(false);
+    }
   }
 
   const totals = data ? calcSummary(data.current, data.previous) : null;
@@ -210,21 +312,24 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               
               <div className="h-8 w-[1px] bg-white/10 mx-1" />
               
-              <select 
-                className="select-control"
-                value={selectedAccountId}
-                onChange={(e) => setSelectedAccountId(e.target.value)}
+              <AccountSelector 
+                accounts={accounts} 
+                selectedId={selectedAccountId} 
+                onSelect={setSelectedAccountId} 
+              />
+
+              <button
+                onClick={handleSync}
+                disabled={isSyncing}
+                className={`p-2 rounded-lg border transition-all duration-300 ${
+                  isSyncing 
+                    ? 'bg-white/5 border-white/10 cursor-not-allowed opacity-50' 
+                    : 'bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20 text-blue-400'
+                }`}
+                title="Đồng bộ dữ liệu ngay"
               >
-                {accounts.map(acc => (
-                  <option 
-                    key={acc.id} 
-                    value={acc.id}
-                    onMouseEnter={() => handleAccountHover(acc.id)}
-                  >
-                    {acc.name} ({acc.platform})
-                  </option>
-                ))}
-              </select>
+                <RefreshCw size={16} className={isSyncing ? 'animate-spin' : ''} />
+              </button>
             </div>
           </div>
 

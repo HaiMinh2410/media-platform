@@ -246,6 +246,7 @@ export class PlatformAccountRepository {
         data: accounts.map(acc => ({
           id: acc.id,
           externalId: acc.platform_user_id,
+          name: acc.platform_user_name,
           platform: acc.platform,
           encryptedToken: acc.meta_tokens[0]?.encrypted_access_token,
         })).filter(acc => !!acc.encryptedToken),

@@ -1,6 +1,8 @@
 'use server';
 
 import { getAnalyticsForPeriod } from '@/infrastructure/repositories/analytics.repository';
+import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
+import { metaAnalyticsService } from '../services/meta-analytics.service';
 import { AnalyticsFilter, AnalyticsRange } from '@/domain/types/analytics';
 
 /**
@@ -28,4 +30,33 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
  */
 export async function getAnalyticsActionLegacy(filter: AnalyticsFilter) {
   return getAnalyticsAction(filter.accountId, filter.range, filter.customStart, filter.customEnd);
+}
+
+/**
+ * Triggers a manual sync for an account.
+ */
+export async function syncAnalyticsAction(accountId: string) {
+  const repo = getPlatformAccountRepository();
+  const { data: account, error: fetchError } = await repo.findById(accountId);
+
+  if (fetchError || !account) {
+    return { success: false, error: fetchError || 'ACCOUNT_NOT_FOUND' };
+  }
+
+  // Get tokens
+  const { data: accountsWithTokens } = await repo.findAllWithMetaTokens();
+  const accountWithToken = accountsWithTokens?.find(a => a.id === accountId);
+
+  if (!accountWithToken || !accountWithToken.encryptedToken) {
+    return { success: false, error: 'MISSING_META_TOKEN' };
+  }
+
+  const result = await metaAnalyticsService.syncAccount({
+    accountId: account.id,
+    externalId: account.externalId,
+    platform: account.platform,
+    encryptedToken: accountWithToken.encryptedToken,
+  });
+
+  return result;
 }

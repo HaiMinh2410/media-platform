@@ -26,7 +26,7 @@ export default async function AnalyticsPage() {
   // Map repo results to the simplified list for the selector
   const accountList = accounts.map(a => ({
     id: a.id,
-    name: (a as any).name || a.externalId, // Fallback to ID if name not present in this view
+    name: a.name || a.externalId,
     platform: a.platform
   }));
 
