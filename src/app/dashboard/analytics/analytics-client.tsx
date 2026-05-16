@@ -13,12 +13,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@/components/ui/icon';
 import { 
   getAnalyticsAction, syncAnalyticsAction, getTopPostsAction, getEngagementBreakdownAction,
-  getPostFrequencyAction, syncAllAccountsAction
+  getPostFrequencyAction, syncAllAccountsAction, getTopContentAction
 } from '@/application/actions/analytics.actions';
 import { AnalyticsPeriodData, AnalyticsRange } from '@/domain/types/analytics';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { calcSummary, fillDateGaps, getXAxisFormatter } from '@/lib/analytics-utils';
 import { ViewsCard } from '@/components/analytics/views-card';
+import { InteractionsCard } from '@/components/analytics/interactions-card';
+import { TopContentGrid } from '@/components/analytics/top-content-grid';
 import AIAnalyticsPage from '../ai-analytics/page';
 import './analytics.css';
 
@@ -67,6 +69,14 @@ function usePostFrequency(accountId: string, range: AnalyticsRange, customStart?
     queryKey: ['post-frequency', accountId, range, customStart, customEnd],
     queryFn: () => getPostFrequencyAction(accountId, range, customStart, customEnd),
     staleTime: getStaleTime(range),
+  });
+}
+
+function useTopContent(accountId: string) {
+  return useQuery({
+    queryKey: ['top-content', accountId],
+    queryFn: () => getTopContentAction(accountId),
+    staleTime: 6 * 60 * 60 * 1000, // 6 hours
   });
 }
 
@@ -720,6 +730,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         queryClient.invalidateQueries({ queryKey: ['top-posts', selectedAccountId] });
         queryClient.invalidateQueries({ queryKey: ['engagement-breakdown', selectedAccountId] });
         queryClient.invalidateQueries({ queryKey: ['post-frequency', selectedAccountId] });
+        queryClient.invalidateQueries({ queryKey: ['top-content', selectedAccountId] });
       } else {
         console.error('Sync failed:', result.error);
         alert(`Sync failed: ${result.error}`);
@@ -741,6 +752,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         queryClient.invalidateQueries({ queryKey: ['top-posts'] });
         queryClient.invalidateQueries({ queryKey: ['engagement-breakdown'] });
         queryClient.invalidateQueries({ queryKey: ['post-frequency'] });
+        queryClient.invalidateQueries({ queryKey: ['top-content'] });
         alert(`Đã đồng bộ thành công ${result.successful}/${result.processed} tài khoản.`);
       } else {
         console.error('Sync All failed:', result.error);
@@ -794,6 +806,12 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     nonfollowersPct: latestWithAdvanced?.nonfollowersPct || 0,
     accountsReached: latestWithAdvanced?.accountsReached || (totals?.reach?.value || 0),
     byContentViews: latestWithAdvanced?.byContentViews || null,
+  };
+
+  const interactionsData = {
+    totalInteractions: totals?.engagement?.value || 0,
+    accountsEngaged: latestWithAdvanced?.engagement || (totals?.engagement?.value || 0), // Placeholder if specific metric missing
+    byContentInteractions: latestWithAdvanced?.byContentInteractions || null,
   };
 
 
@@ -974,11 +992,19 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             )}
           </div>
 
-          <div className="mt-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 mb-6">
             <ViewsCard 
               {...viewsData}
               isLoading={isPending}
             />
+            <InteractionsCard
+              {...interactionsData}
+              isLoading={isPending}
+            />
+          </div>
+
+          <div className="mb-6">
+            <TopContentGridWrapper accountId={selectedAccountId} />
           </div>
 
           <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
@@ -1176,5 +1202,17 @@ function StatsCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function TopContentGridWrapper({ accountId }: { accountId: string }) {
+  const { data: result, isPending } = useTopContent(accountId);
+  
+  return (
+    <TopContentGrid
+      topByViews={result?.topByViews || []}
+      topByInteractions={result?.topByInteractions || []}
+      isLoading={isPending}
+    />
   );
 }
