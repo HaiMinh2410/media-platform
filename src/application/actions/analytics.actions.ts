@@ -75,3 +75,30 @@ export async function getPostFrequencyAction(accountId: string, range: Analytics
   const filter: AnalyticsFilter = { accountId, range, customStart, customEnd };
   return getPostFrequency(filter.accountId, filter.range, filter.customStart, filter.customEnd);
 }
+
+export async function syncAllAccountsAction() {
+  const repo = getPlatformAccountRepository();
+  const { data: accountsWithTokens, error } = await repo.findAllWithMetaTokens();
+
+  if (error || !accountsWithTokens) {
+    return { success: false, error: error || 'FAILED_TO_FETCH_ACCOUNTS' };
+  }
+
+  let successCount = 0;
+  for (const account of accountsWithTokens) {
+    if (!account.encryptedToken) continue;
+
+    const result = await metaAnalyticsService.syncAccount({
+      accountId: account.id,
+      externalId: account.externalId,
+      platform: account.platform,
+      encryptedToken: account.encryptedToken,
+    });
+
+    if (result.success) {
+      successCount++;
+    }
+  }
+
+  return { success: true, processed: accountsWithTokens.length, successful: successCount };
+}

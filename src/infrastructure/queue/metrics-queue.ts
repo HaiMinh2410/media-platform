@@ -11,7 +11,9 @@ export const metricsQueue = redisConnection
           type: 'exponential',
           delay: 10000,
         },
-        removeOnComplete: true,
+        removeOnComplete: {
+          count: 100,
+        },
         removeOnFail: {
           count: 50,
         },

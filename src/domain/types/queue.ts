@@ -82,6 +82,10 @@ export const DEFAULT_JOB_OPTIONS = {
     type: 'exponential',
     delay: 1000,
   },
-  removeOnComplete: true,
-  removeOnFail: false,
+  removeOnComplete: {
+    count: 100,
+  },
+  removeOnFail: {
+    count: 50,
+  },
 };

@@ -2,18 +2,21 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area,
+  PieChart, Pie, Cell, BarChart, Bar 
 } from 'recharts';
 import { 
-  Users, BarChart3, Eye, MousePointer2, TrendingUp, Calendar, Sparkles, RefreshCw, 
-  ChevronDown 
+  Users, BarChart3, Eye, MousePointer2, TrendingUp, TrendingDown, Calendar, Sparkles, RefreshCw, 
+  ChevronDown, CloudDownload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@/components/ui/icon';
-import { getAnalyticsAction, syncAnalyticsAction } from '@/application/actions/analytics.actions';
+import { 
+  getAnalyticsAction, syncAnalyticsAction, getTopPostsAction, getEngagementBreakdownAction,
+  getPostFrequencyAction, syncAllAccountsAction
+} from '@/application/actions/analytics.actions';
 import { AnalyticsPeriodData, AnalyticsRange } from '@/domain/types/analytics';
-import { useAnalytics } from '@/hooks/use-analytics';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { calcSummary, fillDateGaps, getXAxisFormatter } from '@/lib/analytics-utils';
 import AIAnalyticsPage from '../ai-analytics/page';
 import './analytics.css';
@@ -22,6 +25,49 @@ type Props = {
   initialData?: AnalyticsPeriodData;
   accounts: Array<{ id: string; name: string; platform: string }>;
 };
+
+function getStaleTime(range: AnalyticsRange): number {
+  switch (range) {
+    case '7d': return 5 * 60 * 1000;    // 5 mins
+    case '30d': return 15 * 60 * 1000;  // 15 mins
+    case '90d': return 30 * 60 * 1000;  // 30 mins
+    case 'custom': return 30 * 60 * 1000; // 30 mins
+    default: return 5 * 60 * 1000;
+  }
+}
+
+function useAnalytics(accountId: string, range: AnalyticsRange, customStart?: Date, customEnd?: Date, initialData?: AnalyticsPeriodData) {
+  return useQuery({
+    queryKey: ['analytics', accountId, range, customStart, customEnd],
+    queryFn: () => getAnalyticsAction(accountId, range, customStart, customEnd),
+    initialData: initialData ? { data: initialData, error: null } : undefined,
+    staleTime: getStaleTime(range),
+  });
+}
+
+function useTopPosts(accountId: string, range: AnalyticsRange, limit: number, customStart?: Date, customEnd?: Date) {
+  return useQuery({
+    queryKey: ['top-posts', accountId, range, limit, customStart, customEnd],
+    queryFn: () => getTopPostsAction(accountId, range, customStart, customEnd),
+    staleTime: getStaleTime(range),
+  });
+}
+
+function useEngagementBreakdown(accountId: string, range: AnalyticsRange, customStart?: Date, customEnd?: Date) {
+  return useQuery({
+    queryKey: ['engagement-breakdown', accountId, range, customStart, customEnd],
+    queryFn: () => getEngagementBreakdownAction(accountId, range, customStart, customEnd),
+    staleTime: getStaleTime(range),
+  });
+}
+
+function usePostFrequency(accountId: string, range: AnalyticsRange, customStart?: Date, customEnd?: Date) {
+  return useQuery({
+    queryKey: ['post-frequency', accountId, range, customStart, customEnd],
+    queryFn: () => getPostFrequencyAction(accountId, range, customStart, customEnd),
+    staleTime: getStaleTime(range),
+  });
+}
 
 type ActiveMetric = 'reach' | 'impressions' | 'engagement' | 'followers';
 
@@ -53,9 +99,421 @@ function SkeletonChart() {
   );
 }
 
-function CustomTooltip({ active, payload, label, activeMetric }: any) {
+function SkeletonTopPosts() {
+  return (
+    <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 animate-pulse relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent shimmer" />
+      <div className="flex justify-between items-center mb-6">
+        <div className="w-32 h-6 bg-white/5 rounded"></div>
+        <div className="w-24 h-8 bg-white/5 rounded-lg"></div>
+      </div>
+      <div className="space-y-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="flex items-center gap-4 py-3 border-b border-white/5 last:border-0">
+            <div className="w-10 h-10 bg-white/5 rounded-lg"></div>
+            <div className="flex-1 space-y-2">
+              <div className="w-3/4 h-4 bg-white/5 rounded"></div>
+              <div className="w-1/4 h-3 bg-white/5 rounded"></div>
+            </div>
+            <div className="w-16 h-4 bg-white/5 rounded"></div>
+            <div className="w-16 h-4 bg-white/5 rounded"></div>
+            <div className="w-16 h-4 bg-white/5 rounded"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EngagementBreakdownChart({ accountId, range, customStart, customEnd }: {
+  accountId: string;
+  range: AnalyticsRange;
+  customStart?: Date;
+  customEnd?: Date;
+}) {
+  const { data: result, isPending, isError } = useEngagementBreakdown(accountId, range, customStart, customEnd);
+
+  if (isPending) {
+    return (
+      <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 animate-pulse">
+        <div className="w-48 h-6 bg-white/5 rounded mb-8"></div>
+        <div className="flex items-center gap-8">
+          <div className="w-40 h-40 bg-white/5 rounded-full"></div>
+          <div className="flex-1 space-y-4">
+            <div className="w-full h-4 bg-white/5 rounded"></div>
+            <div className="w-2/3 h-4 bg-white/5 rounded"></div>
+            <div className="w-3/4 h-4 bg-white/5 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !result?.data) return null;
+
+  const { likes, comments, shares, saves } = result.data;
+  const total = likes + comments + shares + saves;
+
+  const data = [
+    { name: 'Like', value: likes, color: '#3b82f6' },
+    { name: 'Comment', value: comments, color: '#10b981' },
+    { name: 'Share', value: shares, color: '#a855f7' },
+    { name: 'Save', value: saves, color: '#f59e0b' },
+  ].filter(item => item.value > 0);
+
+  if (total === 0) {
+    return (
+      <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 h-full flex flex-col justify-center items-center text-center">
+        <div className="p-4 bg-white/5 rounded-full mb-4">
+          <Icon lucide={MousePointer2} size={24} className="text-white/20" />
+        </div>
+        <h3 className="text-white font-bold mb-1">Chưa có dữ liệu tương tác</h3>
+        <p className="text-white/40 text-xs">Hãy thử đổi khoảng thời gian khác</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 h-full">
+      <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+        <Icon lucide={BarChart3} size={18} className="text-emerald-400" />
+        Engagement Breakdown
+      </h3>
+
+      <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="w-full md:w-1/2 h-[220px] relative">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={85}
+                paddingAngle={5}
+                dataKey="value"
+                stroke="none"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const item = payload[0].payload;
+                    const percent = ((item.value / total) * 100).toFixed(1);
+                    return (
+                      <div className="bg-[#1a1a1a]/90 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                          <span className="text-xs font-bold text-white">{item.name}</span>
+                        </div>
+                        <div className="text-sm font-medium text-white/90">
+                          {item.value.toLocaleString()} <span className="text-white/40 ml-1">({percent}%)</span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-xs text-white/40 uppercase tracking-widest font-bold">Total</span>
+            <span className="text-xl font-bold text-white">{total.toLocaleString()}</span>
+          </div>
+        </div>
+
+        <div className="w-full md:w-1/2 space-y-3">
+          {data.map((item, i) => (
+            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] group hover:bg-white/[0.05] transition-all">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full shadow-lg" style={{ backgroundColor: item.color, boxShadow: `0 0 10px ${item.color}40` }} />
+                <span className="text-sm font-medium text-white/60 group-hover:text-white transition-colors">{item.name}</span>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-bold text-white">{item.value.toLocaleString()}</div>
+                <div className="text-[10px] text-white/30 font-medium">({((item.value / total) * 100).toFixed(1)}%)</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PostFrequencyChart({ accountId, range, customStart, customEnd }: {
+  accountId: string;
+  range: AnalyticsRange;
+  customStart?: Date;
+  customEnd?: Date;
+}) {
+  const { data: result, isPending, isError } = usePostFrequency(accountId, range, customStart, customEnd);
+
+  if (isPending) {
+    return (
+      <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 animate-pulse">
+        <div className="w-48 h-6 bg-white/5 rounded mb-8"></div>
+        <div className="w-full h-[220px] bg-white/5 rounded-lg"></div>
+      </div>
+    );
+  }
+
+  if (isError || !result?.data) return null;
+
+  const rawData = result.data;
+  const totalPosts = rawData.reduce((sum, d) => sum + d.count, 0);
+
+  if (totalPosts === 0) {
+    return (
+      <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 h-full flex flex-col justify-center items-center text-center">
+        <div className="p-4 bg-white/5 rounded-full mb-4">
+          <Icon lucide={Calendar} size={24} className="text-white/20" />
+        </div>
+        <h3 className="text-white font-bold mb-1">Chưa có bài đăng nào</h3>
+        <p className="text-white/40 text-xs">Hãy thử đổi khoảng thời gian khác</p>
+      </div>
+    );
+  }
+
+  const dayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+  const chartData = rawData.map(d => ({
+    name: dayLabels[d.dayOfWeek],
+    count: d.count,
+    dayIndex: d.dayOfWeek
+  })).sort((a, b) => {
+    // Sort to T2 -> T7 -> CN (1 -> 6 -> 0)
+    const orderA = a.dayIndex === 0 ? 7 : a.dayIndex;
+    const orderB = b.dayIndex === 0 ? 7 : b.dayIndex;
+    return orderA - orderB;
+  });
+
+  const maxCount = Math.max(...chartData.map(d => d.count));
+  const optimalDays = chartData.filter(d => d.count === maxCount).map(d => d.name);
+
+  return (
+    <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 h-full flex flex-col">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <Icon lucide={Calendar} size={18} className="text-blue-400" />
+          Tần suất đăng bài
+        </h3>
+        <div className="text-[10px] uppercase tracking-widest text-white/30 font-bold bg-white/5 px-2 py-1 rounded">
+          {totalPosts} Posts
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-[220px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+            <XAxis 
+              dataKey="name" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+              allowDecimals={false}
+            />
+            <Tooltip 
+              cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-[#1a1a1a]/90 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl">
+                      <div className="text-xs font-bold text-white mb-1">{payload[0].payload.name}</div>
+                      <div className="text-sm font-medium text-blue-400">
+                        {payload[0].value} bài đăng
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Bar 
+              dataKey="count" 
+              radius={[4, 4, 0, 0]}
+              animationDuration={1500}
+            >
+              {chartData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={entry.count === maxCount ? '#f59e0b' : '#3b82f6'} 
+                  fillOpacity={entry.count === maxCount ? 1 : 0.6}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="mt-4 p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl flex items-start gap-3">
+        <Icon lucide={Sparkles} size={14} className="text-blue-400 mt-0.5 flex-shrink-0" />
+        <p className="text-xs text-white/70 leading-relaxed">
+          <span className="text-white font-bold">Thứ {optimalDays.join(', ')}</span> có tần suất đăng bài cao nhất. Hãy duy trì lịch đăng đều đặn vào những ngày này để tối đa hoá tiếp cận.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function TopPostsTable({ accountId, range, customStart, customEnd }: { 
+  accountId: string; 
+  range: AnalyticsRange;
+  customStart?: Date;
+  customEnd?: Date;
+}) {
+  const [limit, setLimit] = useState(5);
+  const { data: result, isPending, isError } = useTopPosts(accountId, range, 10, customStart, customEnd);
+  const queryClient = useQueryClient();
+
+  if (isPending) return <SkeletonTopPosts />;
+  if (isError || !result?.data) return null;
+
+  const posts = result.data.slice(0, limit);
+
+  const getBadgeClass = (type: string) => {
+    switch (type.toUpperCase()) {
+      case 'REELS': return 'bg-pink-500/10 text-pink-400 border-pink-500/20';
+      case 'IMAGE': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      case 'VIDEO': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+      case 'CAROUSEL_ALBUM': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+      default: return 'bg-white/5 text-white/40 border-white/10';
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    if (type === 'CAROUSEL_ALBUM') return 'CAROUSEL';
+    return type;
+  };
+
+  return (
+    <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 mt-6">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <Icon lucide={TrendingUp} size={18} className="text-blue-400" />
+          Top Performance Posts
+        </h3>
+        <div className="flex bg-white/5 p-1 rounded-lg border border-white/10">
+          {[5, 10].map((l) => (
+            <button
+              key={l}
+              onMouseEnter={() => {
+                // Prefetch when hovering
+                queryClient.prefetchQuery({
+                  queryKey: ['top-posts', accountId, range, 10, customStart, customEnd],
+                  queryFn: () => getTopPostsAction(accountId, range, customStart, customEnd),
+                });
+              }}
+              onClick={() => setLimit(l)}
+              className={`px-3 py-1 text-xs font-bold rounded-md transition-all duration-200 ${
+                limit === l ? 'bg-blue-500 text-white shadow-lg' : 'text-white/40 hover:text-white/60'
+              }`}
+            >
+              TOP {l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {posts.length === 0 ? (
+        <div className="py-12 text-center text-white/30 text-sm">
+          Chưa có dữ liệu bài viết trong kỳ này
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-widest text-white/30 border-b border-white/5">
+                <th className="pb-4 font-bold">Post</th>
+                <th className="pb-4 font-bold text-center">Loại</th>
+                <th className="pb-4 font-bold text-right">Reach</th>
+                <th className="pb-4 font-bold text-right">Engagement</th>
+                <th className="pb-4 font-bold text-right">ER%</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {posts.map((post) => {
+                const engagement = post.likeCount + post.commentsCount + post.sharesCount + post.savedCount;
+                const er = post.reach > 0 ? (engagement / post.reach * 100) : null;
+                const isHighER = er !== null && er >= 3;
+
+                return (
+                  <motion.tr 
+                    key={post.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="group hover:bg-white/[0.01] transition-colors"
+                  >
+                    <td className="py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 bg-white/5 flex-shrink-0">
+                          {post.thumbnailUrl ? (
+                            <img src={post.thumbnailUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white/10">
+                              <Icon lucide={Eye} size={16} />
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-sm text-white/70 line-clamp-2 max-w-[240px]">
+                          {post.caption || 'No caption'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 text-center">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getBadgeClass(post.mediaType)}`}>
+                        {getTypeLabel(post.mediaType)}
+                      </span>
+                    </td>
+                    <td className="py-4 text-right text-sm text-white/90">
+                      {post.reach.toLocaleString()}
+                    </td>
+                    <td className="py-4 text-right text-sm text-white/90">
+                      {engagement.toLocaleString()}
+                    </td>
+                    <td className="py-4 text-right">
+                      {er !== null ? (
+                        <span className={`text-sm font-bold ${isHighER ? 'text-emerald-400' : 'text-white/60'}`}>
+                          {er.toFixed(2)}%
+                        </span>
+                      ) : (
+                        <span className="text-white/20">—</span>
+                      )}
+                    </td>
+                  </motion.tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface TooltipPayload {
+  payload: Record<string, string | number>;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+  activeMetric: ActiveMetric;
+}
+
+function CustomTooltip({ active, payload, label, activeMetric }: CustomTooltipProps) {
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
+    const data = payload[0].payload as Record<string, string | number>;
     
     const getMetricLabel = (m: string) => {
       switch(m) {
@@ -78,11 +536,18 @@ function CustomTooltip({ active, payload, label, activeMetric }: any) {
     };
 
     const prevKey = `prev${activeMetric.charAt(0).toUpperCase()}${activeMetric.slice(1)}`;
-    const prevValue = data[prevKey] ?? 0;
+    const val = Number(data[activeMetric]) || 0;
+    const prevValue = Number(data[prevKey]) || 0;
+    
+    const trend = prevValue > 0 ? ((val - prevValue) / prevValue) * 100 : 0;
+    const isPositive = trend > 0;
 
     return (
       <div className="custom-tooltip">
-        <div className="tooltip-date">{label}</div>
+        <div className="tooltip-date">
+          <Icon lucide={Calendar} size={10} />
+          {label}
+        </div>
         <div className="tooltip-items">
           <div className="tooltip-item">
             <div className="tooltip-item-label">
@@ -90,8 +555,18 @@ function CustomTooltip({ active, payload, label, activeMetric }: any) {
               <span>{getMetricLabel(activeMetric)}</span>
             </div>
             <div className="tooltip-values">
-              <span className="tooltip-value-current">{data[activeMetric].toLocaleString()}</span>
-              <span className="tooltip-value-previous">Previous: {prevValue.toLocaleString()}</span>
+              <div className="flex items-center gap-2">
+                <span className="tooltip-value-current">{val.toLocaleString()}</span>
+                {trend !== 0 && (
+                  <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                    isPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                  }`}>
+                    <Icon lucide={isPositive ? TrendingUp : TrendingDown} size={10} />
+                    <span>{Math.abs(trend).toFixed(1)}%</span>
+                  </div>
+                )}
+              </div>
+              <span className="tooltip-value-previous">So với kỳ trước: {prevValue.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -235,11 +710,30 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     }
   }
 
-  const totals = data ? calcSummary(data.current, data.previous) : null;
+  async function handleSyncAll() {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const result = await syncAllAccountsAction();
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['analytics'] });
+        alert(`Đã đồng bộ thành công ${result.successful}/${result.processed} tài khoản.`);
+      } else {
+        console.error('Sync All failed:', result.error);
+        alert(`Sync All failed: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('Sync All error:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }
+
+  const totals = data?.data ? calcSummary(data.data.current, data.data.previous) : null;
   const xAxisFormatter = getXAxisFormatter(range);
   
-  const currentSnapshots = data ? fillDateGaps(data.current, data.currentStart, data.currentEnd) : [];
-  const previousSnapshots = data ? fillDateGaps(data.previous, data.previousStart, data.previousEnd) : [];
+  const currentSnapshots = data?.data ? fillDateGaps(data.data.current, data.data.currentStart, data.data.currentEnd) : [];
+  const previousSnapshots = data?.data ? fillDateGaps(data.data.previous, data.data.previousStart, data.data.previousEnd) : [];
 
   const chartData = currentSnapshots.map((s, i) => {
     const prev = previousSnapshots[i];
@@ -361,9 +855,23 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                     ? 'bg-white/5 border-white/10 cursor-not-allowed opacity-50' 
                     : 'bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20 text-blue-400'
                 }`}
-                title="Đồng bộ dữ liệu ngay"
+                title="Đồng bộ dữ liệu tài khoản này"
               >
                 <Icon lucide={RefreshCw} size={16} className={isSyncing ? 'animate-spin' : ''} />
+              </button>
+              
+              <button
+                onClick={handleSyncAll}
+                disabled={isSyncing}
+                className={`px-3 py-2 rounded-lg border flex items-center gap-2 text-xs font-semibold transition-all duration-300 ${
+                  isSyncing 
+                    ? 'bg-white/5 border-white/10 cursor-not-allowed opacity-50 text-white/50' 
+                    : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white'
+                }`}
+                title="Đồng bộ tất cả tài khoản"
+              >
+                <Icon lucide={CloudDownload} size={14} className={isSyncing ? 'animate-pulse text-blue-400' : ''} />
+                <span className="hidden sm:inline">Sync All</span>
               </button>
             </div>
           </div>
@@ -499,6 +1007,28 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               </div>
             )}
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <EngagementBreakdownChart 
+              accountId={selectedAccountId} 
+              range={range} 
+              customStart={cStart} 
+              customEnd={cEnd} 
+            />
+            <PostFrequencyChart 
+              accountId={selectedAccountId} 
+              range={range} 
+              customStart={cStart} 
+              customEnd={cEnd} 
+            />
+          </div>
+
+          <TopPostsTable 
+            accountId={selectedAccountId} 
+            range={range} 
+            customStart={cStart} 
+            customEnd={cEnd} 
+          />
         </>
       )}
     </div>

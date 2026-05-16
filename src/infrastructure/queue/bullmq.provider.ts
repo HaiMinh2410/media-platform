@@ -2,13 +2,7 @@ import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import { QueueName } from '@/domain/types/queue';
 
-const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-/**
- * Handle missing credentials gracefully during build/startup
- */
-const host = REDIS_URL?.replace('https://', '');
+const REDIS_URL = process.env.REDIS_URL || process.env.UPSTASH_REDIS_URL;
 
 declare global {
   // eslint-disable-next-line no-var
@@ -23,16 +17,15 @@ declare global {
 
 /**
  * Shared Redis connection instance for BullMQ.
- * Upstash requires TLS for connection.
  */
 export const redisConnection = 
   globalThis.redisConnection ?? 
-  (host && REDIS_TOKEN ? new IORedis({
-    host,
-    port: 6379,
-    password: REDIS_TOKEN,
-    tls: { rejectUnauthorized: false },
+  (REDIS_URL ? new IORedis(REDIS_URL, {
     maxRetriesPerRequest: null, // Required by BullMQ
+    // Auto-detect TLS: Upstash or rediss:// requires it, localhost doesn't
+    tls: (REDIS_URL.startsWith('rediss://') || REDIS_URL.includes('upstash.io')) 
+      ? { rejectUnauthorized: false } 
+      : undefined,
   }) : undefined);
 
 if (process.env.NODE_ENV !== 'production' && redisConnection) {
@@ -52,8 +45,12 @@ export const webhookQueue =
         type: 'exponential',
         delay: 1000,
       },
-      removeOnComplete: true,
-      removeOnFail: false,
+      removeOnComplete: {
+        count: 100,
+      },
+      removeOnFail: {
+        count: 50,
+      },
     },
   }) : undefined);
 
@@ -71,8 +68,12 @@ export const mediaTranscodingQueue =
         type: 'exponential',
         delay: 1000,
       },
-      removeOnComplete: true,
-      removeOnFail: false,
+      removeOnComplete: {
+        count: 100,
+      },
+      removeOnFail: {
+        count: 50,
+      },
     },
   }) : undefined);
 
@@ -90,8 +91,12 @@ export const publishQueue =
         type: 'exponential',
         delay: 5000, // Longer delay for social media publishing
       },
-      removeOnComplete: true,
-      removeOnFail: false,
+      removeOnComplete: {
+        count: 100,
+      },
+      removeOnFail: {
+        count: 50,
+      },
     },
   }) : undefined);
 
@@ -100,5 +105,5 @@ if (process.env.NODE_ENV !== 'production' && publishQueue) {
 }
 
 if (!redisConnection) {
-  console.warn('[BullMQ] Redis connection not established. Check UPSTASH_REDIS_REST_URL/TOKEN.');
+  console.warn('[BullMQ] Redis connection not established. Check REDIS_URL or UPSTASH_REDIS_URL.');
 }
