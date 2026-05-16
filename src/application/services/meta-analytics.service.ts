@@ -114,7 +114,7 @@ export const metaAnalyticsService = {
         const mediaRes = await client.request<MetaMediaResponse>(
           `${externalId}/media`,
           accessToken,
-          { fields: 'id,media_type,caption,thumbnail_url,like_count,comments_count,timestamp', limit: 50 }
+          { fields: 'id,media_type,caption,media_url,thumbnail_url,children{media_url,media_type},like_count,comments_count,timestamp', limit: 50 }
         );
 
         if (mediaRes.data && Array.isArray(mediaRes.data.data)) {
@@ -142,11 +142,19 @@ export const metaAnalyticsService = {
               console.warn(`[MetaAnalyticsService] Could not fetch insights for post ${post.id}`, err);
             }
 
+            // Determine best thumbnail URL
+            let thumbnailUrl = post.thumbnail_url || post.media_url || null;
+
+            // For Carousels, media_url might be omitted at top level, so we check children
+            if (!thumbnailUrl && post.media_type === 'CAROUSEL_ALBUM' && post.children?.data?.[0]) {
+              thumbnailUrl = post.children.data[0].media_url;
+            }
+
             await upsertPostAnalytics(accountId, {
               postId: post.id,
               mediaType: post.media_type,
               caption: post.caption || null,
-              thumbnailUrl: post.thumbnail_url || null,
+              thumbnailUrl: thumbnailUrl,
               likeCount: post.like_count || 0,
               commentsCount: post.comments_count || 0,
               sharesCount: postShares,

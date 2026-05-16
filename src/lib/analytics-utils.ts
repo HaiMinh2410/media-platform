@@ -6,7 +6,7 @@ import {
   subDays,
   getISOWeek
 } from 'date-fns';
-import { AnalyticsSnapshot, AnalyticsRange } from '@/domain/types/analytics';
+import { AnalyticsSnapshot, AnalyticsRange, AnalyticsPeriodData } from '@/domain/types/analytics';
 
 export type TrendResult = {
   percentage: number;
@@ -54,10 +54,13 @@ export function fillDateGaps(
 ): AnalyticsSnapshot[] {
   const days = eachDayOfInterval({ start: startOfDay(startDate), end: startOfDay(endDate) });
   
-  let lastFollowers = snapshots.length > 0 ? snapshots[0].followers : 0;
+  // Sort snapshots to ensure chronological order
+  const sorted = [...snapshots].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  let lastFollowers = sorted.length > 0 ? sorted[0].followers : 0;
   
   return days.map(day => {
-    const existing = snapshots.find(s => isSameDay(new Date(s.date), day));
+    const existingSnapshots = sorted.filter(s => isSameDay(new Date(s.date), day));
+    const existing = existingSnapshots.length > 0 ? existingSnapshots[existingSnapshots.length - 1] : undefined;
     
     if (existing) {
       lastFollowers = existing.followers;
@@ -93,19 +96,28 @@ export function calcFollowersDelta(snapshots: AnalyticsSnapshot[]): number {
 
 /**
  * Aggregates snapshots and calculates trends vs previous period.
+ * Uses post-level totals as fallback if snapshots are zero.
  */
-export function calcSummary(current: AnalyticsSnapshot[], previous: AnalyticsSnapshot[]): AnalyticsSummary {
+export function calcSummary(data: AnalyticsPeriodData): AnalyticsSummary {
+  const { current, previous, currentPostTotals, previousPostTotals } = data;
+  
   const sum = (arr: AnalyticsSnapshot[], key: keyof Pick<AnalyticsSnapshot, 'reach' | 'impressions' | 'engagement'>) => 
     arr.reduce((acc, curr) => acc + (curr[key] as number), 0);
 
-  const curReach = sum(current, 'reach');
-  const prevReach = sum(previous, 'reach');
+  const snapReach = sum(current, 'reach');
+  const curReach = snapReach > 0 ? snapReach : (currentPostTotals?.reach || 0);
+  const snapPrevReach = sum(previous, 'reach');
+  const prevReach = snapPrevReach > 0 ? snapPrevReach : (previousPostTotals?.reach || 0);
   
-  const curImp = sum(current, 'impressions');
-  const prevImp = sum(previous, 'impressions');
+  const snapImp = sum(current, 'impressions');
+  const curImp = snapImp > 0 ? snapImp : (currentPostTotals?.impressions || 0);
+  const snapPrevImp = sum(previous, 'impressions');
+  const prevImp = snapPrevImp > 0 ? snapPrevImp : (previousPostTotals?.impressions || 0);
   
-  const curEng = sum(current, 'engagement');
-  const prevEng = sum(previous, 'engagement');
+  const snapEng = sum(current, 'engagement');
+  const curEng = snapEng > 0 ? snapEng : (currentPostTotals?.engagement || 0);
+  const snapPrevEng = sum(previous, 'engagement');
+  const prevEng = snapPrevEng > 0 ? snapPrevEng : (previousPostTotals?.engagement || 0);
 
   const curFollowers = current.length > 0 ? current[current.length - 1].followers : 0;
   const startFollowers = current.length > 0 ? current[0].followers : 0;
@@ -126,7 +138,7 @@ export function calcSummary(current: AnalyticsSnapshot[], previous: AnalyticsSna
     followers: {
       value: curFollowers,
       delta: calcFollowersDelta(current),
-      trend: calcTrend(curFollowers, startFollowers) // Trend within the period or vs previous? Usually vs start of period for followers.
+      trend: calcTrend(curFollowers, startFollowers)
     }
   };
 }

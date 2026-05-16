@@ -30,6 +30,16 @@ export type AnalyticsFilter = {
 export type AnalyticsPeriodData = {
   current: AnalyticsSnapshot[];
   previous: AnalyticsSnapshot[];
+  currentPostTotals?: {
+    reach: number;
+    impressions: number;
+    engagement: number;
+  };
+  previousPostTotals?: {
+    reach: number;
+    impressions: number;
+    engagement: number;
+  };
   range: AnalyticsRange;
   currentStart: Date;
   currentEnd: Date;

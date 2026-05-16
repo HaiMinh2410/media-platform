@@ -103,7 +103,21 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
       createdAt: s.created_at,
     }));
 
-    // Split data
+    // Fetch post-level aggregates for both periods
+    const [currentPostAgg, previousPostAgg] = await Promise.all([
+      db.post_analytics.aggregate({
+        where: { account_id: accountId, posted_at: { gte: currentStart, lte: currentEnd } },
+        _sum: { reach: true, impressions: true, like_count: true, comments_count: true, shares_count: true, saved_count: true }
+      }),
+      db.post_analytics.aggregate({
+        where: { account_id: accountId, posted_at: { gte: previousStart, lte: previousEnd } },
+        _sum: { reach: true, impressions: true, like_count: true, comments_count: true, shares_count: true, saved_count: true }
+      })
+    ]);
+
+    const getEng = (agg: any) => (agg._sum.like_count || 0) + (agg._sum.comments_count || 0) + (agg._sum.shares_count || 0) + (agg._sum.saved_count || 0);
+
+    // Split snapshots into current and previous periods
     const current = mapped.filter(s => s.date >= currentStart && s.date <= currentEnd);
     const previous = mapped.filter(s => s.date >= previousStart && s.date <= previousEnd);
 
@@ -111,6 +125,16 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
       data: {
         current,
         previous,
+        currentPostTotals: {
+          reach: currentPostAgg._sum.reach || 0,
+          impressions: currentPostAgg._sum.impressions || 0,
+          engagement: getEng(currentPostAgg),
+        },
+        previousPostTotals: {
+          reach: previousPostAgg._sum.reach || 0,
+          impressions: previousPostAgg._sum.impressions || 0,
+          engagement: getEng(previousPostAgg),
+        },
         range,
         currentStart,
         currentEnd,
@@ -157,6 +181,9 @@ export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnal
         synced_at: new Date(),
       },
       update: {
+        media_type: post.mediaType,
+        caption: post.caption,
+        thumbnail_url: post.thumbnailUrl,
         like_count: post.likeCount,
         comments_count: post.commentsCount,
         shares_count: post.sharesCount,

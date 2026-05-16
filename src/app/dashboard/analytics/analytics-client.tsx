@@ -455,27 +455,36 @@ function TopPostsTable({ accountId, range, customStart, customEnd }: {
                   >
                     <td className="py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 bg-white/5 flex-shrink-0">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 bg-white/5 flex-shrink-0 group-hover:border-blue-500/30 transition-colors">
                           {post.thumbnailUrl ? (
                             <img src={post.thumbnailUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-white/10">
-                              <Icon lucide={Eye} size={16} />
+                              <Icon lucide={Eye} size={20} />
                             </div>
                           )}
                         </div>
-                        <span className="text-sm text-white/70 line-clamp-2 max-w-[240px]">
-                          {post.caption || 'No caption'}
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-medium text-white/90 line-clamp-1 max-w-[200px] group-hover:text-white transition-colors">
+                            {post.caption || 'No caption'}
+                          </span>
+                          <span className="text-[10px] text-white/30 font-medium">
+                            {new Date(post.postedAt).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td className="py-4 text-center">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getBadgeClass(post.mediaType)}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-sm ${getBadgeClass(post.mediaType)}`}>
                         {getTypeLabel(post.mediaType)}
                       </span>
                     </td>
-                    <td className="py-4 text-right text-sm text-white/90">
-                      {post.reach.toLocaleString()}
+                    <td className="py-4 text-right">
+                      {post.reach > 0 ? (
+                        <span className="text-sm font-semibold text-white/90">{post.reach.toLocaleString()}</span>
+                      ) : (
+                        <span className="text-sm font-medium text-white/20 tracking-widest">N/A</span>
+                      )}
                     </td>
                     <td className="py-4 text-right text-sm text-white/90">
                       {engagement.toLocaleString()}
@@ -541,6 +550,7 @@ function CustomTooltip({ active, payload, label, activeMetric }: CustomTooltipPr
     
     const trend = prevValue > 0 ? ((val - prevValue) / prevValue) * 100 : 0;
     const isPositive = trend > 0;
+    const absDiff = val - prevValue;
 
     return (
       <div className="custom-tooltip">
@@ -557,16 +567,23 @@ function CustomTooltip({ active, payload, label, activeMetric }: CustomTooltipPr
             <div className="tooltip-values">
               <div className="flex items-center gap-2">
                 <span className="tooltip-value-current">{val.toLocaleString()}</span>
-                {trend !== 0 && (
+                {absDiff !== 0 && (
                   <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                     isPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
                   }`}>
                     <Icon lucide={isPositive ? TrendingUp : TrendingDown} size={10} />
-                    <span>{Math.abs(trend).toFixed(1)}%</span>
+                    <span>{isPositive ? '+' : ''}{absDiff.toLocaleString()}</span>
                   </div>
                 )}
               </div>
-              <span className="tooltip-value-previous">So với kỳ trước: {prevValue.toLocaleString()}</span>
+              {prevValue > 0 && (
+                <div className="flex flex-col mt-1">
+                  <span className="tooltip-value-previous">Kỳ trước: {prevValue.toLocaleString()}</span>
+                  <span className={`text-[10px] ${isPositive ? 'text-emerald-400' : 'text-red-400'} font-medium`}>
+                    ({isPositive ? '+' : ''}{trend.toFixed(1)}%)
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -697,8 +714,11 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     try {
       const result = await syncAnalyticsAction(selectedAccountId);
       if (result.success) {
-        // Refetch the data
+        // Refetch all queries for this account
         queryClient.invalidateQueries({ queryKey: ['analytics', selectedAccountId] });
+        queryClient.invalidateQueries({ queryKey: ['top-posts', selectedAccountId] });
+        queryClient.invalidateQueries({ queryKey: ['engagement-breakdown', selectedAccountId] });
+        queryClient.invalidateQueries({ queryKey: ['post-frequency', selectedAccountId] });
       } else {
         console.error('Sync failed:', result.error);
         alert(`Sync failed: ${result.error}`);
@@ -717,6 +737,9 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       const result = await syncAllAccountsAction();
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ['analytics'] });
+        queryClient.invalidateQueries({ queryKey: ['top-posts'] });
+        queryClient.invalidateQueries({ queryKey: ['engagement-breakdown'] });
+        queryClient.invalidateQueries({ queryKey: ['post-frequency'] });
         alert(`Đã đồng bộ thành công ${result.successful}/${result.processed} tài khoản.`);
       } else {
         console.error('Sync All failed:', result.error);
@@ -729,7 +752,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     }
   }
 
-  const totals = data?.data ? calcSummary(data.data.current, data.data.previous) : null;
+  const totals = data?.data ? calcSummary(data.data) : null;
   const xAxisFormatter = getXAxisFormatter(range);
   
   const currentSnapshots = data?.data ? fillDateGaps(data.data.current, data.data.currentStart, data.data.currentEnd) : [];
@@ -896,6 +919,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   icon={<Icon lucide={Users} className="text-blue-400" size={20} />} 
                   trend={totals.reach.trend.display} 
                   isPositive={totals.reach.trend.isPositive}
+                  sparklineData={chartData.map(d => d.reach)}
                   isActive={activeMetric === 'reach'}
                   onClick={() => setActiveMetric('reach')}
                   activeColor="#3b82f6"
@@ -906,6 +930,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   icon={<Icon lucide={Eye} className="text-purple-400" size={20} />} 
                   trend={totals.impressions.trend.display} 
                   isPositive={totals.impressions.trend.isPositive}
+                  sparklineData={chartData.map(d => d.impressions)}
                   isActive={activeMetric === 'impressions'}
                   onClick={() => setActiveMetric('impressions')}
                   activeColor="#a855f7"
@@ -916,6 +941,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   icon={<Icon lucide={MousePointer2} className="text-emerald-400" size={20} />} 
                   trend={totals.engagement.trend.display} 
                   isPositive={totals.engagement.trend.isPositive}
+                  sparklineData={chartData.map(d => d.engagement)}
                   isActive={activeMetric === 'engagement'}
                   onClick={() => setActiveMetric('engagement')}
                   activeColor="#10b981"
@@ -927,6 +953,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   trend={totals.followers.trend.display} 
                   isPositive={totals.followers.trend.isPositive}
                   delta={totals.followers.delta}
+                  sparklineData={chartData.map(d => d.followers)}
                   isActive={activeMetric === 'followers'}
                   onClick={() => setActiveMetric('followers')}
                   activeColor="#f97316"
@@ -958,19 +985,23 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                       <AreaChart data={chartData}>
                         <defs>
                           <linearGradient id="colorReach" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
+                            <stop offset="50%" stopColor="#3b82f6" stopOpacity={0.1}/>
                             <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                           </linearGradient>
                           <linearGradient id="colorImpressions" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                            <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4}/>
+                            <stop offset="50%" stopColor="#a855f7" stopOpacity={0.1}/>
                             <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
                           </linearGradient>
                           <linearGradient id="colorEng" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                            <stop offset="50%" stopColor="#10b981" stopOpacity={0.1}/>
                             <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                           </linearGradient>
                           <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
+                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.4}/>
+                            <stop offset="50%" stopColor="#f97316" stopOpacity={0.1}/>
                             <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
@@ -987,6 +1018,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                           axisLine={false} 
                           tickLine={false} 
                           tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
+                          domain={activeMetric === 'followers' ? ['dataMin - 100', 'dataMax + 100'] : [0, 'auto']}
+                          allowDecimals={false}
                         />
                         <Tooltip 
                           content={<CustomTooltip activeMetric={activeMetric} />}
@@ -999,6 +1032,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                           strokeWidth={3}
                           fillOpacity={1} 
                           fill={`url(#${activeConfig.gradientId})`} 
+                          connectNulls
                         />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -1044,7 +1078,8 @@ function StatsCard({
   delta,
   isActive,
   onClick,
-  activeColor = '#3b82f6'
+  activeColor = '#3b82f6',
+  sparklineData = []
 }: { 
   label: string; 
   value: string; 
@@ -1055,13 +1090,14 @@ function StatsCard({
   isActive?: boolean;
   onClick?: () => void;
   activeColor?: string;
+  sparklineData?: number[];
 }) {
   return (
     <div 
       onClick={onClick}
-      className={`stats-card cursor-pointer transition-all duration-300 select-none ${
+      className={`stats-card cursor-pointer transition-all duration-300 select-none group ${
         isActive 
-          ? 'stats-card-active border-opacity-50 ring-1 ring-opacity-20 shadow-lg' 
+          ? 'stats-card-active border-opacity-50 ring-1 ring-opacity-20 shadow-lg scale-[1.02]' 
           : 'hover:bg-white/[0.04] active:scale-95'
       }`}
       style={isActive ? { 
@@ -1077,24 +1113,48 @@ function StatsCard({
         />
       )}
       <div className="flex justify-between items-start mb-4">
-        <div className="p-2 bg-white/5 rounded-lg border border-white/10">
+        <div className="p-2 bg-white/5 rounded-lg border border-white/10 shadow-inner group-hover:border-white/20 transition-colors">
           {icon}
         </div>
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-          isPositive ? 'text-emerald-400 bg-emerald-400/10' : 
-          trend === '—' ? 'text-white/40 bg-white/5' : 'text-red-400 bg-red-400/10'
-        }`}>
-          {trend}
-        </span>
+        <div className="w-16 h-8 opacity-20 group-hover:opacity-60 transition-opacity">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={sparklineData.map((v, i) => ({ v, i }))}>
+              <YAxis hide domain={['dataMin', 'dataMax']} />
+              <Area 
+                type="monotone" 
+                dataKey="v" 
+                stroke={activeColor} 
+                strokeWidth={1.5} 
+                fill={activeColor}
+                fillOpacity={0.1}
+                dot={false} 
+                isAnimationActive={false} 
+                connectNulls
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
       <div className="stats-label">{label}</div>
-      <div className="stats-value flex items-end gap-2">
-        {value}
-        {delta !== undefined && delta !== 0 && (
-          <span className={`text-xs pb-1 ${delta > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {delta > 0 ? '+' : ''}{delta}
-          </span>
-        )}
+      <div className="flex items-end justify-between gap-2 mt-1">
+        <div className="flex flex-col">
+          <div className="stats-value">
+            {value}
+          </div>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 ${
+              isPositive ? 'text-emerald-400 bg-emerald-400/10' : 
+              trend === '—' ? 'text-white/40 bg-white/5' : 'text-red-400 bg-red-400/10'
+            }`}>
+              {trend !== '—' && (isPositive ? '▲' : '▼')} {trend.replace('+', '').replace('-', '')}
+            </span>
+            {delta !== undefined && delta !== 0 && (
+              <span className={`text-[10px] font-bold opacity-40`}>
+                {delta > 0 ? '+' : ''}{delta.toLocaleString()}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

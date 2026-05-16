@@ -74,7 +74,14 @@ export type MetaMediaResponse = {
     id: string;
     media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REELS';
     caption?: string;
+    media_url?: string;
     thumbnail_url?: string;
+    children?: {
+      data: {
+        media_url: string;
+        media_type: string;
+      }[];
+    };
     like_count: number;
     comments_count: number;
     timestamp: string;

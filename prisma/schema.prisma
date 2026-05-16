@@ -16,14 +16,14 @@ model Workspace {
   createdAt           DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   account_groups      AccountGroup[]
+  ai_agent_metrics    AIAgentMetric[]
   customer_identities CustomerIdentity[]
+  drafts              Draft[]
+  fan_profiles        FanProfile[]
   invitations         invitations[]
   platformAccounts    PlatformAccount[]
   workspace_members   workspace_members[]
   workspace_tags      WorkspaceTag[]
-  fan_profiles        FanProfile[]
-  ai_agent_metrics    AIAgentMetric[]
-  drafts              Draft[]
 
   @@map("workspaces")
   @@schema("public")
@@ -62,8 +62,8 @@ model PlatformAccount {
   meta_tokens            meta_tokens[]
   profiles               profiles                 @relation(fields: [profile_id], references: [id], onDelete: Cascade)
   workspace              Workspace                @relation(fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  posts                  posts[]
   post_analytics         post_analytics[]
+  posts                  posts[]
   tiktok_token_refreshes tiktok_token_refreshes[]
   tiktok_tokens          tiktok_tokens?
 
@@ -81,30 +81,30 @@ model Conversation {
   status                     String?                   @default("open")
   customer_avatar            String?
   customer_name              String?
-  customer_username          String?
-  customer_link              String?
-  gender                     String?
   is_vip                     Boolean                   @default(false)
   /// Added in T073: Advanced Inbox Schema
   priority                   String?                   @default("medium")
   sentiment                  String?                   @default("neutral")
-  lead_status                String?                   @default("new")
-  phone                      String?
-  email                      String?
-  birthday                   DateTime?
-  address                    String?
-  city                       String?
-  state                      String?
-  zip_code                   String?
   /// Points to the primary/canonical conversation when this convo is a cross-channel duplicate (T077)
   canonical_conversation_id  String?                   @db.Uuid
   tags                       String[]                  @default([])
+  address                    String?
+  birthday                   DateTime?
+  city                       String?
+  email                      String?
+  lead_status                String?                   @default("new")
+  phone                      String?
+  state                      String?
+  zip_code                   String?
+  customer_link              String?
+  customer_username          String?
   is_pinned                  Boolean                   @default(false) @map("is_pinned")
+  gender                     String?
+  notes                      ConversationNote[]
   platform_accounts          PlatformAccount           @relation(fields: [account_id], references: [id], onDelete: Cascade)
   customer_platform_mappings CustomerPlatformMapping[]
-  messages                   Message[]
-  notes                      ConversationNote[]
   fan_profile                FanProfile?
+  messages                   Message[]
 
   @@unique([account_id, platform_conversation_id])
   @@map("conversations")
@@ -121,45 +121,40 @@ model Message {
   createdAt           DateTime     @default(now()) @map("created_at")
   senderType          String?      @default("user") @map("sender_type")
   is_delivered        Boolean      @default(false)
+  attachments         Json?        @default("[]")
+  is_pinned           Boolean      @default(false)
+  parentMessageId     String?      @map("parent_message_id") @db.Uuid
+  reactions           Json?        @default("[]")
   aiReplyLogs         AIReplyLog[]
   conversation        Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  parentMessageId     String?      @map("parent_message_id") @db.Uuid
-  parentMessage       Message?     @relation("MessageReplies", fields: [parentMessageId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  parentMessage       Message?     @relation("MessageReplies", fields: [parentMessageId], references: [id], onUpdate: NoAction)
   replies             Message[]    @relation("MessageReplies")
-  attachments         Json?        @default("[]")
-  reactions           Json?        @default("[]")
-  is_pinned           Boolean      @default(false)
 
   @@map("messages")
   @@schema("public")
 }
 
 model AIReplyLog {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  messageId  String   @map("message_id") @db.Uuid
-  prompt     String
-  response   String
-  model      String
-  created_at DateTime @default(now())
-  status     String   @default("suggested")
-
-  // Trạng thái Agent và Phân tích Fan
-  fanType            String? @default("Unknown") @map("fan_type")
-  stage              String? @default("G1") @map("stage")
-  strategy           String? @map("strategy")
-  action             String? @map("action")
-  emotionScoreBefore Float?  @map("emotion_score_before")
-  emotionScoreAfter  Float?  @map("emotion_score_after")
-  riskLevel          String? @map("risk_level")
-  safetyViolations   Json?   @default("[]") @map("safety_violations")
-
-  // Chỉ số đo lường hiệu năng và token usage
-  promptTokens     Int?    @map("prompt_tokens")
-  completionTokens Int?    @map("completion_tokens")
-  latencyMs        Int?    @map("latency_ms")
-  abTestVariant    String? @map("ab_test_variant")
-
-  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  messageId          String   @map("message_id") @db.Uuid
+  prompt             String
+  response           String
+  model              String
+  created_at         DateTime @default(now())
+  status             String   @default("suggested")
+  abTestVariant      String?  @map("ab_test_variant")
+  action             String?  @map("action")
+  completionTokens   Int?     @map("completion_tokens")
+  emotionScoreAfter  Float?   @map("emotion_score_after")
+  emotionScoreBefore Float?   @map("emotion_score_before")
+  fanType            String?  @default("Unknown") @map("fan_type")
+  latencyMs          Int?     @map("latency_ms")
+  promptTokens       Int?     @map("prompt_tokens")
+  riskLevel          String?  @map("risk_level")
+  safetyViolations   Json?    @default("[]") @map("safety_violations")
+  stage              String?  @default("G1") @map("stage")
+  strategy           String?  @map("strategy")
+  message            Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@map("ai_reply_logs")
   @@schema("public")
@@ -179,61 +174,49 @@ model ConversationNote {
 }
 
 model FanProfile {
-  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  conversation_id   String    @unique @map("conversation_id") @db.Uuid
-  workspace_id      String    @map("workspace_id") @db.Uuid
-  platform_user_id  String    @map("platform_user_id")
-  fan_type          String    @default("Unknown") @map("fan_type")
-  fanTypeConfidence Float     @default(0.0) @map("fan_type_confidence")
-  stage             String    @default("G1") @map("stage")
-  day_count         Int       @default(0) @map("day_count")
-  message_count     Int       @default(0) @map("message_count")
-  emotion_score     Float     @default(0.5) @map("emotion_score")
-  emotion_trend     String    @default("stable") @map("emotion_trend")
-  flirt_level       Int       @default(0) @map("flirt_level")
-  risk_level        String    @default("low") @map("risk_level")
-  purchase_history  Json      @default("[]") @map("purchase_history")
-  objections_seen   String[]  @default([]) @map("objections_seen")
-  key_insights      String[]  @default([]) @map("key_insights")
-  next_action       String    @default("continue") @map("next_action")
-  notes             String?   @db.Text
-  last_summary      Json?     @map("last_summary")
-  link_sent_count   Int       @default(0) @map("link_sent_count")
-  last_link_sent_at DateTime? @map("last_link_sent_at") @db.Timestamptz(6)
-  created_at        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updated_at        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
-  workspace    Workspace    @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id   String       @unique @map("conversation_id") @db.Uuid
+  workspace_id      String       @map("workspace_id") @db.Uuid
+  platform_user_id  String       @map("platform_user_id")
+  fan_type          String       @default("Unknown") @map("fan_type")
+  fanTypeConfidence Float        @default(0.0) @map("fan_type_confidence")
+  stage             String       @default("G1") @map("stage")
+  day_count         Int          @default(0) @map("day_count")
+  message_count     Int          @default(0) @map("message_count")
+  emotion_score     Float        @default(0.5) @map("emotion_score")
+  emotion_trend     String       @default("stable") @map("emotion_trend")
+  flirt_level       Int          @default(0) @map("flirt_level")
+  risk_level        String       @default("low") @map("risk_level")
+  purchase_history  Json         @default("[]") @map("purchase_history")
+  objections_seen   String[]     @default([]) @map("objections_seen")
+  key_insights      String[]     @default([]) @map("key_insights")
+  next_action       String       @default("continue") @map("next_action")
+  notes             String?
+  last_summary      Json?        @map("last_summary")
+  link_sent_count   Int          @default(0) @map("link_sent_count")
+  last_link_sent_at DateTime?    @map("last_link_sent_at") @db.Timestamptz(6)
+  created_at        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at        DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  conversation      Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  workspace         Workspace    @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
   @@map("fan_profiles")
   @@schema("public")
 }
 
 model AIAgentMetric {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  workspace_id String   @map("workspace_id") @db.Uuid
-  recorded_at  DateTime @default(now()) @map("recorded_at") @db.Timestamptz(6)
-
-  // Phân bổ loại fan dưới dạng JSON: { "Luy": 45, "Cool": 25, "Whale": 10, "Drainer": 20 }
-  fan_type_distribution Json @default("{}") @map("fan_type_distribution")
-
-  // Tỷ lệ chuyển đổi chốt đơn theo loại fan: { "Luy": 0.15, "Cool": 0.05, "Whale": 0.40, "Drainer": 0.00 }
-  conversion_rate_by_type Json @default("{}") @map("conversion_rate_by_type")
-
-  // Số tin nhắn trung bình để chốt đơn thành công
-  avg_messages_to_close Float @default(0.0) @map("avg_messages_to_close")
-
-  // Tổng hợp hiệu năng tổng quan
-  total_conversations Int   @default(0) @map("total_conversations")
-  total_purchases     Int   @default(0) @map("total_purchases")
-  revenue             Float @default(0.0) @map("revenue")
-
-  // Các sự cố an toàn / escalate cho con người
-  flag_incidents   Int @default(0) @map("flag_incidents")
-  escalation_count Int @default(0) @map("escalation_count")
-
-  workspace Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_id            String    @map("workspace_id") @db.Uuid
+  recorded_at             DateTime  @default(now()) @map("recorded_at") @db.Timestamptz(6)
+  fan_type_distribution   Json      @default("{}") @map("fan_type_distribution")
+  conversion_rate_by_type Json      @default("{}") @map("conversion_rate_by_type")
+  avg_messages_to_close   Float     @default(0.0) @map("avg_messages_to_close")
+  total_conversations     Int       @default(0) @map("total_conversations")
+  total_purchases         Int       @default(0) @map("total_purchases")
+  revenue                 Float     @default(0.0) @map("revenue")
+  flag_incidents          Int       @default(0) @map("flag_incidents")
+  escalation_count        Int       @default(0) @map("escalation_count")
+  workspace               Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
   @@map("ai_agent_metrics")
   @@schema("public")
@@ -730,10 +713,10 @@ model analytics_snapshots {
   id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   account_id        String          @db.Uuid
   date              DateTime        @db.Date
-  reach             Int             @default(0)
-  impressions       Int             @default(0)
-  engagement        Int             @default(0)
-  followers         Int             @default(0)
+  reach             Int?
+  impressions       Int?
+  engagement        Int?
+  followers         Int?
   created_at        DateTime        @default(now())
   platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
@@ -811,21 +794,20 @@ model posts {
 }
 
 model post_analytics {
-  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id      String          @db.Uuid
-  post_id         String
-  media_type      String
-  caption         String?
-  thumbnail_url   String?
-  like_count      Int             @default(0)
-  comments_count  Int             @default(0)
-  shares_count    Int             @default(0)
-  saved_count     Int             @default(0)
-  reach           Int             @default(0)
-  impressions     Int             @default(0)
-  posted_at       DateTime        @db.Timestamptz(6)
-  synced_at       DateTime        @default(now()) @db.Timestamptz(6)
-
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id        String          @db.Uuid
+  post_id           String
+  media_type        String
+  caption           String?
+  thumbnail_url     String?
+  like_count        Int             @default(0)
+  comments_count    Int             @default(0)
+  shares_count      Int             @default(0)
+  saved_count       Int             @default(0)
+  reach             Int             @default(0)
+  impressions       Int             @default(0)
+  posted_at         DateTime        @db.Timestamptz(6)
+  synced_at         DateTime        @default(now()) @db.Timestamptz(6)
   platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@unique([account_id, post_id])
@@ -834,17 +816,16 @@ model post_analytics {
 }
 
 model Draft {
-  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  workspace_id         String   @db.Uuid
-  profile_id           String   @db.Uuid
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspace_id         String    @db.Uuid
+  profile_id           String    @db.Uuid
   selected_account_ids String[]
   content              String?
-  media_files          Json?    @default("[]")
-  created_at           DateTime @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-
-  workspace Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
-  profile   profiles  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  media_files          Json?     @default("[]")
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  profile              profiles  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  workspace            Workspace @relation(fields: [workspace_id], references: [id], onDelete: Cascade)
 
   @@unique([workspace_id, profile_id])
   @@map("drafts")
@@ -857,28 +838,28 @@ model profiles {
   full_name          String?
   avatar_url         String?
   updated_at         DateTime            @default(now())
-  platform_accounts  PlatformAccount[]
-  publisher_accounts Account[]
-  users              users               @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  workspace_members  workspace_members[]
   drafts             Draft[]
+  platform_accounts  PlatformAccount[]
+  users              users               @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  publisher_accounts Account[]
+  workspace_members  workspace_members[]
 
   @@schema("public")
 }
 
 model Account {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  profile_id  String   @db.Uuid
-  platform    String // "FACEBOOK", "INSTAGRAM"
-  platform_id String // ID từ Meta (Page ID hoặc IG Business ID)
-  name        String
-  avatar_url  String?
-  is_active   Boolean  @default(true)
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-  token        AccountToken?
-  profile      profiles      @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile_id   String        @db.Uuid
+  platform     String
+  platform_id  String
+  name         String
+  avatar_url   String?
+  is_active    Boolean       @default(true)
+  created_at   DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
   publish_jobs PublishJob[]
+  profile      profiles      @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  token        AccountToken?
 
   @@unique([profile_id, platform, platform_id])
   @@map("publisher_accounts")
@@ -888,13 +869,12 @@ model Account {
 model AccountToken {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   account_id        String    @unique @db.Uuid
-  access_token      String // Encrypted: iv:authTag:ciphertext
-  refresh_token     String? // Encrypted
+  access_token      String
+  refresh_token     String?
   scopes            String[]
   expires_at        DateTime?
   last_validated_at DateTime  @default(now()) @db.Timestamptz(6)
-
-  account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  account           Account   @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@map("publisher_tokens")
   @@schema("public")
@@ -902,23 +882,22 @@ model AccountToken {
 
 model PublishJob {
   id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  batch_id         String?   @db.Uuid
   post_id          String?   @db.Uuid
   account_id       String    @db.Uuid
-  platform         String    // "FACEBOOK", "INSTAGRAM"
-  content          String?   @db.Text
+  platform         String
+  content          String?
   media_urls       String[]
-  status           String    @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
-  error_message    String?   @db.Text
+  status           String    @default("PENDING")
+  error_message    String?
   platform_post_id String?
   metadata         Json?     @default("{}")
-  retry_count      Int       @default(0)
   created_at       DateTime  @default(now()) @db.Timestamptz(6)
   updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
-  scheduled_at     DateTime? @db.Timestamptz(6)
   published_at     DateTime?
-
-  account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  batch_id         String?   @db.Uuid
+  retry_count      Int       @default(0)
+  scheduled_at     DateTime? @db.Timestamptz(6)
+  account          Account   @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@index([batch_id])
   @@map("publish_jobs")
@@ -1059,35 +1038,27 @@ model AccountGroupMembership {
 }
 
 model AIPersona {
-  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  account_id String @unique @db.Uuid
-
-  name           String  @default("Em")
-  gender         String  @default("female")
-  age            Int?
-  personality    String? @db.Text
-  tone           String? @db.Text
-  speaking_style String? @map("speaking_style") @db.Text
-
-  signature_emojis String[] @default([]) @map("signature_emojis")
-
-  custom_instructions    String? @map("custom_instructions") @db.Text
-  system_prompt_override String? @map("system_prompt_override") @db.Text
-
-  campaign_name    String? @map("campaign_name")
-  current_offer    String? @map("current_offer") @db.Text
-  scarcity_message String? @map("scarcity_message") @db.Text
-
-  settings Json? @default("{}") @map("settings")
-
-  tone_instructions   String @default("Be professional, polite, and concise.")
-  emoji_usage         String @default("minimal")
-  language_preference String @default("vi")
-
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz(6)
-
-  platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  id                     String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  account_id             String          @unique @db.Uuid
+  name                   String          @default("Em")
+  tone_instructions      String          @default("Be professional, polite, and concise.")
+  emoji_usage            String          @default("minimal")
+  language_preference    String          @default("vi")
+  created_at             DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime        @default(now()) @updatedAt @db.Timestamptz(6)
+  age                    Int?
+  campaign_name          String?         @map("campaign_name")
+  current_offer          String?         @map("current_offer")
+  custom_instructions    String?         @map("custom_instructions")
+  gender                 String          @default("female")
+  personality            String?
+  scarcity_message       String?         @map("scarcity_message")
+  settings               Json?           @default("{}") @map("settings")
+  signature_emojis       String[]        @default([]) @map("signature_emojis")
+  speaking_style         String?         @map("speaking_style")
+  system_prompt_override String?         @map("system_prompt_override")
+  tone                   String?
+  platform_accounts      PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@map("ai_personas")
   @@schema("public")
