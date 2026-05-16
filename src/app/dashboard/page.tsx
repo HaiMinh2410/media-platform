@@ -76,7 +76,7 @@ async function DashboardContent({ workspaceId, workspaceName }: { workspaceId: s
       <div className="p-6 xl:p-7 space-y-8 ">
 
         {/* Section 1: Account Health Command Center */}
-        <section className="space-y-4 max-w-[1600px] mx-auto w-full">
+        <section className="space-y-4 max-w-[1600px] mx-auto s://instagram.com">
           <SectionTitle icon="⚡" label="Account Health Command Center" />
           <ErrorBoundary fallback={<SectionError title="Account Health" />}>
             <AccountHealthGrid accounts={healthData} />

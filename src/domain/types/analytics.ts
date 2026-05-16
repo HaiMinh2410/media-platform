@@ -18,8 +18,21 @@ export type UpsertSnapshotInput = {
   followers: number;
 };
 
+export type AnalyticsRange = '7d' | '30d' | '90d' | 'custom';
+
 export type AnalyticsFilter = {
   accountId: string;
-  startDate?: Date;
-  endDate?: Date;
+  range: AnalyticsRange;
+  customStart?: Date; // Only used when range = 'custom'
+  customEnd?: Date;
+};
+
+export type AnalyticsPeriodData = {
+  current: AnalyticsSnapshot[];
+  previous: AnalyticsSnapshot[];
+  range: AnalyticsRange;
+  currentStart: Date;
+  currentEnd: Date;
+  previousStart: Date;
+  previousEnd: Date;
 };
