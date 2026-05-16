@@ -46,19 +46,65 @@ function SkeletonChart() {
   );
 }
 
+function CustomTooltip({ active, payload, label }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="custom-tooltip">
+        <div className="tooltip-date">{label}</div>
+        <div className="tooltip-items">
+          <div className="tooltip-item">
+            <div className="tooltip-item-label">
+              <div className="tooltip-item-dot bg-blue-500" />
+              <span>Reach</span>
+            </div>
+            <div className="tooltip-values">
+              <span className="tooltip-value-current">{data.reach.toLocaleString()}</span>
+              <span className="tooltip-value-previous">Previous: {data.prevReach.toLocaleString()}</span>
+            </div>
+          </div>
+          <div className="tooltip-item">
+            <div className="tooltip-item-label">
+              <div className="tooltip-item-dot bg-emerald-500" />
+              <span>Engagement</span>
+            </div>
+            <div className="tooltip-values">
+              <span className="tooltip-value-current">{data.engagement.toLocaleString()}</span>
+              <span className="tooltip-value-previous">Previous: {data.prevEngagement.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+
 export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const [selectedAccountId, setSelectedAccountId] = useState<string>(accounts[0]?.id || '');
   const [range, setRange] = useState<AnalyticsRange>('30d');
+  const [customStart, setCustomStart] = useState<string>('');
+  const [customEnd, setCustomEnd] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'general' | 'ai'>('general');
   const queryClient = useQueryClient();
 
-  const { data, isPending, isError } = useAnalytics(selectedAccountId, range, initialData);
+  const cStart = range === 'custom' && customStart ? new Date(customStart) : undefined;
+  const cEnd = range === 'custom' && customEnd ? new Date(customEnd) : undefined;
+
+  const { data, isPending, isError } = useAnalytics(
+    selectedAccountId, 
+    range, 
+    cStart, 
+    cEnd, 
+    initialData
+  );
 
   function handleAccountHover(accountId: string) {
     queryClient.prefetchQuery({
-      queryKey: ['analytics', accountId, range],
+      queryKey: ['analytics', accountId, range, cStart?.toISOString(), cEnd?.toISOString()],
       queryFn: async () => {
-        const result = await getAnalyticsAction(accountId, range);
+        const result = await getAnalyticsAction(accountId, range, cStart, cEnd);
         if (result.error) throw new Error(result.error);
         return result.data;
       },
@@ -68,13 +114,22 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
 
   const totals = data ? calcSummary(data.current, data.previous) : null;
   const xAxisFormatter = getXAxisFormatter(range);
-  const chartData = data ? fillDateGaps(data.current, data.currentStart, data.currentEnd).map(s => ({
-    date: xAxisFormatter(s.date),
-    reach: s.reach,
-    impressions: s.impressions,
-    engagement: s.engagement,
-    followers: s.followers
-  })) : [];
+  
+  const currentSnapshots = data ? fillDateGaps(data.current, data.currentStart, data.currentEnd) : [];
+  const previousSnapshots = data ? fillDateGaps(data.previous, data.previousStart, data.previousEnd) : [];
+
+  const chartData = currentSnapshots.map((s, i) => {
+    const prev = previousSnapshots[i];
+    return {
+      date: xAxisFormatter(s.date),
+      reach: s.reach,
+      engagement: s.engagement,
+      prevReach: prev?.reach ?? 0,
+      prevEngagement: prev?.engagement ?? 0,
+      followers: s.followers
+    };
+  });
+
 
   return (
     <div className="analytics-container">
@@ -116,11 +171,44 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               <p className="text-white/50 text-sm">Track your performance across platforms</p>
             </div>
             
-            <div className="filter-controls">
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-1">
-                <Calendar size={16} className="text-white/40" />
-                <span className="text-sm text-white/80">Last 30 Days</span>
+            <div className="filter-controls items-center">
+              <div className="range-selector">
+                {(['7d', '30d', '90d'] as AnalyticsRange[]).map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setRange(r)}
+                    className={`range-btn ${range === r ? 'active' : ''}`}
+                  >
+                    {r.toUpperCase()}
+                  </button>
+                ))}
+                <button 
+                  onClick={() => setRange('custom')}
+                  className={`range-btn ${range === 'custom' ? 'active' : ''}`}
+                >
+                  Custom
+                </button>
               </div>
+
+              {range === 'custom' && (
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-2 py-1 animate-in fade-in slide-in-from-right-2 duration-300">
+                  <input 
+                    type="date" 
+                    value={customStart}
+                    onChange={(e) => setCustomStart(e.target.value)}
+                    className="bg-transparent text-xs text-white outline-none [color-scheme:dark]"
+                  />
+                  <span className="text-white/20 text-xs">→</span>
+                  <input 
+                    type="date" 
+                    value={customEnd}
+                    onChange={(e) => setCustomEnd(e.target.value)}
+                    className="bg-transparent text-xs text-white outline-none [color-scheme:dark]"
+                  />
+                </div>
+              )}
+              
+              <div className="h-8 w-[1px] bg-white/10 mx-1" />
               
               <select 
                 className="select-control"
@@ -214,8 +302,9 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                       dataKey="date" 
                       axisLine={false} 
                       tickLine={false} 
-                      tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
+                      tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
                       dy={10}
+                      interval={range === '30d' ? 4 : range === '90d' ? 6 : 0}
                     />
                     <YAxis 
                       axisLine={false} 
@@ -223,13 +312,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                       tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
                     />
                     <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#1a1a1a', 
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '0.75rem',
-                        color: '#fff'
-                      }}
-                      itemStyle={{ color: '#fff' }}
+                      content={<CustomTooltip />}
+                      cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
                     />
                     <Area 
                       type="monotone" 
