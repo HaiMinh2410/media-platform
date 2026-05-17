@@ -66,6 +66,39 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
       previousStart.setUTCHours(0, 0, 0, 0);
     }
 
+    // 1.5 Check Redis period data cache (only for non-custom ranges to keep logic simple and robust)
+    const periodCacheKey = `live_analytics_period_cache:${accountId}:${range}`;
+    if (redisConnection && range !== 'custom') {
+      try {
+        const cachedDataStr = await redisConnection.get(periodCacheKey);
+        if (cachedDataStr) {
+          const cachedData = JSON.parse(cachedDataStr);
+          // Parse date strings back to Date objects in snapshots
+          if (cachedData.current) {
+            cachedData.current = cachedData.current.map((s: any) => ({
+              ...s,
+              date: s.date ? new Date(s.date) : null
+            }));
+          }
+          if (cachedData.previous) {
+            cachedData.previous = cachedData.previous.map((s: any) => ({
+              ...s,
+              date: s.date ? new Date(s.date) : null
+            }));
+          }
+          if (cachedData.currentStart) cachedData.currentStart = new Date(cachedData.currentStart);
+          if (cachedData.currentEnd) cachedData.currentEnd = new Date(cachedData.currentEnd);
+          if (cachedData.previousStart) cachedData.previousStart = new Date(cachedData.previousStart);
+          if (cachedData.previousEnd) cachedData.previousEnd = new Date(cachedData.previousEnd);
+          
+          console.log(`[getAnalyticsAction] Mapped PeriodData hit Redis cache for account: ${accountId}, range: ${range}`);
+          return { data: cachedData, error: null };
+        }
+      } catch (cacheErr) {
+        console.error('[getAnalyticsAction] Failed to read from Redis period cache:', cacheErr);
+      }
+    }
+
     // 2. If encryptedToken is available, fetch Live Analytics from Meta API
     let skipLiveFetch = false;
     if (redisConnection && accountWithToken?.encryptedToken) {
@@ -162,6 +195,12 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
           chunkUniqueReaches: liveResult.chunkUniqueReaches
         });
 
+        // Cache the mapped periodData in Redis (TTL: 15 minutes = 900 seconds)
+        if (redisConnection && range !== 'custom') {
+          redisConnection.set(periodCacheKey, JSON.stringify(periodData), 'EX', 900)
+            .catch(err => console.error('[getAnalyticsAction] Failed to cache periodData in Redis:', err));
+        }
+
         return { data: periodData, error: null };
       } else {
         const errStr = liveResult.error || 'LIVE_FETCH_FAILED';
@@ -230,6 +269,19 @@ export async function syncAnalyticsAction(accountId: string) {
 
   if (!accountWithToken || !accountWithToken.encryptedToken) {
     return { success: false, error: 'MISSING_META_TOKEN' };
+  }
+
+  // Invalidate Redis caches on sync to guarantee fresh data refetch
+  if (redisConnection) {
+    try {
+      await redisConnection.del(`live_analytics_fresh:${accountId}`);
+      await redisConnection.del(`live_analytics_period_cache:${accountId}:7d`);
+      await redisConnection.del(`live_analytics_period_cache:${accountId}:30d`);
+      await redisConnection.del(`live_analytics_period_cache:${accountId}:90d`);
+      console.log(`[syncAnalyticsAction] Invalidated Redis period and fresh caches for account: ${accountId}`);
+    } catch (redisErr) {
+      console.error('[syncAnalyticsAction] Failed to invalidate Redis caches:', redisErr);
+    }
   }
 
   const result = await metaAnalyticsService.syncAccount({

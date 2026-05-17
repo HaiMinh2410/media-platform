@@ -7,16 +7,19 @@ async function main() {
   const adapter = new PrismaPg(pool);
   const db = new PrismaClient({ adapter });
   
-  const logs = await db.$queryRaw<any[]>`
-    SELECT id, service, status, error_message, error_code, created_at
-    FROM sync_logs
-    WHERE account_id = 'f32e932a-6d47-45bb-8a20-48ceb50a960d'
-    ORDER BY created_at DESC
+  const accountId = 'f32e932a-6d47-45bb-8a20-48ceb50a960d';
+  
+  const snapshots = await db.$queryRaw<any[]>`
+    SELECT date, reach, accounts_reached, followers_pct, nonfollowers_pct, by_content_views
+    FROM analytics_snapshots
+    WHERE account_id = ${accountId}::uuid
+    ORDER BY date DESC
     LIMIT 10
   `;
   
-  const serialized = JSON.stringify(logs, null, 2);
-  console.log('Sync logs:', serialized);
+  console.log(`Checking snapshots for Nguyen An Thu (Instagram):`);
+  console.log(JSON.stringify(snapshots, null, 2));
+  
   await db.$disconnect();
 }
 

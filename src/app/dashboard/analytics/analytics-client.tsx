@@ -869,7 +869,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   
   // 1. Aggregate Followers vs Non-followers reach percentage over the selected period
   const currentSnapshotsWithFollowers = (data?.data?.current || []).filter(
-    s => s.followersPct !== null && s.followersPct !== undefined &&
+    (s: any) => s.followersPct !== null && s.followersPct !== undefined &&
          s.nonfollowersPct !== null && s.nonfollowersPct !== undefined
   );
 
@@ -881,7 +881,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     let sumFollowersPct = 0;
     let sumNonfollowersPct = 0;
 
-    currentSnapshotsWithFollowers.forEach(s => {
+    currentSnapshotsWithFollowers.forEach((s: any) => {
       // Use reach as the weight for reach breakdown percentage
       const dailyReach = s.reach || s.accountsReached || 0;
       const weight = dailyReach > 0 ? dailyReach : 1;
@@ -904,14 +904,14 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     }
   } else {
     // Fallback if no snapshots have these fields, find the latest snapshot with advanced data
-    const latestWithAdvanced = [...(data?.data?.current || [])].reverse().find(s => s.followersPct !== null && s.followersPct !== undefined);
+    const latestWithAdvanced = [...(data?.data?.current || [])].reverse().find((s: any) => s.followersPct !== null && s.followersPct !== undefined);
     followersPct = latestWithAdvanced?.followersPct || 0;
     nonfollowersPct = latestWithAdvanced?.nonfollowersPct || 0;
   }
 
   // 2. Aggregate Views Breakdown by Content Type over the selected period
   const currentSnapshotsWithViewsBreakdown = (data?.data?.current || []).filter(
-    s => s.byContentViews && (
+    (s: any) => s.byContentViews && (
       (s.byContentViews.all && (s.byContentViews.all.posts > 0 || s.byContentViews.all.reels > 0 || s.byContentViews.all.stories > 0)) ||
       (s.byContentViews.followers && (s.byContentViews.followers.posts > 0 || s.byContentViews.followers.reels > 0 || s.byContentViews.followers.stories > 0))
     )
@@ -927,7 +927,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       nonfollowers: { posts: 0, reels: 0, stories: 0 }
     };
 
-    currentSnapshotsWithViewsBreakdown.forEach(s => {
+    currentSnapshotsWithViewsBreakdown.forEach((s: any) => {
       // Use impressions as weight for views breakdown percentage
       const dailyViews = s.impressions || s.reach || 0;
       const weight = dailyViews > 0 ? dailyViews : 1;
@@ -998,7 +998,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
 
   // 3. Aggregate Interactions Breakdown by Content Type over the selected period
   const currentSnapshotsWithInteractions = (data?.data?.current || []).filter(
-    s => s.byContentInteractions && (
+    (s: any) => s.byContentInteractions && (
       s.byContentInteractions.posts > 0 || 
       s.byContentInteractions.reels > 0 || 
       s.byContentInteractions.stories > 0
@@ -1011,7 +1011,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     let totalEngWeight = 0;
     const temp = { posts: 0, reels: 0, stories: 0 };
 
-    currentSnapshotsWithInteractions.forEach(s => {
+    currentSnapshotsWithInteractions.forEach((s: any) => {
       // Use engagement as weight for interactions breakdown percentage
       const dailyEngagement = s.engagement || 0;
       const weight = dailyEngagement > 0 ? dailyEngagement : 1;
@@ -1047,7 +1047,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     }
   }
 
-  const totalAccEngaged = (data?.data?.current || []).reduce((acc, curr) => acc + (curr.accountsEngaged || 0), 0);
+  const totalAccEngaged = (data?.data?.current || []).reduce((acc: number, curr: any) => acc + (curr.accountsEngaged || 0), 0);
 
   const interactionsData = {
     totalInteractions: totals?.engagement?.value || 0,

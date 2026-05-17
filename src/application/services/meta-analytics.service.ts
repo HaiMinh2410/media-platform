@@ -522,7 +522,7 @@ export const metaAnalyticsService = {
             }, 'GET', accountId),
             client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
               metric: 'views', 
-              breakdown: 'media_product_type,follower_type', 
+              breakdown: 'media_product_type,follow_type', 
               period: 'day',
               metric_type: 'total_value',
               since: sinceUnix,
@@ -1088,10 +1088,18 @@ export const metaAnalyticsService = {
               since: sinceUnix,
               until: untilUnix
             }, 'GET', accountId),
-            // [2] Views media product type breakdown
+            // [2] Views double breakdown (follower_type and media_product_type)
             client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
               metric: 'views', 
-              breakdown: 'media_product_type', 
+              breakdown: 'media_product_type,follow_type', 
+              period: 'day',
+              metric_type: 'total_value',
+              since: sinceUnix,
+              until: untilUnix
+            }, 'GET', accountId),
+            // [3] True non-breakdown unique reach for the entire chunk range
+            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+              metric: 'reach', 
               period: 'day',
               metric_type: 'total_value',
               since: sinceUnix,
@@ -1171,35 +1179,64 @@ export const metaAnalyticsService = {
             }
           }
 
-          // 6. Process Views media product type breakdown (otherResults[2])
+          // 6. Process Views media product type & follower type double breakdown (otherResults[2])
           const viewsBreakdownRes = otherResults[2];
           if (viewsBreakdownRes && viewsBreakdownRes.status === 'fulfilled' && viewsBreakdownRes.value.data) {
             const d = viewsBreakdownRes.value.data as MetaInsightsResponse;
-            const viewsBreakdown = parseMediaProductType(d.data, 'views');
-            const totalViews = viewsBreakdown.posts + viewsBreakdown.reels + viewsBreakdown.stories;
-            const getPct = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
+            const doubleBreakdown = parseDoubleBreakdown(d.data, 'views');
             
-            chunkByContentViews = {
-              all: {
-                posts: getPct(viewsBreakdown.posts, totalViews),
-                reels: getPct(viewsBreakdown.reels, totalViews),
-                stories: getPct(viewsBreakdown.stories, totalViews)
-              },
-              followers: {
-                posts: getPct(viewsBreakdown.posts, totalViews),
-                reels: getPct(viewsBreakdown.reels, totalViews),
-                stories: getPct(viewsBreakdown.stories, totalViews)
-              },
-              nonfollowers: {
-                posts: getPct(viewsBreakdown.posts, totalViews),
-                reels: getPct(viewsBreakdown.reels, totalViews),
-                stories: getPct(viewsBreakdown.stories, totalViews)
-              }
-            };
+            if (doubleBreakdown) {
+              const totalAll = doubleBreakdown.all.posts + doubleBreakdown.all.reels + doubleBreakdown.all.stories;
+              const totalFollowers = doubleBreakdown.followers.posts + doubleBreakdown.followers.reels + doubleBreakdown.followers.stories;
+              const totalNonfollowers = doubleBreakdown.nonfollowers.posts + doubleBreakdown.nonfollowers.reels + doubleBreakdown.nonfollowers.stories;
+              
+              const getPct = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
+              
+              chunkByContentViews = {
+                all: {
+                  posts: getPct(doubleBreakdown.all.posts, totalAll),
+                  reels: getPct(doubleBreakdown.all.reels, totalAll),
+                  stories: getPct(doubleBreakdown.all.stories, totalAll)
+                },
+                followers: {
+                  posts: getPct(doubleBreakdown.followers.posts, totalFollowers),
+                  reels: getPct(doubleBreakdown.followers.reels, totalFollowers),
+                  stories: getPct(doubleBreakdown.followers.stories, totalFollowers)
+                },
+                nonfollowers: {
+                  posts: getPct(doubleBreakdown.nonfollowers.posts, totalNonfollowers),
+                  reels: getPct(doubleBreakdown.nonfollowers.reels, totalNonfollowers),
+                  stories: getPct(doubleBreakdown.nonfollowers.stories, totalNonfollowers)
+                }
+              };
+            } else {
+              // Fallback to single breakdown
+              const viewsBreakdown = parseMediaProductType(d.data, 'views');
+              const totalViews = viewsBreakdown.posts + viewsBreakdown.reels + viewsBreakdown.stories;
+              const getPct = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
+              
+              chunkByContentViews = {
+                all: {
+                  posts: getPct(viewsBreakdown.posts, totalViews),
+                  reels: getPct(viewsBreakdown.reels, totalViews),
+                  stories: getPct(viewsBreakdown.stories, totalViews)
+                },
+                followers: {
+                  posts: getPct(viewsBreakdown.posts, totalViews),
+                  reels: getPct(viewsBreakdown.reels, totalViews),
+                  stories: getPct(viewsBreakdown.stories, totalViews)
+                },
+                nonfollowers: {
+                  posts: getPct(viewsBreakdown.posts, totalViews),
+                  reels: getPct(viewsBreakdown.reels, totalViews),
+                  stories: getPct(viewsBreakdown.stories, totalViews)
+                }
+              };
+            }
           }
 
-          // 7. Process online followers (otherResults[3])
-          const onlineFollowersIdx = 3;
+          // 7. Process online followers (otherResults[4])
+          const onlineFollowersIdx = 4;
           if (!insufficientData && otherResults[onlineFollowersIdx] && otherResults[onlineFollowersIdx].status === 'fulfilled' && otherResults[onlineFollowersIdx].value.data) {
             const d = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
             const onlineFollowers = d.data.find((i: any) => i.name === 'online_followers')?.values[0]?.value;
