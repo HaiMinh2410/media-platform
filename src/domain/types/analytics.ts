@@ -23,6 +23,7 @@ export type AnalyticsSnapshot = {
   profileVisits?: number | null;
   profileLinksTaps?: number | null;
   accountsReached?: number | null;
+  accountsEngaged?: number | null;
   followersPct?: number | null;
   nonfollowersPct?: number | null;
   byContentViews?: ViewsBreakdown | null;
@@ -42,6 +43,7 @@ export type UpsertSnapshotInput = {
   profileVisits?: number | null;
   profileLinksTaps?: number | null;
   accountsReached?: number | null;
+  accountsEngaged?: number | null;
   followersPct?: number | null;
   nonfollowersPct?: number | null;
   byContentViews?: ViewsBreakdown | null;

@@ -725,6 +725,7 @@ model analytics_snapshots {
   profile_visits      Int?
   profile_links_taps   Int?
   accounts_reached    Int?
+  accounts_engaged    Int?
   followers_pct       Float?
   nonfollowers_pct    Float?
   by_content_views     Json?

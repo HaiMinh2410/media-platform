@@ -1046,9 +1046,11 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     }
   }
 
+  const totalAccEngaged = (data?.data?.current || []).reduce((acc, curr) => acc + (curr.accountsEngaged || 0), 0);
+
   const interactionsData = {
     totalInteractions: totals?.engagement?.value || 0,
-    accountsEngaged: totals?.engagement?.value || 0,
+    accountsEngaged: totalAccEngaged > 0 ? totalAccEngaged : (totals?.engagement?.value || 0),
     byContentInteractions: aggregatedByContentInteractions
       ? aggregatedByContentInteractions
       : (data?.data?.currentPostTotals?.byContentInteractions || null),

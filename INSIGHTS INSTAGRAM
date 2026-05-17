@@ -1,79 +1,200 @@
-# CẨM NANG CẤU HÌNH API GRAPH CHO AI AGENT: LẤY SỐ LIỆU INSIGHTS INSTAGRAM
-
-## 1. THÔNG TIN CHUNG
-
-- **Đối tượng truy vấn (Node):** Tài khoản Instagram Professional (Instagram Business/Creator Account).
-- **Cạnh truy cập (Edge):** `/insights`
-- **Phiên bản API hệ thống:** `v25.0`
-- **Ràng buộc thời gian (QUAN TRỌNG):** Khoảng cách giữa `since` và `until` **không được vượt quá 30 ngày (2,592,000 giây)**. Đối với các yêu cầu xem dữ liệu dài hơn (như 90 ngày), Agent bắt buộc phải chia nhỏ thành các phiên truy vấn (gọi nhiều request liên tiếp) rồi tự cộng dồn dữ liệu lại.
+Dưới đây là tài liệu hướng dẫn kỹ thuật chuẩn hóa dữ liệu (Reference Guide) được thiết kế riêng cho AI Agent. Tài liệu này cung cấp cấu trúc API cụ thể, tham số bắt buộc và cấu trúc phản hồi để AI Agent có thể truy xuất chính xác các số liệu bạn yêu cầu dựa trên tài liệu kỹ thuật mới nhất của Meta (v25.0).
 
 ---
 
-## 2. CẤU TRÚC ĐỊA CHỈ TRUY VẤN CHUẨN (REQUEST SYNTAX)
+# REFERENCE GUIDE: INSTAGRAM INSIGHTS EXTRACTION FOR AI AGENT
 
-AI Agent thực hiện cuộc gọi `GET` kèm các tham số bắt buộc sau đây:
+**Mục tiêu:** Hướng dẫn AI Agent tự động gọi API Meta và bóc tách chính xác các chỉ số: Accounts Reached (Tổng quan & Phân rã), Reached Audience theo Content Type, Interactions, và Accounts Engaged.
 
-HTTP
+## 1. Thông tin cấu hình hệ thống (System Configuration)
 
-`GET https://graph.facebook.com/v25.0/{instagram-account-id}/insights
-  ?metric={METRICS}
-  &period=day
-  &metric_type=total_value
-  &since={TIME_PERIOD}
-  &until={TIME_PERIOD}
-  &breakdown={BREAKDOWN_TYPE}
-  &access_token={ACCESS_TOKEN}`
+* 
+**Host URL:** `https://graph.facebook.com/v25.0/` (Nếu dùng Facebook Login) hoặc `https://graph.instagram.com/v25.0/` (Nếu dùng Instagram Login).
+
+
+* 
+**Method:** `GET`.
+
+
+* 
+**Endpoint:** `/{YOUR_APP_USERS_INSTAGRAM_ACCOUNT_ID}/insights`.
+
+
+* 
+**Token bắt buộc:** `access_token` (Facebook/Instagram User Access Token).
+
+
+* 
+**Quyền hạn (Permissions) cần kiểm tra:** `instagram_manage_insights` hoặc `instagram_business_manage_insights`.
+
+
 
 ---
 
-## 3. BẢNG QUY TẮC THỜI GIAN THEO YÊU CẦU NGƯỜI DÙNG
+## 2. Đặc tả kỹ thuật cho từng chỉ số (Metric Specifications)
 
-| **Yêu cầu của user** | **Cấu hình tham số since** | **Cấu hình tham số until** | **Hành động của Agent** |
-| --- | --- | --- | --- |
-| **Xem 7 ngày qua** | `7 days ago` | `today` (hoặc bỏ trống) | Gọi **1 request** duy nhất. |
-| **Xem 30 ngày qua** | `30 days ago` | `today` (hoặc bỏ trống) | Gọi **1 request** duy nhất. *(Đây là giới hạn tối đa của 1 request)* |
-| **Xem 90 ngày qua** | *Phải chia làm 3 đợt* | *Phải chia làm 3 đợt* | **Bắt buộc gọi 3 request song song/liên tiếp** rồi gộp kết quả:
-• RQ1: `since=90 days ago` & `until=60 days ago`
-• RQ2: `since=60 days ago` & `until=30 days ago`
-• RQ3: `since=30 days ago` & `until=today` |
+AI Agent cần tuân thủ cấu hình tham số (`metric`, `metric_type`, `breakdown`, `period`) chính xác theo bảng đặc tả dưới đây để tránh gặp lỗi `"An unknown error has occurred."` từ Meta.
 
----
+| STT | Chỉ số yêu cầu (User Metric) | Tên Metric trong API (`metric`) | Kiểu dữ liệu (`metric_type`) | Phân rã (`breakdown`) | Chu kỳ (`period`) | Ghi chú kỹ thuật |
+| --- | --- | --- | --- | --- | --- | --- |
+| **1** | **Accounts Reached (Tổng quan)** | <br>`reach` 
 
-## 4. BẢNG QUY TẮC CẤU HÌNH THAM SỐ THEO NHIỆM VỤ
+ | <br>`total_value` hoặc `time_series` 
 
-| **Nhiệm vụ / Chỉ số cần lấy** | **Tham số metric** | **Tham số metric_type** | **Tham số breakdown** | **Mô tả dữ liệu trả về** |
-| --- | --- | --- | --- | --- |
-| **1. Accounts Reached** | `reach` | `total_value` | *(Không điền)* | Tổng số tài khoản duy nhất đã nhìn thấy nội dung. |
-| **2. Accounts Engaged** | `accounts_engaged` | `total_value` | *(Không điền)* | Tổng số tài khoản tương tác với nội dung. |
-| **3. Accounts Reached** *(Theo Followers)* | `reach` | `total_value` | **`follow_type`** | Trả về chi tiết: `FOLLOWER` và `NON_FOLLOWER`. |
-| **4. Reached Audience** *(Theo Content Type)* | `reach` | `total_value` | **`media_product_type`** | Trả về chi tiết nơi hiển thị: `FEED`, `REELS`, `STORY`, `AD`. |
+ | *Không áp dụng* | <br>`day` 
 
-> ⚠️ **Quy tắc gộp Metric:** Tuyệt đối không gộp chung các metric có breakdown khác nhau vào một request (ví dụ: gộp `breakdown=follow_type` và `breakdown=media_product_type` sẽ gây lỗi hệ thống). Hãy tách thành các lượt gọi độc lập.
+ | Số lượng tài khoản duy nhất đã tiếp cận nội dung.
+
+ |
+| **2** | **Accounts Reached (Theo Follower Type)** | <br>`reach` 
+
+ | <br>`total_value` 
+
+ | <br>`follow_type` 
+
+ | <br>`day` 
+
+ | Phân rã thành: `FOLLOWER`, `NON_FOLLOWER`, `UNKNOWN`.
+
+ |
+| **3** | **Reached Audience (Theo Content Type)** | <br>`reach` 
+
+ | <br>`total_value` 
+
+ | <br>`media_product_type` 
+
+ | <br>`day` 
+
+ | Phân rã theo bề mặt hiển thị: `AD`, `FEED`, `REELS`, `STORY`.
+
+ |
+| **4** | **Interactions (Lượt tương tác)** | <br>`total_interactions` 
+
+ | <br>`total_value` 
+
+ | <br>`media_product_type` *(Có thể bổ sung)* 
+
+ | <br>`day` 
+
+ | Tổng số tương tác (bao gồm cả bài viết được quảng cáo).
+
+ |
+| **5** | **Accounts Engaged (Tài khoản đã tương tác)** | <br>`accounts_engaged` 
+
+ | <br>`total_value` 
+
+ | *Không áp dụng* | <br>`day` 
+
+ | Chỉ số ước tính số tài khoản đã tương tác với nội dung.
+
+ |
+
+> ⚠️ **Lưu ý quan trọng cho Agent:** Chỉ số `impressions` đã bị Meta khai tử (được thay thế bằng chỉ số `views` mới). Tuyệt đối không sử dụng `impressions` trong các truy vấn thực tế.
+> 
 > 
 
 ---
 
-## 5. VÍ DỤ MẪU URL TRUY VẤN CHUẨN (Khoảng thời gian 30 ngày)
+## 3. Cú pháp URL mẫu (Request URL Syntax)
 
-- **Ví dụ 1: Lấy Accounts Reached & Accounts Engaged tổng quan**
-    
-    `/{instagram-account-id}/insights?metric=reach,accounts_engaged&period=day&metric_type=total_value&since=30 days ago`
-    
-- **Ví dụ 2: Lấy Accounts Reached phân rã theo Followers / Non-followers**
-    
-    `/{instagram-account-id}/insights?metric=reach&period=day&metric_type=total_value&since=30 days ago&breakdown=follow_type`
-    
-- **Ví dụ 3: Lấy Reached Audience phân theo Content Type**
-    
-    `/{instagram-account-id}/insights?metric=reach&period=day&metric_type=total_value&since=30 days ago&breakdown=media_product_type`
-    
+Để tối ưu hóa hiệu năng, AI Agent có thể gộp các chỉ số có cùng cấu trúc phân rã hoặc tạo các yêu cầu riêng biệt như sau:
+
+### Lấy Reach (phân rã Follower) & Accounts Engaged & Interactions:
+
+```http
+GET https://graph.facebook.com/v25.0/{instagram_account_id}/insights
+  ?metric=reach,accounts_engaged,total_interactions
+  &metric_type=total_value
+  &breakdown=follow_type
+  &period=day
+  &since={unix_timestamp}
+  &until={unix_timestamp}
+  &access_token={your_access_token}
+
+```
+
+### Lấy Reach (phân rã Content Type):
+
+```http
+GET https://graph.facebook.com/v25.0/{instagram_account_id}/insights
+  ?metric=reach
+  &metric_type=total_value
+  &breakdown=media_product_type
+  &period=day
+  &since={unix_timestamp}
+  &until={unix_timestamp}
+  &access_token={your_access_token}
+
+```
 
 ---
 
-## 6. HƯỚNG DẪN XỬ LÝ LỖI CHO AGENT (ERRORS HANDLING)
+## 4. Hướng dẫn phân tách dữ liệu JSON (JSON Parsing Guide)
 
-Nếu nhận được mã phản hồi có chứa:
+Khi nhận phản hồi từ Meta, AI Agent phải định vị dữ liệu theo cấu trúc logic dưới đây để trích xuất:
 
-`"message": "(#100) There cannot be more than 30 days..."`
+Sơ đồ cấu trúc JSON cần bóc tách:
 
-Agent phải tự động kiểm tra lại logic tính toán thời gian, đảm bảo tham số toán tử khoảng cách giữa ngày bắt đầu (`since`) và ngày kết thúc (`until`) luôn $\le 30$ ngày.
+* 
+`data` (Mảng chứa các metric) 
+
+
+* 
+`name`: Tên metric định danh (`reach`, `accounts_engaged`,...) 
+
+
+* 
+`total_value` 
+
+
+* 
+`value`: Tổng giá trị (Nếu không yêu cầu breakdown) 
+
+
+* 
+`breakdowns`: (Mảng chứa dữ liệu phân rã) 
+
+
+* 
+`dimension_keys`: Định nghĩa chiều phân rã (ví dụ: `[ "follow_type" ]`) 
+
+
+* 
+`results`: Mảng kết quả chi tiết 
+
+
+* 
+`dimension_values`: Giá trị cụ thể (ví dụ: `[ "FOLLOWER" ]`) 
+
+
+* 
+`value`: Số liệu của nhóm đó 
+
+
+
+
+
+
+
+
+
+
+
+### Thuật toán xử lý biên của Agent (Edge Cases & Limitations):
+
+1. 
+**Dữ liệu trống (Empty Data):** Nếu dữ liệu không tồn tại hoặc chưa sẵn sàng, API sẽ trả về một tập dữ liệu trống (empty array/object) chứ không trả về số `0`. Agent cần xử lý để không bị lỗi `NullPointerException` hoặc gán mặc định bằng `0` tùy thuộc vào logic hiển thị của ứng dụng.
+
+
+2. 
+**Độ trễ dữ liệu (Data Delay):** Dữ liệu dùng để tính toán các chỉ số này có thể bị chậm lên đến **48 giờ** từ phía Meta. Agent cần thông báo điều này lên UI hoặc hệ thống log.
+
+
+3. 
+**Mặc định thời gian (Time Range):** Nếu Agent không truyền tham số `since` và `until`, API sẽ tự động lấy dữ liệu mặc định của **24 giờ qua**.
+
+
+
+---
+
+Tài liệu này được chuẩn hóa theo tài liệu kỹ thuật Graph API của Meta phiên bản v25.0 cập nhật mới nhất.
