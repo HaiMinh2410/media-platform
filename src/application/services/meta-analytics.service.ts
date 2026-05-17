@@ -106,6 +106,114 @@ function parseDoubleBreakdown(insightsData: any[], metricName: string) {
 }
 
 /**
+ * Helper to parse a single dimension breakdown for follow_type from Meta insights.
+ */
+function parseFollowType(insightsData: any[], metricName: string) {
+  if (!insightsData || !Array.isArray(insightsData)) {
+    return { follower: 0, nonFollower: 0 };
+  }
+  const metricItem = insightsData.find((i: any) => i.name === metricName);
+  if (!metricItem) {
+    return { follower: 0, nonFollower: 0 };
+  }
+  
+  const valueObj = metricItem.total_value || (metricItem.values && metricItem.values[0]) || metricItem;
+  if (!valueObj) {
+    return { follower: 0, nonFollower: 0 };
+  }
+  
+  let follower = 0;
+  let nonFollower = 0;
+  
+  if (Array.isArray(valueObj.breakdowns)) {
+    for (const b of valueObj.breakdowns) {
+      const keys = b.dimension_keys || [];
+      const followIdx = keys.indexOf('follow_type');
+      
+      if (followIdx !== -1 && Array.isArray(b.results)) {
+        for (const res of b.results) {
+          const vals = res.dimension_values || [];
+          const val = res.value || 0;
+          const rawFollow = (vals[followIdx] || '').toUpperCase().replace('-', '_');
+          
+          if (rawFollow === 'FOLLOWER') {
+            follower += val;
+          } else if (rawFollow === 'NON_FOLLOWER') {
+            nonFollower += val;
+          }
+        }
+      }
+    }
+  } else if (valueObj.value && typeof valueObj.value === 'object') {
+    const val = valueObj.value;
+    follower = val.FOLLOWER || val.follower || 0;
+    nonFollower = val.NON_FOLLOWER || val['non-follower'] || val.non_follower || 0;
+  }
+  
+  return { follower, nonFollower };
+}
+
+/**
+ * Helper to parse a single dimension breakdown for media_product_type from Meta insights.
+ */
+function parseMediaProductType(insightsData: any[], metricName: string) {
+  if (!insightsData || !Array.isArray(insightsData)) {
+    return { posts: 0, reels: 0, stories: 0 };
+  }
+  const metricItem = insightsData.find((i: any) => i.name === metricName);
+  if (!metricItem) {
+    return { posts: 0, reels: 0, stories: 0 };
+  }
+  
+  const valueObj = metricItem.total_value || (metricItem.values && metricItem.values[0]) || metricItem;
+  if (!valueObj) {
+    return { posts: 0, reels: 0, stories: 0 };
+  }
+  
+  let posts = 0;
+  let reels = 0;
+  let stories = 0;
+  
+  if (Array.isArray(valueObj.breakdowns)) {
+    for (const b of valueObj.breakdowns) {
+      const keys = b.dimension_keys || [];
+      const mediaIdx = keys.indexOf('media_product_type');
+      
+      if (mediaIdx !== -1 && Array.isArray(b.results)) {
+        for (const res of b.results) {
+          const vals = res.dimension_values || [];
+          const val = res.value || 0;
+          const rawMedia = (vals[mediaIdx] || '').toUpperCase().replace('-', '_');
+          
+          if (rawMedia === 'POST' || rawMedia === 'FEED' || rawMedia === 'AD' || rawMedia === 'CAROUSEL_CONTAINER' || rawMedia === 'CAROUSEL_ALBUM') {
+            posts += val;
+          } else if (rawMedia === 'REELS' || rawMedia === 'REEL' || rawMedia === 'VIDEO') {
+            reels += val;
+          } else if (rawMedia === 'STORY' || rawMedia === 'STORIES') {
+            stories += val;
+          }
+        }
+      }
+    }
+  } else if (valueObj.value && typeof valueObj.value === 'object') {
+    for (const [rawKey, val] of Object.entries(valueObj.value)) {
+      if (typeof val !== 'number') continue;
+      const normalizedKey = rawKey.toUpperCase().replace('-', '_');
+      if (normalizedKey === 'POST' || normalizedKey === 'FEED' || normalizedKey === 'AD' || normalizedKey === 'CAROUSEL_CONTAINER' || normalizedKey === 'CAROUSEL_ALBUM') {
+        posts += val;
+      } else if (normalizedKey === 'REELS' || normalizedKey === 'REEL' || normalizedKey === 'VIDEO') {
+        reels += val;
+      } else if (normalizedKey === 'STORY' || normalizedKey === 'STORIES') {
+        stories += val;
+      }
+    }
+  }
+  
+  return { posts, reels, stories };
+}
+
+
+/**
  * Service for syncing analytics data from Meta Graph API.
  * Handles both Facebook Pages and Instagram Business Accounts.
  */
@@ -288,15 +396,26 @@ export const metaAnalyticsService = {
           currentStart.setUTCDate(currentStart.getUTCDate() + 1);
         }
       } else {
-        // Default: last 24h
+        // Default: last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
+        thirtyDaysAgo.setUTCHours(0, 0, 0, 0);
+        
         const yesterday = new Date();
         yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-        yesterday.setUTCHours(0, 0, 0, 0);
+        yesterday.setUTCHours(23, 59, 59, 999);
         
-        const yesterdayEnd = new Date(yesterday);
-        yesterdayEnd.setUTCHours(23, 59, 59, 999);
-        
-        chunks.push({ since: yesterday, until: yesterdayEnd });
+        let currentStart = new Date(thirtyDaysAgo);
+        while (currentStart < yesterday) {
+          let currentEnd = new Date(currentStart);
+          currentEnd.setUTCDate(currentEnd.getUTCDate() + 29); // 30 days limit
+          if (currentEnd > yesterday) {
+            currentEnd = new Date(yesterday);
+          }
+          chunks.push({ since: new Date(currentStart), until: new Date(currentEnd) });
+          currentStart = new Date(currentEnd);
+          currentStart.setUTCDate(currentStart.getUTCDate() + 1);
+        }
       }
 
       // 4. Fetch metrics for each chunk
@@ -373,24 +492,73 @@ export const metaAnalyticsService = {
           let chunkNonfollowersPct = 0;
           let chunkByContentViews: any = null;
 
-          const promises = [
-            // 1. Core daily insights
-            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
-              metric: 'reach,views,profile_views,profile_links_taps,accounts_engaged,total_interactions', 
-              period: 'day',
-              since: sinceUnix,
-              until: untilUnix
-            }, 'GET', accountId),
-            // 2. Reach breakdown
+          // 1. Tạo các daily chunks (mỗi chunk là 1 ngày) nằm trong khoảng since -> until của chunk hiện tại
+          const dailyChunks: { dateStr: string; sinceUnix: number; untilUnix: number }[] = [];
+          const startLimit = new Date(chunk.since);
+          const endLimit = new Date(chunk.until);
+          
+          let currentDay = new Date(startLimit);
+          currentDay.setUTCHours(0, 0, 0, 0);
+          
+          while (currentDay <= endLimit) {
+            const dayStart = new Date(currentDay);
+            const sinceUnixVal = Math.floor(dayStart.getTime() / 1000);
+            
+            const dayEnd = new Date(currentDay);
+            dayEnd.setUTCHours(23, 59, 59, 999);
+            const untilUnixVal = Math.floor(dayEnd.getTime() / 1000);
+            
+            dailyChunks.push({
+              dateStr: dayStart.toISOString().split('T')[0],
+              sinceUnix: sinceUnixVal,
+              untilUnix: untilUnixVal
+            });
+            
+            currentDay.setUTCDate(currentDay.getUTCDate() + 1);
+          }
+
+          // 2. Định nghĩa các promises
+          // 2a. Gọi core daily insights song song cho từng ngày
+          const dailyCorePromises = dailyChunks.map(dChunk =>
+            client.request<MetaInsightsResponse>(
+              `${externalId}/insights`,
+              accessToken,
+              {
+                metric: 'reach,views,profile_views,profile_links_taps,accounts_engaged,total_interactions',
+                period: 'day',
+                metric_type: 'total_value',
+                since: dChunk.sinceUnix,
+                until: dChunk.untilUnix
+              },
+              'GET',
+              accountId
+            ).then(res => ({
+              dateStr: dChunk.dateStr,
+              res
+            }))
+          );
+
+          // 2b. Gọi các breakdown API và lifetime API dài hạn cho toàn bộ chu kỳ chunk
+          const otherPromises = [
+            // [0] Reach, accounts engaged & total interactions follow type breakdown
             client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
               metric: 'reach', 
-              breakdown: 'media_product_type,follow_type', 
+              breakdown: 'follow_type', 
               period: 'day',
               metric_type: 'total_value',
               since: sinceUnix,
               until: untilUnix
             }, 'GET', accountId),
-            // 3. Views breakdown (fallback)
+            // [1] Reach media product type breakdown
+            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+              metric: 'reach', 
+              breakdown: 'media_product_type', 
+              period: 'day',
+              metric_type: 'total_value',
+              since: sinceUnix,
+              until: untilUnix
+            }, 'GET', accountId),
+            // [2] Views media product type breakdown
             client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
               metric: 'views', 
               breakdown: 'media_product_type', 
@@ -402,7 +570,7 @@ export const metaAnalyticsService = {
           ];
 
           if (!insufficientData) {
-            promises.push(
+            otherPromises.push(
               client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
                 metric: 'online_followers,follower_demographics', 
                 period: 'lifetime' 
@@ -410,147 +578,107 @@ export const metaAnalyticsService = {
             );
           }
 
-          const results = await Promise.allSettled(promises);
+          // 3. Thực thi song song tất cả các request
+          const [dailyCoreResults, otherResults] = await Promise.all([
+            Promise.allSettled(dailyCorePromises),
+            Promise.allSettled(otherPromises)
+          ]);
 
-          // Process core insights (index 0)
-          const coreRes = results[0];
-          if (coreRes.status === 'fulfilled' && coreRes.value.data) {
-            const d = coreRes.value.data as MetaInsightsResponse;
-            if (d.data && Array.isArray(d.data)) {
-              for (const item of d.data) {
-                const metricName = item.name;
-                if (item.values && Array.isArray(item.values)) {
-                  for (const val of item.values) {
-                    const date = new Date(val.end_time);
-                    date.setUTCDate(date.getUTCDate() - 1);
-                    date.setUTCHours(0, 0, 0, 0);
-                    const dateKey = date.toISOString().split('T')[0];
+          // 4. Parse core daily insights từng ngày
+          for (const itemResult of dailyCoreResults) {
+            if (itemResult.status === 'fulfilled') {
+              const { dateStr, res } = itemResult.value;
+              if (res.data && Array.isArray(res.data.data)) {
+                const date = new Date(dateStr);
+                date.setUTCHours(0, 0, 0, 0);
 
-                    if (!dailyMetrics[dateKey]) {
-                      dailyMetrics[dateKey] = {
-                        date,
-                        reach: 0,
-                        impressions: 0,
-                        engagement: 0,
-                        accountsEngaged: 0,
-                        profileVisits: 0,
-                        profileLinksTaps: 0,
-                        followersPct: 0,
-                        nonfollowersPct: 0,
-                        byContentViews: null
-                      };
-                    }
+                if (!dailyMetrics[dateStr]) {
+                  dailyMetrics[dateStr] = {
+                    date,
+                    reach: 0,
+                    impressions: 0,
+                    engagement: 0,
+                    accountsEngaged: 0,
+                    profileVisits: 0,
+                    profileLinksTaps: 0,
+                    followersPct: 0,
+                    nonfollowersPct: 0,
+                    byContentViews: null
+                  };
+                }
 
-                    const value = val.value || 0;
-                    if (metricName === 'reach') {
-                      dailyMetrics[dateKey].reach = value;
-                    } else if (metricName === 'views') {
-                      dailyMetrics[dateKey].impressions = value;
-                    } else if (metricName === 'profile_views') {
-                      dailyMetrics[dateKey].profileVisits = value;
-                    } else if (metricName === 'profile_links_taps') {
-                      dailyMetrics[dateKey].profileLinksTaps = value;
-                    } else if (metricName === 'accounts_engaged') {
-                      dailyMetrics[dateKey].accountsEngaged = value;
-                    } else if (metricName === 'total_interactions') {
-                      dailyMetrics[dateKey].engagement = value;
-                    }
+                for (const item of res.data.data) {
+                  const metricName = item.name;
+                  const value = item.total_value?.value || 0;
+
+                  if (metricName === 'reach') {
+                    dailyMetrics[dateStr].reach = value;
+                  } else if (metricName === 'views') {
+                    dailyMetrics[dateStr].impressions = value;
+                  } else if (metricName === 'profile_views') {
+                    dailyMetrics[dateStr].profileVisits = value;
+                  } else if (metricName === 'profile_links_taps') {
+                    dailyMetrics[dateStr].profileLinksTaps = value;
+                  } else if (metricName === 'accounts_engaged') {
+                    dailyMetrics[dateStr].accountsEngaged = value;
+                  } else if (metricName === 'total_interactions') {
+                    dailyMetrics[dateStr].engagement = value;
                   }
                 }
               }
             }
           }
 
-          // Process reach breakdown (index 1)
-          const reachBreakdownRes = results[1];
-          if (reachBreakdownRes.status === 'fulfilled' && reachBreakdownRes.value.data) {
-            const d = reachBreakdownRes.value.data as MetaInsightsResponse;
-            const parsedBreakdown = parseDoubleBreakdown(d.data, 'reach');
-            if (parsedBreakdown) {
-              const totalFollowers = parsedBreakdown.followers.posts + parsedBreakdown.followers.reels + parsedBreakdown.followers.stories;
-              const totalNonFollowers = parsedBreakdown.nonfollowers.posts + parsedBreakdown.nonfollowers.reels + parsedBreakdown.nonfollowers.stories;
-              const totalReach = totalFollowers + totalNonFollowers;
-              
-              if (totalReach > 0) {
-                chunkFollowersPct = Math.round((totalFollowers / totalReach) * 100);
-                chunkNonfollowersPct = Math.round((totalNonFollowers / totalReach) * 100);
-              }
-              
-              const getPct = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
-              const allTotal = parsedBreakdown.all.posts + parsedBreakdown.all.reels + parsedBreakdown.all.stories;
-              
-              chunkByContentViews = {
-                all: {
-                  posts: getPct(parsedBreakdown.all.posts, allTotal),
-                  reels: getPct(parsedBreakdown.all.reels, allTotal),
-                  stories: getPct(parsedBreakdown.all.stories, allTotal)
-                },
-                followers: {
-                  posts: getPct(parsedBreakdown.followers.posts, totalFollowers),
-                  reels: getPct(parsedBreakdown.followers.reels, totalFollowers),
-                  stories: getPct(parsedBreakdown.followers.stories, totalFollowers)
-                },
-                nonfollowers: {
-                  posts: getPct(parsedBreakdown.nonfollowers.posts, totalNonFollowers),
-                  reels: getPct(parsedBreakdown.nonfollowers.reels, totalNonFollowers),
-                  stories: getPct(parsedBreakdown.nonfollowers.stories, totalNonFollowers)
-                }
-              };
+          // 5. Process follow type breakdown (otherResults[0])
+          const followTypeRes = otherResults[0];
+          if (followTypeRes && followTypeRes.status === 'fulfilled' && followTypeRes.value.data) {
+            const d = followTypeRes.value.data as MetaInsightsResponse;
+            const parsedFollow = parseFollowType(d.data, 'reach');
+            const totalFollowReach = parsedFollow.follower + parsedFollow.nonFollower;
+            if (totalFollowReach > 0) {
+              chunkFollowersPct = Math.round((parsedFollow.follower / totalFollowReach) * 100);
+              chunkNonfollowersPct = 100 - chunkFollowersPct;
             }
           }
 
-          // Process views breakdown fallback (index 2)
-          const viewsBreakdownRes = results[2];
-          if (viewsBreakdownRes.status === 'fulfilled' && viewsBreakdownRes.value.data && !chunkByContentViews) {
+          // 6. Process Views media product type breakdown (otherResults[2])
+          const viewsBreakdownRes = otherResults[2];
+          if (viewsBreakdownRes && viewsBreakdownRes.status === 'fulfilled' && viewsBreakdownRes.value.data) {
             const d = viewsBreakdownRes.value.data as MetaInsightsResponse;
-            const viewsObj = d.data.find((i: any) => i.name === 'views');
-            const totalValue = viewsObj?.total_value;
-            if (totalValue && Array.isArray(totalValue.breakdowns)) {
-              let posts = 0, reels = 0, stories = 0;
-              for (const b of totalValue.breakdowns) {
-                const keys = b.dimension_keys || [];
-                const mediaIdx = keys.indexOf('media_product_type');
-                if (mediaIdx !== -1 && Array.isArray(b.results)) {
-                  for (const res of b.results) {
-                    const vals = res.dimension_values || [];
-                    const rawMedia = vals[mediaIdx] || '';
-                    const val = res.value || 0;
-                    
-                    if (rawMedia === 'POST' || rawMedia === 'FEED' || rawMedia === 'AD' || rawMedia === 'CAROUSEL_CONTAINER' || rawMedia === 'CAROUSEL_ALBUM') {
-                      posts += val;
-                    } else if (rawMedia === 'REELS' || rawMedia === 'REEL' || rawMedia === 'VIDEO') {
-                      reels += val;
-                    } else if (rawMedia === 'STORY' || rawMedia === 'STORIES') {
-                      stories += val;
-                    }
-                  }
-                }
+            const viewsBreakdown = parseMediaProductType(d.data, 'views');
+            const totalViews = viewsBreakdown.posts + viewsBreakdown.reels + viewsBreakdown.stories;
+            const getPct = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
+            
+            chunkByContentViews = {
+              all: {
+                posts: getPct(viewsBreakdown.posts, totalViews),
+                reels: getPct(viewsBreakdown.reels, totalViews),
+                stories: getPct(viewsBreakdown.stories, totalViews)
+              },
+              followers: {
+                posts: getPct(viewsBreakdown.posts, totalViews),
+                reels: getPct(viewsBreakdown.reels, totalViews),
+                stories: getPct(viewsBreakdown.stories, totalViews)
+              },
+              nonfollowers: {
+                posts: getPct(viewsBreakdown.posts, totalViews),
+                reels: getPct(viewsBreakdown.reels, totalViews),
+                stories: getPct(viewsBreakdown.stories, totalViews)
               }
-              const total = posts + reels + stories;
-              const getPct = (val: number) => total > 0 ? Math.round((val / total) * 100) : 0;
-              
-              chunkByContentViews = {
-                all: {
-                  posts: getPct(posts),
-                  reels: getPct(reels),
-                  stories: getPct(stories)
-                },
-                followers: { posts: 0, reels: 0, stories: 0 },
-                nonfollowers: { posts: 0, reels: 0, stories: 0 }
-              };
-            }
+            };
           }
 
-          // Process online followers (index 3)
-          if (!insufficientData && results[3] && results[3].status === 'fulfilled' && results[3].value.data) {
-            const d = results[3].value.data as MetaInsightsResponse;
+          // 7. Process online followers (otherResults[3])
+          const onlineFollowersIdx = 3;
+          if (!insufficientData && otherResults[onlineFollowersIdx] && otherResults[onlineFollowersIdx].status === 'fulfilled' && otherResults[onlineFollowersIdx].value.data) {
+            const d = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
             const onlineFollowers = d.data.find((i: any) => i.name === 'online_followers')?.values[0]?.value;
             if (onlineFollowers && typeof onlineFollowers === 'object') {
               activeTimes = onlineFollowers;
             }
           }
 
-          // Apply chunk-level breakdown to all days in the chunk
+          // 8. Apply chunk-level breakdown to all days in the chunk
           for (const key of Object.keys(dailyMetrics)) {
             dailyMetrics[key].followersPct = chunkFollowersPct;
             dailyMetrics[key].nonfollowersPct = chunkNonfollowersPct;
@@ -597,7 +725,14 @@ export const metaAnalyticsService = {
               console.warn(`[MetaAnalyticsService] Redis cache failed for ${dateStr}:`, cacheErr);
             }
           }
-        }
+      }
+    }
+      // 9. Update reauth status to false since sync completed successfully
+      try {
+        const { getPlatformAccountRepository } = await import('@/infrastructure/repositories/platform-account.repository');
+        await getPlatformAccountRepository().updateReauthStatus(accountId, false);
+      } catch (reauthErr) {
+        console.warn(`[MetaAnalyticsService] Failed to update reauth status:`, reauthErr);
       }
 
       return { success: true };
