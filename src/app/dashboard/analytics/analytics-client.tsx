@@ -867,46 +867,48 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   // Find the latest snapshot with active times (since it's a lifetime metric, latest is best)
   const latestWithActiveTimes = [...(data?.data?.current || [])].reverse().find(s => s.activeTimes);
   
-  // 1. Aggregate Followers vs Non-followers reach percentage over the selected period
-  const currentSnapshotsWithFollowers = (data?.data?.current || []).filter(
-    (s: any) => s.followersPct !== null && s.followersPct !== undefined &&
-         s.nonfollowersPct !== null && s.nonfollowersPct !== undefined
-  );
+  // 1. Get Followers vs Non-followers reach percentage over the selected period
+  let followersPct = data?.data?.followersPct ?? 0;
+  let nonfollowersPct = data?.data?.nonfollowersPct ?? 0;
 
-  let followersPct = 0;
-  let nonfollowersPct = 0;
+  if (followersPct === 0 && nonfollowersPct === 0) {
+    const currentSnapshotsWithFollowers = (data?.data?.current || []).filter(
+      (s: any) => s.followersPct !== null && s.followersPct !== undefined &&
+           s.nonfollowersPct !== null && s.nonfollowersPct !== undefined
+    );
 
-  if (currentSnapshotsWithFollowers.length > 0) {
-    let totalReachWeight = 0;
-    let sumFollowersPct = 0;
-    let sumNonfollowersPct = 0;
+    if (currentSnapshotsWithFollowers.length > 0) {
+      let totalReachWeight = 0;
+      let sumFollowersPct = 0;
+      let sumNonfollowersPct = 0;
 
-    currentSnapshotsWithFollowers.forEach((s: any) => {
-      // Use reach as the weight for reach breakdown percentage
-      const dailyReach = s.reach || s.accountsReached || 0;
-      const weight = dailyReach > 0 ? dailyReach : 1;
+      currentSnapshotsWithFollowers.forEach((s: any) => {
+        // Use reach as the weight for reach breakdown percentage
+        const dailyReach = s.reach || s.accountsReached || 0;
+        const weight = dailyReach > 0 ? dailyReach : 1;
 
-      totalReachWeight += weight;
-      sumFollowersPct += (s.followersPct || 0) * weight;
-      sumNonfollowersPct += (s.nonfollowersPct || 0) * weight;
-    });
+        totalReachWeight += weight;
+        sumFollowersPct += (s.followersPct || 0) * weight;
+        sumNonfollowersPct += (s.nonfollowersPct || 0) * weight;
+      });
 
-    if (totalReachWeight > 0) {
-      followersPct = Math.round(sumFollowersPct / totalReachWeight);
-      nonfollowersPct = Math.round(sumNonfollowersPct / totalReachWeight);
+      if (totalReachWeight > 0) {
+        followersPct = Math.round(sumFollowersPct / totalReachWeight);
+        nonfollowersPct = Math.round(sumNonfollowersPct / totalReachWeight);
 
-      // Normalize to sum to exactly 100
-      const pctSum = followersPct + nonfollowersPct;
-      if (pctSum > 0) {
-        followersPct = Math.round((followersPct / pctSum) * 100);
-        nonfollowersPct = 100 - followersPct;
+        // Normalize to sum to exactly 100
+        const pctSum = followersPct + nonfollowersPct;
+        if (pctSum > 0) {
+          followersPct = Math.round((followersPct / pctSum) * 100);
+          nonfollowersPct = 100 - followersPct;
+        }
       }
+    } else {
+      // Fallback if no snapshots have these fields, find the latest snapshot with advanced data
+      const latestWithAdvanced = [...(data?.data?.current || [])].reverse().find((s: any) => s.followersPct !== null && s.followersPct !== undefined);
+      followersPct = latestWithAdvanced?.followersPct || 0;
+      nonfollowersPct = latestWithAdvanced?.nonfollowersPct || 0;
     }
-  } else {
-    // Fallback if no snapshots have these fields, find the latest snapshot with advanced data
-    const latestWithAdvanced = [...(data?.data?.current || [])].reverse().find((s: any) => s.followersPct !== null && s.followersPct !== undefined);
-    followersPct = latestWithAdvanced?.followersPct || 0;
-    nonfollowersPct = latestWithAdvanced?.nonfollowersPct || 0;
   }
 
   // 2. Aggregate Views Breakdown by Content Type over the selected period
@@ -955,18 +957,9 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         const s = breakdown.stories;
         const total = p + r + s;
         if (total > 0) {
-          let posts = Math.round((p / total) * 100);
-          let reels = Math.round((r / total) * 100);
-          let stories = 100 - posts - reels;
-
-          if (stories < 0) {
-            if (posts > reels) {
-              posts += stories;
-            } else {
-              reels += stories;
-            }
-            stories = 0;
-          }
+          let posts = Number((p / total * 100).toFixed(1));
+          let reels = Number((r / total * 100).toFixed(1));
+          let stories = Number(Math.max(0, 100 - posts - reels).toFixed(1));
           return { posts, reels, stories };
         }
         return { posts: 0, reels: 0, stories: 0 };
@@ -1050,8 +1043,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const totalAccEngaged = (data?.data?.current || []).reduce((acc: number, curr: any) => acc + (curr.accountsEngaged || 0), 0);
 
   const interactionsData = {
-    totalInteractions: totals?.engagement?.value || 0,
-    accountsEngaged: totalAccEngaged > 0 ? totalAccEngaged : (totals?.engagement?.value || 0),
+    totalInteractions: data?.data?.uniqueInteractions ?? (totals?.engagement?.value || 0),
+    accountsEngaged: data?.data?.uniqueAccountsEngaged ?? (totalAccEngaged > 0 ? totalAccEngaged : (totals?.engagement?.value || 0)),
     byContentInteractions: aggregatedByContentInteractions
       ? aggregatedByContentInteractions
       : (data?.data?.currentPostTotals?.byContentInteractions || null),

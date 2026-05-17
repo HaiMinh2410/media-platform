@@ -237,6 +237,8 @@ export const metaAnalyticsService = {
     byContentInteractions?: any;
     posts?: any[];
     chunkUniqueReaches?: number[];
+    chunkUniqueAccountsEngaged?: number[];
+    chunkUniqueInteractions?: number[];
     error?: string;
   }> {
     const { accountId, externalId, platform, encryptedToken, since, until } = params;
@@ -387,6 +389,8 @@ export const metaAnalyticsService = {
 
       const allSnapshots: any[] = [];
       const chunkUniqueReaches: number[] = [];
+      const chunkUniqueAccountsEngaged: number[] = [];
+      const chunkUniqueInteractions: number[] = [];
 
       // 4. Fetch metrics for each chunk
       for (const chunk of chunks) {
@@ -535,6 +539,14 @@ export const metaAnalyticsService = {
               metric_type: 'total_value',
               since: sinceUnix,
               until: untilUnix
+            }, 'GET', accountId),
+            // [4] True non-breakdown unique accounts engaged and total interactions for the entire chunk range
+            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+              metric: 'accounts_engaged,total_interactions', 
+              period: 'day',
+              metric_type: 'total_value',
+              since: sinceUnix,
+              until: untilUnix
             }, 'GET', accountId)
           ];
 
@@ -671,18 +683,41 @@ export const metaAnalyticsService = {
             }
           }
 
-          // Process true non-breakdown unique reach (otherResults[3])
+          // Process true unique reach directly from follow_type breakdown (otherResults[0])
           let uniqueReachVal = 0;
-          const trueReachRes = otherResults[3];
-          if (trueReachRes && trueReachRes.status === 'fulfilled' && trueReachRes.value.data) {
-            const d = trueReachRes.value.data as MetaInsightsResponse;
+          if (followTypeRes && followTypeRes.status === 'fulfilled' && followTypeRes.value.data) {
+            const d = followTypeRes.value.data as MetaInsightsResponse;
             const reachItem = d.data?.find((i: any) => i.name === 'reach');
             uniqueReachVal = reachItem?.total_value?.value || 0;
           }
+
+          // Fallback to otherResults[3] non-breakdown reach if above is 0
+          if (uniqueReachVal === 0) {
+            const trueReachRes = otherResults[3];
+            if (trueReachRes && trueReachRes.status === 'fulfilled' && trueReachRes.value.data) {
+              const d = trueReachRes.value.data as MetaInsightsResponse;
+              const reachItem = d.data?.find((i: any) => i.name === 'reach');
+              uniqueReachVal = reachItem?.total_value?.value || 0;
+            }
+          }
           chunkUniqueReaches.push(uniqueReachVal);
 
-          // Process online followers (otherResults[4])
-          const onlineFollowersIdx = 4;
+          // Process unique accounts engaged and unique total interactions (otherResults[4])
+          let uniqueAccountsEngagedVal = 0;
+          let uniqueInteractionsVal = 0;
+          const engRes = otherResults[4];
+          if (engRes && engRes.status === 'fulfilled' && engRes.value.data) {
+            const d = engRes.value.data as MetaInsightsResponse;
+            const engItem = d.data?.find((i: any) => i.name === 'accounts_engaged');
+            uniqueAccountsEngagedVal = engItem?.total_value?.value || 0;
+            const intItem = d.data?.find((i: any) => i.name === 'total_interactions');
+            uniqueInteractionsVal = intItem?.total_value?.value || 0;
+          }
+          chunkUniqueAccountsEngaged.push(uniqueAccountsEngagedVal);
+          chunkUniqueInteractions.push(uniqueInteractionsVal);
+
+          // Process online followers (otherResults[5])
+          const onlineFollowersIdx = 5;
           if (!insufficientData && otherResults[onlineFollowersIdx] && otherResults[onlineFollowersIdx].status === 'fulfilled' && otherResults[onlineFollowersIdx].value.data) {
             const d = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
             const onlineFollowers = d.data.find((i: any) => i.name === 'online_followers')?.values[0]?.value;
@@ -739,7 +774,9 @@ export const metaAnalyticsService = {
         activeTimes,
         byContentInteractions,
         posts: processedPosts,
-        chunkUniqueReaches
+        chunkUniqueReaches,
+        chunkUniqueAccountsEngaged,
+        chunkUniqueInteractions
       };
 
     } catch (err: any) {

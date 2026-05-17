@@ -1,6 +1,8 @@
 import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
-import { getAnalyticsForPeriod } from '@/infrastructure/repositories/analytics.repository';
+import { getAnalyticsAction } from '@/application/actions/analytics.actions';
 import { AnalyticsDashboardClient } from './analytics-client';
+
+export const dynamic = 'force-dynamic';
 
 export default async function AnalyticsPage() {
   const repo = getPlatformAccountRepository();
@@ -18,10 +20,7 @@ export default async function AnalyticsPage() {
   }
 
   // 2. Fetch initial data for the first account (last 30 days)
-  const { data: initialAnalytics } = await getAnalyticsForPeriod({
-    accountId: accounts[0].id,
-    range: '30d'
-  });
+  const { data: initialAnalytics } = await getAnalyticsAction(accounts[0].id, '30d');
 
   // Map repo results to the simplified list for the selector
   const accountList = accounts.map(a => ({

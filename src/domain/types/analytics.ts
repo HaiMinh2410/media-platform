@@ -86,6 +86,12 @@ export type AnalyticsPeriodData = {
   needsReauth?: boolean;
   uniqueReach?: number;
   prevUniqueReach?: number;
+  uniqueAccountsEngaged?: number;
+  prevUniqueAccountsEngaged?: number;
+  uniqueInteractions?: number;
+  prevUniqueInteractions?: number;
+  followersPct?: number;
+  nonfollowersPct?: number;
 };
 
 export type PostAnalytic = {

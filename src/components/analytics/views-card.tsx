@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Info } from 'lucide-react';
-import { cn, COLORS, ContentBar, Skeleton, StatBlock } from './primitives';
+import { cn, COLORS, Skeleton, StatBlock } from './primitives';
 
 interface ViewsCardProps {
   totalViews: number;
@@ -16,6 +16,81 @@ interface ViewsCardProps {
     nonfollowers: { posts: number; reels: number; stories: number };
   } | null;
   isLoading?: boolean;
+}
+
+function ViewsContentBar({
+  label,
+  category,
+  activeTab,
+  byContentViews,
+  followersPct,
+  nonfollowersPct,
+}: {
+  label: string;
+  category: 'posts' | 'reels' | 'stories';
+  activeTab: 'all' | 'followers' | 'nonfollowers';
+  byContentViews: ViewsCardProps['byContentViews'];
+  followersPct: number;
+  nonfollowersPct: number;
+}) {
+  const contentData = byContentViews ? byContentViews[activeTab] : { posts: 0, reels: 0, stories: 0 };
+  const pct = contentData[category] ?? 0;
+
+  let pinkPct = 0;
+  let purplePct = 0;
+
+  if (activeTab === 'followers') {
+    pinkPct = pct;
+    purplePct = 0;
+  } else if (activeTab === 'nonfollowers') {
+    pinkPct = 0;
+    purplePct = pct;
+  } else {
+    // activeTab === 'all'
+    const folVal = byContentViews?.followers?.[category] ?? 0;
+    const nonVal = byContentViews?.nonfollowers?.[category] ?? 0;
+
+    const folWeight = folVal * followersPct;
+    const nonWeight = nonVal * nonfollowersPct;
+    const totalWeight = folWeight + nonWeight;
+
+    if (totalWeight > 0) {
+      const followersRatio = folWeight / totalWeight;
+      pinkPct = pct * followersRatio;
+      purplePct = pct * (1 - followersRatio);
+    } else {
+      const followersRatio = followersPct / 100;
+      pinkPct = pct * followersRatio;
+      purplePct = pct * (1 - followersRatio);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <div className="w-14 text-white text-sm shrink-0 font-medium">{label}</div>
+      <div className="flex-1 h-2.5 bg-[#1e1e1e] rounded-full overflow-hidden flex">
+        {pinkPct > 0 && (
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${pinkPct}%` }}
+            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+            style={{ background: COLORS.pink }}
+            className="h-full shrink-0"
+          />
+        )}
+        {purplePct > 0 && (
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${purplePct}%` }}
+            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+            style={{ background: COLORS.purple }}
+            className="h-full shrink-0"
+          />
+        )}
+      </div>
+      <div className="w-11 text-white text-sm text-right font-semibold">{pct.toFixed(1).replace('.0', '')}%</div>
+    </div>
+  );
 }
 
 export function ViewsCard({
@@ -66,6 +141,19 @@ export function ViewsCard({
   }
 
   const contentData = byContentViews ? byContentViews[activeTab] : { posts: 0, reels: 0, stories: 0 };
+
+  const categories = [
+    { label: 'Posts', key: 'posts' as const },
+    { label: 'Reels', key: 'reels' as const },
+    { label: 'Stories', key: 'stories' as const },
+  ];
+
+  // Dynamically sort categories by their percentage in descending order
+  const sortedCategories = [...categories].sort((a, b) => {
+    const valA = contentData[a.key] ?? 0;
+    const valB = contentData[b.key] ?? 0;
+    return valB - valA;
+  });
 
   return (
     <div className="bg-[#111] border border-[#222] rounded-2xl p-6 text-white font-sans">
@@ -128,13 +216,13 @@ export function ViewsCard({
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={cn(
-                  "px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200",
+                  "px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 cursor-pointer",
                   activeTab === tab 
-                    ? "text-white shadow-lg shadow-pink-500/20" 
-                    : "bg-[#1e1e1e] text-[#888] hover:text-[#bbb]"
+                    ? "text-white shadow-lg shadow-blue-500/20 bg-blue-500" 
+                    : "bg-[#1e1e1e] text-[#888] hover:text-[#bbb] hover:bg-[#222]"
                 )}
                 style={{
-                  backgroundColor: activeTab === tab ? COLORS.pink : undefined
+                  backgroundColor: activeTab === tab ? '#3b82f6' : undefined
                 }}
               >
                 {tab === 'all' ? 'All' : tab === 'followers' ? 'Followers' : 'Non-followers'}
@@ -144,13 +232,21 @@ export function ViewsCard({
 
           {/* Content Bars */}
           <div className="space-y-1">
-            <ContentBar label="Posts" pct={contentData.posts} color={COLORS.pink} />
-            <ContentBar label="Reels" pct={contentData.reels} color={COLORS.purple} />
-            <ContentBar label="Stories" pct={contentData.stories} color={COLORS.pink} />
+            {sortedCategories.map((cat) => (
+              <ViewsContentBar
+                key={cat.key}
+                label={cat.label}
+                category={cat.key}
+                activeTab={activeTab}
+                byContentViews={byContentViews}
+                followersPct={followersPct}
+                nonfollowersPct={nonfollowersPct}
+              />
+            ))}
           </div>
 
           {/* Legend */}
-          <div className="flex gap-4 mt-4">
+          <div className="flex gap-4 mt-6 justify-center">
             <div className="flex items-center gap-1.5 text-xs text-[#888]">
               <div className="w-2 h-2 rounded-full" style={{ background: COLORS.pink }} />
               Followers

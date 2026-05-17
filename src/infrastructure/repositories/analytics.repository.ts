@@ -87,8 +87,14 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
   try {
     const { accountId, range, customStart, customEnd } = filter;
     
-    let currentEnd = new Date();
-    currentEnd.setUTCHours(23, 59, 59, 999);
+    const now = new Date();
+    const localTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+    let currentEnd = new Date(Date.UTC(
+      localTime.getUTCFullYear(),
+      localTime.getUTCMonth(),
+      localTime.getUTCDate(),
+      23, 59, 59, 999
+    ));
     
     let currentStart: Date;
     let previousStart: Date;
@@ -216,6 +222,50 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
     const current = mapped.filter(s => s.date >= currentStart && s.date <= currentEnd);
     const previous = mapped.filter(s => s.date >= previousStart && s.date <= previousEnd);
 
+    // Calculate followersPct and nonfollowersPct for the current period
+    const currentSnapshotsWithFollowers = current.filter(
+      (s: any) => s.followersPct !== null && s.followersPct !== undefined && s.followersPct > 0
+    );
+
+    let followersPct = 0;
+    let nonfollowersPct = 0;
+
+    if (currentSnapshotsWithFollowers.length > 0) {
+      let totalReachWeight = 0;
+      let sumFollowersPct = 0;
+
+      currentSnapshotsWithFollowers.forEach((s: any) => {
+        const dailyReach = s.reach || s.accountsReached || 0;
+        const weight = dailyReach > 0 ? dailyReach : 1;
+
+        totalReachWeight += weight;
+        sumFollowersPct += (s.followersPct || 0) * weight;
+      });
+
+      if (totalReachWeight > 0) {
+        followersPct = Math.round(sumFollowersPct / totalReachWeight);
+        nonfollowersPct = 100 - followersPct;
+      }
+    } else {
+      // Fallback: Use latest snapshot with advanced data if available
+      const latestWithAdvanced = [...current].reverse().find(
+        (s: any) => s.followersPct !== null && s.followersPct !== undefined && s.followersPct > 0
+      );
+      if (latestWithAdvanced) {
+        followersPct = latestWithAdvanced.followersPct || 0;
+        nonfollowersPct = latestWithAdvanced.nonfollowersPct || 0;
+      }
+    }
+
+    // Ensure we normalize to exactly 100% if we have any data
+    if (followersPct > 0 || nonfollowersPct > 0) {
+      const sum = followersPct + nonfollowersPct;
+      if (sum > 0) {
+        followersPct = Math.round((followersPct / sum) * 100);
+        nonfollowersPct = 100 - followersPct;
+      }
+    }
+
     return {
       data: {
         current,
@@ -238,7 +288,9 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
         currentStart,
         currentEnd,
         previousStart,
-        previousEnd
+        previousEnd,
+        followersPct: followersPct > 0 || nonfollowersPct > 0 ? followersPct : undefined,
+        nonfollowersPct: followersPct > 0 || nonfollowersPct > 0 ? nonfollowersPct : undefined
       },
       error: null,
     };
@@ -554,12 +606,20 @@ export function mapLiveAnalyticsToPeriodData(params: {
   posts: any[];
   filter: AnalyticsFilter;
   chunkUniqueReaches?: number[];
+  chunkUniqueAccountsEngaged?: number[];
+  chunkUniqueInteractions?: number[];
 }): AnalyticsPeriodData {
   const { snapshots, posts, filter } = params;
   const { range, customStart, customEnd } = filter;
   
-  let currentEnd = new Date();
-  currentEnd.setUTCHours(23, 59, 59, 999);
+  const now = new Date();
+  const localTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+  let currentEnd = new Date(Date.UTC(
+    localTime.getUTCFullYear(),
+    localTime.getUTCMonth(),
+    localTime.getUTCDate(),
+    23, 59, 59, 999
+  ));
   
   let currentStart: Date;
   let previousStart: Date;
@@ -673,11 +733,73 @@ export function mapLiveAnalyticsToPeriodData(params: {
 
   let uniqueReach: number | undefined;
   let prevUniqueReach: number | undefined;
+  let uniqueAccountsEngaged: number | undefined;
+  let prevUniqueAccountsEngaged: number | undefined;
+  let uniqueInteractions: number | undefined;
+  let prevUniqueInteractions: number | undefined;
 
   if (params.chunkUniqueReaches && params.chunkUniqueReaches.length > 0) {
     uniqueReach = params.chunkUniqueReaches[params.chunkUniqueReaches.length - 1] || undefined;
     if (params.chunkUniqueReaches.length >= 2) {
       prevUniqueReach = params.chunkUniqueReaches[params.chunkUniqueReaches.length - 2] || undefined;
+    }
+  }
+
+  if (params.chunkUniqueAccountsEngaged && params.chunkUniqueAccountsEngaged.length > 0) {
+    uniqueAccountsEngaged = params.chunkUniqueAccountsEngaged[params.chunkUniqueAccountsEngaged.length - 1] || undefined;
+    if (params.chunkUniqueAccountsEngaged.length >= 2) {
+      prevUniqueAccountsEngaged = params.chunkUniqueAccountsEngaged[params.chunkUniqueAccountsEngaged.length - 2] || undefined;
+    }
+  }
+
+  if (params.chunkUniqueInteractions && params.chunkUniqueInteractions.length > 0) {
+    uniqueInteractions = params.chunkUniqueInteractions[params.chunkUniqueInteractions.length - 1] || undefined;
+    if (params.chunkUniqueInteractions.length >= 2) {
+      prevUniqueInteractions = params.chunkUniqueInteractions[params.chunkUniqueInteractions.length - 2] || undefined;
+    }
+  }
+
+  // Calculate followersPct and nonfollowersPct for the current period
+  const currentSnapshotsWithFollowers = current.filter(
+    (s: any) => s.followersPct !== null && s.followersPct !== undefined && s.followersPct > 0
+  );
+
+  let followersPct = 0;
+  let nonfollowersPct = 0;
+
+  if (currentSnapshotsWithFollowers.length > 0) {
+    let totalReachWeight = 0;
+    let sumFollowersPct = 0;
+
+    currentSnapshotsWithFollowers.forEach((s: any) => {
+      const dailyReach = s.reach || s.accountsReached || 0;
+      const weight = dailyReach > 0 ? dailyReach : 1;
+
+      totalReachWeight += weight;
+      sumFollowersPct += (s.followersPct || 0) * weight;
+    });
+
+    if (totalReachWeight > 0) {
+      followersPct = Math.round(sumFollowersPct / totalReachWeight);
+      nonfollowersPct = 100 - followersPct;
+    }
+  } else {
+    // Fallback: Use latest snapshot with advanced data if available
+    const latestWithAdvanced = [...current].reverse().find(
+      (s: any) => s.followersPct !== null && s.followersPct !== undefined && s.followersPct > 0
+    );
+    if (latestWithAdvanced) {
+      followersPct = latestWithAdvanced.followersPct || 0;
+      nonfollowersPct = latestWithAdvanced.nonfollowersPct || 0;
+    }
+  }
+
+  // Ensure we normalize to exactly 100% if we have any data
+  if (followersPct > 0 || nonfollowersPct > 0) {
+    const sum = followersPct + nonfollowersPct;
+    if (sum > 0) {
+      followersPct = Math.round((followersPct / sum) * 100);
+      nonfollowersPct = 100 - followersPct;
     }
   }
 
@@ -692,7 +814,13 @@ export function mapLiveAnalyticsToPeriodData(params: {
     previousStart,
     previousEnd,
     uniqueReach,
-    prevUniqueReach
+    prevUniqueReach,
+    uniqueAccountsEngaged,
+    prevUniqueAccountsEngaged,
+    uniqueInteractions,
+    prevUniqueInteractions,
+    followersPct: followersPct > 0 || nonfollowersPct > 0 ? followersPct : undefined,
+    nonfollowersPct: followersPct > 0 || nonfollowersPct > 0 ? nonfollowersPct : undefined
   };
 }
 

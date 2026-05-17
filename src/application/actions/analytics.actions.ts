@@ -45,8 +45,14 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
     const accountWithToken = accountsWithTokens?.find(a => a.id === accountId);
 
     // Calculate time boundaries for the query (current + previous periods combined)
-    let currentEnd = new Date();
-    currentEnd.setUTCHours(23, 59, 59, 999);
+    const now = new Date();
+    const localTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+    let currentEnd = new Date(Date.UTC(
+      localTime.getUTCFullYear(),
+      localTime.getUTCMonth(),
+      localTime.getUTCDate(),
+      23, 59, 59, 999
+    ));
     let currentStart: Date;
     let previousStart: Date;
 
@@ -66,9 +72,14 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
       previousStart.setUTCHours(0, 0, 0, 0);
     }
 
-    // 1.5 Check Redis period data cache (only for non-custom ranges to keep logic simple and robust)
-    const periodCacheKey = `live_analytics_period_cache:${accountId}:${range}`;
-    if (redisConnection && range !== 'custom') {
+    // Define dynamic range suffix for caching (handles custom range properly based on exact date boundary)
+    const rangeSuffix = range === 'custom' && customStart && customEnd 
+      ? `custom_${new Date(customStart).toISOString().split('T')[0]}_${new Date(customEnd).toISOString().split('T')[0]}`
+      : range;
+
+    // 1.5 Check Redis period data cache (supports all ranges including custom for extreme speed and reliability)
+    const periodCacheKey = `live_analytics_period_cache:${accountId}:${rangeSuffix}`;
+    if (redisConnection) {
       try {
         const cachedDataStr = await redisConnection.get(periodCacheKey);
         if (cachedDataStr) {
@@ -91,7 +102,7 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
           if (cachedData.previousStart) cachedData.previousStart = new Date(cachedData.previousStart);
           if (cachedData.previousEnd) cachedData.previousEnd = new Date(cachedData.previousEnd);
           
-          console.log(`[getAnalyticsAction] Mapped PeriodData hit Redis cache for account: ${accountId}, range: ${range}`);
+          console.log(`[getAnalyticsAction] Mapped PeriodData hit Redis cache for account: ${accountId}, range: ${rangeSuffix}`);
           return { data: cachedData, error: null };
         }
       } catch (cacheErr) {
@@ -101,11 +112,12 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
 
     // 2. If encryptedToken is available, fetch Live Analytics from Meta API
     let skipLiveFetch = false;
+    const freshCacheKey = `live_analytics_fresh:${accountId}:${rangeSuffix}`;
     if (redisConnection && accountWithToken?.encryptedToken) {
       try {
-        const isFresh = await redisConnection.get(`live_analytics_fresh:${accountId}`);
+        const isFresh = await redisConnection.get(freshCacheKey);
         if (isFresh === 'true') {
-          console.log(`[getAnalyticsAction] DB cache is fresh (Redis key exists). Skipping live fetch for account: ${accountId}`);
+          console.log(`[getAnalyticsAction] DB cache is fresh (Redis key exists). Skipping live fetch for account: ${accountId}, range: ${rangeSuffix}`);
           skipLiveFetch = true;
         }
       } catch (err) {
@@ -130,7 +142,7 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
 
         // Set Redis fresh indicator key to prevent constant API calling on F5/tab changes (TTL: 15 minutes = 900 seconds)
         if (redisConnection) {
-          redisConnection.set(`live_analytics_fresh:${accountId}`, 'true', 'EX', 900)
+          redisConnection.set(freshCacheKey, 'true', 'EX', 900)
             .catch(err => console.error('[getAnalyticsAction] Failed to set Redis fresh key:', err));
         }
 
@@ -187,16 +199,17 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
             .catch(redisErr => console.error('[getAnalyticsAction] Failed to cache live data in Redis:', redisErr));
         }
 
-        // Map live data into the required PoP PeriodData structure in-memory
         const periodData = mapLiveAnalyticsToPeriodData({
           snapshots: liveResult.snapshots,
           posts: liveResult.posts || [],
           filter,
-          chunkUniqueReaches: liveResult.chunkUniqueReaches
+          chunkUniqueReaches: liveResult.chunkUniqueReaches,
+          chunkUniqueAccountsEngaged: liveResult.chunkUniqueAccountsEngaged,
+          chunkUniqueInteractions: liveResult.chunkUniqueInteractions
         });
 
         // Cache the mapped periodData in Redis (TTL: 15 minutes = 900 seconds)
-        if (redisConnection && range !== 'custom') {
+        if (redisConnection) {
           redisConnection.set(periodCacheKey, JSON.stringify(periodData), 'EX', 900)
             .catch(err => console.error('[getAnalyticsAction] Failed to cache periodData in Redis:', err));
         }
@@ -271,14 +284,25 @@ export async function syncAnalyticsAction(accountId: string) {
     return { success: false, error: 'MISSING_META_TOKEN' };
   }
 
-  // Invalidate Redis caches on sync to guarantee fresh data refetch
+  // Invalidate Redis caches on sync to guarantee fresh data refetch (handles all ranges including custom ranges dynamically)
   if (redisConnection) {
     try {
+      // Find all dynamic keys containing the accountId and delete them cleanly
+      const freshKeys = await redisConnection.keys(`*live_analytics_fresh:${accountId}*`);
+      const periodKeys = await redisConnection.keys(`*live_analytics_period_cache:${accountId}*`);
+      const allKeys = [...freshKeys, ...periodKeys];
+      
+      if (allKeys.length > 0) {
+        await redisConnection.del(...allKeys);
+      }
+      
+      // Also fallback delete standard keys just in case the keys command is restricted in some environments
       await redisConnection.del(`live_analytics_fresh:${accountId}`);
       await redisConnection.del(`live_analytics_period_cache:${accountId}:7d`);
       await redisConnection.del(`live_analytics_period_cache:${accountId}:30d`);
       await redisConnection.del(`live_analytics_period_cache:${accountId}:90d`);
-      console.log(`[syncAnalyticsAction] Invalidated Redis period and fresh caches for account: ${accountId}`);
+      
+      console.log(`[syncAnalyticsAction] Invalidated all dynamic Redis caches for account: ${accountId}`);
     } catch (redisErr) {
       console.error('[syncAnalyticsAction] Failed to invalidate Redis caches:', redisErr);
     }
