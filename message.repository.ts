@@ -1,0 +1,426 @@
+import { db } from '@/lib/db';
+import { randomUUID } from 'crypto';
+import type { PersistMessageInput, PersistMessageResult, MessageWithSender, PaginationParams } from '@/domain/types/messaging';
+
+
+/**
+ * Idempotently persists an incoming or outgoing message.
+ * - Looks up the PlatformAccount.
+ * - Upserts the Conversation.
+ * - Inserts the Message (idempotent via platform_message_id).
+ *
+ * @param input Data describing the platform message to store
+ * @returns Result with generated IDs and uniqueness flag
+ */
+export async function idempotentPersistMessage(
+  input: PersistMessageInput
+): Promise<PersistMessageResult> {
+  try {
+    const result = await db.$transaction(async (tx) => {
+      // 1. Locate the platform account
+      const normalizedPlatform = input.platform === 'messenger' ? 'facebook' : input.platform;
+      
+      const account = await tx.platformAccount.findFirst({
+        where: {
+          platform: normalizedPlatform,
+          platform_user_id: input.externalPageId,
+        },
+      });
+
+      if (!account) {
+        throw new Error(`Platform account not found for ${input.platform} / ${input.externalPageId}`);
+      }
+
+      // 2. Upsert the conversation
+      // We use findFirst + create/update to avoid issues with Prisma compound unique constraints naming
+      let conversation = await tx.conversation.findFirst({
+        where: {
+          account_id: account.id,
+          platform_conversation_id: input.externalSenderId,
+        },
+      });
+
+      const messageTime = input.timestamp || new Date();
+
+      if (!conversation) {
+        // Conversation might have been created by another webhook concurrently, 
+        // but $transaction ensures isolation in most cases. If this fails due to uniqueness,
+        // it means we need to handle P2002.
+        conversation = await tx.conversation.create({
+          data: {
+            account_id: account.id,
+            platform_conversation_id: input.externalSenderId,
+            lastMessageAt: messageTime,
+          },
+        });
+      } else {
+        // Update lastMessageAt if the new message is newer
+        if (messageTime > conversation.lastMessageAt) {
+          conversation = await tx.conversation.update({
+            where: { id: conversation.id },
+            data: { lastMessageAt: messageTime },
+          });
+        }
+      }
+
+      // 3. Insert the message idempotently
+      let isNewMessage = false;
+      let message = await tx.message.findUnique({
+        where: { platform_message_id: input.platformMessageId },
+      });
+
+      if (!message) {
+        // Find the parent message internal database ID if parentMessageId (platform ID) is provided
+        let parentMessageDbId: string | null = null;
+        if (input.parentMessageId) {
+          const parentMsg = await tx.message.findUnique({
+            where: { platform_message_id: input.parentMessageId },
+            select: { id: true },
+          });
+          if (parentMsg) {
+            parentMessageDbId = parentMsg.id;
+          }
+        }
+
+        message = await tx.message.create({
+          data: {
+            conversationId: conversation.id,
+            senderId: input.externalSenderId,
+            content: input.messageText,
+            platform_message_id: input.platformMessageId,
+            senderType: input.senderType,
+            createdAt: messageTime,
+            attachments: input.attachments ? (input.attachments as any) : undefined,
+            parentMessageId: parentMessageDbId,
+          },
+        });
+        isNewMessage = true;
+      }
+
+      return {
+        messageId: message.id,
+        conversationId: conversation.id,
+        isNewMessage,
+      };
+    });
+
+    return { data: result, error: null };
+  } catch (error: any) {
+    // If a P2002 (Unique constraint) error occurs during create, it means another webhook 
+    // for the same message/conversation race-conditioned. 
+    // We could retry or just treat it as an existing message.
+    if (error.code === 'P2002') {
+      console.warn(`⚠️ [MessageRepository] Race condition P2002 detected for msg: ${input.platformMessageId}`);
+      try {
+        // In this rare edge case, we try to fetch it one more time to return success
+        const existingMessage = await db.message.findUnique({
+          where: { platform_message_id: input.platformMessageId }
+        });
+        if (existingMessage) {
+          return {
+            data: {
+              messageId: existingMessage.id,
+              conversationId: existingMessage.conversationId,
+              isNewMessage: false,
+            },
+            error: null,
+          };
+        }
+      } catch (e) {
+        // Fall down to generic error
+      }
+    }
+
+    console.error('❌ [MessageRepository] Error persisting message:', error);
+    return { data: null, error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * Marks messages in a conversation as read up to a certain timestamp (watermark).
+ */
+export async function markAsRead(
+  platform: string,
+  externalPageId: string,
+  externalSenderId: string,
+  watermark: Date
+): Promise<{ error: string | null }> {
+  try {
+    // Find the conversation first
+    const normalizedPlatform = platform === 'messenger' ? 'facebook' : platform;
+    const account = await db.platformAccount.findFirst({
+      where: { platform: normalizedPlatform, platform_user_id: externalPageId },
+      select: { id: true }
+    });
+
+    if (!account) return { error: 'Account not found' };
+
+    const conversation = await db.conversation.findFirst({
+      where: { account_id: account.id, platform_conversation_id: externalSenderId },
+      select: { id: true }
+    });
+
+    if (!conversation) return { error: 'Conversation not found' };
+
+    // Add a 1-minute buffer to account for clock skew between Meta and our server.
+    // If a message is sent and read immediately, the server's createdAt might be slightly 
+    // ahead of Meta's watermark timestamp.
+    const bufferedWatermark = new Date(watermark.getTime() + 60000);
+
+    // Update all outgoing messages sent before or at the buffered watermark
+    await db.message.updateMany({
+      where: {
+        conversationId: conversation.id,
+        senderType: { in: ['ai', 'agent'] },
+        createdAt: { lte: bufferedWatermark },
+        is_read: false
+      },
+      data: { is_read: true, is_delivered: true }
+    });
+
+    return { error: null };
+  } catch (error: any) {
+    console.error('❌ [MessageRepository] Error marking as read:', error);
+    return { error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * Marks messages in a conversation as delivered up to a certain timestamp (watermark).
+ */
+export async function markAsDelivered(
+  platform: string,
+  externalPageId: string,
+  externalSenderId: string,
+  watermark: Date
+): Promise<{ error: string | null }> {
+  try {
+    const normalizedPlatform = platform === 'messenger' ? 'facebook' : platform;
+    const account = await db.platformAccount.findFirst({
+      where: { platform: normalizedPlatform, platform_user_id: externalPageId },
+      select: { id: true }
+    });
+
+    if (!account) return { error: 'Account not found' };
+
+    const conversation = await db.conversation.findFirst({
+      where: { account_id: account.id, platform_conversation_id: externalSenderId },
+      select: { id: true }
+    });
+
+    if (!conversation) return { error: 'Conversation not found' };
+
+    const bufferedWatermark = new Date(watermark.getTime() + 60000);
+
+    await db.message.updateMany({
+      where: {
+        conversationId: conversation.id,
+        senderType: { in: ['ai', 'agent'] },
+        createdAt: { lte: bufferedWatermark },
+        is_delivered: false
+      },
+      data: { is_delivered: true }
+    });
+
+    return { error: null };
+  } catch (error: any) {
+    console.error('❌ [MessageRepository] Error marking as delivered:', error);
+    return { error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * Fetches message history for a specific conversation with cursor-based pagination.
+ */
+export async function getMessages(
+  conversationId: string,
+  pagination: PaginationParams
+): Promise<{
+  data: MessageWithSender[] | null;
+  nextCursor: string | null;
+  error: string | null
+}> {
+  try {
+    const limit = pagination.limit || 50;
+    const cursor = pagination.cursor;
+    const search = pagination.search;
+    const senderType = (pagination as any).senderType;
+    const fromDate = (pagination as any).fromDate;
+
+    const where: any = { 
+      conversationId,
+      content: search ? { contains: search, mode: 'insensitive' } : undefined
+    };
+
+    if (senderType) {
+      where.senderType = senderType;
+    }
+
+    if (fromDate) {
+      where.createdAt = { gte: new Date(fromDate) };
+    }
+
+    const isPinned = (pagination as any).isPinned;
+    if (isPinned !== undefined) {
+      where.is_pinned = isPinned;
+    }
+
+    const messages = await db.message.findMany({
+      where,
+      take: limit + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        parentMessage: true,
+      }
+    });
+
+    let nextCursor: string | null = null;
+    if (messages.length > limit) {
+      const nextItem = messages.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    const formatted: MessageWithSender[] = messages.map(m => ({
+      id: m.id,
+      content: m.content,
+      senderId: m.senderId,
+      senderType: (m.senderType as MessageWithSender['senderType']) || 'user',
+      createdAt: m.createdAt,
+      is_read: m.is_read,
+      is_delivered: m.is_delivered,
+      attachments: m.attachments as any,
+      reactions: m.reactions as any,
+      parentMessageId: m.parentMessageId,
+      parentMessage: m.parentMessage ? {
+        id: m.parentMessage.id,
+        content: m.parentMessage.content,
+        senderId: m.parentMessage.senderId,
+        senderType: (m.parentMessage.senderType as MessageWithSender['senderType']) || 'user',
+        createdAt: m.parentMessage.createdAt,
+      } : null,
+      is_pinned: m.is_pinned,
+    }));
+
+    return { data: formatted, nextCursor, error: null };
+  } catch (error: any) {
+    console.error('❌ [MessageRepository] Error fetching messages:', error);
+    return { data: null, nextCursor: null, error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * Fetches message history for a unified identity (Tier 4) across multiple conversations/platforms.
+ */
+export async function getUnifiedHistory(
+  identityId: string,
+  pagination: PaginationParams
+): Promise<{
+  data: MessageWithSender[] | null;
+  nextCursor: string | null;
+  error: string | null
+}> {
+  try {
+    const limit = pagination.limit || 50;
+    const cursor = pagination.cursor;
+
+    const messages = await db.message.findMany({
+      where: {
+        conversation: {
+          customer_platform_mappings: {
+            some: { identity_id: identityId }
+          }
+        }
+      },
+      take: limit + 1,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        parentMessage: true,
+      }
+    });
+
+    let nextCursor: string | null = null;
+    if (messages.length > limit) {
+      const nextItem = messages.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    const formatted: MessageWithSender[] = messages.map(m => ({
+      id: m.id,
+      content: m.content,
+      senderId: m.senderId,
+      senderType: (m.senderType as MessageWithSender['senderType']) || 'user',
+      createdAt: m.createdAt,
+      is_read: m.is_read,
+      is_delivered: m.is_delivered,
+      attachments: m.attachments as any,
+      reactions: m.reactions as any,
+      parentMessageId: m.parentMessageId,
+      parentMessage: m.parentMessage ? {
+        id: m.parentMessage.id,
+        content: m.parentMessage.content,
+        senderId: m.parentMessage.senderId,
+        senderType: (m.parentMessage.senderType as MessageWithSender['senderType']) || 'user',
+        createdAt: m.parentMessage.createdAt,
+      } : null,
+      is_pinned: m.is_pinned,
+    }));
+
+    return { data: formatted, nextCursor, error: null };
+  } catch (error: any) {
+    console.error('❌ [MessageRepository] Error fetching unified messages:', error);
+    return { data: null, nextCursor: null, error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * Creates a single outgoing (agent) message in an existing conversation.
+ * Generates a unique platform_message_id since the real Meta ID is not
+ * available synchronously at the time of insertion (MVP tradeoff).
+ *
+ * @param conversationId - The conversation this reply belongs to
+ * @param text           - The message text content
+ * @param agentId        - The sender ID (page ID or a sentinel like "agent")
+ * @returns The newly created message, or an error
+ */
+export async function createOutgoingMessage(
+  conversationId: string,
+  text: string,
+  agentId: string,
+  platformMessageId?: string,
+  parentMessageId?: string | null,
+  attachments?: any[] | null
+): Promise<{ data: { messageId: string; platformMessageId: string } | null; error: string | null }> {
+  try {
+    const finalPlatformMessageId = platformMessageId || `agent-reply-${randomUUID()}`;
+
+    const message = await db.message.create({
+      data: {
+        conversationId,
+        senderId: agentId,
+        content: text,
+        platform_message_id: finalPlatformMessageId,
+        senderType: 'agent',
+        is_read: false,
+        is_delivered: false,
+        parentMessageId: parentMessageId || undefined,
+        attachments: attachments ? (attachments as any) : undefined,
+      },
+    });
+
+    // Update conversation's lastMessageAt so sidebar reflects the new reply
+    await db.conversation.update({
+      where: { id: conversationId },
+      data: { lastMessageAt: message.createdAt },
+    });
+
+    return { data: { messageId: message.id, platformMessageId: finalPlatformMessageId }, error: null };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown database error';
+    console.error('❌ [MessageRepository] Error creating outgoing message:', error);
+    return { data: null, error: msg };
+  }
+}
