@@ -84,6 +84,8 @@ export type AnalyticsPeriodData = {
   previousStart: Date;
   previousEnd: Date;
   needsReauth?: boolean;
+  uniqueReach?: number;
+  prevUniqueReach?: number;
 };
 
 export type PostAnalytic = {

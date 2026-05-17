@@ -102,15 +102,15 @@ export function calcFollowersDelta(snapshots: AnalyticsSnapshot[]): number {
  * Uses post-level totals as fallback if snapshots are zero.
  */
 export function calcSummary(data: AnalyticsPeriodData): AnalyticsSummary {
-  const { current, previous, currentPostTotals, previousPostTotals } = data;
+  const { current, previous, currentPostTotals, previousPostTotals, uniqueReach, prevUniqueReach } = data;
   
   const sum = (arr: AnalyticsSnapshot[], key: string) => 
     arr.reduce((acc, curr) => acc + ((curr as any)[key] || 0), 0);
 
   const snapReach = sum(current, 'reach');
-  const curReach = snapReach > 0 ? snapReach : (currentPostTotals?.reach || 0);
+  const curReach = uniqueReach ?? (snapReach > 0 ? snapReach : (currentPostTotals?.reach || 0));
   const snapPrevReach = sum(previous, 'reach');
-  const prevReach = snapPrevReach > 0 ? snapPrevReach : (previousPostTotals?.reach || 0);
+  const prevReach = prevUniqueReach ?? (snapPrevReach > 0 ? snapPrevReach : (previousPostTotals?.reach || 0));
   
   const snapImp = sum(current, 'impressions');
   const curImp = snapImp > 0 ? snapImp : (currentPostTotals?.impressions || 0);

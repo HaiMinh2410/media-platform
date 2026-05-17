@@ -46,24 +46,41 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
 
     // Calculate time boundaries for the query (current + previous periods combined)
     let currentEnd = new Date();
-    currentEnd.setHours(23, 59, 59, 999);
+    currentEnd.setUTCHours(23, 59, 59, 999);
     let currentStart: Date;
     let previousStart: Date;
 
     if (range === 'custom' && customStart && customEnd) {
       currentStart = new Date(customStart);
+      currentStart.setUTCHours(0, 0, 0, 0);
       currentEnd = new Date(customEnd);
+      currentEnd.setUTCHours(23, 59, 59, 999);
       const diff = differenceInDays(currentEnd, currentStart) + 1;
       previousStart = subDays(currentStart, diff);
+      previousStart.setUTCHours(0, 0, 0, 0);
     } else {
       const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
-      currentStart.setHours(0, 0, 0, 0);
+      currentStart.setUTCHours(0, 0, 0, 0);
       previousStart = subDays(currentStart, days);
+      previousStart.setUTCHours(0, 0, 0, 0);
     }
 
     // 2. If encryptedToken is available, fetch Live Analytics from Meta API
-    if (accountWithToken?.encryptedToken) {
+    let skipLiveFetch = false;
+    if (redisConnection && accountWithToken?.encryptedToken) {
+      try {
+        const isFresh = await redisConnection.get(`live_analytics_fresh:${accountId}`);
+        if (isFresh === 'true') {
+          console.log(`[getAnalyticsAction] DB cache is fresh (Redis key exists). Skipping live fetch for account: ${accountId}`);
+          skipLiveFetch = true;
+        }
+      } catch (err) {
+        console.error('[getAnalyticsAction] Failed to check Redis fresh indicator:', err);
+      }
+    }
+
+    if (accountWithToken?.encryptedToken && !skipLiveFetch) {
       console.log(`[getAnalyticsAction] Found Meta Token. Fetching Live Analytics from ${previousStart.toISOString()} to ${currentEnd.toISOString()}`);
       
       const liveResult = await metaAnalyticsService.fetchLiveAnalytics({
@@ -77,6 +94,12 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
 
       if (liveResult.success && liveResult.snapshots) {
         console.log(`[getAnalyticsAction] Live fetch succeeded with ${liveResult.snapshots.length} snapshots and ${liveResult.posts?.length || 0} posts.`);
+
+        // Set Redis fresh indicator key to prevent constant API calling on F5/tab changes (TTL: 15 minutes = 900 seconds)
+        if (redisConnection) {
+          redisConnection.set(`live_analytics_fresh:${accountId}`, 'true', 'EX', 900)
+            .catch(err => console.error('[getAnalyticsAction] Failed to set Redis fresh key:', err));
+        }
 
         // Asynchronously upsert snapshots and posts to DB as cache (non-blocking for fast UI response)
         const snapshotsToUpsert = liveResult.snapshots;
@@ -135,7 +158,8 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
         const periodData = mapLiveAnalyticsToPeriodData({
           snapshots: liveResult.snapshots,
           posts: liveResult.posts || [],
-          filter
+          filter,
+          chunkUniqueReaches: liveResult.chunkUniqueReaches
         });
 
         return { data: periodData, error: null };
@@ -230,16 +254,18 @@ function getTopPostsFromLive(
   sortBy: 'views' | 'interactions' = 'interactions'
 ) {
   let currentEnd = new Date();
-  currentEnd.setHours(23, 59, 59, 999);
+  currentEnd.setUTCHours(23, 59, 59, 999);
   let currentStart: Date;
 
   if (range === 'custom' && customStart && customEnd) {
     currentStart = new Date(customStart);
+    currentStart.setUTCHours(0, 0, 0, 0);
     currentEnd = new Date(customEnd);
+    currentEnd.setUTCHours(23, 59, 59, 999);
   } else {
     const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
     currentStart = subDays(currentEnd, days - 1);
-    currentStart.setHours(0, 0, 0, 0);
+    currentStart.setUTCHours(0, 0, 0, 0);
   }
 
   // Filter posts in current period
@@ -289,16 +315,18 @@ function getEngagementBreakdownFromLive(
   customEnd?: Date
 ) {
   let currentEnd = new Date();
-  currentEnd.setHours(23, 59, 59, 999);
+  currentEnd.setUTCHours(23, 59, 59, 999);
   let currentStart: Date;
 
   if (range === 'custom' && customStart && customEnd) {
     currentStart = new Date(customStart);
+    currentStart.setUTCHours(0, 0, 0, 0);
     currentEnd = new Date(customEnd);
+    currentEnd.setUTCHours(23, 59, 59, 999);
   } else {
     const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
     currentStart = subDays(currentEnd, days - 1);
-    currentStart.setHours(0, 0, 0, 0);
+    currentStart.setUTCHours(0, 0, 0, 0);
   }
 
   const filtered = posts.filter(p => {
@@ -327,16 +355,18 @@ function getPostFrequencyFromLive(
   customEnd?: Date
 ) {
   let currentEnd = new Date();
-  currentEnd.setHours(23, 59, 59, 999);
+  currentEnd.setUTCHours(23, 59, 59, 999);
   let currentStart: Date;
 
   if (range === 'custom' && customStart && customEnd) {
     currentStart = new Date(customStart);
+    currentStart.setUTCHours(0, 0, 0, 0);
     currentEnd = new Date(customEnd);
+    currentEnd.setUTCHours(23, 59, 59, 999);
   } else {
     const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
     currentStart = subDays(currentEnd, days - 1);
-    currentStart.setHours(0, 0, 0, 0);
+    currentStart.setUTCHours(0, 0, 0, 0);
   }
 
   const filtered = posts.filter(p => {

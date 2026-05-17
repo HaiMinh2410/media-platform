@@ -88,24 +88,30 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
     const { accountId, range, customStart, customEnd } = filter;
     
     let currentEnd = new Date();
-    currentEnd.setHours(23, 59, 59, 999);
+    currentEnd.setUTCHours(23, 59, 59, 999);
     
     let currentStart: Date;
     let previousStart: Date;
     let previousEnd: Date;
 
     if (range === 'custom' && customStart && customEnd) {
-      currentStart = customStart;
-      currentEnd = customEnd;
+      currentStart = new Date(customStart);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      currentEnd = new Date(customEnd);
+      currentEnd.setUTCHours(23, 59, 59, 999);
       const diff = differenceInDays(currentEnd, currentStart) + 1;
       previousStart = subDays(currentStart, diff);
+      previousStart.setUTCHours(0, 0, 0, 0);
       previousEnd = subDays(currentStart, 1);
+      previousEnd.setUTCHours(23, 59, 59, 999);
     } else {
       const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
-      currentStart.setHours(0, 0, 0, 0);
+      currentStart.setUTCHours(0, 0, 0, 0);
       previousStart = subDays(currentStart, days);
+      previousStart.setUTCHours(0, 0, 0, 0);
       previousEnd = subDays(currentStart, 1);
+      previousEnd.setUTCHours(23, 59, 59, 999);
     }
 
     // Fetch both periods in one query
@@ -307,16 +313,18 @@ export async function getTopPosts(
 ): Promise<{ data: PostAnalytic[] | null; error: string | null }> {
   try {
     let currentEnd = new Date();
-    currentEnd.setHours(23, 59, 59, 999);
+    currentEnd.setUTCHours(23, 59, 59, 999);
     let currentStart: Date;
 
     if (range === 'custom' && customStart && customEnd) {
-      currentStart = customStart;
-      currentEnd = customEnd;
+      currentStart = new Date(customStart);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      currentEnd = new Date(customEnd);
+      currentEnd.setUTCHours(23, 59, 59, 999);
     } else {
       const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
-      currentStart.setHours(0, 0, 0, 0);
+      currentStart.setUTCHours(0, 0, 0, 0);
     }
 
     const orderBy = sortBy === 'views' 
@@ -424,16 +432,18 @@ export async function getTopContentFromDB(accountId: string): Promise<{ topByVie
 export async function getEngagementBreakdown(accountId: string, range: AnalyticsFilter['range'], customStart?: Date, customEnd?: Date): Promise<{ data: { likes: number; comments: number; shares: number; saves: number } | null; error: string | null }> {
   try {
     let currentEnd = new Date();
-    currentEnd.setHours(23, 59, 59, 999);
+    currentEnd.setUTCHours(23, 59, 59, 999);
     let currentStart: Date;
 
     if (range === 'custom' && customStart && customEnd) {
-      currentStart = customStart;
-      currentEnd = customEnd;
+      currentStart = new Date(customStart);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      currentEnd = new Date(customEnd);
+      currentEnd.setUTCHours(23, 59, 59, 999);
     } else {
       const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
-      currentStart.setHours(0, 0, 0, 0);
+      currentStart.setUTCHours(0, 0, 0, 0);
     }
 
     const result = await db.post_analytics.aggregate({
@@ -470,16 +480,18 @@ export async function getEngagementBreakdown(accountId: string, range: Analytics
 export async function getPostFrequency(accountId: string, range: AnalyticsFilter['range'], customStart?: Date, customEnd?: Date): Promise<{ data: { dayOfWeek: number; count: number }[] | null; error: string | null }> {
   try {
     let currentEnd = new Date();
-    currentEnd.setHours(23, 59, 59, 999);
+    currentEnd.setUTCHours(23, 59, 59, 999);
     let currentStart: Date;
 
     if (range === 'custom' && customStart && customEnd) {
-      currentStart = customStart;
-      currentEnd = customEnd;
+      currentStart = new Date(customStart);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      currentEnd = new Date(customEnd);
+      currentEnd.setUTCHours(23, 59, 59, 999);
     } else {
       const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
-      currentStart.setHours(0, 0, 0, 0);
+      currentStart.setUTCHours(0, 0, 0, 0);
     }
 
     const posts = await db.post_analytics.findMany({
@@ -541,12 +553,13 @@ export function mapLiveAnalyticsToPeriodData(params: {
   snapshots: any[];
   posts: any[];
   filter: AnalyticsFilter;
+  chunkUniqueReaches?: number[];
 }): AnalyticsPeriodData {
   const { snapshots, posts, filter } = params;
   const { range, customStart, customEnd } = filter;
   
   let currentEnd = new Date();
-  currentEnd.setHours(23, 59, 59, 999);
+  currentEnd.setUTCHours(23, 59, 59, 999);
   
   let currentStart: Date;
   let previousStart: Date;
@@ -554,16 +567,22 @@ export function mapLiveAnalyticsToPeriodData(params: {
 
   if (range === 'custom' && customStart && customEnd) {
     currentStart = new Date(customStart);
+    currentStart.setUTCHours(0, 0, 0, 0);
     currentEnd = new Date(customEnd);
+    currentEnd.setUTCHours(23, 59, 59, 999);
     const diff = differenceInDays(currentEnd, currentStart) + 1;
     previousStart = subDays(currentStart, diff);
+    previousStart.setUTCHours(0, 0, 0, 0);
     previousEnd = subDays(currentStart, 1);
+    previousEnd.setUTCHours(23, 59, 59, 999);
   } else {
     const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
     currentStart = subDays(currentEnd, days - 1);
-    currentStart.setHours(0, 0, 0, 0);
+    currentStart.setUTCHours(0, 0, 0, 0);
     previousStart = subDays(currentStart, days);
+    previousStart.setUTCHours(0, 0, 0, 0);
     previousEnd = subDays(currentStart, 1);
+    previousEnd.setUTCHours(23, 59, 59, 999);
   }
 
   // Map snapshots
@@ -652,6 +671,16 @@ export function mapLiveAnalyticsToPeriodData(params: {
   const currentPostTotals = getTotals(currentPosts);
   const previousPostTotals = getTotals(previousPosts);
 
+  let uniqueReach: number | undefined;
+  let prevUniqueReach: number | undefined;
+
+  if (params.chunkUniqueReaches && params.chunkUniqueReaches.length > 0) {
+    uniqueReach = params.chunkUniqueReaches[params.chunkUniqueReaches.length - 1] || undefined;
+    if (params.chunkUniqueReaches.length >= 2) {
+      prevUniqueReach = params.chunkUniqueReaches[params.chunkUniqueReaches.length - 2] || undefined;
+    }
+  }
+
   return {
     current,
     previous,
@@ -661,7 +690,9 @@ export function mapLiveAnalyticsToPeriodData(params: {
     currentStart,
     currentEnd,
     previousStart,
-    previousEnd
+    previousEnd,
+    uniqueReach,
+    prevUniqueReach
   };
 }
 

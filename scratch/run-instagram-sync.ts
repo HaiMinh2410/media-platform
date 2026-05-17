@@ -23,7 +23,7 @@ async function main() {
     return;
   }
 
-  console.log(`Starting real sync for Instagram account: ${account.name} (${account.platform_user_id})...`);
+  console.log(`Starting real sync for Instagram account: ${account.platform_user_name} (${account.platform_user_id})...`);
   const startTime = Date.now();
   
   const result = await metaAnalyticsService.syncAccount({
