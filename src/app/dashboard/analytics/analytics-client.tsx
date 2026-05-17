@@ -863,25 +863,131 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
 
   const activeConfig = getMetricConfig(activeMetric);
   
-  // Find the latest snapshots with advanced metrics
-  const latestWithAdvanced = [...(data?.data?.current || [])].reverse().find(s => s.byContentViews);
+  // Find the latest snapshot with active times (since it's a lifetime metric, latest is best)
   const latestWithActiveTimes = [...(data?.data?.current || [])].reverse().find(s => s.activeTimes);
   
-  const rawByContentViews = latestWithAdvanced?.byContentViews;
-  const hasSnapshotViewsBreakdown = rawByContentViews && (
-    (rawByContentViews.all && (rawByContentViews.all.posts > 0 || rawByContentViews.all.reels > 0 || rawByContentViews.all.stories > 0)) ||
-    (rawByContentViews.followers && (rawByContentViews.followers.posts > 0 || rawByContentViews.followers.reels > 0 || rawByContentViews.followers.stories > 0))
+  // 1. Aggregate Followers vs Non-followers reach percentage over the selected period
+  const currentSnapshotsWithFollowers = (data?.data?.current || []).filter(
+    s => s.followersPct !== null && s.followersPct !== undefined &&
+         s.nonfollowersPct !== null && s.nonfollowersPct !== undefined
   );
+
+  let followersPct = 0;
+  let nonfollowersPct = 0;
+
+  if (currentSnapshotsWithFollowers.length > 0) {
+    let totalReachWeight = 0;
+    let sumFollowersPct = 0;
+    let sumNonfollowersPct = 0;
+
+    currentSnapshotsWithFollowers.forEach(s => {
+      // Use reach as the weight for reach breakdown percentage
+      const dailyReach = s.reach || s.accountsReached || 0;
+      const weight = dailyReach > 0 ? dailyReach : 1;
+
+      totalReachWeight += weight;
+      sumFollowersPct += (s.followersPct || 0) * weight;
+      sumNonfollowersPct += (s.nonfollowersPct || 0) * weight;
+    });
+
+    if (totalReachWeight > 0) {
+      followersPct = Math.round(sumFollowersPct / totalReachWeight);
+      nonfollowersPct = Math.round(sumNonfollowersPct / totalReachWeight);
+
+      // Normalize to sum to exactly 100
+      const pctSum = followersPct + nonfollowersPct;
+      if (pctSum > 0) {
+        followersPct = Math.round((followersPct / pctSum) * 100);
+        nonfollowersPct = 100 - followersPct;
+      }
+    }
+  } else {
+    // Fallback if no snapshots have these fields, find the latest snapshot with advanced data
+    const latestWithAdvanced = [...(data?.data?.current || [])].reverse().find(s => s.followersPct !== null && s.followersPct !== undefined);
+    followersPct = latestWithAdvanced?.followersPct || 0;
+    nonfollowersPct = latestWithAdvanced?.nonfollowersPct || 0;
+  }
+
+  // 2. Aggregate Views Breakdown by Content Type over the selected period
+  const currentSnapshotsWithViewsBreakdown = (data?.data?.current || []).filter(
+    s => s.byContentViews && (
+      (s.byContentViews.all && (s.byContentViews.all.posts > 0 || s.byContentViews.all.reels > 0 || s.byContentViews.all.stories > 0)) ||
+      (s.byContentViews.followers && (s.byContentViews.followers.posts > 0 || s.byContentViews.followers.reels > 0 || s.byContentViews.followers.stories > 0))
+    )
+  );
+
+  let aggregatedByContentViews: any = null;
+
+  if (currentSnapshotsWithViewsBreakdown.length > 0) {
+    let totalViewsWeight = 0;
+    const temp = {
+      all: { posts: 0, reels: 0, stories: 0 },
+      followers: { posts: 0, reels: 0, stories: 0 },
+      nonfollowers: { posts: 0, reels: 0, stories: 0 }
+    };
+
+    currentSnapshotsWithViewsBreakdown.forEach(s => {
+      // Use impressions as weight for views breakdown percentage
+      const dailyViews = s.impressions || s.reach || 0;
+      const weight = dailyViews > 0 ? dailyViews : 1;
+
+      totalViewsWeight += weight;
+      const v = s.byContentViews!;
+
+      temp.all.posts += (v.all?.posts || 0) * weight;
+      temp.all.reels += (v.all?.reels || 0) * weight;
+      temp.all.stories += (v.all?.stories || 0) * weight;
+
+      temp.followers.posts += (v.followers?.posts || 0) * weight;
+      temp.followers.reels += (v.followers?.reels || 0) * weight;
+      temp.followers.stories += (v.followers?.stories || 0) * weight;
+
+      temp.nonfollowers.posts += (v.nonfollowers?.posts || 0) * weight;
+      temp.nonfollowers.reels += (v.nonfollowers?.reels || 0) * weight;
+      temp.nonfollowers.stories += (v.nonfollowers?.stories || 0) * weight;
+    });
+
+    if (totalViewsWeight > 0) {
+      const getNormBreakdown = (breakdown: { posts: number; reels: number; stories: number }) => {
+        const p = breakdown.posts;
+        const r = breakdown.reels;
+        const s = breakdown.stories;
+        const total = p + r + s;
+        if (total > 0) {
+          let posts = Math.round((p / total) * 100);
+          let reels = Math.round((r / total) * 100);
+          let stories = 100 - posts - reels;
+
+          if (stories < 0) {
+            if (posts > reels) {
+              posts += stories;
+            } else {
+              reels += stories;
+            }
+            stories = 0;
+          }
+          return { posts, reels, stories };
+        }
+        return { posts: 0, reels: 0, stories: 0 };
+      };
+
+      aggregatedByContentViews = {
+        all: getNormBreakdown(temp.all),
+        followers: getNormBreakdown(temp.followers),
+        nonfollowers: getNormBreakdown(temp.nonfollowers)
+      };
+    }
+  }
 
   const fallbackViewsBreakdown = data?.data?.currentPostTotals?.byContentViews;
 
   const viewsData = {
     totalViews: totals?.impressions?.value || 0,
-    followersPct: latestWithAdvanced?.followersPct || 0,
-    nonfollowersPct: latestWithAdvanced?.nonfollowersPct || 0,
-    accountsReached: latestWithAdvanced?.accountsReached || (totals?.reach?.value || 0),
-    byContentViews: hasSnapshotViewsBreakdown 
-      ? rawByContentViews 
+    followersPct,
+    nonfollowersPct,
+    accountsReached: totals?.reach?.value || 0,
+    byContentViews: aggregatedByContentViews 
+      ? aggregatedByContentViews 
       : (fallbackViewsBreakdown ? {
           all: fallbackViewsBreakdown,
           followers: fallbackViewsBreakdown,
@@ -889,14 +995,62 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         } : null),
   };
 
-  const rawByContentInt = latestWithAdvanced?.byContentInteractions;
-  const hasSnapshotBreakdown = rawByContentInt && (rawByContentInt.posts > 0 || rawByContentInt.reels > 0 || rawByContentInt.stories > 0);
+  // 3. Aggregate Interactions Breakdown by Content Type over the selected period
+  const currentSnapshotsWithInteractions = (data?.data?.current || []).filter(
+    s => s.byContentInteractions && (
+      s.byContentInteractions.posts > 0 || 
+      s.byContentInteractions.reels > 0 || 
+      s.byContentInteractions.stories > 0
+    )
+  );
+
+  let aggregatedByContentInteractions: any = null;
+
+  if (currentSnapshotsWithInteractions.length > 0) {
+    let totalEngWeight = 0;
+    const temp = { posts: 0, reels: 0, stories: 0 };
+
+    currentSnapshotsWithInteractions.forEach(s => {
+      // Use engagement as weight for interactions breakdown percentage
+      const dailyEngagement = s.engagement || 0;
+      const weight = dailyEngagement > 0 ? dailyEngagement : 1;
+
+      totalEngWeight += weight;
+      const v = s.byContentInteractions!;
+
+      temp.posts += (v.posts || 0) * weight;
+      temp.reels += (v.reels || 0) * weight;
+      temp.stories += (v.stories || 0) * weight;
+    });
+
+    if (totalEngWeight > 0) {
+      const p = temp.posts;
+      const r = temp.reels;
+      const s = temp.stories;
+      const total = p + r + s;
+      if (total > 0) {
+        let posts = Math.round((p / total) * 100);
+        let reels = Math.round((r / total) * 100);
+        let stories = 100 - posts - reels;
+
+        if (stories < 0) {
+          if (posts > reels) {
+            posts += stories;
+          } else {
+            reels += stories;
+          }
+          stories = 0;
+        }
+        aggregatedByContentInteractions = { posts, reels, stories };
+      }
+    }
+  }
 
   const interactionsData = {
     totalInteractions: totals?.engagement?.value || 0,
-    accountsEngaged: latestWithAdvanced?.engagement || (totals?.engagement?.value || 0), // Placeholder if specific metric missing
-    byContentInteractions: hasSnapshotBreakdown 
-      ? rawByContentInt 
+    accountsEngaged: totals?.engagement?.value || 0,
+    byContentInteractions: aggregatedByContentInteractions
+      ? aggregatedByContentInteractions
       : (data?.data?.currentPostTotals?.byContentInteractions || null),
   };
 
