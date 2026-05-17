@@ -45,6 +45,10 @@ export type MetaInsightItem = {
   title?: string;
   description?: string;
   id?: string;
+  total_value?: {
+    value: number;
+    breakdowns?: any[];
+  };
 };
 
 export type MetaInsightsResponse = {

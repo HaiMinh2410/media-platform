@@ -36,13 +36,17 @@ async function main() {
   console.log('\n=== Tất cả conversations có canonical set ===');
   const withCanonical = await db.conversation.findMany({
     where: { canonical_conversation_id: { not: null } },
-    include: { platform_accounts: { select: { platform: true, platform_user_name: true } } },
     select: {
       id: true,
       platform_conversation_id: true,
       canonical_conversation_id: true,
       lastMessageAt: true,
-      platform_accounts: true,
+      platform_accounts: {
+        select: {
+          platform: true,
+          platform_user_name: true,
+        }
+      },
     }
   });
   for (const c of withCanonical) {

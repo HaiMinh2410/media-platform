@@ -11,6 +11,7 @@ async function testSync() {
     conversationId,
     platform,
     externalSenderId,
+    externalPageId: '',
     encryptedToken
   });
   console.log('✅ Done');

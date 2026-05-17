@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "dev:full": "concurrently -n \"NEXT,PUB,WEB,MET\" -c \"cyan,magenta,green,yellow\" \"bun dev\" \"bun worker:publish\" \"bun worker:webhook\" \"bun worker:metrics\"",
+    "dev:full": "docker start redis-local && concurrently -n \"NEXT,PUB,WEB,MET\" -c \"cyan,magenta,green,yellow\" \"bun dev\" \"bun worker:publish\" \"bun worker:webhook\" \"bun worker:metrics\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",

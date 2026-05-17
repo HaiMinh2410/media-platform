@@ -66,11 +66,15 @@ export type AnalyticsPeriodData = {
     reach: number;
     impressions: number;
     engagement: number;
+    byContentInteractions?: ContentBreakdown;
+    byContentViews?: ContentBreakdown;
   };
   previousPostTotals?: {
     reach: number;
     impressions: number;
     engagement: number;
+    byContentInteractions?: ContentBreakdown;
+    byContentViews?: ContentBreakdown;
   };
   range: AnalyticsRange;
   currentStart: Date;

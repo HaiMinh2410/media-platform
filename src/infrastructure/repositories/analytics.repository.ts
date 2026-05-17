@@ -140,7 +140,7 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
     }));
 
     // Fetch post-level aggregates for both periods
-    const [currentPostAgg, previousPostAgg] = await Promise.all([
+    const [currentPostAgg, previousPostAgg, currentPosts, previousPosts] = await Promise.all([
       db.post_analytics.aggregate({
         where: { account_id: accountId, posted_at: { gte: currentStart, lte: currentEnd } },
         _sum: { reach: true, impressions: true, like_count: true, comments_count: true, shares_count: true, saved_count: true }
@@ -148,10 +148,59 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
       db.post_analytics.aggregate({
         where: { account_id: accountId, posted_at: { gte: previousStart, lte: previousEnd } },
         _sum: { reach: true, impressions: true, like_count: true, comments_count: true, shares_count: true, saved_count: true }
+      }),
+      db.post_analytics.findMany({
+        where: { account_id: accountId, posted_at: { gte: currentStart, lte: currentEnd } },
+        select: { media_type: true, like_count: true, comments_count: true, shares_count: true, saved_count: true, views: true, reach: true }
+      }),
+      db.post_analytics.findMany({
+        where: { account_id: accountId, posted_at: { gte: previousStart, lte: previousEnd } },
+        select: { media_type: true, like_count: true, comments_count: true, shares_count: true, saved_count: true, views: true, reach: true }
       })
     ]);
 
     const getEng = (agg: any) => (agg._sum.like_count || 0) + (agg._sum.comments_count || 0) + (agg._sum.shares_count || 0) + (agg._sum.saved_count || 0);
+
+    const getBreakdown = (postsList: any[]) => {
+      let postInt = 0, reelInt = 0, storyInt = 0;
+      let postViews = 0, reelViews = 0, storyViews = 0;
+      for (const post of postsList) {
+        const totalInt = (post.like_count || 0) + (post.comments_count || 0) + (post.shares_count || 0) + (post.saved_count || 0);
+        const totalViews = post.views || post.reach || 0;
+        const mediaType = post.media_type?.toUpperCase() || '';
+        if (mediaType === 'IMAGE' || mediaType === 'CAROUSEL_ALBUM') {
+          postInt += totalInt;
+          postViews += totalViews;
+        } else if (mediaType === 'VIDEO' || mediaType === 'REELS') {
+          reelInt += totalInt;
+          reelViews += totalViews;
+        } else if (mediaType === 'STORY' || mediaType === 'STORIES') {
+          storyInt += totalInt;
+          storyViews += totalViews;
+        }
+      }
+      const totalIntSum = postInt + reelInt + storyInt;
+      const getIntPct = (val: number) => totalIntSum > 0 ? Math.round((val / totalIntSum) * 100) : 0;
+      
+      const totalViewsSum = postViews + reelViews + storyViews;
+      const getViewsPct = (val: number) => totalViewsSum > 0 ? Math.round((val / totalViewsSum) * 100) : 0;
+
+      return {
+        interactions: {
+          posts: getIntPct(postInt),
+          reels: getIntPct(reelInt),
+          stories: getIntPct(storyInt)
+        },
+        views: {
+          posts: getViewsPct(postViews),
+          reels: getViewsPct(reelViews),
+          stories: getViewsPct(storyViews)
+        }
+      };
+    };
+
+    const currentPostBreakdown = getBreakdown(currentPosts);
+    const previousPostBreakdown = getBreakdown(previousPosts);
 
     // Split snapshots into current and previous periods
     const current = mapped.filter(s => s.date >= currentStart && s.date <= currentEnd);
@@ -165,11 +214,15 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
           reach: currentPostAgg._sum.reach || 0,
           impressions: currentPostAgg._sum.impressions || 0,
           engagement: getEng(currentPostAgg),
+          byContentInteractions: currentPostBreakdown.interactions,
+          byContentViews: currentPostBreakdown.views,
         },
         previousPostTotals: {
           reach: previousPostAgg._sum.reach || 0,
           impressions: previousPostAgg._sum.impressions || 0,
           engagement: getEng(previousPostAgg),
+          byContentInteractions: previousPostBreakdown.interactions,
+          byContentViews: previousPostBreakdown.views,
         },
         range,
         currentStart,

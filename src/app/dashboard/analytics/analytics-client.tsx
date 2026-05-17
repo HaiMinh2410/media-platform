@@ -867,18 +867,37 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const latestWithAdvanced = [...(data?.data?.current || [])].reverse().find(s => s.byContentViews);
   const latestWithActiveTimes = [...(data?.data?.current || [])].reverse().find(s => s.activeTimes);
   
+  const rawByContentViews = latestWithAdvanced?.byContentViews;
+  const hasSnapshotViewsBreakdown = rawByContentViews && (
+    (rawByContentViews.all && (rawByContentViews.all.posts > 0 || rawByContentViews.all.reels > 0 || rawByContentViews.all.stories > 0)) ||
+    (rawByContentViews.followers && (rawByContentViews.followers.posts > 0 || rawByContentViews.followers.reels > 0 || rawByContentViews.followers.stories > 0))
+  );
+
+  const fallbackViewsBreakdown = data?.data?.currentPostTotals?.byContentViews;
+
   const viewsData = {
     totalViews: totals?.impressions?.value || 0,
     followersPct: latestWithAdvanced?.followersPct || 0,
     nonfollowersPct: latestWithAdvanced?.nonfollowersPct || 0,
     accountsReached: latestWithAdvanced?.accountsReached || (totals?.reach?.value || 0),
-    byContentViews: latestWithAdvanced?.byContentViews || null,
+    byContentViews: hasSnapshotViewsBreakdown 
+      ? rawByContentViews 
+      : (fallbackViewsBreakdown ? {
+          all: fallbackViewsBreakdown,
+          followers: fallbackViewsBreakdown,
+          nonfollowers: fallbackViewsBreakdown
+        } : null),
   };
+
+  const rawByContentInt = latestWithAdvanced?.byContentInteractions;
+  const hasSnapshotBreakdown = rawByContentInt && (rawByContentInt.posts > 0 || rawByContentInt.reels > 0 || rawByContentInt.stories > 0);
 
   const interactionsData = {
     totalInteractions: totals?.engagement?.value || 0,
     accountsEngaged: latestWithAdvanced?.engagement || (totals?.engagement?.value || 0), // Placeholder if specific metric missing
-    byContentInteractions: latestWithAdvanced?.byContentInteractions || null,
+    byContentInteractions: hasSnapshotBreakdown 
+      ? rawByContentInt 
+      : (data?.data?.currentPostTotals?.byContentInteractions || null),
   };
 
 
