@@ -188,6 +188,8 @@ export class PlatformAccountRepository {
           externalId: account.platform_user_id,
           name: account.platform_user_name,
           metadata: account.metadata,
+          needs_reauth: account.needs_reauth,
+          token_expires_at: account.token_expires_at,
         }, 
         error: null 
       };
@@ -214,6 +216,8 @@ export class PlatformAccountRepository {
           platform_user_id: true,
           platform_user_name: true,
           metadata: true,
+          needs_reauth: true,
+          token_expires_at: true,
         },
       });
 
@@ -224,6 +228,8 @@ export class PlatformAccountRepository {
         externalId: acc.platform_user_id,
         name: acc.platform_user_name,
         metadata: acc.metadata,
+        needs_reauth: acc.needs_reauth,
+        token_expires_at: acc.token_expires_at,
       }));
 
       return { data: mappedAccounts, error: null };

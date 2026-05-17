@@ -219,6 +219,485 @@ function parseMediaProductType(insightsData: any[], metricName: string) {
  */
 export const metaAnalyticsService = {
   /**
+   * Fetches live analytics for a single Meta account for a given range (with chunking & paging).
+   * Maps Meta metrics to our internal structures.
+   */
+  async fetchLiveAnalytics(params: {
+    accountId: string;      // Internal DB ID
+    externalId: string;     // FB Page ID or IG Business Account ID
+    platform: string;       // 'facebook' or 'instagram'
+    encryptedToken: string;
+    since: Date;
+    until: Date;
+  }): Promise<{
+    success: boolean;
+    snapshots?: any[];
+    insufficientData?: boolean;
+    activeTimes?: any;
+    byContentInteractions?: any;
+    posts?: any[];
+    error?: string;
+  }> {
+    const { accountId, externalId, platform, encryptedToken, since, until } = params;
+
+    try {
+      // 1. Decrypt access token
+      const encryptionService = getTokenEncryptionService();
+      const { data: accessToken, error: decryptError } = await encryptionService.decrypt(encryptedToken);
+
+      if (decryptError || !accessToken) {
+        return { success: false, error: `TOKEN_DECRYPT_FAILED: ${decryptError}` };
+      }
+
+      const client = getMetaGraphClient();
+
+      let followers = 0;
+      let insufficientData = false;
+      let byContentInteractions: any = null;
+      let activeTimes: any = null;
+      let processedPosts: any[] = [];
+
+      // 2. Fetch platform-specific lifetime metrics first
+      if (platform === 'facebook' || platform === 'meta') {
+        const pageRes = await client.request<MetaPageFansResponse>(
+          externalId,
+          accessToken,
+          { fields: 'fan_count' },
+          'GET',
+          accountId
+        );
+        followers = pageRes.data?.fan_count || 0;
+      } else if (platform === 'instagram') {
+        const igRes = await client.request<MetaIGFollowersResponse>(
+          externalId,
+          accessToken,
+          { fields: 'followers_count' },
+          'GET',
+          accountId
+        );
+        followers = igRes.data?.followers_count || 0;
+        insufficientData = followers < 100;
+
+        // Fetch media list & aggregate interactions
+        try {
+          const mediaRes = await client.request<MetaMediaResponse>(`${externalId}/media`, accessToken, { 
+            fields: 'id,media_type,caption,media_url,thumbnail_url,children{media_url,media_type},like_count,comments_count,timestamp', 
+            limit: 50 
+          }, 'GET', accountId);
+
+          if (mediaRes.data && Array.isArray(mediaRes.data.data)) {
+            let postInt = 0, reelInt = 0, storyInt = 0;
+
+            // Fetch insights for each media in chunks to avoid rate limits
+            const mediaInsights: PromiseSettledResult<{ post: any, res: MetaApiResponse<MetaMediaInsightsResponse> }>[] = [];
+            const chunkSize = 10;
+            for (let i = 0; i < mediaRes.data.data.length; i += chunkSize) {
+              const batch = mediaRes.data.data.slice(i, i + chunkSize);
+              const batchPromises = batch.map(post => {
+                const isVideoOrReel = post.media_type === 'VIDEO' || post.media_type === 'REELS';
+                const metrics = isVideoOrReel 
+                  ? 'reach,impressions,saved,shares,profile_visits,views' 
+                  : 'reach,impressions,saved,shares,profile_visits';
+                  
+                return client.request<MetaMediaInsightsResponse>(`${post.id}/insights`, accessToken, { 
+                  metric: metrics 
+                }, 'GET', accountId).then(res => ({ post, res }));
+              });
+              const batchResults = await Promise.allSettled(batchPromises);
+              mediaInsights.push(...batchResults);
+              
+              if (i + chunkSize < mediaRes.data.data.length) {
+                await new Promise(resolve => setTimeout(resolve, 500)); // 500ms throttle
+              }
+            }
+
+            for (const m of mediaInsights) {
+              if (m.status === 'fulfilled' && m.value.res.data) {
+                const { post, res } = m.value;
+                const insights = res.data!.data;
+                
+                const pLikes = post.like_count || 0;
+                const pComments = post.comments_count || 0;
+                const pSaved = insights.find((i: any) => i.name === 'saved')?.values[0]?.value || 0;
+                const pShares = insights.find((i: any) => i.name === 'shares')?.values[0]?.value || 0;
+                const totalInt = pLikes + pComments + pSaved + pShares;
+
+                if (post.media_type === 'IMAGE' || post.media_type === 'CAROUSEL_ALBUM') postInt += totalInt;
+                else if (post.media_type === 'VIDEO' || post.media_type === 'REELS') reelInt += totalInt;
+                
+                let thumbnailUrl = post.thumbnail_url || post.media_url || null;
+                if (!thumbnailUrl && post.media_type === 'CAROUSEL_ALBUM' && post.children?.data?.[0]) {
+                  thumbnailUrl = post.children.data[0].media_url;
+                }
+
+                const postReach = insights.find((i: any) => i.name === 'reach')?.values[0]?.value || 0;
+                const postImpressions = insights.find((i: any) => i.name === 'impressions')?.values[0]?.value || 0;
+                const postViews = insights.find((i: any) => i.name === 'views')?.values[0]?.value || postImpressions;
+
+                processedPosts.push({
+                  postId: post.id,
+                  mediaType: post.media_type,
+                  caption: post.caption || null,
+                  thumbnailUrl: thumbnailUrl,
+                  mediaUrl: post.media_url || null,
+                  likeCount: pLikes,
+                  commentsCount: pComments,
+                  sharesCount: pShares,
+                  savedCount: pSaved,
+                  totalInteractions: totalInt,
+                  reach: postReach,
+                  impressions: postImpressions,
+                  views: postViews,
+                  postedAt: new Date(post.timestamp)
+                });
+              }
+            }
+
+            const totalIntSum = postInt + reelInt + storyInt;
+            const getIntPct = (val: number) => totalIntSum > 0 ? Math.round((val / totalIntSum) * 100) : 0;
+            byContentInteractions = {
+              posts: getIntPct(postInt),
+              reels: getIntPct(reelInt),
+              stories: getIntPct(storyInt)
+            };
+          }
+        } catch (mediaErr) {
+          console.error('[MetaAnalyticsService] Media aggregation failed:', mediaErr);
+        }
+      }
+
+      // 3. Chunking logic
+      const chunks: { since: Date; until: Date }[] = [];
+      let currentStart = new Date(since);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      const endLimit = new Date(until);
+      endLimit.setUTCHours(23, 59, 59, 999);
+      
+      while (currentStart < endLimit) {
+        let currentEnd = new Date(currentStart);
+        currentEnd.setUTCDate(currentEnd.getUTCDate() + 29); // 30 days
+        if (currentEnd > endLimit) {
+          currentEnd = new Date(endLimit);
+        }
+        chunks.push({ since: new Date(currentStart), until: new Date(currentEnd) });
+        currentStart = new Date(currentEnd);
+        currentStart.setUTCDate(currentStart.getUTCDate() + 1);
+      }
+
+      const allSnapshots: any[] = [];
+
+      // 4. Fetch metrics for each chunk
+      for (const chunk of chunks) {
+        const sinceUnix = Math.floor(chunk.since.getTime() / 1000);
+        const untilUnix = Math.floor(chunk.until.getTime() / 1000);
+
+        const dailyMetrics: Record<string, any> = {};
+
+        if (platform === 'facebook' || platform === 'meta') {
+          const insightsRes = await client.request<MetaInsightsResponse>(
+            `${externalId}/insights`,
+            accessToken,
+            { 
+              metric: 'page_impressions_unique,page_post_engagements,page_impressions', 
+              period: 'day',
+              since: sinceUnix,
+              until: untilUnix
+            },
+            'GET',
+            accountId
+          );
+
+          if (insightsRes.data && Array.isArray(insightsRes.data.data)) {
+            for (const item of insightsRes.data.data) {
+              const metricName = item.name;
+              if (item.values && Array.isArray(item.values)) {
+                for (const val of item.values) {
+                  const date = new Date(val.end_time);
+                  date.setUTCDate(date.getUTCDate() - 1);
+                  date.setUTCHours(0, 0, 0, 0);
+                  const dateKey = date.toISOString().split('T')[0];
+
+                  if (!dailyMetrics[dateKey]) {
+                    dailyMetrics[dateKey] = {
+                      date,
+                      reach: 0,
+                      impressions: 0,
+                      engagement: 0,
+                      followers,
+                      profileVisits: 0,
+                      profileLinksTaps: 0,
+                      accountsReached: 0,
+                      accountsEngaged: 0,
+                      followersPct: 0,
+                      nonfollowersPct: 0,
+                      byContentViews: null,
+                      byContentInteractions: null,
+                      activeTimes: null,
+                      insufficientData: false
+                    };
+                  }
+
+                  const value = val.value || 0;
+                  if (metricName === 'page_impressions_unique') {
+                    dailyMetrics[dateKey].reach = value;
+                    dailyMetrics[dateKey].accountsReached = value;
+                  } else if (metricName === 'page_impressions') {
+                    dailyMetrics[dateKey].impressions = value;
+                  } else if (metricName === 'page_post_engagements') {
+                    dailyMetrics[dateKey].engagement = value;
+                  }
+                }
+              }
+            }
+          }
+        } else if (platform === 'instagram') {
+          let chunkFollowersPct = 0;
+          let chunkNonfollowersPct = 0;
+          let chunkByContentViews: any = null;
+
+          // Tạo các daily chunks
+          const dailyChunks: { dateStr: string; sinceUnix: number; untilUnix: number }[] = [];
+          const chunkStart = new Date(chunk.since);
+          const chunkEnd = new Date(chunk.until);
+          
+          let currentDay = new Date(chunkStart);
+          currentDay.setUTCHours(0, 0, 0, 0);
+          
+          while (currentDay <= chunkEnd) {
+            const dayStart = new Date(currentDay);
+            const sinceUnixVal = Math.floor(dayStart.getTime() / 1000);
+            
+            const dayEnd = new Date(currentDay);
+            dayEnd.setUTCHours(23, 59, 59, 999);
+            const untilUnixVal = Math.floor(dayEnd.getTime() / 1000);
+            
+            dailyChunks.push({
+              dateStr: dayStart.toISOString().split('T')[0],
+              sinceUnix: sinceUnixVal,
+              untilUnix: untilUnixVal
+            });
+            
+            currentDay.setUTCDate(currentDay.getUTCDate() + 1);
+          }
+
+          // Promises
+          const dailyCorePromises = dailyChunks.map(dChunk =>
+            client.request<MetaInsightsResponse>(
+              `${externalId}/insights`,
+              accessToken,
+              {
+                metric: 'reach,views,profile_views,profile_links_taps,accounts_engaged,total_interactions',
+                period: 'day',
+                metric_type: 'total_value',
+                since: dChunk.sinceUnix,
+                until: dChunk.untilUnix
+              },
+              'GET',
+              accountId
+            ).then(res => ({
+              dateStr: dChunk.dateStr,
+              res
+            }))
+          );
+
+          const otherPromises = [
+            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+              metric: 'reach', 
+              breakdown: 'follow_type', 
+              period: 'day',
+              metric_type: 'total_value',
+              since: sinceUnix,
+              until: untilUnix
+            }, 'GET', accountId),
+            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+              metric: 'reach', 
+              breakdown: 'media_product_type', 
+              period: 'day',
+              metric_type: 'total_value',
+              since: sinceUnix,
+              until: untilUnix
+            }, 'GET', accountId),
+            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+              metric: 'views', 
+              breakdown: 'media_product_type', 
+              period: 'day',
+              metric_type: 'total_value',
+              since: sinceUnix,
+              until: untilUnix
+            }, 'GET', accountId)
+          ];
+
+          if (!insufficientData) {
+            otherPromises.push(
+              client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+                metric: 'online_followers,follower_demographics', 
+                period: 'lifetime' 
+              }, 'GET', accountId)
+            );
+          }
+
+          const [dailyCoreResults, otherResults] = await Promise.all([
+            Promise.allSettled(dailyCorePromises),
+            Promise.allSettled(otherPromises)
+          ]);
+
+          // Parse daily core
+          for (const itemResult of dailyCoreResults) {
+            if (itemResult.status === 'fulfilled') {
+              const { dateStr, res } = itemResult.value;
+              if (res.data && Array.isArray(res.data.data)) {
+                const date = new Date(dateStr);
+                date.setUTCHours(0, 0, 0, 0);
+
+                if (!dailyMetrics[dateStr]) {
+                  dailyMetrics[dateStr] = {
+                    date,
+                    reach: 0,
+                    impressions: 0,
+                    engagement: 0,
+                    followers,
+                    profileVisits: 0,
+                    profileLinksTaps: 0,
+                    accountsReached: 0,
+                    accountsEngaged: 0,
+                    followersPct: 0,
+                    nonfollowersPct: 0,
+                    byContentViews: null,
+                    byContentInteractions: null,
+                    activeTimes: null,
+                    insufficientData
+                  };
+                }
+
+                for (const item of res.data.data) {
+                  const metricName = item.name;
+                  const value = item.total_value?.value || 0;
+
+                  if (metricName === 'reach') {
+                    dailyMetrics[dateStr].reach = value;
+                    dailyMetrics[dateStr].accountsReached = value;
+                  } else if (metricName === 'views') {
+                    dailyMetrics[dateStr].impressions = value;
+                  } else if (metricName === 'profile_views') {
+                    dailyMetrics[dateStr].profileVisits = value;
+                  } else if (metricName === 'profile_links_taps') {
+                    dailyMetrics[dateStr].profileLinksTaps = value;
+                  } else if (metricName === 'accounts_engaged') {
+                    dailyMetrics[dateStr].accountsEngaged = value;
+                  } else if (metricName === 'total_interactions') {
+                    dailyMetrics[dateStr].engagement = value;
+                  }
+                }
+              }
+            }
+          }
+
+          // Process follow type breakdown
+          const followTypeRes = otherResults[0];
+          if (followTypeRes && followTypeRes.status === 'fulfilled' && followTypeRes.value.data) {
+            const d = followTypeRes.value.data as MetaInsightsResponse;
+            const parsedFollow = parseFollowType(d.data, 'reach');
+            const totalFollowReach = parsedFollow.follower + parsedFollow.nonFollower;
+            if (totalFollowReach > 0) {
+              chunkFollowersPct = Math.round((parsedFollow.follower / totalFollowReach) * 100);
+              chunkNonfollowersPct = 100 - chunkFollowersPct;
+            }
+          }
+
+          // Process Views media product type breakdown
+          const viewsBreakdownRes = otherResults[2];
+          if (viewsBreakdownRes && viewsBreakdownRes.status === 'fulfilled' && viewsBreakdownRes.value.data) {
+            const d = viewsBreakdownRes.value.data as MetaInsightsResponse;
+            const viewsBreakdown = parseMediaProductType(d.data, 'views');
+            const totalViews = viewsBreakdown.posts + viewsBreakdown.reels + viewsBreakdown.stories;
+            const getPct = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
+            
+            chunkByContentViews = {
+              all: {
+                posts: getPct(viewsBreakdown.posts, totalViews),
+                reels: getPct(viewsBreakdown.reels, totalViews),
+                stories: getPct(viewsBreakdown.stories, totalViews)
+              },
+              followers: {
+                posts: getPct(viewsBreakdown.posts, totalViews),
+                reels: getPct(viewsBreakdown.reels, totalViews),
+                stories: getPct(viewsBreakdown.stories, totalViews)
+              },
+              nonfollowers: {
+                posts: getPct(viewsBreakdown.posts, totalViews),
+                reels: getPct(viewsBreakdown.reels, totalViews),
+                stories: getPct(viewsBreakdown.stories, totalViews)
+              }
+            };
+          }
+
+          // Process online followers
+          const onlineFollowersIdx = 3;
+          if (!insufficientData && otherResults[onlineFollowersIdx] && otherResults[onlineFollowersIdx].status === 'fulfilled' && otherResults[onlineFollowersIdx].value.data) {
+            const d = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
+            const onlineFollowers = d.data.find((i: any) => i.name === 'online_followers')?.values[0]?.value;
+            if (onlineFollowers && typeof onlineFollowers === 'object') {
+              activeTimes = onlineFollowers;
+            }
+          }
+
+          // Apply chunk breakdowns to daily metrics
+          for (const key of Object.keys(dailyMetrics)) {
+            dailyMetrics[key].followersPct = chunkFollowersPct;
+            dailyMetrics[key].nonfollowersPct = chunkNonfollowersPct;
+            dailyMetrics[key].byContentViews = chunkByContentViews;
+            dailyMetrics[key].byContentInteractions = byContentInteractions;
+            dailyMetrics[key].activeTimes = activeTimes;
+          }
+        }
+
+        // Add to global snapshots
+        for (const metric of Object.values(dailyMetrics)) {
+          allSnapshots.push({
+            accountId,
+            date: metric.date,
+            reach: metric.reach,
+            impressions: metric.impressions,
+            engagement: metric.engagement,
+            followers: metric.followers,
+            profileVisits: metric.profileVisits,
+            profileLinksTaps: metric.profileLinksTaps,
+            accountsReached: metric.accountsReached,
+            accountsEngaged: metric.accountsEngaged,
+            followersPct: metric.followersPct,
+            nonfollowersPct: metric.nonfollowersPct,
+            byContentViews: metric.byContentViews,
+            byContentInteractions: metric.byContentInteractions,
+            activeTimes: metric.activeTimes,
+            insufficientData: metric.insufficientData
+          });
+        }
+      }
+
+      // 5. Update reauth status to false since live fetch completed successfully
+      try {
+        const { getPlatformAccountRepository } = await import('@/infrastructure/repositories/platform-account.repository');
+        await getPlatformAccountRepository().updateReauthStatus(accountId, false);
+      } catch (reauthErr) {
+        console.warn(`[MetaAnalyticsService] Failed to update reauth status:`, reauthErr);
+      }
+
+      return {
+        success: true,
+        snapshots: allSnapshots.sort((a, b) => a.date.getTime() - b.date.getTime()),
+        insufficientData,
+        activeTimes,
+        byContentInteractions,
+        posts: processedPosts
+      };
+
+    } catch (err: any) {
+      console.error(`[MetaAnalyticsService] fetchLiveAnalytics critical failure:`, err);
+      return { success: false, error: err.message || 'UNKNOWN_ERROR' };
+    }
+  },
+
+  /**
    * Syncs daily analytics for a single Meta account.
    * Maps Meta metrics to our internal AnalyticsSnapshot model.
    */

@@ -83,6 +83,7 @@ export type AnalyticsPeriodData = {
   currentEnd: Date;
   previousStart: Date;
   previousEnd: Date;
+  needsReauth?: boolean;
 };
 
 export type PostAnalytic = {

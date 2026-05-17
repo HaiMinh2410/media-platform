@@ -21,6 +21,8 @@ export type PlatformAccount = {
   username?: string;
   avatar_url?: string;
   metadata?: any;
+  needs_reauth?: boolean;
+  token_expires_at?: Date | null;
 };
 
 export interface AccountHealthData {

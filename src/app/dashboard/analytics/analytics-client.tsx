@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area,
   PieChart, Pie, Cell, BarChart, Bar 
@@ -175,7 +176,7 @@ function InsufficientDataState() {
   );
 }
 
-function ReauthNotice({ onSync }: { onSync: () => void }) {
+function ReauthNotice() {
   return (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
@@ -187,17 +188,17 @@ function ReauthNotice({ onSync }: { onSync: () => void }) {
           <Icon lucide={TrendingDown} size={20} className="text-red-400" />
         </div>
         <div>
-          <h4 className="text-sm font-bold text-white">Token đã hết hạn hoặc bị thu hồi</h4>
-          <p className="text-xs text-white/50">Vui lòng kết nối lại tài khoản để tiếp tục đồng bộ dữ liệu.</p>
+          <h4 className="text-sm font-bold text-white">Token kết nối đã hết hạn hoặc bị thu hồi</h4>
+          <p className="text-xs text-white/50">Vui lòng kết nối lại tài khoản Instagram của bạn để tiếp tục đồng bộ dữ liệu live theo thời gian thực.</p>
         </div>
       </div>
-      <button 
-        onClick={onSync}
-        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 flex items-center gap-2"
+      <Link 
+        href="/dashboard/settings/accounts"
+        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 flex items-center gap-2 no-underline"
       >
         <Icon lucide={RefreshCw} size={14} />
         Kết nối lại ngay
-      </button>
+      </Link>
     </motion.div>
   );
 }
@@ -1235,8 +1236,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           </div>
 
           {/* Reauth Notice */}
-          {accounts.find(a => a.id === selectedAccountId && (a as any).needs_reauth) && (
-            <ReauthNotice onSync={handleSync} />
+          {(accounts.find(a => a.id === selectedAccountId && (a as any).needs_reauth) || data?.data?.needsReauth) && (
+            <ReauthNotice />
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 mb-6">

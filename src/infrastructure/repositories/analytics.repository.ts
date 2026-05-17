@@ -532,3 +532,136 @@ export async function createSyncLog(params: {
     console.error('[AnalyticsRepository] createSyncLog error:', error);
   }
 }
+
+/**
+ * Maps live analytics snapshots and posts from Meta API into Period-over-Period structure.
+ * Completely replicates getAnalyticsForPeriod algorithm in-memory.
+ */
+export function mapLiveAnalyticsToPeriodData(params: {
+  snapshots: any[];
+  posts: any[];
+  filter: AnalyticsFilter;
+}): AnalyticsPeriodData {
+  const { snapshots, posts, filter } = params;
+  const { range, customStart, customEnd } = filter;
+  
+  let currentEnd = new Date();
+  currentEnd.setHours(23, 59, 59, 999);
+  
+  let currentStart: Date;
+  let previousStart: Date;
+  let previousEnd: Date;
+
+  if (range === 'custom' && customStart && customEnd) {
+    currentStart = new Date(customStart);
+    currentEnd = new Date(customEnd);
+    const diff = differenceInDays(currentEnd, currentStart) + 1;
+    previousStart = subDays(currentStart, diff);
+    previousEnd = subDays(currentStart, 1);
+  } else {
+    const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+    currentStart = subDays(currentEnd, days - 1);
+    currentStart.setHours(0, 0, 0, 0);
+    previousStart = subDays(currentStart, days);
+    previousEnd = subDays(currentStart, 1);
+  }
+
+  // Map snapshots
+  const mapped = snapshots.map(s => ({
+    id: s.id || `live-${new Date(s.date).getTime()}`,
+    accountId: s.accountId,
+    date: new Date(s.date),
+    reach: s.reach,
+    impressions: s.impressions,
+    engagement: s.engagement,
+    followers: s.followers,
+    profileVisits: s.profileVisits,
+    profileLinksTaps: s.profileLinksTaps,
+    accountsReached: s.accountsReached,
+    accountsEngaged: s.accountsEngaged,
+    followersPct: s.followersPct,
+    nonfollowersPct: s.nonfollowersPct,
+    byContentViews: s.byContentViews,
+    byContentInteractions: s.byContentInteractions,
+    activeTimes: s.activeTimes,
+    insufficientData: s.insufficientData,
+    createdAt: s.createdAt || new Date(),
+  }));
+
+  // Filter snapshots
+  const current = mapped.filter(s => s.date >= currentStart && s.date <= currentEnd);
+  const previous = mapped.filter(s => s.date >= previousStart && s.date <= previousEnd);
+
+  // Filter posts
+  const currentPosts = posts.filter(p => new Date(p.postedAt) >= currentStart && new Date(p.postedAt) <= currentEnd);
+  const previousPosts = posts.filter(p => new Date(p.postedAt) >= previousStart && new Date(p.postedAt) <= previousEnd);
+
+  // Helper calculation
+  const getTotals = (postsList: any[]) => {
+    let reach = 0;
+    let impressions = 0;
+    let engagement = 0;
+
+    let postInt = 0, reelInt = 0, storyInt = 0;
+    let postViews = 0, reelViews = 0, storyViews = 0;
+
+    for (const post of postsList) {
+      reach += post.reach || 0;
+      impressions += post.impressions || 0;
+      engagement += post.totalInteractions || 0;
+
+      const mediaType = post.mediaType?.toUpperCase() || '';
+      const totalInt = post.totalInteractions || 0;
+      const totalViews = post.views || post.reach || 0;
+
+      if (mediaType === 'IMAGE' || mediaType === 'CAROUSEL_ALBUM') {
+        postInt += totalInt;
+        postViews += totalViews;
+      } else if (mediaType === 'VIDEO' || mediaType === 'REELS') {
+        reelInt += totalInt;
+        reelViews += totalViews;
+      } else if (mediaType === 'STORY' || mediaType === 'STORIES') {
+        storyInt += totalInt;
+        storyViews += totalViews;
+      }
+    }
+
+    const totalIntSum = postInt + reelInt + storyInt;
+    const getIntPct = (val: number) => totalIntSum > 0 ? Math.round((val / totalIntSum) * 100) : 0;
+    
+    const totalViewsSum = postViews + reelViews + storyViews;
+    const getViewsPct = (val: number) => totalViewsSum > 0 ? Math.round((val / totalViewsSum) * 100) : 0;
+
+    return {
+      reach,
+      impressions,
+      engagement,
+      byContentInteractions: {
+        posts: getIntPct(postInt),
+        reels: getIntPct(reelInt),
+        stories: getIntPct(storyInt)
+      },
+      byContentViews: {
+        posts: getViewsPct(postViews),
+        reels: getViewsPct(reelViews),
+        stories: getViewsPct(storyViews)
+      }
+    };
+  };
+
+  const currentPostTotals = getTotals(currentPosts);
+  const previousPostTotals = getTotals(previousPosts);
+
+  return {
+    current,
+    previous,
+    currentPostTotals,
+    previousPostTotals,
+    range,
+    currentStart,
+    currentEnd,
+    previousStart,
+    previousEnd
+  };
+}
+
