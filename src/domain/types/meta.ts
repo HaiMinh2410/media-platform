@@ -78,6 +78,7 @@ export type MetaMediaResponse = {
   data: {
     id: string;
     media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REELS';
+    media_product_type?: string;
     caption?: string;
     media_url?: string;
     thumbnail_url?: string;

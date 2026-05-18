@@ -76,11 +76,11 @@ function usePostFrequency(accountId: string, range: AnalyticsRange, customStart?
   });
 }
 
-function useTopContent(accountId: string, range: AnalyticsRange, customStart?: Date, customEnd?: Date) {
+function useTopContent(accountId: string, sortBy: 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows') {
   return useQuery({
-    queryKey: ['top-content', accountId, range, customStart, customEnd],
-    queryFn: () => getTopContentAction(accountId, range, customStart, customEnd),
-    staleTime: getStaleTime(range),
+    queryKey: ['top-content', accountId, sortBy],
+    queryFn: () => getTopPostsAction(accountId, '30d', undefined, undefined, sortBy),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -1248,9 +1248,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           <div className="mb-6">
             <TopContentGridWrapper 
               accountId={selectedAccountId} 
-              range={range} 
-              customStart={cStart} 
-              customEnd={cEnd} 
             />
           </div>
 
@@ -1490,22 +1487,18 @@ function StatsCard({
 }
 
 function TopContentGridWrapper({ 
-  accountId, 
-  range, 
-  customStart, 
-  customEnd 
+  accountId 
 }: { 
   accountId: string;
-  range: AnalyticsRange;
-  customStart?: Date;
-  customEnd?: Date;
 }) {
-  const { data: result, isPending } = useTopContent(accountId, range, customStart, customEnd);
+  const [activeMetric, setActiveMetric] = React.useState<'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows'>('interactions');
+  const { data: result, isPending } = useTopContent(accountId, activeMetric);
   
   return (
     <TopContentGrid
-      topByViews={(result?.topByViews || []) as TopContentPost[]}
-      topByInteractions={(result?.topByInteractions || []) as TopContentPost[]}
+      posts={(result?.data || []) as TopContentPost[]}
+      activeMetric={activeMetric}
+      setActiveMetric={setActiveMetric}
       isLoading={isPending}
     />
   );

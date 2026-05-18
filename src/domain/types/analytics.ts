@@ -112,6 +112,8 @@ export type PostAnalytic = {
   views: number;
   reach: number;
   impressions: number;
+  profileVisits: number;
+  follows: number;
   postedAt: Date;
   syncedAt: Date;
 };

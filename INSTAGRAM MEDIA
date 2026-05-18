@@ -1,0 +1,120 @@
+# TÀI LIỆU KỸ THUẬT: TÍCH HỢP INSTAGRAM MEDIA INSIGHTS API
+
+*Tài liệu tham khảo bắt buộc dành cho AI Agent trước khi tiến hành thiết kế cơ sở dữ liệu và lập trình hệ thống thu thập chỉ số bài viết.*
+
+---
+
+## 1. CÚ PHÁP GỌI API (ENDPOINT)
+
+Để lấy dữ liệu Insights của một bài viết cụ thể (Media ID), sử dụng phương thức và cấu trúc URL sau:
+
+`GET https://<HOST_URL>/<API_VERSION>/<INSTAGRAM_MEDIA_ID>/insights?metric=<DANH_SÁCH_METRICS>&breakdown=<DANH_SÁCH_BREAKDOWNS>&access_token=<TOKEN>`
+
+---
+
+## 2. CÁC CHỈ SỐ (METRICS) HỖ TRỢ
+
+*Lưu ý logic:* Một số metrics thông thường chỉ tính toán trên lượt tương tác tự nhiên (organic), không bao gồm quảng cáo.
+
+### A. Nhóm Tương tác tổng hợp & Cụ thể
+
+- `total_interactions`: Tổng số lượt tương tác (`likes` + `saves` + `comments` + `shares`) trừ đi số lượt bỏ tương tác (`unlikes` + `unsaves` + deleted comments).
+- `likes`: Tổng số lượt thích tự nhiên (organic).
+- `comments`: Tổng số lượt bình luận tự nhiên (organic).
+- `total_likes`: Tổng lượt thích trên tất cả các bề mặt, bao gồm cả quảng cáo. *(Yêu cầu xác thực qua Facebook Login)*.
+- `total_comments`: Tổng lượt bình luận trên tất cả các bề mặt, bao gồm cả quảng cáo. *(Yêu cầu xác thực qua Facebook Login)*.
+- `shares`: Lượt chia sẻ bài viết.
+- `saved`: Lượt lưu bài viết.
+- `reposts`: Lượt đăng lại bài viết.
+- `replies`: Tổng số lượt phản hồi. *(Chỉ khả dụng và áp dụng riêng cho định dạng Story)*.
+
+### B. Nhóm Tiếp cận & Lượt xem
+
+- `reach`: Số lượng tài khoản duy nhất đã xem nội dung ít nhất 1 lần (Dữ liệu mang tính chất ước tính).
+- `views`: Tổng số lần nội dung được phát hoặc hiển thị. *(Áp dụng cho cả 3 định dạng: Feed, Reels, Story)*.
+- `total_views`: Tổng lượt xem trên tất cả các nền tảng, bao gồm cả quảng cáo và lượt chia sẻ chéo sang Facebook. *(Yêu cầu xác thực qua Facebook Login)*.
+
+> ⚠️ **CẢNH BÁO AI AGENT (DEPRECATED METRICS):** > Các chỉ số cũ bao gồm: `impressions`, `plays`, `clips_replays_count`, và `ig_reels_aggregated_all_plays_count` ĐÃ BỊ NGỪNG HỖ TRỢ và bị xóa hoàn toàn khỏi API của Meta sau ngày 21/04/2025. **Tuyệt đối không sử dụng các key này trong mã nguồn.**
+> 
+
+### C. Nhóm Hoạt động Hồ sơ (Profile Activity)
+
+- `profile_visits`: Số lượt hồ sơ cá nhân được truy cập trực tiếp từ bài viết này.
+- `profile_activity`: Số hành động người dùng thực hiện khi truy cập hồ sơ sau khi xem bài viết (Xem chi tiết phân rã ở mục Breakdown).
+- `follows`: Số lượng người theo dõi mới (Followers) trực tiếp có được từ bài viết này.
+
+### D. Chỉ số dành riêng cho định dạng Reels
+
+- `ig_reels_avg_watch_time`: Thời gian xem trung bình của Reel (Tính theo đơn vị thời gian hệ thống Meta).
+- `ig_reels_video_view_total_time`: Tổng thời gian phát Reel (Tính gộp cả những lượt người xem bấm phát lại).
+- `reels_skip_rate`: Tỉ lệ phần trăm người xem thực hiện hành động bỏ qua Reel trong vòng 3 giây đầu tiên.
+- `crossposted_views` / `facebook_views`: Số lượt xem Video/Reel khi nội dung được phát hoặc chia sẻ chéo sang nền tảng Facebook.
+
+### E. Chỉ số dành riêng cho định dạng Story
+
+- `navigation`: Tổng số hành động điều hướng (bao gồm: chuyển tiếp, quay lại, thoát) xảy ra trên Story này.
+
+---
+
+## 3. KHẢ NĂNG PHÂN RÃ DỮ LIỆU (BREAKDOWNS)
+
+*Ràng buộc hệ thống:* Media Insights cấp độ bài viết **KHÔNG** hỗ trợ chia tách theo loại người dùng (Followers / Non-followers). API chỉ hỗ trợ tối đa 2 loại breakdowns chuyên sâu sau nếu truyền tham số `breakdown`:
+
+1. **`breakdown=action_type`** *(Chỉ được phép sử dụng kết hợp với metric `profile_activity`)*:
+    
+    Phân rã các hành động trên hồ sơ của người dùng thành các nút cụ thể:
+    
+    - `BIO_LINK_CLICKED`: Người dùng nhấn vào liên kết trên tiểu sử (Bio Link).
+    - `CALL`: Người dùng nhấn nút Gọi điện.
+    - `DIRECTION`: Người dùng nhấn xem chỉ đường.
+    - `EMAIL`: Người dùng nhấn gửi Email.
+    - `TEXT`: Người dùng nhấn gửi tin nhắn SMS.
+2. **`breakdown=story_navigation_action_type`** *(Chỉ được phép sử dụng kết hợp với metric `navigation` cho Story)*:
+    
+    Phân rã các hành động điều hướng của Story thành:
+    
+    - `SWIPE_FORWARD`: Vuốt để chuyển sang story của tài khoản tiếp theo.
+    - `TAP_BACK`: Nhấn vào bên trái màn hình để quay lại story trước đó.
+    - `TAP_EXIT`: Nhấn nút thoát (X) khỏi giao diện xem Story.
+    - `TAP_FORWARD`: Nhấn vào bên phải màn hình để tiến tới nội dung tiếp theo trong cùng chuỗi story.
+
+---
+
+## 4. CÁC GIỚI HẠN KỸ THUẬT QUAN TRỌNG (LIMITATIONS)
+
+AI Agent cần xử lý các ngoại lệ (exceptions) dựa trên các quy tắc nghiêm ngặt từ Meta:
+
+- **Bài đăng định dạng Album (Carousel):** Hệ thống API không hỗ trợ cung cấp Insights cho các thành phần con (từng hình ảnh hoặc video riêng lẻ) nằm bên trong một bài đăng dạng Album/Carousel. Chỉ có thể lấy chỉ số tổng hợp của toàn bộ bài đăng lớn.
+- **Giới hạn 24 giờ của Story:** Dữ liệu Insights của Story chỉ tồn tại trên API trong vòng 24 giờ.
+    - *Giải pháp thu thập lâu dài:* Phải cấu hình thiết lập **Webhooks (event: `story_insights`)** để hệ thống chủ động bắt và lưu trữ dữ liệu từ Meta trả về trước khi Story biến mất hoàn toàn.
+    - *Giới hạn số lượng:* Nếu Story có **ít hơn 5 người xem**, API sẽ trả về lỗi không đủ dữ liệu hiển thị (Insufficent data).
+- **Quy tắc trả về dữ liệu trống (Không trả về số 0):** Khi dữ liệu của một metric không tồn tại hoặc chưa sẵn sàng, API từ Meta sẽ phản hồi bằng một **tập dữ liệu rỗng (empty data set)** chứ không trả về giá trị số `0`. Mã nguồn cần có logic kiểm tra rỗng để tránh lỗi dữ liệu (Null Pointer).
+- **Độ trễ và Lưu trữ:** Dữ liệu tính toán của Meta có thể bị **trễ lên đến 48 giờ** và được lưu giữ tối đa trong vòng 2 năm.
+
+---
+
+## 5. THIẾT KẾ GIẢI PHÁP NGHIỆP VỤ CHO DASHBOARD
+
+### Ràng buộc cốt lõi từ API:
+
+API cấp độ bài viết cụ thể (Media Insights) **KHÔNG** hỗ trợ lọc dữ liệu theo khoảng thời gian tùy chỉnh (ví dụ: từ ngày A đến ngày B).
+
+- Tham số `period` (chu kỳ) của API này luôn cố định là `lifetime` (trọn đời) và không thể thay đổi.
+- Endpoint này hoàn toàn không hỗ trợ tiếp nhận các tham số thời gian lọc như `since` hay `until` giống như Account Insights.
+- Mọi phản hồi từ API cho các chỉ số (ví dụ: `views`) luôn là tổng giá trị cộng dồn từ lúc bài viết được xuất bản cho đến thời điểm gọi API.
+
+### Giải pháp thiết kế hệ thống (Backend & Database):
+
+Để hiển thị được biểu đồ biến động theo thời gian (ví dụ: số lượt xem tăng trưởng theo từng ngày) trên Dashboard, hệ thống phải tự động lưu trữ và thực hiện tính toán sai phân:
+
+1. **Bước 1: Thu thập tự động (Cronjob/Agent):** Thiết lập một tiến trình tự động chạy định kỳ hằng ngày một lần (ví dụ: lúc 23:59 mỗi đêm). Tiến trình này gọi API để lấy giá trị tổng lượt xem trọn đời (`lifetime views`) tại thời điểm đó của bài viết, sau đó lưu bản ghi kèm mốc thời gian (`timestamp`) vào cơ sở dữ liệu.
+2. **Bước 2: Thuật toán tính toán sai phân (Phép trừ tịnh tiến):** Để xác định số lượng lượt xem phát sinh riêng biệt trong một ngày cụ thể (Ví dụ: Ngày hôm qua), hệ thống thực hiện thuật toán:
+    
+    $$\Delta \text{Views}_{\text{Ngày hôm qua}} = \text{Lifetime Views}_{\text{Ngày hôm qua}} - \text{Lifetime Views}_{\text{Ngày hôm trước đó}}$$
+    
+    *Ví dụ: Tổng views trọn đời đến ngày hôm nay là 1500, ngày hôm qua là 1200 -> Số views phát sinh trong ngày hôm qua là 300.*
+    
+
+---
+
+*Yêu cầu đối với AI Agent: Hãy tuân thủ nghiêm ngặt các tham số, quy tắc loại bỏ chỉ số deprecated và cấu trúc lưu trữ sai phân trên khi tạo mã nguồn.*

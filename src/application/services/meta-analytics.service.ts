@@ -286,7 +286,7 @@ export const metaAnalyticsService = {
         // Fetch media list & aggregate interactions
         try {
           const mediaRes = await client.request<MetaMediaResponse>(`${externalId}/media`, accessToken, { 
-            fields: 'id,media_type,caption,media_url,thumbnail_url,children{media_url,media_type},like_count,comments_count,timestamp', 
+            fields: 'id,media_type,media_product_type,caption,media_url,thumbnail_url,children{media_url,media_type},like_count,comments_count,timestamp', 
             limit: 50 
           }, 'GET', accountId);
 
@@ -299,10 +299,20 @@ export const metaAnalyticsService = {
             for (let i = 0; i < mediaRes.data.data.length; i += chunkSize) {
               const batch = mediaRes.data.data.slice(i, i + chunkSize);
               const batchPromises = batch.map(post => {
-                const isVideoOrReel = post.media_type === 'VIDEO' || post.media_type === 'REELS';
-                const metrics = isVideoOrReel 
-                  ? 'reach,impressions,saved,shares,profile_visits,views' 
-                  : 'reach,impressions,saved,shares,profile_visits';
+                const productType = post.media_product_type;
+                let metrics = '';
+                if (productType === 'REELS') {
+                  metrics = 'reach,saved,shares,views';
+                } else if (productType === 'STORY') {
+                  metrics = 'reach,replies,saved,shares,navigation';
+                } else {
+                  // FEED or AD
+                  if (post.media_type === 'VIDEO') {
+                    metrics = 'reach,saved,shares,profile_visits,follows,views';
+                  } else {
+                    metrics = 'reach,saved,shares,profile_visits,follows';
+                  }
+                }
                   
                 return client.request<MetaMediaInsightsResponse>(`${post.id}/insights`, accessToken, { 
                   metric: metrics 
@@ -325,6 +335,8 @@ export const metaAnalyticsService = {
                 const pComments = post.comments_count || 0;
                 const pSaved = insights.find((i: any) => i.name === 'saved')?.values[0]?.value || 0;
                 const pShares = insights.find((i: any) => i.name === 'shares')?.values[0]?.value || 0;
+                const pVisits = insights.find((i: any) => i.name === 'profile_visits')?.values[0]?.value || 0;
+                const pFollows = insights.find((i: any) => i.name === 'follows')?.values[0]?.value || 0;
                 const totalInt = pLikes + pComments + pSaved + pShares;
 
                 if (post.media_type === 'IMAGE' || post.media_type === 'CAROUSEL_ALBUM') postInt += totalInt;
@@ -336,8 +348,8 @@ export const metaAnalyticsService = {
                 }
 
                 const postReach = insights.find((i: any) => i.name === 'reach')?.values[0]?.value || 0;
-                const postImpressions = insights.find((i: any) => i.name === 'impressions')?.values[0]?.value || 0;
-                const postViews = insights.find((i: any) => i.name === 'views')?.values[0]?.value || postImpressions;
+                const postImpressions = insights.find((i: any) => i.name === 'impressions')?.values[0]?.value || postReach;
+                const postViews = insights.find((i: any) => i.name === 'views')?.values[0]?.value || postReach;
 
                 processedPosts.push({
                   postId: post.id,
@@ -353,6 +365,8 @@ export const metaAnalyticsService = {
                   reach: postReach,
                   impressions: postImpressions,
                   views: postViews,
+                  profileVisits: pVisits,
+                  follows: pFollows,
                   postedAt: new Date(post.timestamp)
                 });
               }
@@ -892,7 +906,7 @@ export const metaAnalyticsService = {
         // Fetch media list & aggregate interactions (only once per sync session)
         try {
           const mediaRes = await client.request<MetaMediaResponse>(`${externalId}/media`, accessToken, { 
-            fields: 'id,media_type,caption,media_url,thumbnail_url,children{media_url,media_type},like_count,comments_count,timestamp', 
+            fields: 'id,media_type,media_product_type,caption,media_url,thumbnail_url,children{media_url,media_type},like_count,comments_count,timestamp', 
             limit: 50 
           }, 'GET', accountId);
 
@@ -907,10 +921,20 @@ export const metaAnalyticsService = {
             for (let i = 0; i < mediaRes.data.data.length; i += chunkSize) {
               const batch = mediaRes.data.data.slice(i, i + chunkSize);
               const batchPromises = batch.map(post => {
-                const isVideoOrReel = post.media_type === 'VIDEO' || post.media_type === 'REELS';
-                const metrics = isVideoOrReel 
-                  ? 'reach,impressions,saved,shares,profile_visits,views' 
-                  : 'reach,impressions,saved,shares,profile_visits';
+                const productType = post.media_product_type;
+                let metrics = '';
+                if (productType === 'REELS') {
+                  metrics = 'reach,saved,shares,views';
+                } else if (productType === 'STORY') {
+                  metrics = 'reach,replies,saved,shares,navigation';
+                } else {
+                  // FEED or AD
+                  if (post.media_type === 'VIDEO') {
+                    metrics = 'reach,saved,shares,profile_visits,follows,views';
+                  } else {
+                    metrics = 'reach,saved,shares,profile_visits,follows';
+                  }
+                }
                   
                 return client.request<MetaMediaInsightsResponse>(`${post.id}/insights`, accessToken, { 
                   metric: metrics 
@@ -930,6 +954,7 @@ export const metaAnalyticsService = {
                 const insights = res.data!.data;
                 
                 const pVisits = insights.find((i: any) => i.name === 'profile_visits')?.values[0]?.value || 0;
+                const pFollows = insights.find((i: any) => i.name === 'follows')?.values[0]?.value || 0;
                 totalProfileVisits += pVisits;
 
                 const pLikes = post.like_count || 0;
@@ -947,8 +972,8 @@ export const metaAnalyticsService = {
                 }
 
                 const postReach = insights.find((i: any) => i.name === 'reach')?.values[0]?.value || 0;
-                const postImpressions = insights.find((i: any) => i.name === 'impressions')?.values[0]?.value || 0;
-                const postViews = insights.find((i: any) => i.name === 'views')?.values[0]?.value || postImpressions;
+                const postImpressions = insights.find((i: any) => i.name === 'impressions')?.values[0]?.value || postReach;
+                const postViews = insights.find((i: any) => i.name === 'views')?.values[0]?.value || postReach;
 
                 const postData = {
                   postId: post.id,
@@ -964,6 +989,8 @@ export const metaAnalyticsService = {
                   reach: postReach,
                   impressions: postImpressions,
                   views: postViews,
+                  profileVisits: pVisits,
+                  follows: pFollows,
                   postedAt: new Date(post.timestamp)
                 };
 

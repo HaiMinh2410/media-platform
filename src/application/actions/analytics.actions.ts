@@ -193,6 +193,8 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
             views: p.views,
             reach: p.reach,
             impressions: p.impressions,
+            profileVisits: p.profileVisits || 0,
+            follows: p.follows || 0,
             postedAt: p.postedAt
           }))
         ]).catch(upsertErr => {
@@ -338,31 +340,12 @@ function getTopPostsFromLive(
   limit = 10,
   customStart?: Date,
   customEnd?: Date,
-  sortBy: 'views' | 'interactions' = 'interactions'
+  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows' = 'interactions'
 ) {
-  let currentEnd = new Date();
-  currentEnd.setUTCHours(23, 59, 59, 999);
-  let currentStart: Date;
-
-  if (range === 'custom' && customStart && customEnd) {
-    currentStart = new Date(customStart);
-    currentStart.setUTCHours(0, 0, 0, 0);
-    currentEnd = new Date(customEnd);
-    currentEnd.setUTCHours(23, 59, 59, 999);
-  } else {
-    const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
-    currentStart = subDays(currentEnd, days - 1);
-    currentStart.setUTCHours(0, 0, 0, 0);
-  }
-
-  // Filter posts in current period
-  const filtered = posts.filter(p => {
-    const pDate = new Date(p.postedAt);
-    return pDate >= currentStart && pDate <= currentEnd;
-  });
-
+  // Removed date range filtering to provide global/lifetime media ranking
+  
   // Map to PostAnalytic structure
-  const mapped = filtered.map(p => ({
+  const mapped = posts.map(p => ({
     id: p.id || p.postId,
     accountId: p.accountId,
     postId: p.postId,
@@ -378,6 +361,8 @@ function getTopPostsFromLive(
     views: p.views || p.reach || 0,
     reach: p.reach || 0,
     impressions: p.impressions || p.reach || 0,
+    profileVisits: p.profileVisits || 0,
+    follows: p.follows || 0,
     postedAt: new Date(p.postedAt),
     syncedAt: new Date()
   }));
@@ -385,8 +370,16 @@ function getTopPostsFromLive(
   // Sort
   if (sortBy === 'interactions') {
     mapped.sort((a, b) => b.totalInteractions - a.totalInteractions);
-  } else {
+  } else if (sortBy === 'views') {
     mapped.sort((a, b) => b.views - a.views);
+  } else if (sortBy === 'reach') {
+    mapped.sort((a, b) => b.reach - a.reach);
+  } else if (sortBy === 'likes') {
+    mapped.sort((a, b) => b.likeCount - a.likeCount);
+  } else if (sortBy === 'profile_visits') {
+    mapped.sort((a, b) => b.profileVisits - a.profileVisits);
+  } else if (sortBy === 'follows') {
+    mapped.sort((a, b) => b.follows - a.follows);
   }
 
   return mapped.slice(0, limit);
@@ -477,7 +470,7 @@ export async function getTopPostsAction(
   range: AnalyticsRange = '30d', 
   customStart?: Date, 
   customEnd?: Date,
-  sortBy: 'views' | 'interactions' = 'interactions'
+  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows' = 'interactions'
 ) {
   try {
     if (redisConnection) {

@@ -10,7 +10,8 @@ async function main() {
   const patterns = [
     'follower_details_cache:*',
     'live_analytics_period_cache:*',
-    'live_analytics_fresh:*'
+    'live_analytics_fresh:*',
+    'live_analytics_cache:*'
   ];
 
   for (const pattern of patterns) {

@@ -331,6 +331,8 @@ export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnal
         views: post.views,
         reach: post.reach,
         impressions: post.impressions,
+        profile_visits: post.profileVisits ?? 0,
+        follows: post.follows ?? 0,
         posted_at: post.postedAt,
         synced_at: new Date(),
       } as any,
@@ -347,6 +349,8 @@ export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnal
         views: post.views,
         reach: post.reach,
         impressions: post.impressions,
+        profile_visits: post.profileVisits ?? 0,
+        follows: post.follows ?? 0,
         synced_at: new Date(),
       } as any,
     });
@@ -361,35 +365,26 @@ export async function getTopPosts(
   limit = 10, 
   customStart?: Date, 
   customEnd?: Date,
-  sortBy: 'views' | 'interactions' = 'interactions'
+  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows' = 'interactions'
 ): Promise<{ data: PostAnalytic[] | null; error: string | null }> {
   try {
-    let currentEnd = new Date();
-    currentEnd.setUTCHours(23, 59, 59, 999);
-    let currentStart: Date;
-
-    if (range === 'custom' && customStart && customEnd) {
-      currentStart = new Date(customStart);
-      currentStart.setUTCHours(0, 0, 0, 0);
-      currentEnd = new Date(customEnd);
-      currentEnd.setUTCHours(23, 59, 59, 999);
-    } else {
-      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
-      currentStart = subDays(currentEnd, days - 1);
-      currentStart.setUTCHours(0, 0, 0, 0);
+    let orderBy: any = { total_interactions: 'desc' as const };
+    if (sortBy === 'views') {
+      orderBy = { views: 'desc' as const };
+    } else if (sortBy === 'reach') {
+      orderBy = { reach: 'desc' as const };
+    } else if (sortBy === 'likes') {
+      orderBy = { like_count: 'desc' as const };
+    } else if (sortBy === 'profile_visits') {
+      orderBy = { profile_visits: 'desc' as const };
+    } else if (sortBy === 'follows') {
+      orderBy = { follows: 'desc' as const };
     }
 
-    const orderBy = sortBy === 'views' 
-      ? { views: 'desc' as const } 
-      : { total_interactions: 'desc' as const };
-
+    // Removed the date range filter on posted_at to provide global/lifetime media ranking
     const posts = await db.post_analytics.findMany({
       where: {
         account_id: accountId,
-        posted_at: {
-          gte: currentStart,
-          lte: currentEnd,
-        },
       },
       orderBy,
       take: limit,
@@ -411,21 +406,24 @@ export async function getTopPosts(
       views: p.views,
       reach: p.reach,
       impressions: p.impressions,
+      profileVisits: p.profile_visits || 0,
+      follows: p.follows || 0,
       postedAt: p.posted_at,
       syncedAt: p.synced_at,
     }));
 
-    // If we sorted by interactions in DB, we still do a final check in JS 
-    // to ensure the sum of all interactions is used (in case DB column total_interactions is slightly behind)
     if (sortBy === 'interactions') {
-      mapped.sort((a, b) => {
-        const engA = a.likeCount + a.commentsCount + a.sharesCount + a.savedCount;
-        const engB = b.likeCount + b.commentsCount + b.sharesCount + b.savedCount;
-        return engB - engA;
-      });
-    } else {
-      // If views, trust DB sort but ensure we have valid numbers
-      mapped.sort((a, b) => (b.views || 0) - (a.views || 0));
+      mapped.sort((a, b) => b.totalInteractions - a.totalInteractions);
+    } else if (sortBy === 'views') {
+      mapped.sort((a, b) => b.views - a.views);
+    } else if (sortBy === 'reach') {
+      mapped.sort((a, b) => b.reach - a.reach);
+    } else if (sortBy === 'likes') {
+      mapped.sort((a, b) => b.likeCount - a.likeCount);
+    } else if (sortBy === 'profile_visits') {
+      mapped.sort((a, b) => b.profileVisits - a.profileVisits);
+    } else if (sortBy === 'follows') {
+      mapped.sort((a, b) => b.follows - a.follows);
     }
 
     return { data: mapped.slice(0, limit), error: null };
@@ -466,6 +464,8 @@ export async function getTopContentFromDB(accountId: string): Promise<{ topByVie
       views: p.views,
       reach: p.reach,
       impressions: p.impressions,
+      profileVisits: p.profile_visits || 0,
+      follows: p.follows || 0,
       postedAt: p.posted_at,
       syncedAt: p.synced_at,
     });

@@ -825,6 +825,8 @@ model post_analytics {
   views             Int             @default(0) // Video views
   reach             Int             @default(0)
   impressions       Int             @default(0)
+  profile_visits    Int             @default(0)
+  follows           Int             @default(0)
   posted_at         DateTime        @db.Timestamptz(6)
   synced_at         DateTime        @default(now()) @db.Timestamptz(6)
   platform_accounts PlatformAccount @relation(fields: [account_id], references: [id], onDelete: Cascade)
