@@ -2,13 +2,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area,
   PieChart, Pie, Cell, BarChart, Bar 
 } from 'recharts';
 import { 
   Users, BarChart3, Eye, MousePointer2, TrendingUp, TrendingDown, Calendar, Sparkles, RefreshCw, 
-  ChevronDown, CloudDownload
+  ChevronDown, CloudDownload, Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@/components/ui/icon';
@@ -52,13 +53,7 @@ function useAnalytics(accountId: string, range: AnalyticsRange, customStart?: Da
   });
 }
 
-function useTopPosts(accountId: string, range: AnalyticsRange, limit: number, customStart?: Date, customEnd?: Date) {
-  return useQuery({
-    queryKey: ['top-posts', accountId, range, limit, customStart, customEnd],
-    queryFn: () => getTopPostsAction(accountId, range, customStart, customEnd),
-    staleTime: getStaleTime(range),
-  });
-}
+
 
 function useEngagementBreakdown(accountId: string, range: AnalyticsRange, customStart?: Date, customEnd?: Date) {
   return useQuery({
@@ -123,31 +118,7 @@ function SkeletonChart() {
   );
 }
 
-function SkeletonTopPosts() {
-  return (
-    <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 animate-pulse relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent shimmer" />
-      <div className="flex justify-between items-center mb-6">
-        <div className="w-32 h-6 bg-white/5 rounded"></div>
-        <div className="w-24 h-8 bg-white/5 rounded-lg"></div>
-      </div>
-      <div className="space-y-4">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="flex items-center gap-4 py-3 border-b border-white/5 last:border-0">
-            <div className="w-10 h-10 bg-white/5 rounded-lg"></div>
-            <div className="flex-1 space-y-2">
-              <div className="w-3/4 h-4 bg-white/5 rounded"></div>
-              <div className="w-1/4 h-3 bg-white/5 rounded"></div>
-            </div>
-            <div className="w-16 h-4 bg-white/5 rounded"></div>
-            <div className="w-16 h-4 bg-white/5 rounded"></div>
-            <div className="w-16 h-4 bg-white/5 rounded"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+
 
 function InsufficientDataState() {
   return (
@@ -453,149 +424,7 @@ function PostFrequencyChart({ accountId, range, customStart, customEnd }: {
   );
 }
 
-function TopPostsTable({ accountId, range, customStart, customEnd }: { 
-  accountId: string; 
-  range: AnalyticsRange;
-  customStart?: Date;
-  customEnd?: Date;
-}) {
-  const [limit, setLimit] = useState(5);
-  const { data: result, isPending, isError } = useTopPosts(accountId, range, 10, customStart, customEnd);
-  const queryClient = useQueryClient();
 
-  if (isPending) return <SkeletonTopPosts />;
-  if (isError || !result?.data) return null;
-
-  const posts = result.data.slice(0, limit);
-
-  const getBadgeClass = (type: string) => {
-    switch (type.toUpperCase()) {
-      case 'REELS': return 'bg-pink-500/10 text-pink-400 border-pink-500/20';
-      case 'IMAGE': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      case 'VIDEO': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-      case 'CAROUSEL_ALBUM': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      default: return 'bg-white/5 text-white/40 border-white/10';
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    if (type === 'CAROUSEL_ALBUM') return 'CAROUSEL';
-    return type;
-  };
-
-  return (
-    <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 mt-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <Icon lucide={TrendingUp} size={18} className="text-blue-400" />
-          Top Performance Posts
-        </h3>
-        <div className="flex bg-white/5 p-1 rounded-lg border border-white/10">
-          {[5, 10].map((l) => (
-            <button
-              key={l}
-              onMouseEnter={() => {
-                // Prefetch when hovering
-                queryClient.prefetchQuery({
-                  queryKey: ['top-posts', accountId, range, 10, customStart, customEnd],
-                  queryFn: () => getTopPostsAction(accountId, range, customStart, customEnd),
-                });
-              }}
-              onClick={() => setLimit(l)}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition-all duration-200 ${
-                limit === l ? 'bg-blue-500 text-white shadow-lg' : 'text-white/40 hover:text-white/60'
-              }`}
-            >
-              TOP {l}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {posts.length === 0 ? (
-        <div className="py-12 text-center text-white/30 text-sm">
-          Chưa có dữ liệu bài viết trong kỳ này
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-widest text-white/30 border-b border-white/5">
-                <th className="pb-4 font-bold">Post</th>
-                <th className="pb-4 font-bold text-center">Loại</th>
-                <th className="pb-4 font-bold text-right">Reach</th>
-                <th className="pb-4 font-bold text-right">Engagement</th>
-                <th className="pb-4 font-bold text-right">ER%</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {posts.map((post) => {
-                const engagement = post.likeCount + post.commentsCount + post.sharesCount + post.savedCount;
-                const er = post.reach > 0 ? (engagement / post.reach * 100) : null;
-                const isHighER = er !== null && er >= 3;
-
-                return (
-                  <motion.tr 
-                    key={post.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="group hover:bg-white/[0.01] transition-colors"
-                  >
-                    <td className="py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 bg-white/5 flex-shrink-0 group-hover:border-blue-500/30 transition-colors">
-                          {post.thumbnailUrl ? (
-                            <img src={post.thumbnailUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-white/10">
-                              <Icon lucide={Eye} size={20} />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-medium text-white/90 line-clamp-1 max-w-[200px] group-hover:text-white transition-colors">
-                            {post.caption || 'No caption'}
-                          </span>
-                          <span className="text-[10px] text-white/30 font-medium">
-                            {new Date(post.postedAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 text-center">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-sm ${getBadgeClass(post.mediaType)}`}>
-                        {getTypeLabel(post.mediaType)}
-                      </span>
-                    </td>
-                    <td className="py-4 text-right">
-                      {post.reach > 0 ? (
-                        <span className="text-sm font-semibold text-white/90">{post.reach.toLocaleString()}</span>
-                      ) : (
-                        <span className="text-sm font-medium text-white/20 tracking-widest">N/A</span>
-                      )}
-                    </td>
-                    <td className="py-4 text-right text-sm text-white/90">
-                      {engagement.toLocaleString()}
-                    </td>
-                    <td className="py-4 text-right">
-                      {er !== null ? (
-                        <span className={`text-sm font-bold ${isHighER ? 'text-emerald-400' : 'text-white/60'}`}>
-                          {er.toFixed(2)}%
-                        </span>
-                      ) : (
-                        <span className="text-white/20">—</span>
-                      )}
-                    </td>
-                  </motion.tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
 
 interface TooltipPayload {
   payload: Record<string, string | number>;
@@ -775,7 +604,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const [range, setRange] = useState<AnalyticsRange>('30d');
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'general' | 'ai'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'ai' | 'content'>('general');
   const [activeMetric, setActiveMetric] = useState<ActiveMetric>('reach');
   const [isSyncing, setIsSyncing] = useState(false);
   const queryClient = useQueryClient();
@@ -1068,6 +897,17 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           <span>Tổng quan Kênh</span>
         </button>
         <button
+          onClick={() => setActiveTab('content')}
+          className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+            activeTab === 'content'
+              ? 'border-indigo-500 text-indigo-400 bg-indigo-500/[0.01]'
+              : 'border-transparent text-white/40 hover:text-white/80 hover:bg-white/[0.01]'
+          }`}
+        >
+          <Icon lucide={Layers} size={14} className={activeTab === 'content' ? "text-indigo-500" : "text-white/30"} />
+          <span>Bài viết</span>
+        </button>
+        <button
           onClick={() => setActiveTab('ai')}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
             activeTab === 'ai'
@@ -1084,6 +924,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         <div className="-mx-6 -my-4">
           <AIAnalyticsPage onBack={() => setActiveTab('general')} />
         </div>
+      ) : activeTab === 'content' ? (
+        <ContentInsightsSection accountId={selectedAccountId} />
       ) : (
         <>
           <div className="analytics-header">
@@ -1248,6 +1090,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           <div className="mb-6">
             <TopContentGridWrapper 
               accountId={selectedAccountId} 
+              onSeeAll={() => setActiveTab('content')}
             />
           </div>
 
@@ -1381,14 +1224,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             </>
           )}
 
-          <div className="mt-6">
-            <TopPostsTable 
-              accountId={selectedAccountId} 
-              range={range} 
-              customStart={cStart} 
-              customEnd={cEnd} 
-            />
-          </div>
+
         </>
       )}
     </div>
@@ -1487,9 +1323,11 @@ function StatsCard({
 }
 
 function TopContentGridWrapper({ 
-  accountId 
+  accountId,
+  onSeeAll
 }: { 
   accountId: string;
+  onSeeAll?: () => void;
 }) {
   const [activeMetric, setActiveMetric] = React.useState<'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows'>('interactions');
   const { data: result, isPending } = useTopContent(accountId, activeMetric);
@@ -1500,6 +1338,361 @@ function TopContentGridWrapper({
       activeMetric={activeMetric}
       setActiveMetric={setActiveMetric}
       isLoading={isPending}
+      onSeeAll={onSeeAll}
     />
+  );
+}
+
+// Media type filter definitions with inline beautiful SVGs
+const MEDIA_FILTERS = [
+  { 
+    id: 'all', 
+    label: 'All', 
+    icon: (className?: string) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <line x1="21" y1="12" x2="3" y2="12"/>
+        <line x1="12" y1="21" x2="12" y2="3"/>
+      </svg>
+    )
+  },
+  { 
+    id: 'image', 
+    label: 'Images', 
+    icon: (className?: string) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+    )
+  },
+  { 
+    id: 'reels', 
+    label: 'Reels', 
+    icon: (className?: string) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+        <line x1="7" y1="2" x2="7" y2="22"/>
+        <line x1="17" y1="2" x2="17" y2="22"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <line x1="2" y1="7" x2="7" y2="7"/>
+        <line x1="2" y1="17" x2="7" y2="17"/>
+        <line x1="17" y1="17" x2="22" y2="17"/>
+        <line x1="17" y1="7" x2="22" y2="7"/>
+      </svg>
+    )
+  },
+  { 
+    id: 'carousel', 
+    label: 'Carousels', 
+    icon: (className?: string) => (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+    )
+  },
+];
+
+const METRIC_FILTERS = [
+  { id: 'views', label: 'Views' },
+  { id: 'interactions', label: 'Interactions' },
+  { id: 'reach', label: 'Reach' },
+  { id: 'likes', label: 'Likes' },
+  { id: 'profile_visits', label: 'Profile Visits' },
+  { id: 'follows', label: 'Follows' },
+];
+
+const ORDER_FILTERS = [
+  { id: 'highest', label: 'Highest' },
+  { id: 'lowest', label: 'Lowest' },
+];
+
+const formatMetricValue = (val: number): string => {
+  if (val >= 1000000) return (val / 1000000).toFixed(1).replace('.0', '') + 'M';
+  if (val >= 1000) return (val / 1000).toFixed(1).replace('.0', '') + 'K';
+  return val.toString();
+};
+
+function ContentInsightsSection({
+  accountId
+}: {
+  accountId: string;
+}) {
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'reels' | 'carousel'>('all');
+  const [metricFilter, setMetricFilter] = useState<'views' | 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows'>('views');
+  const [orderFilter, setOrderFilter] = useState<'highest' | 'lowest'>('highest');
+  const [activeDropdown, setActiveDropdown] = useState<'media' | 'metric' | 'order' | null>(null);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setActiveDropdown(null);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const { data: result, isPending, isError } = useQuery({
+    queryKey: ['content-insights-posts', accountId, metricFilter],
+    queryFn: () => getTopPostsAction(accountId, '90d', undefined, undefined, metricFilter, 100),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const posts = result?.data || [];
+
+  const processedPosts = React.useMemo(() => {
+    let filtered = [...posts];
+
+    if (mediaFilter !== 'all') {
+      filtered = filtered.filter(p => {
+        const type = p.mediaType?.toUpperCase();
+        if (mediaFilter === 'image') return type === 'IMAGE';
+        if (mediaFilter === 'reels') return type === 'REELS';
+        if (mediaFilter === 'carousel') return type === 'CAROUSEL_ALBUM';
+        return true;
+      });
+    }
+
+    if (orderFilter === 'lowest') {
+      filtered.reverse();
+    }
+
+    return filtered;
+  }, [posts, mediaFilter, orderFilter]);
+
+  const getMetricValue = (post: any) => {
+    const likes = post.likeCount || 0;
+    const comments = post.commentsCount || 0;
+    const shares = post.sharesCount || 0;
+    const saves = post.savedCount || 0;
+    const baseInteractions = likes + comments + shares + saves;
+
+    switch (metricFilter) {
+      case 'views': return post.views || post.reach || 0;
+      case 'interactions': return post.totalInteractions > 0 ? post.totalInteractions : baseInteractions;
+      case 'reach': return post.reach || 0;
+      case 'likes': return likes;
+      case 'profile_visits': return post.profileVisits || 0;
+      case 'follows': return post.follows || 0;
+      default: return 0;
+    }
+  };
+
+  const selectedMedia = MEDIA_FILTERS.find(m => m.id === mediaFilter);
+  const selectedMetric = METRIC_FILTERS.find(m => m.id === metricFilter);
+  const selectedOrder = ORDER_FILTERS.find(o => o.id === orderFilter);
+
+  return (
+    <div className="bg-[#0b0c0e] min-h-[600px] text-white p-6 font-sans rounded-3xl border border-white/5 shadow-2xl relative transition-all duration-300">
+      <div className="flex flex-col gap-6" ref={dropdownRef}>
+        {/* Title Row */}
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-white">Content insights</h2>
+          <p className="text-white/40 text-xs mt-1">Phân tích hiệu suất truyền thông bài viết trọn đời</p>
+        </div>
+
+        {/* Dropdowns Filter Row */}
+        <div className="flex items-center gap-3 relative select-none">
+          {/* Media filter pill */}
+          <div className="relative">
+            <button
+              onClick={() => setActiveDropdown(activeDropdown === 'media' ? null : 'media')}
+              className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+            >
+              {selectedMedia?.icon('w-3.5 h-3.5 text-white/80')}
+              <span>{selectedMedia?.label}</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'media' ? 'rotate-180' : ''}`} />
+            </button>
+            <AnimatePresence>
+              {activeDropdown === 'media' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[140px] flex flex-col gap-0.5 backdrop-blur-xl"
+                >
+                  {MEDIA_FILTERS.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => {
+                        setMediaFilter(m.id as any);
+                        setActiveDropdown(null);
+                      }}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                        mediaFilter === m.id
+                          ? 'text-white bg-white/10'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {m.icon('w-3.5 h-3.5')}
+                      <span>{m.label}</span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Metric filter pill */}
+          <div className="relative">
+            <button
+              onClick={() => setActiveDropdown(activeDropdown === 'metric' ? null : 'metric')}
+              className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+            >
+              <span>{selectedMetric?.label}</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'metric' ? 'rotate-180' : ''}`} />
+            </button>
+            <AnimatePresence>
+              {activeDropdown === 'metric' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[160px] flex flex-col gap-0.5 backdrop-blur-xl"
+                >
+                  {METRIC_FILTERS.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => {
+                        setMetricFilter(m.id as any);
+                        setActiveDropdown(null);
+                      }}
+                      className={`px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center transition-all cursor-pointer ${
+                        metricFilter === m.id
+                          ? 'text-white bg-white/10'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Order filter pill */}
+          <div className="relative">
+            <button
+              onClick={() => setActiveDropdown(activeDropdown === 'order' ? null : 'order')}
+              className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+            >
+              <span>{selectedOrder?.label}</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'order' ? 'rotate-180' : ''}`} />
+            </button>
+            <AnimatePresence>
+              {activeDropdown === 'order' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[120px] flex flex-col gap-0.5 backdrop-blur-xl"
+                >
+                  {ORDER_FILTERS.map(o => (
+                    <button
+                      key={o.id}
+                      onClick={() => {
+                        setOrderFilter(o.id as any);
+                        setActiveDropdown(null);
+                      }}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center transition-all cursor-pointer ${
+                        orderFilter === o.id
+                          ? 'text-white bg-white/10'
+                          : 'text-white/60 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Media Grid */}
+        {isPending ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-4">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="aspect-square bg-white/5 rounded-3xl animate-pulse" />
+            ))}
+          </div>
+        ) : isError ? (
+          <div className="w-full min-h-[300px] flex items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/30 text-sm">
+            Lỗi khi tải dữ liệu bài viết
+          </div>
+        ) : processedPosts.length === 0 ? (
+          <div className="w-full min-h-[300px] flex flex-col items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/30 text-sm py-12">
+            <svg className="w-12 h-12 opacity-20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Không tìm thấy bài viết nào phù hợp
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-4">
+            {processedPosts.map((post: any, index: number) => {
+              const displayUrl = post.thumbnailUrl || post.mediaUrl;
+              const value = getMetricValue(post);
+              return (
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.02, duration: 0.3 }}
+                  className="relative aspect-square rounded-[24px] overflow-hidden border border-white/5 bg-white/5 shadow-lg group cursor-pointer"
+                >
+                  {displayUrl ? (
+                    <Image
+                      src={displayUrl}
+                      alt="Thumbnail"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 640px) 150px, (max-width: 768px) 200px, 250px"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/5 text-[10px] font-bold text-white/30 tracking-widest uppercase">
+                      {post.mediaType}
+                    </div>
+                  )}
+
+                  {/* Gradient shadow */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+
+                  {/* Format icon */}
+                  {post.mediaType === 'CAROUSEL_ALBUM' ? (
+                    <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg flex items-center justify-center text-white">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                    </div>
+                  ) : post.mediaType === 'VIDEO' || post.mediaType === 'REELS' ? (
+                    <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg flex items-center justify-center text-white">
+                      <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  ) : null}
+
+                  {/* White transparent pill badge (Image 2 style) */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md text-black font-extrabold text-xs px-3.5 py-1.5 rounded-full shadow-lg border border-white/20 select-none min-w-[55px] text-center">
+                    {formatMetricValue(value)}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

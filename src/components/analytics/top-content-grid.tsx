@@ -34,6 +34,7 @@ interface TopContentGridProps {
   activeMetric: MetricType;
   setActiveMetric: (metric: MetricType) => void;
   isLoading?: boolean;
+  onSeeAll?: () => void;
 }
 
 const METRIC_TABS = [
@@ -52,7 +53,14 @@ const GRADIENTS = [
   "linear-gradient(135deg, #00bcd4, #03a9f4)",
 ];
 
-const dateFormatter = new Intl.DateTimeFormat('vi-VN', { month: 'short', day: 'numeric', year: 'numeric' });
+const formatShortDate = (dateStr: string | Date) => {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch (e) {
+    return '';
+  }
+};
 
 function PostThumb({
   post,
@@ -66,7 +74,7 @@ function PostThumb({
   index: number;
 }) {
   const displayUrl = post.thumbnailUrl || post.mediaUrl;
-  const formattedDate = dateFormatter.format(new Date(post.postedAt));
+  const formattedDate = formatShortDate(post.postedAt);
 
   const getMetricValue = () => {
     const likes = post.likeCount || 0;
@@ -95,16 +103,6 @@ function PostThumb({
     }
   };
 
-  const getMetricBadgeStyle = () => {
-    switch (metricType) {
-      case 'interactions': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'reach': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
-      case 'likes': return 'bg-rose-500/20 text-rose-400 border-rose-500/30';
-      case 'profile_visits': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-      case 'follows': return 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30';
-    }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -114,7 +112,7 @@ function PostThumb({
     >
       {/* Media Container */}
       <div
-        className="relative w-[130px] h-[130px] sm:w-[140px] sm:h-[140px] rounded-2xl overflow-hidden mb-2.5 shadow-md border border-white/5 cursor-pointer"
+        className="relative w-[135px] h-[190px] sm:w-[155px] sm:h-[205px] rounded-[24px] overflow-hidden mb-2 shadow-md border border-white/5 cursor-pointer group"
         style={{ background: gradient }}
       >
         {displayUrl ? (
@@ -122,8 +120,8 @@ function PostThumb({
             src={displayUrl}
             alt="Content thumbnail"
             fill
-            className="object-cover"
-            sizes="(max-width: 640px) 130px, 140px"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 640px) 135px, 155px"
             unoptimized
           />
         ) : (
@@ -136,38 +134,27 @@ function PostThumb({
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
 
         {/* Media Format Icon Overlay */}
-        {post.mediaType === 'VIDEO' || post.mediaType === 'REELS' ? (
-          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg">
-            <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 24 24">
+        {post.mediaType === 'CAROUSEL_ALBUM' ? (
+          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </div>
+        ) : post.mediaType === 'VIDEO' || post.mediaType === 'REELS' ? (
+          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 text-white fill-current" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>
-        ) : post.mediaType === 'CAROUSEL_ALBUM' ? (
-          <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg flex items-center justify-center">
-            <div className="relative w-3.5 h-3.5">
-              <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-white rounded-[2px]" />
-              <div className="absolute bottom-0 left-0 w-2.5 h-2.5 bg-white/40 rounded-[2px] border border-black" />
-            </div>
-          </div>
         ) : null}
 
-        {/* Top ranking crown/badge for visual delight */}
-        {index === 0 && (
-          <div className="absolute top-2 left-2 bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-black text-[9px] px-1.5 py-0.5 rounded-md shadow-md border border-yellow-300">
-            #1
-          </div>
-        )}
-
-        {/* Metric Value HUD */}
-        <div className={cn(
-          "absolute bottom-2 left-2 right-2 backdrop-blur-md rounded-xl py-1 px-2.5 border text-center font-bold text-xs shadow-md tracking-tight",
-          getMetricBadgeStyle()
-        )}>
+        {/* Metric Value HUD (Horizontal center pill) */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-[#1a1a1a]/85 backdrop-blur-md text-white font-semibold text-xs px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg tracking-tight select-none min-w-[55px] text-center">
           {formatMetric(getMetricValue())}
         </div>
       </div>
-      <span className="text-[11px] text-white/40 font-semibold flex items-center gap-1">
-        <Calendar className="w-3 h-3" />
+      <span className="text-xs text-white/90 font-medium mt-1">
         {formattedDate}
       </span>
     </motion.div>
@@ -178,7 +165,8 @@ export function TopContentGrid({
   posts,
   activeMetric,
   setActiveMetric,
-  isLoading = false
+  isLoading = false,
+  onSeeAll
 }: TopContentGridProps) {
 
   const sortedAndFilteredPosts = React.useMemo(() => {
@@ -231,7 +219,7 @@ export function TopContentGrid({
         <div className="flex gap-4 flex-wrap justify-center sm:justify-start">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
-              <div className="w-[130px] h-[130px] sm:w-[140px] sm:h-[140px] bg-white/5 rounded-2xl animate-pulse" />
+              <div className="w-[135px] h-[190px] sm:w-[155px] sm:h-[205px] bg-white/5 rounded-[24px] animate-pulse" />
               <div className="h-3 w-16 bg-white/5 rounded animate-pulse" />
             </div>
           ))}
@@ -255,21 +243,24 @@ export function TopContentGrid({
         )}
       />
 
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-8">
-        <div>
-          <h3 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <span className={cn("p-1.5 rounded-lg bg-gradient-to-br text-black font-extrabold flex items-center justify-center", activeTabConfig.gradient)}>
-              <activeTabConfig.icon className="w-4 h-4 text-white" />
-            </span>
-            Xếp hạng Media Trọn đời
+      <div className="flex flex-col gap-5 mb-8">
+        {/* Header Title & See All Row */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-white tracking-tight">
+            Top content based on {activeTabConfig.label.toLowerCase()}
           </h3>
-          <p className="text-white/40 text-xs mt-1">
-            Top 5 bài viết đạt hiệu quả cao nhất dựa trên chỉ số <span className="text-white font-semibold">{activeTabConfig.label}</span>
-          </p>
+          {onSeeAll && (
+            <button
+              onClick={onSeeAll}
+              className="text-sm font-semibold text-blue-500 hover:text-blue-400 hover:underline transition-all cursor-pointer select-none"
+            >
+              See all
+            </button>
+          )}
         </div>
 
         {/* Tab Controls */}
-        <div className="flex flex-wrap p-1 bg-white/5 rounded-2xl border border-white/5 gap-1 self-start xl:self-auto max-w-full">
+        <div className="flex flex-wrap p-1 bg-white/5 rounded-2xl border border-white/5 gap-1 self-start max-w-full">
           {METRIC_TABS.map((tab) => {
             const IconComponent = tab.icon;
             const isActive = activeMetric === tab.id;
@@ -278,7 +269,7 @@ export function TopContentGrid({
                 key={tab.id}
                 onClick={() => setActiveMetric(tab.id)}
                 className={cn(
-                  "relative flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer select-none",
+                  "relative flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer select-none",
                   isActive 
                     ? "text-white" 
                     : "text-white/40 hover:text-white/80 hover:bg-white/[0.02]"
@@ -303,7 +294,7 @@ export function TopContentGrid({
       </div>
 
       {/* Media Row with Animations */}
-      <div className="relative min-h-[160px] flex items-center">
+      <div className="relative min-h-[220px] flex items-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeMetric}
@@ -324,7 +315,7 @@ export function TopContentGrid({
                 />
               ))
             ) : (
-              <div className="w-full min-h-[140px] flex flex-col items-center justify-center border border-dashed border-white/5 rounded-2xl text-white/30 text-xs py-8">
+              <div className="w-full min-h-[180px] flex flex-col items-center justify-center border border-dashed border-white/5 rounded-2xl text-white/30 text-xs py-8">
                 <svg className="w-8 h-8 opacity-20 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>

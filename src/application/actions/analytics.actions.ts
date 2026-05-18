@@ -470,7 +470,8 @@ export async function getTopPostsAction(
   range: AnalyticsRange = '30d', 
   customStart?: Date, 
   customEnd?: Date,
-  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows' = 'interactions'
+  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows' = 'interactions',
+  limit: number = 10
 ) {
   try {
     if (redisConnection) {
@@ -479,7 +480,7 @@ export async function getTopPostsAction(
         const liveData = JSON.parse(cached);
         if (liveData.posts) {
           console.log(`[getTopPostsAction] Serving from Redis live cache for account: ${accountId}`);
-          const liveTopPosts = getTopPostsFromLive(liveData.posts, range, 10, customStart, customEnd, sortBy);
+          const liveTopPosts = getTopPostsFromLive(liveData.posts, range, limit, customStart, customEnd, sortBy);
           return { data: liveTopPosts, error: null };
         }
       }
@@ -489,7 +490,7 @@ export async function getTopPostsAction(
   }
 
   // Fallback to database
-  return getTopPosts(accountId, range, 10, customStart, customEnd, sortBy);
+  return getTopPosts(accountId, range, limit, customStart, customEnd, sortBy);
 }
 
 export async function getTopContentAction(
