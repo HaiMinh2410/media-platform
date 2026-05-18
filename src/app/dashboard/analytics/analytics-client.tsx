@@ -1023,18 +1023,9 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       const s = temp.stories;
       const total = p + r + s;
       if (total > 0) {
-        let posts = Math.round((p / total) * 100);
-        let reels = Math.round((r / total) * 100);
-        let stories = 100 - posts - reels;
-
-        if (stories < 0) {
-          if (posts > reels) {
-            posts += stories;
-          } else {
-            reels += stories;
-          }
-          stories = 0;
-        }
+        let posts = Number((p / total * 100).toFixed(1));
+        let reels = Number((r / total * 100).toFixed(1));
+        let stories = Number(Math.max(0, 100 - posts - reels).toFixed(1));
         aggregatedByContentInteractions = { posts, reels, stories };
       }
     }

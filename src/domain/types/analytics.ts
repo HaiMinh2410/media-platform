@@ -86,6 +86,8 @@ export type AnalyticsPeriodData = {
   needsReauth?: boolean;
   uniqueReach?: number;
   prevUniqueReach?: number;
+  uniqueViews?: number;
+  prevUniqueViews?: number;
   uniqueAccountsEngaged?: number;
   prevUniqueAccountsEngaged?: number;
   uniqueInteractions?: number;

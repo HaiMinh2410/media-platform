@@ -111,9 +111,18 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
     }
 
     // 2. If encryptedToken is available, fetch Live Analytics from Meta API
+    let isLongPeriod = false;
+    if (range === 'custom' && customStart && customEnd) {
+      const diff = differenceInDays(new Date(customEnd), new Date(customStart)) + 1;
+      isLongPeriod = diff > 30;
+    } else {
+      isLongPeriod = range === '90d';
+    }
+
     let skipLiveFetch = false;
     const freshCacheKey = `live_analytics_fresh:${accountId}:${rangeSuffix}`;
-    if (redisConnection && accountWithToken?.encryptedToken) {
+    // Only skip live fetch for long periods (>30 days). For short periods (<=30 days), we must always fetch live to get precise unique counts.
+    if (isLongPeriod && redisConnection && accountWithToken?.encryptedToken) {
       try {
         const isFresh = await redisConnection.get(freshCacheKey);
         if (isFresh === 'true') {
@@ -126,7 +135,7 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
     }
 
     if (accountWithToken?.encryptedToken && !skipLiveFetch) {
-      console.log(`[getAnalyticsAction] Found Meta Token. Fetching Live Analytics from ${previousStart.toISOString()} to ${currentEnd.toISOString()}`);
+      console.log(`[getAnalyticsAction] Found Meta Token. Fetching Live Analytics from ${previousStart.toISOString()} to ${currentEnd.toISOString()} with currentStart ${currentStart.toISOString()}`);
       
       const liveResult = await metaAnalyticsService.fetchLiveAnalytics({
         accountId: account.id,
@@ -134,7 +143,8 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
         platform: account.platform,
         encryptedToken: accountWithToken.encryptedToken,
         since: previousStart,
-        until: currentEnd
+        until: currentEnd,
+        currentStart: currentStart
       });
 
       if (liveResult.success && liveResult.snapshots) {
@@ -204,6 +214,7 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
           posts: liveResult.posts || [],
           filter,
           chunkUniqueReaches: liveResult.chunkUniqueReaches,
+          chunkUniqueViews: liveResult.chunkUniqueViews,
           chunkUniqueAccountsEngaged: liveResult.chunkUniqueAccountsEngaged,
           chunkUniqueInteractions: liveResult.chunkUniqueInteractions
         });

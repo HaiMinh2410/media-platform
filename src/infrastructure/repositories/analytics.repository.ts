@@ -196,10 +196,10 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
         }
       }
       const totalIntSum = postInt + reelInt + storyInt;
-      const getIntPct = (val: number) => totalIntSum > 0 ? Math.round((val / totalIntSum) * 100) : 0;
+      const getIntPct = (val: number) => totalIntSum > 0 ? Number((val / totalIntSum * 100).toFixed(4)) : 0;
       
       const totalViewsSum = postViews + reelViews + storyViews;
-      const getViewsPct = (val: number) => totalViewsSum > 0 ? Math.round((val / totalViewsSum) * 100) : 0;
+      const getViewsPct = (val: number) => totalViewsSum > 0 ? Number((val / totalViewsSum * 100).toFixed(4)) : 0;
 
       return {
         interactions: {
@@ -606,6 +606,7 @@ export function mapLiveAnalyticsToPeriodData(params: {
   posts: any[];
   filter: AnalyticsFilter;
   chunkUniqueReaches?: number[];
+  chunkUniqueViews?: number[];
   chunkUniqueAccountsEngaged?: number[];
   chunkUniqueInteractions?: number[];
 }): AnalyticsPeriodData {
@@ -733,29 +734,49 @@ export function mapLiveAnalyticsToPeriodData(params: {
 
   let uniqueReach: number | undefined;
   let prevUniqueReach: number | undefined;
+  let uniqueViews: number | undefined;
+  let prevUniqueViews: number | undefined;
   let uniqueAccountsEngaged: number | undefined;
   let prevUniqueAccountsEngaged: number | undefined;
   let uniqueInteractions: number | undefined;
   let prevUniqueInteractions: number | undefined;
 
-  if (params.chunkUniqueReaches && params.chunkUniqueReaches.length > 0) {
-    uniqueReach = params.chunkUniqueReaches[params.chunkUniqueReaches.length - 1] || undefined;
-    if (params.chunkUniqueReaches.length >= 2) {
-      prevUniqueReach = params.chunkUniqueReaches[params.chunkUniqueReaches.length - 2] || undefined;
-    }
+  let isLongPeriod = false;
+  if (range === 'custom' && customStart && customEnd) {
+    const diff = differenceInDays(new Date(customEnd), new Date(customStart)) + 1;
+    isLongPeriod = diff > 30;
+  } else {
+    isLongPeriod = range === '90d';
   }
 
-  if (params.chunkUniqueAccountsEngaged && params.chunkUniqueAccountsEngaged.length > 0) {
-    uniqueAccountsEngaged = params.chunkUniqueAccountsEngaged[params.chunkUniqueAccountsEngaged.length - 1] || undefined;
-    if (params.chunkUniqueAccountsEngaged.length >= 2) {
-      prevUniqueAccountsEngaged = params.chunkUniqueAccountsEngaged[params.chunkUniqueAccountsEngaged.length - 2] || undefined;
+  // Only use chunk-level unique totals for short periods (<= 30 days) to prevent 30-day API mismatch
+  if (!isLongPeriod) {
+    if (params.chunkUniqueReaches && params.chunkUniqueReaches.length > 0) {
+      uniqueReach = params.chunkUniqueReaches[params.chunkUniqueReaches.length - 1] || undefined;
+      if (params.chunkUniqueReaches.length >= 2) {
+        prevUniqueReach = params.chunkUniqueReaches[params.chunkUniqueReaches.length - 2] || undefined;
+      }
     }
-  }
 
-  if (params.chunkUniqueInteractions && params.chunkUniqueInteractions.length > 0) {
-    uniqueInteractions = params.chunkUniqueInteractions[params.chunkUniqueInteractions.length - 1] || undefined;
-    if (params.chunkUniqueInteractions.length >= 2) {
-      prevUniqueInteractions = params.chunkUniqueInteractions[params.chunkUniqueInteractions.length - 2] || undefined;
+    if (params.chunkUniqueViews && params.chunkUniqueViews.length > 0) {
+      uniqueViews = params.chunkUniqueViews[params.chunkUniqueViews.length - 1] || undefined;
+      if (params.chunkUniqueViews.length >= 2) {
+        prevUniqueViews = params.chunkUniqueViews[params.chunkUniqueViews.length - 2] || undefined;
+      }
+    }
+
+    if (params.chunkUniqueAccountsEngaged && params.chunkUniqueAccountsEngaged.length > 0) {
+      uniqueAccountsEngaged = params.chunkUniqueAccountsEngaged[params.chunkUniqueAccountsEngaged.length - 1] || undefined;
+      if (params.chunkUniqueAccountsEngaged.length >= 2) {
+        prevUniqueAccountsEngaged = params.chunkUniqueAccountsEngaged[params.chunkUniqueAccountsEngaged.length - 2] || undefined;
+      }
+    }
+
+    if (params.chunkUniqueInteractions && params.chunkUniqueInteractions.length > 0) {
+      uniqueInteractions = params.chunkUniqueInteractions[params.chunkUniqueInteractions.length - 1] || undefined;
+      if (params.chunkUniqueInteractions.length >= 2) {
+        prevUniqueInteractions = params.chunkUniqueInteractions[params.chunkUniqueInteractions.length - 2] || undefined;
+      }
     }
   }
 
@@ -815,6 +836,8 @@ export function mapLiveAnalyticsToPeriodData(params: {
     previousEnd,
     uniqueReach,
     prevUniqueReach,
+    uniqueViews,
+    prevUniqueViews,
     uniqueAccountsEngaged,
     prevUniqueAccountsEngaged,
     uniqueInteractions,

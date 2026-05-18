@@ -229,6 +229,7 @@ export const metaAnalyticsService = {
     encryptedToken: string;
     since: Date;
     until: Date;
+    currentStart?: Date;    // Precise start of the current period
   }): Promise<{
     success: boolean;
     snapshots?: any[];
@@ -237,11 +238,12 @@ export const metaAnalyticsService = {
     byContentInteractions?: any;
     posts?: any[];
     chunkUniqueReaches?: number[];
+    chunkUniqueViews?: number[];
     chunkUniqueAccountsEngaged?: number[];
     chunkUniqueInteractions?: number[];
     error?: string;
   }> {
-    const { accountId, externalId, platform, encryptedToken, since, until } = params;
+    const { accountId, externalId, platform, encryptedToken, since, until, currentStart } = params;
 
     try {
       // 1. Decrypt access token
@@ -357,7 +359,7 @@ export const metaAnalyticsService = {
             }
 
             const totalIntSum = postInt + reelInt + storyInt;
-            const getIntPct = (val: number) => totalIntSum > 0 ? Math.round((val / totalIntSum) * 100) : 0;
+            const getIntPct = (val: number) => totalIntSum > 0 ? Number((val / totalIntSum * 100).toFixed(4)) : 0;
             byContentInteractions = {
               posts: getIntPct(postInt),
               reels: getIntPct(reelInt),
@@ -371,24 +373,35 @@ export const metaAnalyticsService = {
 
       // 3. Chunking logic
       const chunks: { since: Date; until: Date }[] = [];
-      let currentStart = new Date(since);
-      currentStart.setUTCHours(0, 0, 0, 0);
-      const endLimit = new Date(until);
-      endLimit.setUTCHours(23, 59, 59, 999);
       
-      while (currentStart < endLimit) {
-        let currentEnd = new Date(currentStart);
-        currentEnd.setUTCDate(currentEnd.getUTCDate() + 29); // 30 days
-        if (currentEnd > endLimit) {
-          currentEnd = new Date(endLimit);
+      const buildPeriodChunks = (start: Date, end: Date) => {
+        let pStart = new Date(start);
+        pStart.setUTCHours(0, 0, 0, 0);
+        const pEnd = new Date(end);
+        pEnd.setUTCHours(23, 59, 59, 999);
+        
+        while (pStart < pEnd) {
+          let chunkEnd = new Date(pStart);
+          chunkEnd.setUTCDate(chunkEnd.getUTCDate() + 30); // Exactly 30 days
+          if (chunkEnd > pEnd) {
+            chunkEnd = new Date(pEnd);
+          }
+          chunks.push({ since: new Date(pStart), until: new Date(chunkEnd) });
+          pStart = new Date(chunkEnd);
         }
-        chunks.push({ since: new Date(currentStart), until: new Date(currentEnd) });
-        currentStart = new Date(currentEnd);
-        currentStart.setUTCDate(currentStart.getUTCDate() + 1);
+      };
+
+      if (currentStart) {
+        // Build chunks for previous period and current period separately to get precise unique values for short periods
+        buildPeriodChunks(since, currentStart);
+        buildPeriodChunks(currentStart, until);
+      } else {
+        buildPeriodChunks(since, until);
       }
 
       const allSnapshots: any[] = [];
       const chunkUniqueReaches: number[] = [];
+      const chunkUniqueViews: number[] = [];
       const chunkUniqueAccountsEngaged: number[] = [];
       const chunkUniqueInteractions: number[] = [];
 
@@ -470,7 +483,7 @@ export const metaAnalyticsService = {
           let currentDay = new Date(chunkStart);
           currentDay.setUTCHours(0, 0, 0, 0);
           
-          while (currentDay <= chunkEnd) {
+          while (currentDay < chunkEnd) {
             const dayStart = new Date(currentDay);
             const sinceUnixVal = Math.floor(dayStart.getTime() / 1000);
             
@@ -532,9 +545,9 @@ export const metaAnalyticsService = {
               since: sinceUnix,
               until: untilUnix
             }, 'GET', accountId),
-            // [3] True non-breakdown unique reach for the entire chunk range
+            // [3] True non-breakdown unique reach and views for the entire chunk range
             client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
-              metric: 'reach', 
+              metric: 'reach,views', 
               period: 'day',
               metric_type: 'total_value',
               since: sinceUnix,
@@ -543,6 +556,15 @@ export const metaAnalyticsService = {
             // [4] True non-breakdown unique accounts engaged and total interactions for the entire chunk range
             client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
               metric: 'accounts_engaged,total_interactions', 
+              period: 'day',
+              metric_type: 'total_value',
+              since: sinceUnix,
+              until: untilUnix
+            }, 'GET', accountId),
+            // [5] Total interactions breakdown by Content Type
+            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+              metric: 'total_interactions', 
+              breakdown: 'media_product_type', 
               period: 'day',
               metric_type: 'total_value',
               since: sinceUnix,
@@ -638,69 +660,81 @@ export const metaAnalyticsService = {
               const totalFollowers = doubleBreakdown.followers.posts + doubleBreakdown.followers.reels + doubleBreakdown.followers.stories;
               const totalNonfollowers = doubleBreakdown.nonfollowers.posts + doubleBreakdown.nonfollowers.reels + doubleBreakdown.nonfollowers.stories;
               
-              const getPct = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
-              
-              chunkByContentViews = {
-                all: {
-                  posts: getPct(doubleBreakdown.all.posts, totalAll),
-                  reels: getPct(doubleBreakdown.all.reels, totalAll),
-                  stories: getPct(doubleBreakdown.all.stories, totalAll)
-                },
-                followers: {
-                  posts: getPct(doubleBreakdown.followers.posts, totalFollowers),
-                  reels: getPct(doubleBreakdown.followers.reels, totalFollowers),
-                  stories: getPct(doubleBreakdown.followers.stories, totalFollowers)
-                },
-                nonfollowers: {
-                  posts: getPct(doubleBreakdown.nonfollowers.posts, totalNonfollowers),
-                  reels: getPct(doubleBreakdown.nonfollowers.reels, totalNonfollowers),
-                  stories: getPct(doubleBreakdown.nonfollowers.stories, totalNonfollowers)
-                }
-              };
+              if (totalAll > 0 || totalFollowers > 0 || totalNonfollowers > 0) {
+                const getPct = (val: number, total: number) => total > 0 ? Number((val / total * 100).toFixed(4)) : 0;
+                
+                chunkByContentViews = {
+                  all: {
+                    posts: getPct(doubleBreakdown.all.posts, totalAll),
+                    reels: getPct(doubleBreakdown.all.reels, totalAll),
+                    stories: getPct(doubleBreakdown.all.stories, totalAll)
+                  },
+                  followers: {
+                    posts: getPct(doubleBreakdown.followers.posts, totalFollowers),
+                    reels: getPct(doubleBreakdown.followers.reels, totalFollowers),
+                    stories: getPct(doubleBreakdown.followers.stories, totalFollowers)
+                  },
+                  nonfollowers: {
+                    posts: getPct(doubleBreakdown.nonfollowers.posts, totalNonfollowers),
+                    reels: getPct(doubleBreakdown.nonfollowers.reels, totalNonfollowers),
+                    stories: getPct(doubleBreakdown.nonfollowers.stories, totalNonfollowers)
+                  }
+                };
+              }
             } else {
               // Fallback to single breakdown
               const viewsBreakdown = parseMediaProductType(d.data, 'views');
               const totalViews = viewsBreakdown.posts + viewsBreakdown.reels + viewsBreakdown.stories;
-              const getPct = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
               
-              chunkByContentViews = {
-                all: {
-                  posts: getPct(viewsBreakdown.posts, totalViews),
-                  reels: getPct(viewsBreakdown.reels, totalViews),
-                  stories: getPct(viewsBreakdown.stories, totalViews)
-                },
-                followers: {
-                  posts: getPct(viewsBreakdown.posts, totalViews),
-                  reels: getPct(viewsBreakdown.reels, totalViews),
-                  stories: getPct(viewsBreakdown.stories, totalViews)
-                },
-                nonfollowers: {
-                  posts: getPct(viewsBreakdown.posts, totalViews),
-                  reels: getPct(viewsBreakdown.reels, totalViews),
-                  stories: getPct(viewsBreakdown.stories, totalViews)
-                }
-              };
+              if (totalViews > 0) {
+                const getPct = (val: number, total: number) => total > 0 ? Number((val / total * 100).toFixed(4)) : 0;
+                
+                chunkByContentViews = {
+                  all: {
+                    posts: getPct(viewsBreakdown.posts, totalViews),
+                    reels: getPct(viewsBreakdown.reels, totalViews),
+                    stories: getPct(viewsBreakdown.stories, totalViews)
+                  },
+                  followers: {
+                    posts: getPct(viewsBreakdown.posts, totalViews),
+                    reels: getPct(viewsBreakdown.reels, totalViews),
+                    stories: getPct(viewsBreakdown.stories, totalViews)
+                  },
+                  nonfollowers: {
+                    posts: getPct(viewsBreakdown.posts, totalViews),
+                    reels: getPct(viewsBreakdown.reels, totalViews),
+                    stories: getPct(viewsBreakdown.stories, totalViews)
+                  }
+                };
+              }
             }
           }
 
-          // Process true unique reach directly from follow_type breakdown (otherResults[0])
+          // Process true unique reach and views directly from the API (otherResults[3])
           let uniqueReachVal = 0;
+          let uniqueViewsVal = 0;
+          
+          // First try to get reach from follow_type breakdown (otherResults[0])
           if (followTypeRes && followTypeRes.status === 'fulfilled' && followTypeRes.value.data) {
             const d = followTypeRes.value.data as MetaInsightsResponse;
             const reachItem = d.data?.find((i: any) => i.name === 'reach');
             uniqueReachVal = reachItem?.total_value?.value || 0;
           }
 
-          // Fallback to otherResults[3] non-breakdown reach if above is 0
-          if (uniqueReachVal === 0) {
-            const trueReachRes = otherResults[3];
-            if (trueReachRes && trueReachRes.status === 'fulfilled' && trueReachRes.value.data) {
-              const d = trueReachRes.value.data as MetaInsightsResponse;
+          // Fallback reach / get views from otherResults[3] non-breakdown metrics
+          const trueReachRes = otherResults[3];
+          if (trueReachRes && trueReachRes.status === 'fulfilled' && trueReachRes.value.data) {
+            const d = trueReachRes.value.data as MetaInsightsResponse;
+            if (uniqueReachVal === 0) {
               const reachItem = d.data?.find((i: any) => i.name === 'reach');
               uniqueReachVal = reachItem?.total_value?.value || 0;
             }
+            const viewsItem = d.data?.find((i: any) => i.name === 'views');
+            uniqueViewsVal = viewsItem?.total_value?.value || 0;
           }
+
           chunkUniqueReaches.push(uniqueReachVal);
+          chunkUniqueViews.push(uniqueViewsVal);
 
           // Process unique accounts engaged and unique total interactions (otherResults[4])
           let uniqueAccountsEngagedVal = 0;
@@ -716,8 +750,26 @@ export const metaAnalyticsService = {
           chunkUniqueAccountsEngaged.push(uniqueAccountsEngagedVal);
           chunkUniqueInteractions.push(uniqueInteractionsVal);
 
-          // Process online followers (otherResults[5])
-          const onlineFollowersIdx = 5;
+          // Process total interactions media product type breakdown (otherResults[5])
+          let chunkByContentInteractions: any = null;
+          const interactionsBreakdownRes = otherResults[5];
+          if (interactionsBreakdownRes && interactionsBreakdownRes.status === 'fulfilled' && interactionsBreakdownRes.value.data) {
+            const d = interactionsBreakdownRes.value.data as MetaInsightsResponse;
+            const parsedInt = parseMediaProductType(d.data, 'total_interactions');
+            const totalIntVal = parsedInt.posts + parsedInt.reels + parsedInt.stories;
+            
+            if (totalIntVal > 0) {
+              const getPct = (val: number, total: number) => total > 0 ? Number((val / total * 100).toFixed(4)) : 0;
+              chunkByContentInteractions = {
+                posts: getPct(parsedInt.posts, totalIntVal),
+                reels: getPct(parsedInt.reels, totalIntVal),
+                stories: getPct(parsedInt.stories, totalIntVal)
+              };
+            }
+          }
+
+          // Process online followers (otherResults[6])
+          const onlineFollowersIdx = 6;
           if (!insufficientData && otherResults[onlineFollowersIdx] && otherResults[onlineFollowersIdx].status === 'fulfilled' && otherResults[onlineFollowersIdx].value.data) {
             const d = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
             const onlineFollowers = d.data.find((i: any) => i.name === 'online_followers')?.values[0]?.value;
@@ -731,7 +783,7 @@ export const metaAnalyticsService = {
             dailyMetrics[key].followersPct = chunkFollowersPct;
             dailyMetrics[key].nonfollowersPct = chunkNonfollowersPct;
             dailyMetrics[key].byContentViews = chunkByContentViews;
-            dailyMetrics[key].byContentInteractions = byContentInteractions;
+            dailyMetrics[key].byContentInteractions = chunkByContentInteractions || byContentInteractions;
             dailyMetrics[key].activeTimes = activeTimes;
           }
         }
@@ -775,6 +827,7 @@ export const metaAnalyticsService = {
         byContentInteractions,
         posts: processedPosts,
         chunkUniqueReaches,
+        chunkUniqueViews,
         chunkUniqueAccountsEngaged,
         chunkUniqueInteractions
       };
@@ -1001,6 +1054,8 @@ export const metaAnalyticsService = {
           followersPct: number;
           nonfollowersPct: number;
           byContentViews: any;
+          byContentInteractions?: any;
+          activeTimes?: any;
         }> = {};
 
         if (platform === 'facebook' || platform === 'meta') {
@@ -1141,6 +1196,15 @@ export const metaAnalyticsService = {
               metric_type: 'total_value',
               since: sinceUnix,
               until: untilUnix
+            }, 'GET', accountId),
+            // [4] Total interactions breakdown by Content Type
+            client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+              metric: 'total_interactions', 
+              breakdown: 'media_product_type', 
+              period: 'day',
+              metric_type: 'total_value',
+              since: sinceUnix,
+              until: untilUnix
             }, 'GET', accountId)
           ];
 
@@ -1272,8 +1336,24 @@ export const metaAnalyticsService = {
             }
           }
 
-          // 7. Process online followers (otherResults[4])
-          const onlineFollowersIdx = 4;
+          // Process total interactions media product type breakdown (otherResults[4])
+          let chunkByContentInteractions: any = null;
+          const interactionsBreakdownRes = otherResults[4];
+          if (interactionsBreakdownRes && interactionsBreakdownRes.status === 'fulfilled' && interactionsBreakdownRes.value.data) {
+            const d = interactionsBreakdownRes.value.data as MetaInsightsResponse;
+            const parsedInt = parseMediaProductType(d.data, 'total_interactions');
+            const totalIntVal = parsedInt.posts + parsedInt.reels + parsedInt.stories;
+            const getPct = (val: number, total: number) => total > 0 ? Math.round((val / total) * 100) : 0;
+            
+            chunkByContentInteractions = {
+              posts: getPct(parsedInt.posts, totalIntVal),
+              reels: getPct(parsedInt.reels, totalIntVal),
+              stories: getPct(parsedInt.stories, totalIntVal)
+            };
+          }
+
+          // 7. Process online followers (otherResults[5])
+          const onlineFollowersIdx = 5;
           if (!insufficientData && otherResults[onlineFollowersIdx] && otherResults[onlineFollowersIdx].status === 'fulfilled' && otherResults[onlineFollowersIdx].value.data) {
             const d = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
             const onlineFollowers = d.data.find((i: any) => i.name === 'online_followers')?.values[0]?.value;
@@ -1287,6 +1367,8 @@ export const metaAnalyticsService = {
             dailyMetrics[key].followersPct = chunkFollowersPct;
             dailyMetrics[key].nonfollowersPct = chunkNonfollowersPct;
             dailyMetrics[key].byContentViews = chunkByContentViews;
+            dailyMetrics[key].byContentInteractions = chunkByContentInteractions || byContentInteractions;
+            dailyMetrics[key].activeTimes = activeTimes;
           }
         }
 
@@ -1306,8 +1388,8 @@ export const metaAnalyticsService = {
             followersPct: metric.followersPct,
             nonfollowersPct: metric.nonfollowersPct,
             byContentViews: metric.byContentViews,
-            byContentInteractions,
-            activeTimes: platform === 'instagram' ? activeTimes : null,
+            byContentInteractions: metric.byContentInteractions || byContentInteractions,
+            activeTimes: platform === 'instagram' ? (metric.activeTimes || activeTimes) : null,
             insufficientData
           });
 
@@ -1321,8 +1403,8 @@ export const metaAnalyticsService = {
               const cacheKey = `analytics:breakdown:${accountId}:${dateStr}`;
               const cacheData = {
                 byContentViews: metric.byContentViews,
-                byContentInteractions,
-                activeTimes
+                byContentInteractions: metric.byContentInteractions || byContentInteractions,
+                activeTimes: metric.activeTimes || activeTimes
               };
               await redisConnection.set(cacheKey, JSON.stringify(cacheData), 'EX', 12 * 60 * 60);
             } catch (cacheErr) {
