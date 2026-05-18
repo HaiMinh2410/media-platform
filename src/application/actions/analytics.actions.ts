@@ -621,3 +621,104 @@ export async function syncAllAccountsAction() {
 
   return { success: true, processed: accountsWithTokens.length, successful: successCount };
 }
+
+/**
+ * Server Action to fetch detailed follower insights (follows/unfollows and demographics)
+ */
+export async function getFollowerDetailedAnalyticsAction(
+  accountId: string, 
+  range: AnalyticsRange = '30d', 
+  customStart?: Date, 
+  customEnd?: Date
+) {
+  try {
+    const repo = getPlatformAccountRepository();
+    const { data: account, error: accountError } = await repo.findById(accountId);
+    if (accountError || !account) {
+      return { error: 'ACCOUNT_NOT_FOUND' };
+    }
+    
+    if (account.platform !== 'instagram') {
+      return { error: 'ONLY_INSTAGRAM_SUPPORTED' };
+    }
+
+    // Get Meta Tokens
+    const { data: accountsWithTokens } = await repo.findAllWithMetaTokens();
+    const accountWithToken = accountsWithTokens?.find(a => a.id === accountId);
+    
+    if (!accountWithToken || !accountWithToken.encryptedToken) {
+      return { error: 'MISSING_META_TOKEN' };
+    }
+
+    // Calculate start and end date for follows_and_unfollows
+    const now = new Date();
+    const localTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+    let currentEnd = new Date(Date.UTC(
+      localTime.getUTCFullYear(),
+      localTime.getUTCMonth(),
+      localTime.getUTCDate(),
+      23, 59, 59, 999
+    ));
+    let currentStart: Date;
+    
+    if (range === 'custom' && customStart && customEnd) {
+      currentStart = new Date(customStart);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      currentEnd = new Date(customEnd);
+      currentEnd.setUTCHours(23, 59, 59, 999);
+    } else {
+      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      currentStart = subDays(currentEnd, days - 1);
+      currentStart.setUTCHours(0, 0, 0, 0);
+    }
+
+    // Timeframe for demographics
+    const timeframe = range === '7d' ? 'this_week' : 'this_month';
+
+    // Redis Cache Key
+    const rangeSuffix = range === 'custom' && customStart && customEnd 
+      ? `custom_${new Date(customStart).toISOString().split('T')[0]}_${new Date(customEnd).toISOString().split('T')[0]}`
+      : range;
+    const cacheKey = `follower_details_cache:${accountId}:${rangeSuffix}`;
+
+    if (redisConnection) {
+      try {
+        const cached = await redisConnection.get(cacheKey);
+        if (cached) {
+          console.log(`[getFollowerDetailedAnalyticsAction] Served from Redis cache for account: ${accountId}`);
+          return { data: JSON.parse(cached), error: null };
+        }
+      } catch (cacheErr) {
+        console.error('[getFollowerDetailedAnalyticsAction] Redis cache read failed:', cacheErr);
+      }
+    }
+
+    const result = await metaAnalyticsService.fetchFollowerDetails({
+      accountId,
+      externalId: account.externalId,
+      platform: account.platform,
+      encryptedToken: accountWithToken.encryptedToken,
+      since: currentStart,
+      until: currentEnd,
+      timeframe: timeframe as 'this_week' | 'this_month'
+    });
+
+    if (result.success) {
+      if (redisConnection) {
+        try {
+          // Cache for 15 minutes
+          await redisConnection.set(cacheKey, JSON.stringify(result), 'EX', 900);
+        } catch (redisErr) {
+          console.error('[getFollowerDetailedAnalyticsAction] Redis cache write failed:', redisErr);
+        }
+      }
+      return { data: result, error: null };
+    } else {
+      return { error: result.error || 'LIVE_FETCH_FAILED' };
+    }
+
+  } catch (err: any) {
+    console.error('[getFollowerDetailedAnalyticsAction] Critical error:', err);
+    return { error: err.message || 'UNKNOWN_ERROR' };
+  }
+}

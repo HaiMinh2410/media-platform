@@ -1426,5 +1426,246 @@ export const metaAnalyticsService = {
       console.error(`[MetaAnalyticsService] Sync critical failure for ${accountId}:`, err);
       return { success: false, error: err.message || 'UNKNOWN_ERROR' };
     }
+  },
+
+  /**
+   * Fetches detailed follower demographics and daily follows/unfollows.
+   */
+  async fetchFollowerDetails(params: {
+    accountId: string;
+    externalId: string;
+    platform: string;
+    encryptedToken: string;
+    since: Date;
+    until: Date;
+    timeframe: 'this_month' | 'this_week';
+  }): Promise<{
+    success: boolean;
+    followersCount: number;
+    username: string;
+    insufficientData: boolean;
+    followsAndUnfollows?: Array<{ date: string; follows: number; unfollows: number }>;
+    demographics?: {
+      age: Array<{ name: string; value: number }>;
+      city: Array<{ name: string; value: number }>;
+      country: Array<{ name: string; value: number }>;
+      gender: Array<{ name: string; value: number }>;
+    };
+    error?: string;
+  }> {
+    const { accountId, externalId, platform, encryptedToken, since, until, timeframe } = params;
+
+    if (platform !== 'instagram') {
+      return {
+        success: false,
+        followersCount: 0,
+        username: '',
+        insufficientData: false,
+        error: 'ONLY_INSTAGRAM_SUPPORTED'
+      };
+    }
+
+    try {
+      const encryptionService = getTokenEncryptionService();
+      const { data: accessToken, error: decryptError } = await encryptionService.decrypt(encryptedToken);
+
+      if (decryptError || !accessToken) {
+        return {
+          success: false,
+          followersCount: 0,
+          username: '',
+          insufficientData: false,
+          error: `TOKEN_DECRYPT_FAILED: ${decryptError}`
+        };
+      }
+
+      const client = getMetaGraphClient();
+
+      // 1. Get total follower count and username
+      const igRes = await client.request<MetaIGFollowersResponse>(
+        externalId,
+        accessToken,
+        { fields: 'followers_count,username' },
+        'GET',
+        accountId
+      );
+      const followersCount = igRes.data?.followers_count || 0;
+      const username = igRes.data?.username || '';
+
+      if (followersCount < 100) {
+        return {
+          success: true,
+          followersCount,
+          username,
+          insufficientData: true,
+          followsAndUnfollows: [],
+          demographics: { age: [], city: [], country: [], gender: [] }
+        };
+      }
+
+      const sinceUnix = Math.floor(since.getTime() / 1000);
+      const untilUnix = Math.floor(until.getTime() / 1000);
+
+      // 2. Fetch follows_and_unfollows and demographics in parallel with graceful error catching
+      const followsPromise = client.request<any>(
+        `${externalId}/insights`,
+        accessToken,
+        {
+          metric: 'follows_and_unfollows',
+          metric_type: 'total_value',
+          breakdown: 'follow_type',
+          period: 'day',
+          since: sinceUnix,
+          until: untilUnix
+        },
+        'GET',
+        accountId
+      ).catch(err => {
+        console.warn('[MetaAnalyticsService] Failed to fetch follows_and_unfollows:', err);
+        return null;
+      });
+
+      const demoBreakdowns = ['age', 'city', 'country', 'gender'];
+      const demoPromises = demoBreakdowns.map(b => 
+        client.request<any>(
+          `${externalId}/insights`,
+          accessToken,
+          {
+            metric: 'follower_demographics',
+            metric_type: 'total_value',
+            breakdown: b,
+            period: 'lifetime',
+            timeframe: timeframe
+          },
+          'GET',
+          accountId
+        ).catch(err => {
+          console.warn(`[MetaAnalyticsService] Failed to fetch demographics for ${b}:`, err);
+          return null;
+        })
+      );
+
+      const [followsRes, ...demoResults] = await Promise.all([
+        followsPromise,
+        ...demoPromises
+      ]);
+
+      // 3. Parse follows_and_unfollows
+      const followsData: Array<{ date: string; follows: number; unfollows: number }> = [];
+      if (followsRes && followsRes.data && Array.isArray(followsRes.data.data)) {
+        const item = followsRes.data.data.find((i: any) => i.name === 'follows_and_unfollows');
+        if (item && Array.isArray(item.values)) {
+          for (const v of item.values) {
+            const date = new Date(v.end_time);
+            date.setUTCDate(date.getUTCDate() - 1);
+            date.setUTCHours(0, 0, 0, 0);
+            const dateStr = date.toISOString().split('T')[0];
+            
+            let dayFollows = 0;
+            let dayUnfollows = 0;
+            
+            if (Array.isArray(v.breakdowns)) {
+              for (const b of v.breakdowns) {
+                const keys = b.dimension_keys || [];
+                const followTypeIdx = keys.indexOf('follow_type');
+                if (followTypeIdx !== -1 && Array.isArray(b.results)) {
+                  for (const res of b.results) {
+                    const vals = res.dimension_values || [];
+                    const val = res.value || 0;
+                    const type = (vals[followTypeIdx] || '').toUpperCase();
+                    if (type === 'FOLLOW' || type === 'FOLLOWS') {
+                      dayFollows += val;
+                    } else if (type === 'UNFOLLOW' || type === 'UNFOLLOWS') {
+                      dayUnfollows += val;
+                    }
+                  }
+                }
+              }
+            } else if (v.value && typeof v.value === 'object') {
+              dayFollows = v.value.FOLLOW || v.value.FOLLOWS || v.value.follow || v.value.follows || 0;
+              dayUnfollows = v.value.UNFOLLOW || v.value.UNFOLLOWS || v.value.unfollow || v.value.unfollows || 0;
+            } else if (typeof v.value === 'number') {
+              dayFollows = v.value;
+            }
+            
+            followsData.push({
+              date: dateStr,
+              follows: dayFollows,
+              unfollows: dayUnfollows
+            });
+          }
+        }
+      }
+
+      // Sort followsData by date ascending
+      followsData.sort((a, b) => a.date.localeCompare(b.date));
+
+      // 4. Parse demographics
+      const demographics: {
+        age: Array<{ name: string; value: number }>;
+        city: Array<{ name: string; value: number }>;
+        country: Array<{ name: string; value: number }>;
+        gender: Array<{ name: string; value: number }>;
+      } = { age: [], city: [], country: [], gender: [] };
+
+      demoBreakdowns.forEach((b, idx) => {
+        const res = demoResults[idx];
+        const resData = (res as any)?.data || (res as any)?.value?.data;
+        if (resData && Array.isArray(resData.data)) {
+          const item = resData.data.find((i: any) => i.name === 'follower_demographics');
+          if (item) {
+            const valueObj = item.total_value || (item.values && item.values[0]) || item;
+            const list: { name: string; value: number }[] = [];
+            
+            if (Array.isArray(valueObj.breakdowns)) {
+              for (const bk of valueObj.breakdowns) {
+                const keys = bk.dimension_keys || [];
+                const bIdx = keys.indexOf(b);
+                if (bIdx !== -1 && Array.isArray(bk.results)) {
+                  for (const r of bk.results) {
+                    const vals = r.dimension_values || [];
+                    const label = vals[bIdx] || 'Unknown';
+                    const val = r.value || 0;
+                    list.push({ name: label, value: val });
+                  }
+                }
+              }
+            } else if (valueObj.value && typeof valueObj.value === 'object') {
+              for (const [k, v] of Object.entries(valueObj.value)) {
+                if (typeof v === 'number') {
+                  list.push({ name: k, value: v });
+                }
+              }
+            }
+            
+            list.sort((a, b) => b.value - a.value);
+            
+            if (b === 'age') demographics.age = list;
+            else if (b === 'city') demographics.city = list;
+            else if (b === 'country') demographics.country = list;
+            else if (b === 'gender') demographics.gender = list;
+          }
+        }
+      });
+
+      return {
+        success: true,
+        followersCount,
+        username,
+        insufficientData: false,
+        followsAndUnfollows: followsData,
+        demographics
+      };
+
+    } catch (err: any) {
+      console.error('[MetaAnalyticsService] fetchFollowerDetails error:', err);
+      return {
+        success: false,
+        followersCount: 0,
+        username: '',
+        insufficientData: false,
+        error: err.message || 'UNKNOWN_ERROR'
+      };
+    }
   }
 };

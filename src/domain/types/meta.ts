@@ -63,6 +63,7 @@ export type MetaPageFansResponse = {
 export type MetaIGFollowersResponse = {
   followers_count: number;
   id: string;
+  username?: string;
 };
 
 export type MetaPublishResponse = {

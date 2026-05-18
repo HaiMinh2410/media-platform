@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@/components/ui/icon';
 import { 
   getAnalyticsAction, syncAnalyticsAction, getTopPostsAction, getEngagementBreakdownAction,
-  getPostFrequencyAction, syncAllAccountsAction, getTopContentAction
+  getPostFrequencyAction, syncAllAccountsAction, getTopContentAction, getFollowerDetailedAnalyticsAction
 } from '@/application/actions/analytics.actions';
 import { AnalyticsPeriodData, AnalyticsRange } from '@/domain/types/analytics';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -24,6 +24,7 @@ import { InteractionsCard } from '@/components/analytics/interactions-card';
 import { TopContentGrid, type TopContentPost } from '@/components/analytics/top-content-grid';
 import { ActiveTimesChart } from '@/components/analytics/active-times-chart';
 import { ProfileCard } from '@/components/analytics/profile-card';
+import { FollowerDetailedSection } from '@/components/analytics/follower-detailed-section';
 import AIAnalyticsPage from '../ai-analytics/page';
 import './analytics.css';
 
@@ -80,6 +81,15 @@ function useTopContent(accountId: string, range: AnalyticsRange, customStart?: D
     queryKey: ['top-content', accountId, range, customStart, customEnd],
     queryFn: () => getTopContentAction(accountId, range, customStart, customEnd),
     staleTime: getStaleTime(range),
+  });
+}
+
+function useFollowerDetails(accountId: string, range: AnalyticsRange, customStart?: Date, customEnd?: Date) {
+  return useQuery({
+    queryKey: ['follower-details', accountId, range, customStart, customEnd],
+    queryFn: () => getFollowerDetailedAnalyticsAction(accountId, range, customStart, customEnd),
+    staleTime: getStaleTime(range),
+    enabled: !!accountId,
   });
 }
 
@@ -1244,122 +1254,133 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             />
           </div>
 
-          <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
-            <h2 className="chart-title">{activeConfig?.label} Trend</h2>
-            {isPending ? (
-              <SkeletonChart />
-            ) : isError || !totals ? (
-              <div className="w-full h-[350px] flex items-center justify-center bg-white/[0.02] rounded-xl border border-white/5">
-                <span className="text-white/40">No data available</span>
-              </div>
-            ) : (
-              <div style={{ width: '100%', height: '350px' }}>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeMetric}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
-                    style={{ width: '100%', height: '100%' }}
-                  >
-                    <ResponsiveContainer>
-                      <AreaChart data={chartData}>
-                        <defs>
-                          <linearGradient id="colorReach" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                            <stop offset="50%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="colorImpressions" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4}/>
-                            <stop offset="50%" stopColor="#a855f7" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="colorEng" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                            <stop offset="50%" stopColor="#10b981" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.4}/>
-                            <stop offset="50%" stopColor="#f97316" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                        <XAxis 
-                          dataKey="date" 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
-                          dy={10}
-                          interval={range === '30d' ? 4 : range === '90d' ? 6 : 0}
-                        />
-                        <YAxis 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
-                          domain={activeMetric === 'followers' ? ['dataMin - 100', 'dataMax + 100'] : [0, 'auto']}
-                          allowDecimals={false}
-                        />
-                        <Tooltip 
-                          content={<CustomTooltip activeMetric={activeMetric} />}
-                          cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey={activeMetric} 
-                          stroke={activeConfig?.color} 
-                          strokeWidth={3}
-                          fillOpacity={1} 
-                          fill={`url(#${activeConfig?.gradientId})`} 
-                          connectNulls
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            )}
-          </div>
-
-          {/* Insufficient Data Guard */}
-          {data?.data?.current[data.data.current.length - 1]?.insufficientData ? (
-            <InsufficientDataState />
+          {activeMetric === 'followers' && accounts.find(a => a.id === selectedAccountId)?.platform === 'instagram' ? (
+            <FollowerDetailedSection
+              accountId={selectedAccountId}
+              range={range}
+              customStart={cStart}
+              customEnd={cEnd}
+            />
           ) : (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <EngagementBreakdownChart 
-                  accountId={selectedAccountId} 
-                  range={range} 
-                  customStart={cStart} 
-                  customEnd={cEnd} 
-                />
-                <PostFrequencyChart 
-                  accountId={selectedAccountId} 
-                  range={range} 
-                  customStart={cStart} 
-                  customEnd={cEnd} 
-                />
+              <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
+                <h2 className="chart-title">{activeConfig?.label} Trend</h2>
+                {isPending ? (
+                  <SkeletonChart />
+                ) : isError || !totals ? (
+                  <div className="w-full h-[350px] flex items-center justify-center bg-white/[0.02] rounded-xl border border-white/5">
+                    <span className="text-white/40">No data available</span>
+                  </div>
+                ) : (
+                  <div style={{ width: '100%', height: '350px' }}>
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={activeMetric}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.3 }}
+                        style={{ width: '100%', height: '100%' }}
+                      >
+                        <ResponsiveContainer>
+                          <AreaChart data={chartData}>
+                            <defs>
+                              <linearGradient id="colorReach" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
+                                <stop offset="50%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                              </linearGradient>
+                              <linearGradient id="colorImpressions" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4}/>
+                                <stop offset="50%" stopColor="#a855f7" stopOpacity={0.1}/>
+                                <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                              </linearGradient>
+                              <linearGradient id="colorEng" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                                <stop offset="50%" stopColor="#10b981" stopOpacity={0.1}/>
+                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                              </linearGradient>
+                              <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#f97316" stopOpacity={0.4}/>
+                                <stop offset="50%" stopColor="#f97316" stopOpacity={0.1}/>
+                                <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                            <XAxis 
+                              dataKey="date" 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                              dy={10}
+                              interval={range === '30d' ? 4 : range === '90d' ? 6 : 0}
+                            />
+                            <YAxis 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
+                              domain={activeMetric === 'followers' ? ['dataMin - 100', 'dataMax + 100'] : [0, 'auto']}
+                              allowDecimals={false}
+                            />
+                            <Tooltip 
+                              content={<CustomTooltip activeMetric={activeMetric} />}
+                              cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
+                            />
+                            <Area 
+                              type="monotone" 
+                              dataKey={activeMetric} 
+                              stroke={activeConfig?.color} 
+                              strokeWidth={3}
+                              fillOpacity={1} 
+                              fill={`url(#${activeConfig?.gradientId})`} 
+                              connectNulls
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-                <div className="lg:col-span-1">
-                  <ProfileCard 
-                    visits={totals?.profileVisits?.value || 0}
-                    taps={totals?.profileLinksTaps?.value || 0}
-                    isLoading={isPending}
-                  />
-                </div>
-                <div className="lg:col-span-2">
-                  <ActiveTimesChart 
-                    activeTimes={latestWithActiveTimes?.activeTimes || null}
-                    totalFollowers={totals?.followers?.value || 0}
-                    isLoading={isPending}
-                  />
-                </div>
-              </div>
+              {/* Insufficient Data Guard */}
+              {data?.data?.current[data.data.current.length - 1]?.insufficientData ? (
+                <InsufficientDataState />
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <EngagementBreakdownChart 
+                      accountId={selectedAccountId} 
+                      range={range} 
+                      customStart={cStart} 
+                      customEnd={cEnd} 
+                    />
+                    <PostFrequencyChart 
+                      accountId={selectedAccountId} 
+                      range={range} 
+                      customStart={cStart} 
+                      customEnd={cEnd} 
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                    <div className="lg:col-span-1">
+                      <ProfileCard 
+                        visits={totals?.profileVisits?.value || 0}
+                        taps={totals?.profileLinksTaps?.value || 0}
+                        isLoading={isPending}
+                      />
+                    </div>
+                    <div className="lg:col-span-2">
+                      <ActiveTimesChart 
+                        activeTimes={latestWithActiveTimes?.activeTimes || null}
+                        totalFollowers={totals?.followers?.value || 0}
+                        isLoading={isPending}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </>
           )}
 
