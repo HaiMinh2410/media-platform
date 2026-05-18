@@ -1448,7 +1448,7 @@ function StatsCard({
         <div className="w-16 h-8 opacity-20 group-hover:opacity-60 transition-opacity">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={sparklineData.map((v, i) => ({ v, i }))}>
-              <YAxis hide domain={['dataMin', 'dataMax']} />
+              <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
               <Area 
                 type="monotone" 
                 dataKey="v" 

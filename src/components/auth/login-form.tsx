@@ -17,14 +17,31 @@ export function LoginForm() {
     setIsLoading(true);
     setError(null);
     
-    const formData = new FormData();
-    formData.append('email', email);
-    formData.append('password', password);
-    
-    const result = await login(formData);
-    
-    if (result?.error) {
-      setError(result.error);
+    try {
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('password', password);
+      
+      const result = await login(formData);
+      
+      if (result?.error) {
+        let errorMsg = result.error;
+        if (result.error === 'Invalid login credentials') {
+          errorMsg = 'Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.';
+        } else if (result.error.includes('Email not confirmed')) {
+          errorMsg = 'Tài khoản chưa được xác nhận email. Vui lòng kiểm tra hộp thư của bạn.';
+        } else if (result.error.includes('rate limit')) {
+          errorMsg = 'Quá nhiều yêu cầu đăng nhập. Vui lòng thử lại sau ít phút.';
+        }
+        setError(errorMsg);
+      }
+    } catch (err: any) {
+      if (err.message && err.message.includes('NEXT_REDIRECT')) {
+        throw err;
+      }
+      console.error('[LoginForm] error:', err);
+      setError('Đã xảy ra lỗi kết nối. Vui lòng thử lại sau.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -49,7 +66,7 @@ export function LoginForm() {
       />
       
       {error && (
-        <div className="bg-status-error/10 border border-status-error text-status-error p-[10px] rounded-sm text-sm text-center">
+        <div className="bg-status-error/10 border border-status-error text-status-error p-sm rounded-sm text-sm text-center">
           {error}
         </div>
       )}

@@ -1,0 +1,147 @@
+# TÀI LIỆU HƯỚNG DẪN AI AGENT: THU THẬP DỮ LIỆU TĂNG TRƯỞNG ĐỂ VẼ BIỂU ĐỒ ĐƯỜNG
+
+## 1. MỤC TIÊU VÀ PHẠM VI
+
+Nhiệm vụ của AI Agent là gọi vào **Instagram Graph API** để thu thập số liệu về lượng người theo dõi (Followers) và bỏ theo dõi (Unfollows) theo từng ngày trong một khoảng thời gian nhất định. Kết quả đầu ra cần thu được là một mảng dữ liệu sạch, đã gộp (aggregate) đầy đủ theo chuỗi thời gian để sẵn sàng truyền vào thư viện vẽ biểu đồ đường (Line Chart).
+
+## 2. THÔNG TIN CẤU HÌNH API
+
+Agent cần sử dụng các thông số kỹ thuật cấu hình endpoint sau đây:
+
+- **Cú pháp URL gốc (Base URL):** `GET https://graph.facebook.com/{version}/{instagram-account-id}/insights`
+- **Các tham số bắt buộc (Query Parameters):**
+    - `metric`: `follows_and_unfollows`
+    - `period`: `day`
+    - `metric_type`: `total_value`
+    - `breakdown`: `follow_type`
+    - `since`: *[Unix timestamp của ngày bắt đầu]*
+    - `until`: *[Unix timestamp của ngày kết thúc]*
+    - `access_token`: *[Token có quyền hợp lệ]*
+- **Quyền hạn yêu cầu (Permissions):** Đảm bảo token có tối thiểu các quyền: `instagram_manage_insights`, `instagram_basic`.
+
+---
+
+## 3. GIẢI THÍCH CƠ CHẾ PAGING VÀ GIỚI HẠN THỜI GIAN
+
+### 3.1. Vai trò của Paging (Trang phân trang) và lý do có nhiều kết quả trả về
+
+Khi gọi API với chu kỳ `period=day` và truyền khoảng thời gian `since` / `until`, Meta không gộp tất cả dữ liệu thành một con số duy nhất nếu dữ liệu đó có tính chất chuỗi thời gian hoặc phân rã chi tiết.
+
+- **Tại sao có nhiều kết quả?** Mặc dù chọn `metric_type=total_value`, nhưng bản chất chỉ số theo chu kỳ `period=day` sẽ được Meta tính toán và trả về **kết quả tổng của từng ngày một** trong khoảng thời gian yêu cầu. Nếu quét 30 ngày, Meta sẽ trả về một mảng chứa 30 phần tử dữ liệu (mỗi phần tử đại diện cho tổng giá trị của ngày đó).
+- **Vai trò của Paging:** Khi số lượng phần tử trả về vượt quá giới hạn mặc định của một lần phản hồi (mỗi ngày là một object dữ liệu lớn chứa các mảng `breakdowns`), Meta sẽ tự động cắt nhỏ dữ liệu thành nhiều trang để giảm tải cho server.
+    - `paging.next`: Chứa URL để AI Agent gọi tiếp nhằm lấy dữ liệu của các ngày tiếp theo.
+    - `paging.previous`: URL để quay lại các ngày trước đó.
+
+### 3.2. Xử lý giới hạn 30 ngày và cơ chế của `period`
+
+Nếu khoảng cách giữa `since` và `until` trong một lần gọi API vượt quá 30 ngày (2.592.000 giây), hệ thống sẽ trả về lỗi: `"message": "(#100) There cannot be more than 30 days (2592000 s) between since and until."`
+
+Để xử lý chính xác, Agent cần phân biệt rõ hai khái niệm:
+
+1. **`since` và `until` (Phạm vi truy vấn - Query Range):** Đây là **"Cửa sổ thời gian"** để lọc dữ liệu. Meta giới hạn độ rộng của cửa sổ này tối đa là 30 ngày cho mỗi lần gọi. Hệ thống **hoàn toàn có thể lấy dữ liệu của 60 ngày hoặc 90 ngày trước**, nhưng không thể lấy trong *MỘT lần gọi duy nhất*. Agent phải chia nhỏ khoảng thời gian yêu cầu thành nhiều chu kỳ nhỏ độc lập.
+2. **`period` (Chu kỳ gộp dữ liệu - Data Aggregation):** Tham số này quyết định dữ liệu được Meta *gom nhóm* như thế nào. Khi chọn `period=day`, Meta tính toán dữ liệu phát sinh trong phạm vi 24 giờ. Mặc dù dữ liệu được cắt theo từng ngày, Meta vẫn lưu trữ lịch sử này trong vòng nhiều tháng. Vì vậy, sử dụng `period=day` vẫn có thể lùi về quá khứ xa để lấy dữ liệu, miễn là cửa sổ `since` và `until` của lệnh đó không rộng quá 30 ngày.
+
+---
+
+## 4. QUY TẮC CẤU HÌNH VÀ LOGIC XỬ LÝ VÒNG LẶP CHO AGENT
+
+> ⚙️ **QUY TẮC XỬ LÝ THỜI GIAN VÀ ĐỒNG BỘ CHO AGENT:**
+> 
+> 1. **Quy tắc chặn khoảng cách:** Luôn đảm bảo biểu thức $until - since \le 2592000$ giây (30 ngày). Nếu người dùng yêu cầu lấy dữ liệu vượt quá 30 ngày (ví dụ: 60 ngày), Agent phải **tự động chia tách** thành các Requests độc lập (mỗi request quét tối đa 30 ngày) rồi gộp mảng kết quả lại với nhau.
+> 2. **Quy tắc đồng bộ Paging (Vòng lặp lấy dữ liệu):** Đối với mỗi Request, Agent phải triển khai logic vòng lặp:
+>     - Gửi request đầu tiên với URL cấu hình.
+>     - Kiểm tra object `paging` ở cuối kết quả trả về. Nếu tồn tại thuộc tính `paging.next`, Agent phải **tiếp tục tự động gọi API vào URL đó** để cộng dồn (Append) dữ liệu vào mảng tổng.
+>     - Chỉ dừng quá trình quét (fetch) khi thuộc tính `paging.next` không còn xuất hiện trong phản hồi JSON.
+
+---
+
+## 5. PHÂN TÍCH CẤU TRÚC PHẢN HỒI (API RESPONSE CHUẨN)
+
+Mẫu JSON phản hồi thực tế thu được từ hệ thống [Trình khám phá API Đồ thị](https://developers.facebook.com/tools/explorer/) của Meta:
+
+JSON
+
+`{
+  "data": [
+    {
+      "name": "follows_and_unfollows",
+      "period": "day",
+      "title": "Lượt theo dõi và bỏ theo dõi",
+      "description": "Số tài khoản đã theo dõi bạn...",
+      "total_value": {
+        "breakdowns": [
+          {
+            "dimension_keys": ["follow_type"],
+            "results": [
+              {
+                "dimension_values": ["FOLLOWER"],
+                "value": 59
+              },
+              {
+                "dimension_values": ["NON_FOLLOWER"],
+                "value": 106
+              }
+            ]
+          }
+        ]
+      },
+      "id": "17841477493647789/insights/follows_and_unfollows/day"
+    }
+  ],
+  "paging": {
+    "previous": "https://graph.facebook.com/...",
+    "next": "https://graph.facebook.com/..."
+  }
+}`
+
+> ⚠️ **Lưu ý định danh dữ liệu cho Agent:**
+> 
+> - `FOLLOWER`: Đại diện cho số lượng tài khoản **bấm theo dõi mới** trong ngày.
+> - `NON_FOLLOWER`: Đại diện cho số lượng tài khoản **bỏ theo dõi (unfollow)** hoặc rời khỏi Instagram trong ngày.
+
+---
+
+## 6. THUẬT TOÁN ĐẦU RA CHO BIỂU ĐỒ (MÃ GIẢ / PSEUDOCODE)
+
+Sau khi hoàn thành các vòng lặp thu thập và xử lý phân trang, Agent tiến hành chuyển đổi cấu trúc JSON lồng nhau của Meta thành cấu trúc mảng phẳng (Flat Array) để sẵn sàng nạp vào biểu đồ đường.
+
+Plaintext
+
+`Khởi tạo mảng trống: dataForChart = []
+
+VỚI MỖI data_object TRONG mảng_tổng_thu_thập_được (sau khi đã gộp qua các trang paging):
+    Lấy ngày (Date) dựa trên tham số thời gian tương ứng (hoặc parse từ trường ID/Paging)
+    
+    Khởi tạo giá trị mặc định cho ngày đó:
+    follower_count = 0
+    unfollower_count = 0
+    
+    Tìm đến data_object.total_value.breakdowns[0].results
+    VỚI MỖI item TRONG results:
+        NẾU item.dimension_values[0] == "FOLLOWER":
+            follower_count = item.value
+        NẾU item.dimension_values[0] == "NON_FOLLOWER":
+            unfollower_count = item.value
+            
+    Thêm vào mảng: dataForChart.append({
+        "date": Ngày_đang_xử_lý,
+        "Followers": follower_count,
+        "Unfollows": unfollower_count
+    })
+
+Sắp xếp dataForChart theo chiều tăng dần của "date".
+Trả về dataForChart.`
+
+## 7. ĐẦU RA MONG MUỐN (DỮ LIỆU ĐÃ LÀM SẠCH)
+
+Kết quả cuối cùng Agent phải trả về cho Frontend để hiển thị lên đồ thị:
+
+JSON
+
+`[
+  { "date": "2026-05-15", "Followers": 59, "Unfollows": 106 },
+  { "date": "2026-05-16", "Followers": 75, "Unfollows": 40 },
+  { "date": "2026-05-17", "Followers": 92, "Unfollows": 55 }
+]`
+
+*Dựa trên mảng cấu trúc này, Trục X của biểu đồ đường sẽ gán cho trường `date`, chuỗi dữ liệu tăng trưởng hiển thị sẽ gồm hai đường Line đồ thị tương ứng biểu diễn cho `Followers` và `Unfollows`.*

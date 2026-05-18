@@ -1503,27 +1503,50 @@ export const metaAnalyticsService = {
         };
       }
 
-      const sinceUnix = Math.floor(since.getTime() / 1000);
-      const untilUnix = Math.floor(until.getTime() / 1000);
+      // 2. Fetch follows_and_unfollows daily in parallel and demographics
+      const dailyChunks: { dateStr: string; sinceUnix: number; untilUnix: number }[] = [];
+      let currentDay = new Date(since);
+      currentDay.setUTCHours(0, 0, 0, 0);
+      
+      while (currentDay <= until) {
+        const dayStart = new Date(currentDay);
+        const sinceUnixVal = Math.floor(dayStart.getTime() / 1000);
+        
+        const dayEnd = new Date(currentDay);
+        dayEnd.setUTCHours(23, 59, 59, 999);
+        const untilUnixVal = Math.floor(dayEnd.getTime() / 1000);
+        
+        dailyChunks.push({
+          dateStr: dayStart.toISOString().split('T')[0],
+          sinceUnix: sinceUnixVal,
+          untilUnix: untilUnixVal
+        });
+        
+        currentDay.setUTCDate(currentDay.getUTCDate() + 1);
+      }
 
-      // 2. Fetch follows_and_unfollows and demographics in parallel with graceful error catching
-      const followsPromise = client.request<any>(
-        `${externalId}/insights`,
-        accessToken,
-        {
-          metric: 'follows_and_unfollows',
-          metric_type: 'total_value',
-          breakdown: 'follow_type',
-          period: 'day',
-          since: sinceUnix,
-          until: untilUnix
-        },
-        'GET',
-        accountId
-      ).catch(err => {
-        console.warn('[MetaAnalyticsService] Failed to fetch follows_and_unfollows:', err);
-        return null;
-      });
+      const followsPromises = dailyChunks.map(dChunk =>
+        client.request<any>(
+          `${externalId}/insights`,
+          accessToken,
+          {
+            metric: 'follows_and_unfollows',
+            metric_type: 'total_value',
+            breakdown: 'follow_type',
+            period: 'day',
+            since: dChunk.sinceUnix,
+            until: dChunk.untilUnix
+          },
+          'GET',
+          accountId
+        ).then(res => ({
+          dateStr: dChunk.dateStr,
+          res
+        })).catch(err => {
+          console.warn(`[MetaAnalyticsService] Failed to fetch follows_and_unfollows for ${dChunk.dateStr}:`, err);
+          return { dateStr: dChunk.dateStr, res: null };
+        })
+      );
 
       const demoBreakdowns = ['age', 'city', 'country', 'gender'];
       const demoPromises = demoBreakdowns.map(b => 
@@ -1545,56 +1568,49 @@ export const metaAnalyticsService = {
         })
       );
 
-      const [followsRes, ...demoResults] = await Promise.all([
-        followsPromise,
+      const [followsResults, ...demoResults] = await Promise.all([
+        Promise.all(followsPromises),
         ...demoPromises
       ]);
 
       // 3. Parse follows_and_unfollows
       const followsData: Array<{ date: string; follows: number; unfollows: number }> = [];
-      if (followsRes && followsRes.data && Array.isArray(followsRes.data.data)) {
-        const item = followsRes.data.data.find((i: any) => i.name === 'follows_and_unfollows');
-        if (item && Array.isArray(item.values)) {
-          for (const v of item.values) {
-            const date = new Date(v.end_time);
-            date.setUTCDate(date.getUTCDate() - 1);
-            date.setUTCHours(0, 0, 0, 0);
-            const dateStr = date.toISOString().split('T')[0];
-            
-            let dayFollows = 0;
-            let dayUnfollows = 0;
-            
-            if (Array.isArray(v.breakdowns)) {
-              for (const b of v.breakdowns) {
+
+      for (const itemResult of followsResults) {
+        const { dateStr, res } = itemResult;
+        let dayFollows = 0;
+        let dayUnfollows = 0;
+
+        if (res && res.data && Array.isArray(res.data.data)) {
+          const item = res.data.data.find((i: any) => i.name === 'follows_and_unfollows');
+          if (item && item.total_value) {
+            const targetBreakdowns = item.total_value.breakdowns;
+            if (Array.isArray(targetBreakdowns)) {
+              for (const b of targetBreakdowns) {
                 const keys = b.dimension_keys || [];
                 const followTypeIdx = keys.indexOf('follow_type');
                 if (followTypeIdx !== -1 && Array.isArray(b.results)) {
-                  for (const res of b.results) {
-                    const vals = res.dimension_values || [];
-                    const val = res.value || 0;
+                  for (const result of b.results) {
+                    const vals = result.dimension_values || [];
+                    const val = result.value || 0;
                     const type = (vals[followTypeIdx] || '').toUpperCase();
-                    if (type === 'FOLLOW' || type === 'FOLLOWS') {
+                    if (type === 'FOLLOW' || type === 'FOLLOWS' || type === 'FOLLOWER') {
                       dayFollows += val;
-                    } else if (type === 'UNFOLLOW' || type === 'UNFOLLOWS') {
+                    } else if (type === 'UNFOLLOW' || type === 'UNFOLLOWS' || type === 'NON_FOLLOWER') {
                       dayUnfollows += val;
                     }
                   }
                 }
               }
-            } else if (v.value && typeof v.value === 'object') {
-              dayFollows = v.value.FOLLOW || v.value.FOLLOWS || v.value.follow || v.value.follows || 0;
-              dayUnfollows = v.value.UNFOLLOW || v.value.UNFOLLOWS || v.value.unfollow || v.value.unfollows || 0;
-            } else if (typeof v.value === 'number') {
-              dayFollows = v.value;
             }
-            
-            followsData.push({
-              date: dateStr,
-              follows: dayFollows,
-              unfollows: dayUnfollows
-            });
           }
         }
+
+        followsData.push({
+          date: dateStr,
+          follows: dayFollows,
+          unfollows: dayUnfollows
+        });
       }
 
       // Sort followsData by date ascending
