@@ -24,7 +24,6 @@ import { InteractionsCard } from '@/components/analytics/interactions-card';
 import { PostChartsDashboard } from '@/components/analytics/post-charts-dashboard';
 import { TopContentLeaderboard } from '@/components/analytics/top-content-leaderboard';
 import { PostDetailModal } from '@/components/analytics/post-detail-modal';
-import { ActiveTimesChart } from '@/components/analytics/active-times-chart';
 import { FollowerDetailedSection } from '@/components/analytics/follower-detailed-section';
 import { AccountSelector } from '@/components/analytics/account-selector';
 import { StatsCard, SkeletonStatsCard } from '@/components/analytics/stats-card';
@@ -572,13 +571,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             </div>
           </div>
  
-                  <div className="mt-6 mb-6">
-                    <ActiveTimesChart 
-                      activeTimes={latestWithActiveTimes?.activeTimes || null}
-                      totalFollowers={totals?.followers?.value || 0}
-                      isLoading={isPending}
-                    />
-                  </div>
+ 
 
           <div className={`stats-grid transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
             {isPending ? (
@@ -1201,6 +1194,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                 range={range}
                 customStart={cStart}
                 customEnd={cEnd}
+                activeTimes={latestWithActiveTimes?.activeTimes || null}
               />
             </div>
           )}
