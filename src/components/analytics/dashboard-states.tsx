@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 
-export type ActiveMetric = 'reach' | 'impressions' | 'engagement' | 'followers';
+export type ActiveMetric = 'reach' | 'views' | 'engagement' | 'followers';
 
 export function SkeletonChart() {
   return (
@@ -107,7 +107,7 @@ export function CustomTooltip({ active, payload, label, activeMetric }: CustomTo
     const getMetricLabel = (m: string) => {
       switch(m) {
         case 'reach': return 'Reach';
-        case 'impressions': return 'Impressions';
+        case 'views': return 'Views';
         case 'engagement': return 'Engagement';
         case 'followers': return 'Followers';
         default: return m;
@@ -117,7 +117,7 @@ export function CustomTooltip({ active, payload, label, activeMetric }: CustomTo
     const getMetricColor = (m: string) => {
       switch(m) {
         case 'reach': return 'bg-blue-500';
-        case 'impressions': return 'bg-purple-500';
+        case 'views': return 'bg-purple-500';
         case 'engagement': return 'bg-emerald-500';
         case 'followers': return 'bg-orange-500';
         default: return 'bg-white';

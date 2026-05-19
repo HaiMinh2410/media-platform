@@ -141,11 +141,11 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       date: xAxisFormatter(s.date),
       reach: s.reach,
       engagement: s.engagement,
-      impressions: s.impressions,
+      views: s.impressions,
       followers: s.followers,
       prevReach: prev?.reach ?? 0,
       prevEngagement: prev?.engagement ?? 0,
-      prevImpressions: prev?.impressions ?? 0,
+      prevViews: prev?.impressions ?? 0,
       prevFollowers: prev?.followers ?? 0,
     };
   });
@@ -153,7 +153,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const getMetricConfig = (metric: ActiveMetric) => {
     switch (metric) {
       case 'reach': return { color: '#3b82f6', gradientId: 'colorReach', label: 'Reach' };
-      case 'impressions': return { color: '#a855f7', gradientId: 'colorImpressions', label: 'Impressions' };
+      case 'views': return { color: '#a855f7', gradientId: 'colorImpressions', label: 'Views' };
       case 'engagement': return { color: '#10b981', gradientId: 'colorEng', label: 'Engagement' };
       case 'followers': return { color: '#f97316', gradientId: 'colorFollowers', label: 'Followers' };
     }
@@ -490,15 +490,15 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   onClick={() => setActiveMetric('reach')}
                   activeColor="#3b82f6"
                 />
-                <StatsCard 
-                  label="Impressions" 
+                 <StatsCard 
+                  label="Views" 
                   value={totals.impressions.value.toLocaleString()} 
                   icon={<Icon lucide={Eye} className="text-purple-400" size={20} />} 
                   trend={totals.impressions.trend.display} 
                   isPositive={totals.impressions.trend.isPositive}
-                  sparklineData={chartData.map(d => d.impressions || 0)}
-                  isActive={activeMetric === 'impressions'}
-                  onClick={() => setActiveMetric('impressions')}
+                  sparklineData={chartData.map(d => d.views || 0)}
+                  isActive={activeMetric === 'views'}
+                  onClick={() => setActiveMetric('views')}
                   activeColor="#a855f7"
                 />
                 <StatsCard 

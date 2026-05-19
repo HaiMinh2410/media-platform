@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Calendar } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTopPostsAction } from '@/application/actions/analytics.actions';
 import { PostDetailModal } from './post-detail-modal';
@@ -76,6 +76,15 @@ const ORDER_FILTERS = [
   { id: 'newest', label: 'Newest' },
 ];
 
+const RANGE_FILTERS = [
+  { id: 'all', label: 'All Time' },
+  { id: '7d', label: 'Last 7 days' },
+  { id: '14d', label: 'Last 14 days' },
+  { id: '30d', label: 'Last 30 days' },
+  { id: '90d', label: 'Last 90 days' },
+  { id: 'custom', label: 'Custom Period' },
+];
+
 const formatMetricValue = (val: number): string => {
   if (val >= 1000000) return (val / 1000000).toFixed(1).replace('.0', '') + 'M';
   if (val >= 1000) return (val / 1000).toFixed(1).replace('.0', '') + 'K';
@@ -90,7 +99,10 @@ export function ContentInsightsSection({
   const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'reels' | 'carousel'>('all');
   const [metricFilter, setMetricFilter] = useState<'views' | 'interactions' | 'reach' | 'likes' | 'shares' | 'profile_visits' | 'follows'>('views');
   const [orderFilter, setOrderFilter] = useState<'highest' | 'lowest' | 'newest'>('highest');
-  const [activeDropdown, setActiveDropdown] = useState<'media' | 'metric' | 'order' | null>(null);
+  const [rangeFilter, setRangeFilter] = useState<'all' | '7d' | '14d' | '30d' | '90d' | 'custom'>('all');
+  const [customStart, setCustomStart] = useState<string>('');
+  const [customEnd, setCustomEnd] = useState<string>('');
+  const [activeDropdown, setActiveDropdown] = useState<'media' | 'metric' | 'order' | 'range' | null>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -106,8 +118,12 @@ export function ContentInsightsSection({
   }, []);
 
   const { data: result, isPending, isError } = useQuery({
-    queryKey: ['content-insights-posts', accountId, metricFilter],
-    queryFn: () => getTopPostsAction(accountId, '90d', undefined, undefined, metricFilter, 100),
+    queryKey: ['content-insights-posts', accountId, metricFilter, rangeFilter, customStart, customEnd],
+    queryFn: () => {
+      const start = rangeFilter === 'custom' && customStart ? new Date(customStart) : undefined;
+      const end = rangeFilter === 'custom' && customEnd ? new Date(customEnd) : undefined;
+      return getTopPostsAction(accountId, rangeFilter as any, start, end, metricFilter, 100);
+    },
     staleTime: 5 * 60 * 1000,
   });
 
@@ -116,6 +132,41 @@ export function ContentInsightsSection({
   const processedPosts = useMemo(() => {
     let filtered = [...posts];
 
+    // 1. Filter by range
+    if (rangeFilter !== 'all') {
+      let startDate: Date | null = null;
+      let endDate: Date | null = null;
+
+      if (rangeFilter === 'custom') {
+        if (customStart) {
+          startDate = new Date(customStart);
+          startDate.setHours(0, 0, 0, 0);
+        }
+        if (customEnd) {
+          endDate = new Date(customEnd);
+          endDate.setHours(23, 59, 59, 999);
+        }
+      } else {
+        const now = new Date();
+        let days = 30;
+        if (rangeFilter === '7d') days = 7;
+        else if (rangeFilter === '14d') days = 14;
+        else if (rangeFilter === '90d') days = 90;
+
+        startDate = new Date();
+        startDate.setDate(now.getDate() - days);
+        startDate.setHours(0, 0, 0, 0);
+      }
+
+      filtered = filtered.filter(p => {
+        const postedAt = new Date(p.postedAt);
+        if (startDate && postedAt < startDate) return false;
+        if (endDate && postedAt > endDate) return false;
+        return true;
+      });
+    }
+
+    // 2. Filter by media type
     if (mediaFilter !== 'all') {
       filtered = filtered.filter(p => {
         const type = p.mediaType?.toUpperCase();
@@ -126,6 +177,7 @@ export function ContentInsightsSection({
       });
     }
 
+    // 3. Sort by order
     if (orderFilter === 'lowest') {
       filtered.reverse();
     } else if (orderFilter === 'newest') {
@@ -133,7 +185,7 @@ export function ContentInsightsSection({
     }
 
     return filtered;
-  }, [posts, mediaFilter, orderFilter]);
+  }, [posts, mediaFilter, orderFilter, rangeFilter, customStart, customEnd]);
 
   const getMetricValue = (post: any) => {
     const likes = post.likeCount || 0;
@@ -198,6 +250,7 @@ export function ContentInsightsSection({
   const selectedMedia = MEDIA_FILTERS.find(m => m.id === mediaFilter);
   const selectedMetric = METRIC_FILTERS.find(m => m.id === metricFilter);
   const selectedOrder = ORDER_FILTERS.find(o => o.id === orderFilter);
+  const selectedRange = RANGE_FILTERS.find(r => r.id === rangeFilter);
 
   return (
     <div className="bg-[#0b0c0e] min-h-[600px] text-white p-6 font-sans rounded-3xl border border-white/5 shadow-2xl relative transition-all duration-300">
@@ -209,124 +262,191 @@ export function ContentInsightsSection({
         </div>
 
         {/* Dropdowns Filter Row */}
-        <div className="flex items-center gap-3 relative select-none">
-          {/* Media filter pill */}
-          <div className="relative">
-            <button
-              onClick={() => setActiveDropdown(activeDropdown === 'media' ? null : 'media')}
-              className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
-            >
-              {selectedMedia?.icon('w-3.5 h-3.5 text-white/80')}
-              <span>{selectedMedia?.label}</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'media' ? 'rotate-180' : ''}`} />
-            </button>
-            <AnimatePresence>
-              {activeDropdown === 'media' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[140px] flex flex-col gap-0.5 backdrop-blur-xl"
-                >
-                  {MEDIA_FILTERS.map(m => (
-                    <button
-                      key={m.id}
-                      onClick={() => {
-                        setMediaFilter(m.id as any);
-                        setActiveDropdown(null);
-                      }}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
-                        mediaFilter === m.id
-                          ? 'text-white bg-white/10'
-                          : 'text-white/60 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      {m.icon('w-3.5 h-3.5')}
-                      <span>{m.label}</span>
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 relative select-none">
+          <div className="flex items-center gap-3">
+            {/* Media filter pill */}
+            <div className="relative">
+              <button
+                onClick={() => setActiveDropdown(activeDropdown === 'media' ? null : 'media')}
+                className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+              >
+                {selectedMedia?.icon('w-3.5 h-3.5 text-white/80')}
+                <span>{selectedMedia?.label}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'media' ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {activeDropdown === 'media' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[140px] flex flex-col gap-0.5 backdrop-blur-xl"
+                  >
+                    {MEDIA_FILTERS.map(m => (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          setMediaFilter(m.id as any);
+                          setActiveDropdown(null);
+                        }}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                          mediaFilter === m.id
+                            ? 'text-white bg-white/10'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        {m.icon('w-3.5 h-3.5')}
+                        <span>{m.label}</span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Metric filter pill */}
+            <div className="relative">
+              <button
+                onClick={() => setActiveDropdown(activeDropdown === 'metric' ? null : 'metric')}
+                className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+              >
+                <span>{selectedMetric?.label}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'metric' ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {activeDropdown === 'metric' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[160px] flex flex-col gap-0.5 backdrop-blur-xl"
+                  >
+                    {METRIC_FILTERS.map(m => (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          setMetricFilter(m.id as any);
+                          setActiveDropdown(null);
+                        }}
+                        className={`px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center transition-all cursor-pointer ${
+                          metricFilter === m.id
+                            ? 'text-white bg-white/10'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Order filter pill */}
+            <div className="relative">
+              <button
+                onClick={() => setActiveDropdown(activeDropdown === 'order' ? null : 'order')}
+                className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+              >
+                <span>{selectedOrder?.label}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'order' ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {activeDropdown === 'order' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[120px] flex flex-col gap-0.5 backdrop-blur-xl"
+                  >
+                    {ORDER_FILTERS.map(o => (
+                      <button
+                        key={o.id}
+                        onClick={() => {
+                          setOrderFilter(o.id as any);
+                          setActiveDropdown(null);
+                        }}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center transition-all cursor-pointer ${
+                          orderFilter === o.id
+                            ? 'text-white bg-white/10'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* Metric filter pill */}
-          <div className="relative">
-            <button
-              onClick={() => setActiveDropdown(activeDropdown === 'metric' ? null : 'metric')}
-              className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
-            >
-              <span>{selectedMetric?.label}</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'metric' ? 'rotate-180' : ''}`} />
-            </button>
-            <AnimatePresence>
-              {activeDropdown === 'metric' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[160px] flex flex-col gap-0.5 backdrop-blur-xl"
-                >
-                  {METRIC_FILTERS.map(m => (
-                    <button
-                      key={m.id}
-                      onClick={() => {
-                        setMetricFilter(m.id as any);
-                        setActiveDropdown(null);
-                      }}
-                      className={`px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center transition-all cursor-pointer ${
-                        metricFilter === m.id
-                          ? 'text-white bg-white/10'
-                          : 'text-white/60 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          {/* Range filter pill & Custom Date inputs */}
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            {rangeFilter === 'custom' && (
+              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 animate-in fade-in slide-in-from-right-2 duration-300">
+                <input 
+                  type="date" 
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  className="bg-transparent text-xs text-white outline-none [color-scheme:dark]"
+                />
+                <span className="text-white/20 text-xs">→</span>
+                <input 
+                  type="date" 
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  className="bg-transparent text-xs text-white outline-none [color-scheme:dark]"
+                />
+              </div>
+            )}
 
-          {/* Order filter pill */}
-          <div className="relative">
-            <button
-              onClick={() => setActiveDropdown(activeDropdown === 'order' ? null : 'order')}
-              className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
-            >
-              <span>{selectedOrder?.label}</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'order' ? 'rotate-180' : ''}`} />
-            </button>
-            <AnimatePresence>
-              {activeDropdown === 'order' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[120px] flex flex-col gap-0.5 backdrop-blur-xl"
-                >
-                  {ORDER_FILTERS.map(o => (
-                    <button
-                      key={o.id}
-                      onClick={() => {
-                        setOrderFilter(o.id as any);
-                        setActiveDropdown(null);
-                      }}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center transition-all cursor-pointer ${
-                        orderFilter === o.id
-                          ? 'text-white bg-white/10'
-                          : 'text-white/60 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div className="relative">
+              <button
+                onClick={() => setActiveDropdown(activeDropdown === 'range' ? null : 'range')}
+                className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+              >
+                <Calendar className="w-3.5 h-3.5 text-white/80" />
+                <span>{selectedRange?.label}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'range' ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {activeDropdown === 'range' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-[110%] right-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[145px] flex flex-col gap-0.5 backdrop-blur-xl"
+                  >
+                    {RANGE_FILTERS.map(r => (
+                      <button
+                        key={r.id}
+                        onClick={() => {
+                          setRangeFilter(r.id as any);
+                          setActiveDropdown(null);
+                        }}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition-all cursor-pointer ${
+                          rangeFilter === r.id
+                            ? 'text-white bg-white/10'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <span>{r.label}</span>
+                        {rangeFilter === r.id && (
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>
