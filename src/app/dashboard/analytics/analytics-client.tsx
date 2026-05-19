@@ -14,14 +14,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@/components/ui/icon';
 import { 
   getAnalyticsAction, syncAnalyticsAction, syncAllAccountsAction,
-  getFollowerDetailedAnalyticsAction
+  getFollowerDetailedAnalyticsAction, getPostDeepAnalyticsAction
 } from '@/application/actions/analytics.actions';
 import { AnalyticsPeriodData, AnalyticsRange } from '@/domain/types/analytics';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { calcSummary, fillDateGaps, getXAxisFormatter } from '@/lib/analytics-utils';
 import { ViewsCard } from '@/components/analytics/views-card';
 import { InteractionsCard } from '@/components/analytics/interactions-card';
-import { TopContentGridWrapper } from '@/components/analytics/top-content-grid';
+import { PostChartsDashboard } from '@/components/analytics/post-charts-dashboard';
+import { TopContentLeaderboard } from '@/components/analytics/top-content-leaderboard';
+import { PostDetailModal } from '@/components/analytics/post-detail-modal';
 import { ActiveTimesChart } from '@/components/analytics/active-times-chart';
 import { ProfileCard } from '@/components/analytics/profile-card';
 import { FollowerDetailedSection } from '@/components/analytics/follower-detailed-section';
@@ -69,6 +71,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const [activeMetric, setActiveMetric] = useState<ActiveMetric>('reach');
   const [activeChart, setActiveChart] = useState<'reach-engagement' | 'views-interactions' | 'followers'>('reach-engagement');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [selectedPostForDetail, setSelectedPostForDetail] = useState<any | null>(null);
   const queryClient = useQueryClient();
 
   const cStart = range === 'custom' && customStart ? new Date(customStart) : undefined;
@@ -101,6 +104,15 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const totalFollows = followsAndUnfollows.reduce((sum: number, d: any) => sum + (d.follows || 0), 0);
   const totalUnfollows = followsAndUnfollows.reduce((sum: number, d: any) => sum + (d.unfollows || 0), 0);
   const netGrowth = totalFollows - totalUnfollows;
+
+  const { data: deepAnalyticsResult, isPending: isDeepAnalyticsLoading } = useQuery({
+    queryKey: ['post-deep-analytics', selectedAccountId, range, customStart, customEnd],
+    queryFn: () => getPostDeepAnalyticsAction(selectedAccountId, range, cStart, cEnd),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!selectedAccountId,
+  });
+
+  const deepAnalyticsData = deepAnalyticsResult?.data || null;
 
   async function handleSync() {
     if (!selectedAccountId || isSyncing) return;
@@ -558,6 +570,23 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               </button>
             </div>
           </div>
+ 
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
+                    <div className="lg:col-span-1">
+                      <ProfileCard 
+                        visits={totals?.profileVisits?.value || 0}
+                        taps={totals?.profileLinksTaps?.value || 0}
+                        isLoading={isPending}
+                      />
+                    </div>
+                    <div className="lg:col-span-2">
+                      <ActiveTimesChart 
+                        activeTimes={latestWithActiveTimes?.activeTimes || null}
+                        totalFollowers={totals?.followers?.value || 0}
+                        isLoading={isPending}
+                      />
+                    </div>
+                  </div>
 
           <div className={`stats-grid transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
             {isPending ? (
@@ -626,10 +655,23 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             />
           </div>
 
-          <div className="mb-6">
-            <TopContentGridWrapper 
-              accountId={selectedAccountId} 
-              onSeeAll={() => setActiveTab('content')}
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            <PostChartsDashboard 
+              accountId={selectedAccountId}
+              range={range}
+              customStart={cStart}
+              customEnd={cEnd}
+              data={deepAnalyticsData}
+              isLoading={isDeepAnalyticsLoading}
+            />
+
+            <TopContentLeaderboard 
+              data={deepAnalyticsData?.leaderboard ?? null}
+              isLoading={isDeepAnalyticsLoading}
+              onOpenPostDetail={(postId) => {
+                const found = deepAnalyticsData?.leaderboard.find((p: any) => p.postId === postId);
+                if (found) setSelectedPostForDetail(found);
+              }}
             />
           </div>
 
@@ -1191,26 +1233,20 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-                    <div className="lg:col-span-1">
-                      <ProfileCard 
-                        visits={totals?.profileVisits?.value || 0}
-                        taps={totals?.profileLinksTaps?.value || 0}
-                        isLoading={isPending}
-                      />
-                    </div>
-                    <div className="lg:col-span-2">
-                      <ActiveTimesChart 
-                        activeTimes={latestWithActiveTimes?.activeTimes || null}
-                        totalFollowers={totals?.followers?.value || 0}
-                        isLoading={isPending}
-                      />
-                    </div>
-                  </div>
+
                 </>
               )}
         </>
       )}
+
+      <AnimatePresence>
+        {selectedPostForDetail && (
+          <PostDetailModal
+            post={selectedPostForDetail}
+            onClose={() => setSelectedPostForDetail(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

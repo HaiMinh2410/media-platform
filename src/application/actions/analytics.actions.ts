@@ -16,6 +16,9 @@ import { getPlatformAccountRepository } from '@/infrastructure/repositories/plat
 import { metaAnalyticsService } from '../services/meta-analytics.service';
 import { AnalyticsFilter, AnalyticsRange } from '@/domain/types/analytics';
 import { subDays, differenceInDays } from 'date-fns';
+import { db } from '@/lib/db';
+import { buildDeepAnalytics } from '@/lib/post-analytics-engine';
+
 
 /**
  * Server Action to fetch analytics with Period-over-Period support.
@@ -724,3 +727,211 @@ export async function getFollowerDetailedAnalyticsAction(
     return { error: err.message || 'UNKNOWN_ERROR' };
   }
 }
+
+/**
+ * Server Action to fetch deep post-level analytics.
+ * Highly optimized with multi-layer Redis caching.
+ */
+export async function getPostDeepAnalyticsAction(
+  accountId: string, 
+  range: AnalyticsRange = '30d', 
+  customStart?: Date, 
+  customEnd?: Date
+) {
+  try {
+    const rangeSuffix = range === 'custom' && customStart && customEnd 
+      ? `custom_${new Date(customStart).toISOString().split('T')[0]}_${new Date(customEnd).toISOString().split('T')[0]}`
+      : range;
+
+    const cacheKey = `post_deep_analytics_cache:${accountId}:${rangeSuffix}`;
+    
+    // 1. Check Redis deep cache first
+    if (redisConnection) {
+      try {
+        const cached = await redisConnection.get(cacheKey);
+        if (cached) {
+          console.log(`[getPostDeepAnalyticsAction] Served from Redis cache for account: ${accountId}, range: ${rangeSuffix}`);
+          return { data: JSON.parse(cached), error: null };
+        }
+      } catch (cacheErr) {
+        console.error('[getPostDeepAnalyticsAction] Redis cache read failed:', cacheErr);
+      }
+    }
+
+    // 2. Fallback to Live Redis cache if available
+    let postsRaw: any[] = [];
+    let snapshotsRaw: any[] = [];
+    let prevSnapshotsRaw: any[] = [];
+    let hasLiveData = false;
+
+    if (redisConnection) {
+      try {
+        const liveCached = await redisConnection.get(`live_analytics_cache:${accountId}`);
+        if (liveCached) {
+          const liveData = JSON.parse(liveCached);
+          if (liveData.posts && liveData.snapshots) {
+            console.log(`[getPostDeepAnalyticsAction] Serving from Redis live cache data`);
+            postsRaw = liveData.posts;
+            
+            // Map string dates back to Date objects
+            snapshotsRaw = liveData.snapshots.map((s: any) => ({ ...s, date: new Date(s.date) }));
+            hasLiveData = true;
+          }
+        }
+      } catch (err) {
+        console.error('[getPostDeepAnalyticsAction] Live cache check failed:', err);
+      }
+    }
+
+    const now = new Date();
+    const localTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+    let currentEnd = new Date(Date.UTC(
+      localTime.getUTCFullYear(),
+      localTime.getUTCMonth(),
+      localTime.getUTCDate(),
+      23, 59, 59, 999
+    ));
+    let currentStart: Date;
+    let previousStart: Date;
+    let previousEnd: Date;
+
+    if (range === 'custom' && customStart && customEnd) {
+      currentStart = new Date(customStart);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      currentEnd = new Date(customEnd);
+      currentEnd.setUTCHours(23, 59, 59, 999);
+      const diff = differenceInDays(currentEnd, currentStart) + 1;
+      previousStart = subDays(currentStart, diff);
+      previousStart.setUTCHours(0, 0, 0, 0);
+      previousEnd = subDays(currentStart, 1);
+      previousEnd.setUTCHours(23, 59, 59, 999);
+    } else {
+      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      currentStart = subDays(currentEnd, days - 1);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      previousStart = subDays(currentStart, days);
+      previousStart.setUTCHours(0, 0, 0, 0);
+      previousEnd = subDays(currentStart, 1);
+      previousEnd.setUTCHours(23, 59, 59, 999);
+    }
+
+    // 3. Fallback/Query Database
+    if (!hasLiveData) {
+      // Query post_analytics (filtered to posts that were posted within the current period)
+      const dbPosts = await db.post_analytics.findMany({
+        where: {
+          account_id: accountId,
+          posted_at: { gte: currentStart, lte: currentEnd }
+        },
+        orderBy: { total_interactions: 'desc' }
+      });
+
+      postsRaw = dbPosts.map((p: any) => ({
+        id: p.id,
+        accountId: p.account_id,
+        postId: p.post_id,
+        mediaType: p.media_type,
+        caption: p.caption,
+        thumbnailUrl: p.thumbnail_url,
+        mediaUrl: p.media_url,
+        likeCount: p.like_count,
+        commentsCount: p.comments_count,
+        sharesCount: p.shares_count,
+        savedCount: p.saved_count,
+        totalInteractions: p.total_interactions,
+        views: p.views,
+        reach: p.reach,
+        profileVisits: p.profile_visits || 0,
+        follows: p.follows || 0,
+        igReelsAvgWatchTime: p.ig_reels_avg_watch_time || 0,
+        igReelsVideoViewTotalTime: p.ig_reels_video_view_total_time || 0,
+        reelsSkipRate: p.reels_skip_rate || 0,
+        crosspostedViews: p.crossposted_views || 0,
+        postedAt: p.posted_at,
+        syncedAt: p.synced_at
+      }));
+
+      // Query current period snapshots
+      const dbCurrentSnapshots = await db.analytics_snapshots.findMany({
+        where: {
+          account_id: accountId,
+          date: { gte: currentStart, lte: currentEnd }
+        },
+        orderBy: { date: 'asc' }
+      });
+
+      snapshotsRaw = dbCurrentSnapshots.map((s: any) => ({
+        id: s.id,
+        accountId: s.account_id,
+        date: s.date,
+        reach: s.reach,
+        impressions: s.impressions,
+        engagement: s.engagement,
+        followers: s.followers,
+        profileVisits: s.profile_visits,
+        profileLinksTaps: s.profile_links_taps,
+        accountsReached: s.accounts_reached,
+        accountsEngaged: s.accounts_engaged,
+        followersPct: s.followers_pct,
+        nonfollowersPct: s.nonfollowers_pct,
+        byContentViews: s.by_content_views,
+        byContentInteractions: s.by_content_interactions,
+        activeTimes: s.active_times,
+        insufficientData: s.insufficient_data,
+        createdAt: s.created_at
+      }));
+    } else {
+      // In-memory filter snapshots for current range if loaded from live cache
+      snapshotsRaw = snapshotsRaw.filter(s => s.date >= currentStart && s.date <= currentEnd);
+    }
+
+    // Always query database for previous period snapshots to guarantee PoP calculations
+    const dbPrevSnapshots = await db.analytics_snapshots.findMany({
+      where: {
+        account_id: accountId,
+        date: { gte: previousStart, lte: previousEnd }
+      },
+      orderBy: { date: 'asc' }
+    });
+
+    prevSnapshotsRaw = dbPrevSnapshots.map((s: any) => ({
+      id: s.id,
+      accountId: s.account_id,
+      date: s.date,
+      reach: s.reach,
+      impressions: s.impressions,
+      engagement: s.engagement,
+      followers: s.followers,
+      profileVisits: s.profile_visits,
+      profileLinksTaps: s.profile_links_taps,
+      accountsReached: s.accounts_reached,
+      accountsEngaged: s.accounts_engaged,
+      followersPct: s.followers_pct,
+      nonfollowersPct: s.nonfollowers_pct,
+      byContentViews: s.by_content_views,
+      byContentInteractions: s.by_content_interactions,
+      activeTimes: s.active_times,
+      insufficientData: s.insufficient_data,
+      createdAt: s.created_at
+    }));
+
+    // 4. Run Post Deep Analytics Engine
+    const deepAnalytics = buildDeepAnalytics(postsRaw, snapshotsRaw, prevSnapshotsRaw);
+
+    // 5. Cache result in Redis (TTL: 15 minutes = 900 seconds)
+    if (redisConnection) {
+      try {
+        await redisConnection.set(cacheKey, JSON.stringify(deepAnalytics), 'EX', 900);
+      } catch (redisErr) {
+        console.error('[getPostDeepAnalyticsAction] Redis cache write failed:', redisErr);
+      }
+    }
+
+    return { data: deepAnalytics, error: null };
+
+  } catch (err: any) {
+    console.error('[getPostDeepAnalyticsAction] Critical error in Server Action:', err);
+    return { data: null, error: err.message || 'FAILED_TO_GET_POST_DEEP_ANALYTICS' };
+  }
+}
+
