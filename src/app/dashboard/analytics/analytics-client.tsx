@@ -8,7 +8,7 @@ import {
 import { 
   Users, BarChart3, Eye, MousePointer2, TrendingUp, TrendingDown, RefreshCw, 
   CloudDownload, Layers, Sparkles, Flame, Star, AlertTriangle, HelpCircle,
-  UserPlus, UserMinus
+  UserPlus, UserMinus, UserCheck, Link2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@/components/ui/icon';
@@ -25,7 +25,6 @@ import { PostChartsDashboard } from '@/components/analytics/post-charts-dashboar
 import { TopContentLeaderboard } from '@/components/analytics/top-content-leaderboard';
 import { PostDetailModal } from '@/components/analytics/post-detail-modal';
 import { ActiveTimesChart } from '@/components/analytics/active-times-chart';
-import { ProfileCard } from '@/components/analytics/profile-card';
 import { FollowerDetailedSection } from '@/components/analytics/follower-detailed-section';
 import { AccountSelector } from '@/components/analytics/account-selector';
 import { StatsCard, SkeletonStatsCard } from '@/components/analytics/stats-card';
@@ -175,6 +174,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       engagement: s.accountsEngaged ?? s.engagement ?? 0,
       views: s.impressions || 0,
       followers: s.followers || 0,
+      profileVisits: s.profileVisits || 0,
+      profileLinksTaps: s.profileLinksTaps || 0,
       prevReach: prev?.reach ?? 0,
       prevEngagement: prev?.engagement ?? 0,
       prevViews: prev?.impressions ?? 0,
@@ -571,21 +572,12 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             </div>
           </div>
  
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 mb-6">
-                    <div className="lg:col-span-1">
-                      <ProfileCard 
-                        visits={totals?.profileVisits?.value || 0}
-                        taps={totals?.profileLinksTaps?.value || 0}
-                        isLoading={isPending}
-                      />
-                    </div>
-                    <div className="lg:col-span-2">
-                      <ActiveTimesChart 
-                        activeTimes={latestWithActiveTimes?.activeTimes || null}
-                        totalFollowers={totals?.followers?.value || 0}
-                        isLoading={isPending}
-                      />
-                    </div>
+                  <div className="mt-6 mb-6">
+                    <ActiveTimesChart 
+                      activeTimes={latestWithActiveTimes?.activeTimes || null}
+                      totalFollowers={totals?.followers?.value || 0}
+                      isLoading={isPending}
+                    />
                   </div>
 
           <div className={`stats-grid transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
@@ -611,20 +603,20 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   sparklineData={chartData.map(d => d.reach || 0)}
                 />
                  <StatsCard 
-                  label="Views" 
-                  value={totals.impressions.value.toLocaleString()} 
-                  icon={<Icon lucide={Eye} className="text-purple-400" size={20} />} 
-                  trend={totals.impressions.trend.display} 
-                  isPositive={totals.impressions.trend.isPositive}
-                  sparklineData={chartData.map(d => d.views || 0)}
+                  label="Profile Visits" 
+                  value={totals.profileVisits.value.toLocaleString()} 
+                  icon={<Icon lucide={UserCheck} className="text-purple-400" size={20} />} 
+                  trend={totals.profileVisits.trend.display} 
+                  isPositive={totals.profileVisits.trend.isPositive}
+                  sparklineData={chartData.map(d => d.profileVisits || 0)}
                 />
                 <StatsCard 
-                  label="Engagement" 
-                  value={totals.engagement.value.toLocaleString()} 
-                  icon={<Icon lucide={MousePointer2} className="text-emerald-400" size={20} />} 
-                  trend={totals.engagement.trend.display} 
-                  isPositive={totals.engagement.trend.isPositive}
-                  sparklineData={chartData.map(d => d.engagement || 0)}
+                  label="Website Taps" 
+                  value={totals.profileLinksTaps.value.toLocaleString()} 
+                  icon={<Icon lucide={Link2} className="text-emerald-400" size={20} />} 
+                  trend={totals.profileLinksTaps.trend.display} 
+                  isPositive={totals.profileLinksTaps.trend.isPositive}
+                  sparklineData={chartData.map(d => d.profileLinksTaps || 0)}
                 />
                 <StatsCard 
                   label="Followers" 

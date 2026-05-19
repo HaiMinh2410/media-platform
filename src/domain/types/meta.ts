@@ -53,6 +53,14 @@ export type MetaInsightItem = {
 
 export type MetaInsightsResponse = {
   data: MetaInsightItem[];
+  paging?: {
+    cursors?: {
+      before?: string;
+      after?: string;
+    };
+    next?: string;
+    previous?: string;
+  };
 };
 
 export type MetaPageFansResponse = {

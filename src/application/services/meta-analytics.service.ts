@@ -1,6 +1,7 @@
 import { getMetaGraphClient } from '@/infrastructure/meta/graph-api.client';
 import { redisConnection } from '@/infrastructure/queue/bullmq.provider';
 import { getTokenEncryptionService } from '@/infrastructure/crypto/token-encryption.service';
+import { db } from '@/lib/db';
 import { upsertAnalyticsSnapshot, upsertPostAnalytics } from '@/infrastructure/repositories/analytics.repository';
 import type { 
   MetaInsightsResponse, 
@@ -210,6 +211,72 @@ function parseMediaProductType(insightsData: any[], metricName: string) {
   }
   
   return { posts, reels, stories };
+}
+
+/**
+ * Aggregates daily hourly online_followers data into the 7 days of the week, each with 8 three-hour blocks
+ * expected by the active-times-chart component.
+ */
+function aggregateActiveTimes(values: Array<{ value: Record<string, number>; end_time: string }>): Record<string, number[]> {
+  const result: Record<string, number[]> = {
+    "M": [0, 0, 0, 0, 0, 0, 0, 0],
+    "Tu": [0, 0, 0, 0, 0, 0, 0, 0],
+    "W": [0, 0, 0, 0, 0, 0, 0, 0],
+    "Th": [0, 0, 0, 0, 0, 0, 0, 0],
+    "F": [0, 0, 0, 0, 0, 0, 0, 0],
+    "Sa": [0, 0, 0, 0, 0, 0, 0, 0],
+    "Su": [0, 0, 0, 0, 0, 0, 0, 0]
+  };
+
+  const counts: Record<string, number[]> = {
+    "M": [0, 0, 0, 0, 0, 0, 0, 0],
+    "Tu": [0, 0, 0, 0, 0, 0, 0, 0],
+    "W": [0, 0, 0, 0, 0, 0, 0, 0],
+    "Th": [0, 0, 0, 0, 0, 0, 0, 0],
+    "F": [0, 0, 0, 0, 0, 0, 0, 0],
+    "Sa": [0, 0, 0, 0, 0, 0, 0, 0],
+    "Su": [0, 0, 0, 0, 0, 0, 0, 0]
+  };
+
+  const JS_DAY_TO_LABEL = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+
+  for (const item of values) {
+    if (!item.value || typeof item.value !== 'object' || Object.keys(item.value).length === 0) continue;
+    const date = new Date(item.end_time);
+    
+    // Shift by 7 hours to align with Meta Pacific Time (UTC-7) calculation
+    const pacTime = new Date(date.getTime() - 7 * 60 * 60 * 1000);
+    const dayOfWeek = pacTime.getUTCDay();
+    const dayLabel = JS_DAY_TO_LABEL[dayOfWeek];
+
+    for (let i = 0; i < 8; i++) {
+      const h0 = String(i * 3);
+      const h1 = String(i * 3 + 1);
+      const h2 = String(i * 3 + 2);
+      
+      const v0 = item.value[h0] ?? 0;
+      const v1 = item.value[h1] ?? 0;
+      const v2 = item.value[h2] ?? 0;
+      
+      const avgVal = (v0 + v1 + v2) / 3;
+      
+      result[dayLabel][i] += avgVal;
+      counts[dayLabel][i] += 1;
+    }
+  }
+
+  for (const day of Object.keys(result)) {
+    for (let i = 0; i < 8; i++) {
+      const count = counts[day][i];
+      if (count > 0) {
+        result[day][i] = Math.round(result[day][i] / count);
+      } else {
+        result[day][i] = 0;
+      }
+    }
+  }
+
+  return result;
 }
 
 
@@ -451,6 +518,7 @@ export const metaAnalyticsService = {
       const chunkUniqueViews: number[] = [];
       const chunkUniqueAccountsEngaged: number[] = [];
       const chunkUniqueInteractions: number[] = [];
+      const allOnlineFollowersValues: any[] = [];
 
       // 4. Fetch metrics for each chunk
       for (const chunk of chunks) {
@@ -620,10 +688,20 @@ export const metaAnalyticsService = {
           ];
 
           if (!insufficientData) {
+            // [6] follower_demographics
             otherPromises.push(
               client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
-                metric: 'online_followers,follower_demographics', 
+                metric: 'follower_demographics', 
                 period: 'lifetime' 
+              }, 'GET', accountId)
+            );
+            // [7] online_followers (queried with explicit bounds inside 30-day chunk)
+            otherPromises.push(
+              client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+                metric: 'online_followers', 
+                period: 'lifetime',
+                since: sinceUnix,
+                until: untilUnix
               }, 'GET', accountId)
             );
           }
@@ -815,13 +893,39 @@ export const metaAnalyticsService = {
             }
           }
 
-          // Process online followers (otherResults[6])
-          const onlineFollowersIdx = 6;
+          // Process online followers (otherResults[7])
+          const onlineFollowersIdx = 7;
           if (!insufficientData && otherResults[onlineFollowersIdx] && otherResults[onlineFollowersIdx].status === 'fulfilled' && otherResults[onlineFollowersIdx].value.data) {
-            const d = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
-            const onlineFollowers = d.data.find((i: any) => i.name === 'online_followers')?.values[0]?.value;
-            if (onlineFollowers && typeof onlineFollowers === 'object') {
-              activeTimes = onlineFollowers;
+            const firstPageRes = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
+            const onlineFollowersData = firstPageRes.data?.find((i: any) => i.name === 'online_followers');
+            
+            if (onlineFollowersData && Array.isArray(onlineFollowersData.values)) {
+              const allValues = [...onlineFollowersData.values];
+              
+              // Page through next links if they exist
+              let nextUrl = firstPageRes.paging?.next;
+              while (nextUrl) {
+                try {
+                  const pageRes = await fetch(nextUrl);
+                  if (!pageRes.ok) {
+                    console.warn('[MetaAnalyticsService] Failed to fetch next page of online_followers:', pageRes.statusText);
+                    break;
+                  }
+                  const pageData = await pageRes.json() as MetaInsightsResponse;
+                  if (pageData && Array.isArray(pageData.data)) {
+                    const pageMetric = pageData.data.find((i: any) => i.name === 'online_followers');
+                    if (pageMetric && Array.isArray(pageMetric.values)) {
+                      allValues.push(...pageMetric.values);
+                    }
+                  }
+                  nextUrl = pageData.paging?.next;
+                } catch (pageErr) {
+                  console.error('[MetaAnalyticsService] Error fetching next page of online_followers:', pageErr);
+                  break;
+                }
+              }
+
+              allOnlineFollowersValues.push(...allValues);
             }
           }
 
@@ -855,6 +959,14 @@ export const metaAnalyticsService = {
             activeTimes: metric.activeTimes,
             insufficientData: metric.insufficientData
           });
+        }
+      }
+
+      if (platform === 'instagram' && allOnlineFollowersValues.length > 0) {
+        activeTimes = aggregateActiveTimes(allOnlineFollowersValues);
+        // Apply the final aggregated activeTimes to all snapshots
+        for (const snapshot of allSnapshots) {
+          snapshot.activeTimes = activeTimes;
         }
       }
 
@@ -1091,11 +1203,17 @@ export const metaAnalyticsService = {
 
       // 3. Chunking logic
       const chunks: { since: Date; until: Date }[] = [];
+      let syncStart: Date;
+      let syncEnd: Date;
+
       if (params.since && params.until) {
-        let currentStart = new Date(params.since);
-        currentStart.setUTCHours(0, 0, 0, 0);
-        const endLimit = new Date(params.until);
-        endLimit.setUTCHours(23, 59, 59, 999);
+        syncStart = new Date(params.since);
+        syncStart.setUTCHours(0, 0, 0, 0);
+        syncEnd = new Date(params.until);
+        syncEnd.setUTCHours(23, 59, 59, 999);
+
+        let currentStart = new Date(syncStart);
+        const endLimit = new Date(syncEnd);
         
         while (currentStart < endLimit) {
           let currentEnd = new Date(currentStart);
@@ -1116,6 +1234,9 @@ export const metaAnalyticsService = {
         const yesterday = new Date();
         yesterday.setUTCDate(yesterday.getUTCDate() - 1);
         yesterday.setUTCHours(23, 59, 59, 999);
+
+        syncStart = thirtyDaysAgo;
+        syncEnd = yesterday;
         
         let currentStart = new Date(thirtyDaysAgo);
         while (currentStart < yesterday) {
@@ -1129,6 +1250,8 @@ export const metaAnalyticsService = {
           currentStart.setUTCDate(currentStart.getUTCDate() + 1);
         }
       }
+
+      const allOnlineFollowersValues: any[] = [];
 
       // 4. Fetch metrics for each chunk
       for (const chunk of chunks) {
@@ -1301,10 +1424,20 @@ export const metaAnalyticsService = {
           ];
 
           if (!insufficientData) {
+            // [5] follower_demographics
             otherPromises.push(
               client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
-                metric: 'online_followers,follower_demographics', 
+                metric: 'follower_demographics', 
                 period: 'lifetime' 
+              }, 'GET', accountId)
+            );
+            // [6] online_followers (queried with explicit bounds inside 30-day chunk)
+            otherPromises.push(
+              client.request<MetaInsightsResponse>(`${externalId}/insights`, accessToken, { 
+                metric: 'online_followers', 
+                period: 'lifetime',
+                since: sinceUnix,
+                until: untilUnix
               }, 'GET', accountId)
             );
           }
@@ -1444,13 +1577,39 @@ export const metaAnalyticsService = {
             };
           }
 
-          // 7. Process online followers (otherResults[5])
-          const onlineFollowersIdx = 5;
+          // 7. Process online followers (otherResults[6])
+          const onlineFollowersIdx = 6;
           if (!insufficientData && otherResults[onlineFollowersIdx] && otherResults[onlineFollowersIdx].status === 'fulfilled' && otherResults[onlineFollowersIdx].value.data) {
-            const d = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
-            const onlineFollowers = d.data.find((i: any) => i.name === 'online_followers')?.values[0]?.value;
-            if (onlineFollowers && typeof onlineFollowers === 'object') {
-              activeTimes = onlineFollowers;
+            const firstPageRes = otherResults[onlineFollowersIdx].value.data as MetaInsightsResponse;
+            const onlineFollowersData = firstPageRes.data?.find((i: any) => i.name === 'online_followers');
+            
+            if (onlineFollowersData && Array.isArray(onlineFollowersData.values)) {
+              const allValues = [...onlineFollowersData.values];
+              
+              // Page through next links if they exist
+              let nextUrl = firstPageRes.paging?.next;
+              while (nextUrl) {
+                try {
+                  const pageRes = await fetch(nextUrl);
+                  if (!pageRes.ok) {
+                    console.warn('[MetaAnalyticsService] Failed to fetch next page of online_followers:', pageRes.statusText);
+                    break;
+                  }
+                  const pageData = await pageRes.json() as MetaInsightsResponse;
+                  if (pageData && Array.isArray(pageData.data)) {
+                    const pageMetric = pageData.data.find((i: any) => i.name === 'online_followers');
+                    if (pageMetric && Array.isArray(pageMetric.values)) {
+                      allValues.push(...pageMetric.values);
+                    }
+                  }
+                  nextUrl = pageData.paging?.next;
+                } catch (pageErr) {
+                  console.error('[MetaAnalyticsService] Error fetching next page of online_followers:', pageErr);
+                  break;
+                }
+              }
+
+              allOnlineFollowersValues.push(...allValues);
             }
           }
 
@@ -1505,7 +1664,29 @@ export const metaAnalyticsService = {
           }
       }
     }
-      // 9. Update reauth status to false since sync completed successfully
+
+    if (platform === 'instagram' && allOnlineFollowersValues.length > 0) {
+      const finalActiveTimes = aggregateActiveTimes(allOnlineFollowersValues);
+      try {
+        await db.analytics_snapshots.updateMany({
+          where: {
+            account_id: accountId,
+            date: {
+              gte: syncStart,
+              lte: syncEnd
+            }
+          },
+          data: {
+            active_times: finalActiveTimes as any
+          }
+        });
+        console.log(`[MetaAnalyticsService] Successfully updated historical active_times for account ${accountId}`);
+      } catch (dbErr) {
+        console.error('[MetaAnalyticsService] Failed to update historical active_times in DB:', dbErr);
+      }
+    }
+
+    // 9. Update reauth status to false since sync completed successfully
       try {
         const { getPlatformAccountRepository } = await import('@/infrastructure/repositories/platform-account.repository');
         await getPlatformAccountRepository().updateReauthStatus(accountId, false);
