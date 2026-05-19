@@ -192,7 +192,6 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
             totalInteractions: p.totalInteractions,
             views: p.views,
             reach: p.reach,
-            impressions: p.impressions,
             profileVisits: p.profileVisits || 0,
             follows: p.follows || 0,
             postedAt: p.postedAt
@@ -340,7 +339,7 @@ function getTopPostsFromLive(
   limit = 10,
   customStart?: Date,
   customEnd?: Date,
-  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows' = 'interactions'
+  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'shares' | 'profile_visits' | 'follows' = 'interactions'
 ) {
   // Removed date range filtering to provide global/lifetime media ranking
   
@@ -360,7 +359,6 @@ function getTopPostsFromLive(
     totalInteractions: p.totalInteractions || 0,
     views: p.views || p.reach || 0,
     reach: p.reach || 0,
-    impressions: p.impressions || p.reach || 0,
     profileVisits: p.profileVisits || 0,
     follows: p.follows || 0,
     postedAt: new Date(p.postedAt),
@@ -376,6 +374,8 @@ function getTopPostsFromLive(
     mapped.sort((a, b) => b.reach - a.reach);
   } else if (sortBy === 'likes') {
     mapped.sort((a, b) => b.likeCount - a.likeCount);
+  } else if (sortBy === 'shares') {
+    mapped.sort((a, b) => b.sharesCount - a.sharesCount);
   } else if (sortBy === 'profile_visits') {
     mapped.sort((a, b) => b.profileVisits - a.profileVisits);
   } else if (sortBy === 'follows') {
@@ -470,7 +470,7 @@ export async function getTopPostsAction(
   range: AnalyticsRange = '30d', 
   customStart?: Date, 
   customEnd?: Date,
-  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows' = 'interactions',
+  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'shares' | 'profile_visits' | 'follows' = 'interactions',
   limit: number = 10
 ) {
   try {

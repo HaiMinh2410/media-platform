@@ -66,14 +66,12 @@ export type AnalyticsPeriodData = {
   previous: AnalyticsSnapshot[];
   currentPostTotals?: {
     reach: number;
-    impressions: number;
     engagement: number;
     byContentInteractions?: ContentBreakdown;
     byContentViews?: ContentBreakdown;
   };
   previousPostTotals?: {
     reach: number;
-    impressions: number;
     engagement: number;
     byContentInteractions?: ContentBreakdown;
     byContentViews?: ContentBreakdown;
@@ -111,7 +109,6 @@ export type PostAnalytic = {
   totalInteractions: number;
   views: number;
   reach: number;
-  impressions: number;
   profileVisits: number;
   follows: number;
   postedAt: Date;

@@ -310,7 +310,7 @@ export const metaAnalyticsService = {
                   if (post.media_type === 'VIDEO') {
                     metrics = 'reach,saved,shares,profile_visits,follows,views';
                   } else {
-                    metrics = 'reach,saved,shares,profile_visits,follows';
+                    metrics = 'reach,views,saved,shares,profile_visits,follows';
                   }
                 }
                   
@@ -348,12 +348,12 @@ export const metaAnalyticsService = {
                 }
 
                 const postReach = insights.find((i: any) => i.name === 'reach')?.values[0]?.value || 0;
-                const postImpressions = insights.find((i: any) => i.name === 'impressions')?.values[0]?.value || postReach;
-                const postViews = insights.find((i: any) => i.name === 'views')?.values[0]?.value || postReach;
+                const postImpressions = insights.find((i: any) => i.name === 'impressions')?.values[0]?.value || 0;
+                const postViews = insights.find((i: any) => i.name === 'views')?.values[0]?.value || postImpressions || postReach;
 
                 processedPosts.push({
                   postId: post.id,
-                  mediaType: post.media_type,
+                  mediaType: post.media_product_type === 'REELS' ? 'REELS' : post.media_type,
                   caption: post.caption || null,
                   thumbnailUrl: thumbnailUrl,
                   mediaUrl: post.media_url || null,
@@ -363,7 +363,6 @@ export const metaAnalyticsService = {
                   savedCount: pSaved,
                   totalInteractions: totalInt,
                   reach: postReach,
-                  impressions: postImpressions,
                   views: postViews,
                   profileVisits: pVisits,
                   follows: pFollows,
@@ -932,7 +931,7 @@ export const metaAnalyticsService = {
                   if (post.media_type === 'VIDEO') {
                     metrics = 'reach,saved,shares,profile_visits,follows,views';
                   } else {
-                    metrics = 'reach,saved,shares,profile_visits,follows';
+                    metrics = 'reach,views,saved,shares,profile_visits,follows';
                   }
                 }
                   
@@ -972,12 +971,11 @@ export const metaAnalyticsService = {
                 }
 
                 const postReach = insights.find((i: any) => i.name === 'reach')?.values[0]?.value || 0;
-                const postImpressions = insights.find((i: any) => i.name === 'impressions')?.values[0]?.value || postReach;
-                const postViews = insights.find((i: any) => i.name === 'views')?.values[0]?.value || postReach;
+                const postViews = insights.find((i: any) => i.name === 'views')?.values[0]?.value || 0;
 
                 const postData = {
                   postId: post.id,
-                  mediaType: post.media_type,
+                  mediaType: post.media_product_type === 'REELS' ? 'REELS' : post.media_type,
                   caption: post.caption || null,
                   thumbnailUrl: thumbnailUrl,
                   mediaUrl: post.media_url || null,
@@ -987,7 +985,6 @@ export const metaAnalyticsService = {
                   savedCount: pSaved,
                   totalInteractions: totalInt,
                   reach: postReach,
-                  impressions: postImpressions,
                   views: postViews,
                   profileVisits: pVisits,
                   follows: pFollows,

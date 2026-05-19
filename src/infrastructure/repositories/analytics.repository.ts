@@ -159,11 +159,11 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
     const [currentPostAgg, previousPostAgg, currentPosts, previousPosts] = await Promise.all([
       db.post_analytics.aggregate({
         where: { account_id: accountId, posted_at: { gte: currentStart, lte: currentEnd } },
-        _sum: { reach: true, impressions: true, like_count: true, comments_count: true, shares_count: true, saved_count: true }
+        _sum: { reach: true, like_count: true, comments_count: true, shares_count: true, saved_count: true }
       }),
       db.post_analytics.aggregate({
         where: { account_id: accountId, posted_at: { gte: previousStart, lte: previousEnd } },
-        _sum: { reach: true, impressions: true, like_count: true, comments_count: true, shares_count: true, saved_count: true }
+        _sum: { reach: true, like_count: true, comments_count: true, shares_count: true, saved_count: true }
       }),
       db.post_analytics.findMany({
         where: { account_id: accountId, posted_at: { gte: currentStart, lte: currentEnd } },
@@ -272,14 +272,12 @@ export async function getAnalyticsForPeriod(filter: AnalyticsFilter): Promise<{ 
         previous,
         currentPostTotals: {
           reach: currentPostAgg._sum.reach || 0,
-          impressions: currentPostAgg._sum.impressions || 0,
           engagement: getEng(currentPostAgg),
           byContentInteractions: currentPostBreakdown.interactions,
           byContentViews: currentPostBreakdown.views,
         },
         previousPostTotals: {
           reach: previousPostAgg._sum.reach || 0,
-          impressions: previousPostAgg._sum.impressions || 0,
           engagement: getEng(previousPostAgg),
           byContentInteractions: previousPostBreakdown.interactions,
           byContentViews: previousPostBreakdown.views,
@@ -330,7 +328,6 @@ export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnal
         total_interactions: post.totalInteractions,
         views: post.views,
         reach: post.reach,
-        impressions: post.impressions,
         profile_visits: post.profileVisits ?? 0,
         follows: post.follows ?? 0,
         posted_at: post.postedAt,
@@ -348,7 +345,6 @@ export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnal
         total_interactions: post.totalInteractions,
         views: post.views,
         reach: post.reach,
-        impressions: post.impressions,
         profile_visits: post.profileVisits ?? 0,
         follows: post.follows ?? 0,
         synced_at: new Date(),
@@ -365,7 +361,7 @@ export async function getTopPosts(
   limit = 10, 
   customStart?: Date, 
   customEnd?: Date,
-  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows' = 'interactions'
+  sortBy: 'views' | 'interactions' | 'reach' | 'likes' | 'shares' | 'profile_visits' | 'follows' = 'interactions'
 ): Promise<{ data: PostAnalytic[] | null; error: string | null }> {
   try {
     let orderBy: any = { total_interactions: 'desc' as const };
@@ -375,6 +371,8 @@ export async function getTopPosts(
       orderBy = { reach: 'desc' as const };
     } else if (sortBy === 'likes') {
       orderBy = { like_count: 'desc' as const };
+    } else if (sortBy === 'shares') {
+      orderBy = { shares_count: 'desc' as const };
     } else if (sortBy === 'profile_visits') {
       orderBy = { profile_visits: 'desc' as const };
     } else if (sortBy === 'follows') {
@@ -405,7 +403,6 @@ export async function getTopPosts(
       totalInteractions: p.total_interactions,
       views: p.views,
       reach: p.reach,
-      impressions: p.impressions,
       profileVisits: p.profile_visits || 0,
       follows: p.follows || 0,
       postedAt: p.posted_at,
@@ -420,6 +417,8 @@ export async function getTopPosts(
       mapped.sort((a, b) => b.reach - a.reach);
     } else if (sortBy === 'likes') {
       mapped.sort((a, b) => b.likeCount - a.likeCount);
+    } else if (sortBy === 'shares') {
+      mapped.sort((a, b) => b.sharesCount - a.sharesCount);
     } else if (sortBy === 'profile_visits') {
       mapped.sort((a, b) => b.profileVisits - a.profileVisits);
     } else if (sortBy === 'follows') {
@@ -463,7 +462,6 @@ export async function getTopContentFromDB(accountId: string): Promise<{ topByVie
       totalInteractions: p.total_interactions,
       views: p.views,
       reach: p.reach,
-      impressions: p.impressions,
       profileVisits: p.profile_visits || 0,
       follows: p.follows || 0,
       postedAt: p.posted_at,
@@ -676,10 +674,8 @@ export function mapLiveAnalyticsToPeriodData(params: {
   const currentPosts = posts.filter(p => new Date(p.postedAt) >= currentStart && new Date(p.postedAt) <= currentEnd);
   const previousPosts = posts.filter(p => new Date(p.postedAt) >= previousStart && new Date(p.postedAt) <= previousEnd);
 
-  // Helper calculation
   const getTotals = (postsList: any[]) => {
     let reach = 0;
-    let impressions = 0;
     let engagement = 0;
 
     let postInt = 0, reelInt = 0, storyInt = 0;
@@ -687,7 +683,6 @@ export function mapLiveAnalyticsToPeriodData(params: {
 
     for (const post of postsList) {
       reach += post.reach || 0;
-      impressions += post.impressions || 0;
       engagement += post.totalInteractions || 0;
 
       const mediaType = post.mediaType?.toUpperCase() || '';
@@ -714,7 +709,6 @@ export function mapLiveAnalyticsToPeriodData(params: {
 
     return {
       reach,
-      impressions,
       engagement,
       byContentInteractions: {
         posts: getIntPct(postInt),

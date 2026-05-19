@@ -7,6 +7,9 @@ import { cn, formatMetric } from './primitives';
 import { 
   Eye, MousePointer2, Users, Heart, User, UserPlus, Calendar, MessageCircle, Send, Bookmark 
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getTopPostsAction } from '@/application/actions/analytics.actions';
+
 
 export interface TopContentPost {
   id: string;
@@ -326,5 +329,34 @@ export function TopContentGrid({
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+function useTopContent(accountId: string, sortBy: MetricType) {
+  return useQuery({
+    queryKey: ['top-content', accountId, sortBy],
+    queryFn: () => getTopPostsAction(accountId, '30d', undefined, undefined, sortBy),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function TopContentGridWrapper({ 
+  accountId,
+  onSeeAll
+}: { 
+  accountId: string;
+  onSeeAll?: () => void;
+}) {
+  const [activeMetric, setActiveMetric] = React.useState<MetricType>('interactions');
+  const { data: result, isPending } = useTopContent(accountId, activeMetric);
+  
+  return (
+    <TopContentGrid
+      posts={(result?.data || []) as TopContentPost[]}
+      activeMetric={activeMetric}
+      setActiveMetric={setActiveMetric}
+      isLoading={isPending}
+      onSeeAll={onSeeAll}
+    />
   );
 }
