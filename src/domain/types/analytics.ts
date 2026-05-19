@@ -111,6 +111,10 @@ export type PostAnalytic = {
   reach: number;
   profileVisits: number;
   follows: number;
+  igReelsAvgWatchTime?: number | null;
+  igReelsVideoViewTotalTime?: number | null;
+  reelsSkipRate?: number | null;
+  crosspostedViews?: number | null;
   postedAt: Date;
   syncedAt: Date;
 };

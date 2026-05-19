@@ -330,6 +330,10 @@ export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnal
         reach: post.reach,
         profile_visits: post.profileVisits ?? 0,
         follows: post.follows ?? 0,
+        ig_reels_avg_watch_time: post.igReelsAvgWatchTime ?? 0,
+        ig_reels_video_view_total_time: post.igReelsVideoViewTotalTime ?? 0,
+        reels_skip_rate: post.reelsSkipRate ?? 0,
+        crossposted_views: post.crosspostedViews ?? 0,
         posted_at: post.postedAt,
         synced_at: new Date(),
       } as any,
@@ -347,6 +351,10 @@ export async function upsertPostAnalytics(accountId: string, post: Omit<PostAnal
         reach: post.reach,
         profile_visits: post.profileVisits ?? 0,
         follows: post.follows ?? 0,
+        ig_reels_avg_watch_time: post.igReelsAvgWatchTime ?? 0,
+        ig_reels_video_view_total_time: post.igReelsVideoViewTotalTime ?? 0,
+        reels_skip_rate: post.reelsSkipRate ?? 0,
+        crossposted_views: post.crosspostedViews ?? 0,
         synced_at: new Date(),
       } as any,
     });
@@ -388,7 +396,7 @@ export async function getTopPosts(
       take: limit,
     });
 
-    const mapped = posts.map(p => ({
+    const mapped = posts.map((p: any) => ({
       id: p.id,
       accountId: p.account_id,
       postId: p.post_id,
@@ -405,6 +413,10 @@ export async function getTopPosts(
       reach: p.reach,
       profileVisits: p.profile_visits || 0,
       follows: p.follows || 0,
+      igReelsAvgWatchTime: p.ig_reels_avg_watch_time || 0,
+      igReelsVideoViewTotalTime: p.ig_reels_video_view_total_time || 0,
+      reelsSkipRate: p.reels_skip_rate || 0,
+      crosspostedViews: p.crossposted_views || 0,
       postedAt: p.posted_at,
       syncedAt: p.synced_at,
     }));
@@ -464,6 +476,10 @@ export async function getTopContentFromDB(accountId: string): Promise<{ topByVie
       reach: p.reach,
       profileVisits: p.profile_visits || 0,
       follows: p.follows || 0,
+      igReelsAvgWatchTime: p.ig_reels_avg_watch_time || 0,
+      igReelsVideoViewTotalTime: p.ig_reels_video_view_total_time || 0,
+      reelsSkipRate: p.reels_skip_rate || 0,
+      crosspostedViews: p.crossposted_views || 0,
       postedAt: p.posted_at,
       syncedAt: p.synced_at,
     });

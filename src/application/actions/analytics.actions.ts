@@ -194,6 +194,10 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
             reach: p.reach,
             profileVisits: p.profileVisits || 0,
             follows: p.follows || 0,
+            igReelsAvgWatchTime: p.igReelsAvgWatchTime ?? 0,
+            igReelsVideoViewTotalTime: p.igReelsVideoViewTotalTime ?? 0,
+            reelsSkipRate: p.reelsSkipRate ?? 0,
+            crosspostedViews: p.crosspostedViews ?? 0,
             postedAt: p.postedAt
           }))
         ]).catch(upsertErr => {
@@ -361,6 +365,10 @@ function getTopPostsFromLive(
     reach: p.reach || 0,
     profileVisits: p.profileVisits || 0,
     follows: p.follows || 0,
+    igReelsAvgWatchTime: p.igReelsAvgWatchTime || 0,
+    igReelsVideoViewTotalTime: p.igReelsVideoViewTotalTime || 0,
+    reelsSkipRate: p.reelsSkipRate || 0,
+    crosspostedViews: p.crosspostedViews || 0,
     postedAt: new Date(p.postedAt),
     syncedAt: new Date()
   }));

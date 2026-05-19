@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTopPostsAction } from '@/application/actions/analytics.actions';
+import { PostDetailModal } from './post-detail-modal';
 
 // Media type filter definitions with inline beautiful SVGs
 const MEDIA_FILTERS = [
@@ -72,6 +73,7 @@ const METRIC_FILTERS = [
 const ORDER_FILTERS = [
   { id: 'highest', label: 'Highest' },
   { id: 'lowest', label: 'Lowest' },
+  { id: 'newest', label: 'Newest' },
 ];
 
 const formatMetricValue = (val: number): string => {
@@ -87,7 +89,7 @@ export function ContentInsightsSection({
 }) {
   const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'reels' | 'carousel'>('all');
   const [metricFilter, setMetricFilter] = useState<'views' | 'interactions' | 'reach' | 'likes' | 'shares' | 'profile_visits' | 'follows'>('views');
-  const [orderFilter, setOrderFilter] = useState<'highest' | 'lowest'>('highest');
+  const [orderFilter, setOrderFilter] = useState<'highest' | 'lowest' | 'newest'>('highest');
   const [activeDropdown, setActiveDropdown] = useState<'media' | 'metric' | 'order' | null>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
@@ -126,6 +128,8 @@ export function ContentInsightsSection({
 
     if (orderFilter === 'lowest') {
       filtered.reverse();
+    } else if (orderFilter === 'newest') {
+      filtered.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
     }
 
     return filtered;
@@ -403,197 +407,13 @@ export function ContentInsightsSection({
         </div>
       )}
 
-      {/* Split-screen Post Detail Modal */}
+      {/* Instagram-style Post Detail Modal */}
       <AnimatePresence>
         {selectedPost && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 lg:p-10 select-none">
-            {/* Backdrop cover */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedPost(null)}
-              className="absolute inset-0 bg-black/85 backdrop-blur-md cursor-pointer"
-            />
-            
-            {/* Modal Body */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 15 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-              className="relative w-full max-w-5xl bg-[#101012] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col md:grid md:grid-cols-12 min-h-[500px] max-h-[85vh] text-white select-text"
-            >
-              {/* Left Column: Media Preview */}
-              <div className="md:col-span-5 p-6 bg-black/40 flex flex-col justify-center border-b md:border-b-0 md:border-r border-white/5 select-none">
-                {renderMediaPreview(selectedPost)}
-              </div>
-
-              {/* Right Column: Statistics Panel */}
-              <div className="md:col-span-7 p-6 md:p-8 flex flex-col h-full overflow-hidden max-h-[85vh]">
-                {/* Header Section */}
-                <div className="flex justify-between items-start gap-4 mb-4 pb-4 border-b border-white/5">
-                  <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#00bcd4] bg-[#00bcd4]/10 px-2.5 py-1 rounded-md border border-[#00bcd4]/20 select-none">
-                      Bài viết chi tiết
-                    </span>
-                    <div className="text-white/40 text-[11px] mt-2.5 font-medium flex items-center gap-1.5 select-none">
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                      </svg>
-                      <span>Đã đăng ngày {new Date(selectedPost.postedAt).toLocaleDateString('vi-VN', { dateStyle: 'long' })}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Close button */}
-                  <button 
-                    onClick={() => setSelectedPost(null)}
-                    className="bg-white/5 hover:bg-white/10 hover:text-white text-white/60 p-2.5 rounded-full border border-white/10 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95 select-none"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Scrollable Metrics Sheet */}
-                <div className="flex-1 overflow-y-auto pr-1 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                  {/* Caption block */}
-                  {selectedPost.caption && (
-                    <div className="space-y-1.5">
-                      <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider select-none">Nội dung caption</h4>
-                      <p className="text-sm font-medium leading-relaxed text-white/90 bg-white/5 p-4 rounded-2xl border border-white/5 max-h-[110px] overflow-y-auto whitespace-pre-wrap">
-                        {selectedPost.caption}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Block 1: Reach & views */}
-                  <div className="space-y-3 pb-5 border-b border-white/5">
-                    <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider select-none">Chỉ số tiếp cận & hiển thị</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white/5 border border-white/5 p-4.5 rounded-2xl flex items-center gap-4 hover:bg-white/8 hover:border-white/10 transition-all select-none">
-                        <div className="bg-[#00c853]/15 text-[#00c853] p-3 rounded-xl">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-[11px] font-bold text-white/40">Lượt xem (Views)</div>
-                          <div className="text-xl font-extrabold tracking-tight mt-0.5 select-text">{formatMetricValue(selectedPost.views || selectedPost.reach)}</div>
-                        </div>
-                      </div>
-
-                      <div className="bg-white/5 border border-white/5 p-4.5 rounded-2xl flex items-center gap-4 hover:bg-white/8 hover:border-white/10 transition-all select-none">
-                        <div className="bg-[#2979ff]/15 text-[#2979ff] p-3 rounded-xl">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-[11px] font-bold text-white/40">Số tài khoản tiếp cận (Reach)</div>
-                          <div className="text-xl font-extrabold tracking-tight mt-0.5 select-text">{formatMetricValue(selectedPost.reach)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Block 2: Main Interactions */}
-                  <div className="space-y-3 pb-5 border-b border-white/5">
-                    <div className="flex justify-between items-center select-none">
-                      <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider">Tương tác chi tiết</h4>
-                      <span className="text-[11px] text-white/60 font-bold bg-white/5 px-2.5 py-1 rounded-lg border border-white/5 select-text">
-                        Tổng: {formatMetricValue(selectedPost.totalInteractions || (selectedPost.likeCount + selectedPost.commentsCount + selectedPost.sharesCount + selectedPost.savedCount))}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center gap-3.5 hover:bg-white/8 hover:border-white/10 transition-all select-none">
-                        <div className="bg-[#ff1744]/15 text-[#ff1744] p-2.5 rounded-xl">
-                          <svg className="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-white/40">Lượt thích</div>
-                          <div className="text-lg font-extrabold tracking-tight mt-0.5 select-text">{formatMetricValue(selectedPost.likeCount)}</div>
-                        </div>
-                      </div>
-
-                      <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center gap-3.5 hover:bg-white/8 hover:border-white/10 transition-all select-none">
-                        <div className="bg-[#ff9100]/15 text-[#ff9100] p-2.5 rounded-xl">
-                          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-white/40">Bình luận</div>
-                          <div className="text-lg font-extrabold tracking-tight mt-0.5 select-text">{formatMetricValue(selectedPost.commentsCount)}</div>
-                        </div>
-                      </div>
-
-                      <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center gap-3.5 hover:bg-white/8 hover:border-white/10 transition-all select-none">
-                        <div className="bg-[#00e5ff]/15 text-[#00e5ff] p-2.5 rounded-xl">
-                          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.742l4.632-2.316m0 7.148l-4.632-2.316M19 19a3 3 0 11-6 0 3 3 0 016 0zm-6-14a3 3 0 11-6 0 3 3 0 016 0zm-6 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-white/40">Chia sẻ</div>
-                          <div className="text-lg font-extrabold tracking-tight mt-0.5 select-text">{formatMetricValue(selectedPost.sharesCount)}</div>
-                        </div>
-                      </div>
-
-                      <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center gap-3.5 hover:bg-white/8 hover:border-white/10 transition-all select-none">
-                        <div className="bg-[#ea80fc]/15 text-[#ea80fc] p-2.5 rounded-xl">
-                          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-white/40">Lưu lại</div>
-                          <div className="text-lg font-extrabold tracking-tight mt-0.5 select-text">{formatMetricValue(selectedPost.savedCount)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Block 3: Profile and Followers conversions */}
-                  <div className="space-y-3 pb-2">
-                    <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider select-none">Hành vi chuyển đổi khán giả</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white/5 border border-white/5 p-4.5 rounded-2xl flex items-center gap-4 hover:bg-white/8 hover:border-white/10 transition-all select-none">
-                        <div className="bg-[#651fff]/15 text-[#651fff] p-3 rounded-xl">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-white/40">Ghé thăm Profile</div>
-                          <div className="text-xl font-extrabold tracking-tight mt-0.5 select-text">{formatMetricValue(selectedPost.profileVisits)}</div>
-                        </div>
-                      </div>
-
-                      <div className="bg-white/5 border border-white/5 p-4.5 rounded-2xl flex items-center gap-4 hover:bg-white/8 hover:border-white/10 transition-all select-none">
-                        <div className="bg-[#f50057]/15 text-[#f50057] p-3 rounded-xl">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold text-white/40">Follower mới</div>
-                          <div className="text-xl font-extrabold tracking-tight mt-0.5 select-text">{formatMetricValue(selectedPost.follows)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
+          <PostDetailModal
+            post={selectedPost}
+            onClose={() => setSelectedPost(null)}
+          />
         )}
       </AnimatePresence>
     </div>

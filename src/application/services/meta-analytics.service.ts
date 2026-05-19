@@ -302,7 +302,23 @@ export const metaAnalyticsService = {
                 const productType = post.media_product_type;
                 let metrics = '';
                 if (productType === 'REELS') {
-                  metrics = 'reach,saved,shares,views';
+                  metrics = 'reach,saved,shares,views,ig_reels_avg_watch_time,ig_reels_video_view_total_time,reels_skip_rate';
+                  return client.request<MetaMediaInsightsResponse>(`${post.id}/insights`, accessToken, { 
+                    metric: metrics 
+                  }, 'GET', accountId).then(async (res) => {
+                    let crosspostedRes: any = null;
+                    try {
+                      crosspostedRes = await client.request<MetaMediaInsightsResponse>(`${post.id}/insights`, accessToken, {
+                        metric: 'crossposted_views'
+                      }, 'GET', accountId);
+                    } catch (err) {
+                      console.warn(`[MetaAnalyticsService] crossposted_views query failed for reel ${post.id}:`, err);
+                    }
+                    if (res.data && res.data.data && crosspostedRes?.data?.data) {
+                      res.data.data.push(...crosspostedRes.data.data);
+                    }
+                    return { post, res };
+                  });
                 } else if (productType === 'STORY') {
                   metrics = 'reach,replies,saved,shares,navigation';
                 } else {
@@ -337,6 +353,20 @@ export const metaAnalyticsService = {
                 const pShares = insights.find((i: any) => i.name === 'shares')?.values[0]?.value || 0;
                 const pVisits = insights.find((i: any) => i.name === 'profile_visits')?.values[0]?.value || 0;
                 const pFollows = insights.find((i: any) => i.name === 'follows')?.values[0]?.value || 0;
+                
+                const pReelsAvgWatchTime = post.media_product_type === 'REELS' 
+                  ? insights.find((i: any) => i.name === 'ig_reels_avg_watch_time')?.values[0]?.value ?? 0 
+                  : null;
+                const pReelsVideoViewTotalTime = post.media_product_type === 'REELS' 
+                  ? insights.find((i: any) => i.name === 'ig_reels_video_view_total_time')?.values[0]?.value ?? 0 
+                  : null;
+                const pReelsSkipRate = post.media_product_type === 'REELS' 
+                  ? insights.find((i: any) => i.name === 'reels_skip_rate')?.values[0]?.value ?? 0 
+                  : null;
+                const pCrosspostedViews = post.media_product_type === 'REELS' 
+                  ? insights.find((i: any) => i.name === 'crossposted_views')?.values[0]?.value ?? 0 
+                  : null;
+
                 const totalInt = pLikes + pComments + pSaved + pShares;
 
                 if (post.media_type === 'IMAGE' || post.media_type === 'CAROUSEL_ALBUM') postInt += totalInt;
@@ -366,6 +396,10 @@ export const metaAnalyticsService = {
                   views: postViews,
                   profileVisits: pVisits,
                   follows: pFollows,
+                  igReelsAvgWatchTime: pReelsAvgWatchTime,
+                  igReelsVideoViewTotalTime: pReelsVideoViewTotalTime,
+                  reelsSkipRate: pReelsSkipRate,
+                  crosspostedViews: pCrosspostedViews,
                   postedAt: new Date(post.timestamp)
                 });
               }
@@ -923,7 +957,23 @@ export const metaAnalyticsService = {
                 const productType = post.media_product_type;
                 let metrics = '';
                 if (productType === 'REELS') {
-                  metrics = 'reach,saved,shares,views';
+                  metrics = 'reach,saved,shares,views,ig_reels_avg_watch_time,ig_reels_video_view_total_time,reels_skip_rate';
+                  return client.request<MetaMediaInsightsResponse>(`${post.id}/insights`, accessToken, { 
+                    metric: metrics 
+                  }, 'GET', accountId).then(async (res) => {
+                    let crosspostedRes: any = null;
+                    try {
+                      crosspostedRes = await client.request<MetaMediaInsightsResponse>(`${post.id}/insights`, accessToken, {
+                        metric: 'crossposted_views'
+                      }, 'GET', accountId);
+                    } catch (err) {
+                      console.warn(`[MetaAnalyticsService] crossposted_views query failed for reel ${post.id}:`, err);
+                    }
+                    if (res.data && res.data.data && crosspostedRes?.data?.data) {
+                      res.data.data.push(...crosspostedRes.data.data);
+                    }
+                    return { post, res };
+                  });
                 } else if (productType === 'STORY') {
                   metrics = 'reach,replies,saved,shares,navigation';
                 } else {
@@ -960,6 +1010,20 @@ export const metaAnalyticsService = {
                 const pComments = post.comments_count || 0;
                 const pSaved = insights.find((i: any) => i.name === 'saved')?.values[0]?.value || 0;
                 const pShares = insights.find((i: any) => i.name === 'shares')?.values[0]?.value || 0;
+                
+                const pReelsAvgWatchTime = post.media_product_type === 'REELS' 
+                  ? insights.find((i: any) => i.name === 'ig_reels_avg_watch_time')?.values[0]?.value ?? 0 
+                  : null;
+                const pReelsVideoViewTotalTime = post.media_product_type === 'REELS' 
+                  ? insights.find((i: any) => i.name === 'ig_reels_video_view_total_time')?.values[0]?.value ?? 0 
+                  : null;
+                const pReelsSkipRate = post.media_product_type === 'REELS' 
+                  ? insights.find((i: any) => i.name === 'reels_skip_rate')?.values[0]?.value ?? 0 
+                  : null;
+                const pCrosspostedViews = post.media_product_type === 'REELS' 
+                  ? insights.find((i: any) => i.name === 'crossposted_views')?.values[0]?.value ?? 0 
+                  : null;
+
                 const totalInt = pLikes + pComments + pSaved + pShares;
 
                 if (post.media_type === 'IMAGE' || post.media_type === 'CAROUSEL_ALBUM') postInt += totalInt;
@@ -988,6 +1052,10 @@ export const metaAnalyticsService = {
                   views: postViews,
                   profileVisits: pVisits,
                   follows: pFollows,
+                  igReelsAvgWatchTime: pReelsAvgWatchTime,
+                  igReelsVideoViewTotalTime: pReelsVideoViewTotalTime,
+                  reelsSkipRate: pReelsSkipRate,
+                  crosspostedViews: pCrosspostedViews,
                   postedAt: new Date(post.timestamp)
                 };
 
