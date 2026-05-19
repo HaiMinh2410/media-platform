@@ -2,16 +2,19 @@
 
 import React, { useState } from 'react';
 import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, Legend
 } from 'recharts';
 import { 
-  Users, BarChart3, Eye, MousePointer2, TrendingUp, RefreshCw, 
-  CloudDownload, Layers, Sparkles
+  Users, BarChart3, Eye, MousePointer2, TrendingUp, TrendingDown, RefreshCw, 
+  CloudDownload, Layers, Sparkles, Flame, Star, AlertTriangle, HelpCircle,
+  UserPlus, UserMinus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@/components/ui/icon';
 import { 
-  getAnalyticsAction, syncAnalyticsAction, syncAllAccountsAction 
+  getAnalyticsAction, syncAnalyticsAction, syncAllAccountsAction,
+  getFollowerDetailedAnalyticsAction
 } from '@/application/actions/analytics.actions';
 import { AnalyticsPeriodData, AnalyticsRange } from '@/domain/types/analytics';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -64,6 +67,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const [customEnd, setCustomEnd] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'general' | 'ai' | 'content'>('general');
   const [activeMetric, setActiveMetric] = useState<ActiveMetric>('reach');
+  const [activeChart, setActiveChart] = useState<'reach-engagement' | 'views-interactions' | 'followers'>('reach-engagement');
   const [isSyncing, setIsSyncing] = useState(false);
   const queryClient = useQueryClient();
 
@@ -81,6 +85,22 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     cEnd, 
     isInitialState ? initialData : undefined
   );
+
+  const isInstagram = accounts.find(a => a.id === selectedAccountId)?.platform === 'instagram';
+
+  const { data: followerDetailsResult } = useQuery({
+    queryKey: ['follower-details', selectedAccountId, range, cStart, cEnd],
+    queryFn: () => getFollowerDetailedAnalyticsAction(selectedAccountId, range, cStart, cEnd),
+    staleTime: 5 * 60 * 1000,
+    enabled: isInstagram && !!selectedAccountId,
+  });
+
+  const followerDetails = followerDetailsResult?.data;
+  const isFollowerInsufficientData = followerDetails?.insufficientData ?? false;
+  const followsAndUnfollows = followerDetails?.followsAndUnfollows || [];
+  const totalFollows = followsAndUnfollows.reduce((sum: number, d: any) => sum + (d.follows || 0), 0);
+  const totalUnfollows = followsAndUnfollows.reduce((sum: number, d: any) => sum + (d.unfollows || 0), 0);
+  const netGrowth = totalFollows - totalUnfollows;
 
   async function handleSync() {
     if (!selectedAccountId || isSyncing) return;
@@ -139,10 +159,10 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     const prev = previousSnapshots[i];
     return {
       date: xAxisFormatter(s.date),
-      reach: s.reach,
-      engagement: s.engagement,
-      views: s.impressions,
-      followers: s.followers,
+      reach: s.reach || 0,
+      engagement: s.accountsEngaged ?? s.engagement ?? 0,
+      views: s.impressions || 0,
+      followers: s.followers || 0,
       prevReach: prev?.reach ?? 0,
       prevEngagement: prev?.engagement ?? 0,
       prevViews: prev?.impressions ?? 0,
@@ -338,6 +358,80 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       : (data?.data?.currentPostTotals?.byContentInteractions || null),
   };
 
+  // Reach vs Engagement statistics
+  const totalReach = chartData.reduce((sum, item) => sum + item.reach, 0);
+  const totalEngagement = chartData.reduce((sum, item) => sum + item.engagement, 0);
+  const avgReach = chartData.length > 0 ? Math.round(totalReach / chartData.length) : 0;
+  const avgEngagement = Math.round(totalEngagement / chartData.length);
+  const avgEngagementRate = totalReach > 0 ? Number(((totalEngagement / totalReach) * 100).toFixed(2)) : 0;
+
+  const getEngagementInsight = (rate: number) => {
+    if (rate === 0) return null;
+    if (rate < 5) {
+      return {
+        type: 'low',
+        icon: AlertTriangle,
+        color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+        title: 'Khoảng cách rộng (Tương tác thấp)',
+        desc: 'Số lượng tài khoản tiếp cận cao nhưng tương tác lại thấp. Điều này cho thấy nội dung của bạn chưa đủ sức hút để người xem hành động. Hãy thử thiết kế thumbnail nổi bật hơn, tối ưu 3 giây đầu của video hoặc chèn câu hỏi mở (CTA) hấp dẫn để kêu gọi bình luận.',
+      };
+    } else if (rate >= 5 && rate < 15) {
+      return {
+        type: 'good',
+        icon: Star,
+        color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+        title: 'Khoảng cách ổn định (Tương tác khá)',
+        desc: 'Tỷ lệ tương tác trên lượt tiếp cận đang hoạt động ổn định. Nội dung của bạn đi đúng hướng và có sức hút nhất định. Hãy tiếp tục tối ưu hóa khung giờ đăng bài và giữ vững phong cách chia sẻ hữu ích hiện tại.',
+      };
+    } else {
+      return {
+        type: 'excellent',
+        icon: Flame,
+        color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+        title: 'Khoảng cách hẹp (Tương tác xuất sắc!)',
+        desc: 'Hiệu suất tuyệt vời! Tỷ lệ tương tác trên mỗi lượt tiếp cận đạt mức rất cao. Khán giả cực kỳ hứng thú và có sự gắn kết sâu sắc với nội dung của bạn. Đây là công thức thành công, hãy nhân bản định dạng và chủ đề này ngay lập tức!',
+      };
+    }
+  };
+  const engagementInsight = getEngagementInsight(avgEngagementRate);
+
+  // Views vs Interactions statistics
+  const totalViews = chartData.reduce((sum, item) => sum + item.views, 0);
+  const totalInteractions = chartData.reduce((sum, item) => sum + item.engagement, 0);
+  const avgViews = chartData.length > 0 ? Math.round(totalViews / chartData.length) : 0;
+  const avgInteractions = Math.round(totalInteractions / chartData.length);
+  const avgInteractionRate = totalViews > 0 ? Number(((totalInteractions / totalViews) * 100).toFixed(2)) : 0;
+
+  const getInteractionInsight = (rate: number) => {
+    if (rate === 0) return null;
+    if (rate < 2) {
+      return {
+        type: 'low',
+        icon: AlertTriangle,
+        color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+        title: 'Hiệu suất chuyển đổi tương tác thấp',
+        desc: 'Nội dung của bạn nhận được nhiều lượt xem nhưng tỷ lệ người thực hiện hành động tương tác (Like, Comment, Share, Save) khá thấp. Bạn nên thử đặt các câu hỏi kích thích thảo luận dưới caption, tạo minigame hoặc chèn lời kêu gọi hành động (CTA) trực tiếp trên hình ảnh/video để thúc đẩy người dùng tương tác.',
+      };
+    } else if (rate >= 2 && rate < 6) {
+      return {
+        type: 'good',
+        icon: Star,
+        color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+        title: 'Tỷ lệ tương tác ổn định',
+        desc: 'Khả năng chuyển đổi từ lượt xem sang tương tác đạt mức ổn định so với trung bình. Khán giả phản hồi tương đối tích cực với các nội dung hiển thị. Hãy tiếp tục tối ưu hóa chất lượng hình ảnh, duy trì đều đặn tần suất đăng để củng cố thói quen tương tác của fan.',
+      };
+    } else {
+      return {
+        type: 'excellent',
+        icon: Flame,
+        color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+        title: 'Hiệu suất tương tác cực kỳ xuất sắc!',
+        desc: 'Tỷ lệ chuyển đổi tương tác trên mỗi lượt xem đạt mức rất cao! Khán giả cực kỳ hứng thú và không ngần ngại tương tác với các bài viết của bạn. Đây là những nội dung có giá trị giữ chân và tạo sự kết nối cộng đồng mạnh mẽ. Bạn nên ưu tiên phát triển thêm nhiều nội dung theo chủ đề này.',
+      };
+    }
+  };
+  const interactionInsight = getInteractionInsight(avgInteractionRate);
+
   return (
     <div className="analytics-container">
       {/* TABS SELECTOR */}
@@ -486,9 +580,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   trend={totals.reach.trend.display} 
                   isPositive={totals.reach.trend.isPositive}
                   sparklineData={chartData.map(d => d.reach || 0)}
-                  isActive={activeMetric === 'reach'}
-                  onClick={() => setActiveMetric('reach')}
-                  activeColor="#3b82f6"
                 />
                  <StatsCard 
                   label="Views" 
@@ -497,9 +588,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   trend={totals.impressions.trend.display} 
                   isPositive={totals.impressions.trend.isPositive}
                   sparklineData={chartData.map(d => d.views || 0)}
-                  isActive={activeMetric === 'views'}
-                  onClick={() => setActiveMetric('views')}
-                  activeColor="#a855f7"
                 />
                 <StatsCard 
                   label="Engagement" 
@@ -508,9 +596,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   trend={totals.engagement.trend.display} 
                   isPositive={totals.engagement.trend.isPositive}
                   sparklineData={chartData.map(d => d.engagement || 0)}
-                  isActive={activeMetric === 'engagement'}
-                  onClick={() => setActiveMetric('engagement')}
-                  activeColor="#10b981"
                 />
                 <StatsCard 
                   label="Followers" 
@@ -520,9 +605,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   isPositive={totals.followers.trend.isPositive}
                   delta={totals.followers.delta}
                   sparklineData={chartData.map(d => d.followers || 0)}
-                  isActive={activeMetric === 'followers'}
-                  onClick={() => setActiveMetric('followers')}
-                  activeColor="#f97316"
                 />
               </>
             )}
@@ -551,59 +633,105 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             />
           </div>
 
-          {activeMetric === 'followers' && accounts.find(a => a.id === selectedAccountId)?.platform === 'instagram' ? (
-            <FollowerDetailedSection
-              accountId={selectedAccountId}
-              range={range}
-              customStart={cStart}
-              customEnd={cEnd}
-            />
-          ) : (
-            <>
-              <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
-                <h2 className="chart-title">{activeConfig?.label} Trend</h2>
-                {isPending ? (
-                  <SkeletonChart />
-                ) : isError || !totals ? (
-                  <div className="w-full h-[350px] flex items-center justify-center bg-white/[0.02] rounded-xl border border-white/5">
-                    <span className="text-white/40">No data available</span>
-                  </div>
-                ) : (
-                  <div style={{ width: '100%', height: '350px' }}>
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={activeMetric}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                        style={{ width: '100%', height: '100%' }}
-                      >
-                        <ResponsiveContainer>
-                          <AreaChart data={chartData}>
-                            <defs>
-                              <linearGradient id="colorReach" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                                <stop offset="50%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                              </linearGradient>
-                              <linearGradient id="colorImpressions" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.4}/>
-                                <stop offset="50%" stopColor="#a855f7" stopOpacity={0.1}/>
-                                <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
-                              </linearGradient>
-                              <linearGradient id="colorEng" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                                <stop offset="50%" stopColor="#10b981" stopOpacity={0.1}/>
-                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                              </linearGradient>
-                              <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#f97316" stopOpacity={0.4}/>
-                                <stop offset="50%" stopColor="#f97316" stopOpacity={0.1}/>
-                                <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
-                              </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+          <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
+            {/* CHART SELECTOR BUTTONS */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white/[0.01] border border-white/5 p-2 rounded-2xl">
+              <div className="flex flex-wrap p-1 bg-white/5 border border-white/10 rounded-xl select-none gap-1">
+                <button
+                  onClick={() => setActiveChart('reach-engagement')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                    activeChart === 'reach-engagement'
+                      ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/10'
+                      : 'text-white/40 hover:text-white/80'
+                  }`}
+                >
+                  <Icon lucide={Users} size={14} />
+                  Tiếp cận & Tương tác
+                </button>
+                <button
+                  onClick={() => setActiveChart('views-interactions')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                    activeChart === 'views-interactions'
+                      ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/10'
+                      : 'text-white/40 hover:text-white/80'
+                  }`}
+                >
+                  <Icon lucide={Eye} size={14} />
+                  Lượt xem & Tương tác
+                </button>
+                <button
+                  onClick={() => setActiveChart('followers')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                    activeChart === 'followers'
+                      ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/10'
+                      : 'text-white/40 hover:text-white/80'
+                  }`}
+                >
+                  <Icon lucide={TrendingUp} size={14} />
+                  {isInstagram && !isFollowerInsufficientData ? 'Biến động Followers' : 'Xu hướng Followers'}
+                </button>
+              </div>
+
+              <div className="text-white/40 text-xs font-semibold px-2">
+                {activeChart === 'reach-engagement' && 'Hiệu suất thu hút (Reach vs Engagement)'}
+                {activeChart === 'views-interactions' && 'Hiệu suất chuyển đổi (Views vs Interactions)'}
+                {activeChart === 'followers' && (isInstagram && !isFollowerInsufficientData ? 'Biến động theo dõi kênh' : 'Biểu đồ tăng trưởng người theo dõi')}
+              </div>
+            </div>
+
+            {/* CHARTS CONTAINER */}
+            {isPending ? (
+              <SkeletonChart />
+            ) : isError || !totals ? (
+              <div className="w-full h-[350px] flex items-center justify-center bg-white/[0.02] rounded-xl border border-white/5">
+                <span className="text-white/40">No data available</span>
+              </div>
+            ) : (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeChart}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full"
+                >
+                  {activeChart === 'reach-engagement' && (
+                    /* Reach vs Engagement Comparison Chart */
+                    <div className="w-full bg-white/[0.02] backdrop-blur-md rounded-2xl border border-white/5 p-6 flex flex-col gap-6">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                            <Icon lucide={Users} size={18} className="text-blue-400" />
+                            So sánh Tiếp cận & Tương tác
+                          </h3>
+                          <p className="text-white/40 text-xs mt-1">
+                            Xem mối tương quan giữa số người tiếp cận (Reach) và người tương tác thực tế (Engagement)
+                          </p>
+                        </div>
+
+                        <div className="flex gap-4">
+                          <div className="bg-white/[0.01] border border-white/5 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                            <span className="text-[10px] text-white/40 uppercase font-bold block mb-1">Reach TB/Ngày</span>
+                            <span className="text-sm font-extrabold text-blue-400">{avgReach.toLocaleString()}</span>
+                          </div>
+                          <div className="bg-white/[0.01] border border-white/5 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                            <span className="text-[10px] text-white/40 uppercase font-bold block mb-1">Tương tác TB</span>
+                            <span className="text-sm font-extrabold text-orange-400">{avgEngagement.toLocaleString()}</span>
+                          </div>
+                          <div className="bg-white/[0.01] border border-white/5 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                            <span className="text-[10px] text-white/40 uppercase font-bold block mb-1">Tỷ lệ tương tác</span>
+                            <span className={`text-sm font-extrabold ${avgEngagementRate >= 15 ? 'text-emerald-400' : avgEngagementRate >= 5 ? 'text-blue-400' : 'text-amber-400'}`}>
+                              {avgEngagementRate}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ width: '100%', height: '350px' }} className="relative mt-2">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
                             <XAxis 
                               dataKey="date" 
                               axisLine={false} 
@@ -615,31 +743,434 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                             <YAxis 
                               axisLine={false} 
                               tickLine={false} 
-                              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
-                              domain={activeMetric === 'followers' ? ['dataMin - 100', 'dataMax + 100'] : [0, 'auto']}
+                              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
                               allowDecimals={false}
                             />
-                            <Tooltip 
-                              content={<CustomTooltip activeMetric={activeMetric} />}
-                              cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
-                            />
-                            <Area 
-                              type="monotone" 
-                              dataKey={activeMetric} 
-                              stroke={activeConfig?.color} 
-                              strokeWidth={3}
-                              fillOpacity={1} 
-                              fill={`url(#${activeConfig?.gradientId})`} 
-                              connectNulls
-                            />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </motion.div>
-                    </AnimatePresence>
-                  </div>
-                )}
-              </div>
+                            <Tooltip
+                              content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                  const data = payload[0].payload;
+                                  const reachVal = data.reach || 0;
+                                  const engVal = data.engagement || 0;
+                                  const dailyRate = reachVal > 0 ? ((engVal / reachVal) * 100).toFixed(2) : '0';
 
+                                  return (
+                                    <div className="bg-[#121212]/95 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl space-y-2 min-w-[200px]">
+                                      <div className="text-xs font-bold text-white/50 border-b border-white/5 pb-1 mb-1">
+                                        {data.date}
+                                      </div>
+                                      <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-1.5 text-xs text-white/70">
+                                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                          <span>Reach (Tiếp cận):</span>
+                                        </div>
+                                        <span className="text-xs font-bold text-white">{reachVal.toLocaleString()}</span>
+                                      </div>
+                                      <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-1.5 text-xs text-white/70">
+                                          <div className="w-2 h-2 rounded-full bg-orange-500" />
+                                          <span>Engagement (Tương tác):</span>
+                                        </div>
+                                        <span className="text-xs font-bold text-white">{engVal.toLocaleString()}</span>
+                                      </div>
+                                      <div className="flex items-center justify-between gap-4 border-t border-white/5 pt-1.5 mt-1">
+                                        <span className="text-xs font-medium text-white/40">Tỷ lệ tương tác ngày:</span>
+                                        <span className={`text-xs font-bold ${Number(dailyRate) >= 15 ? 'text-emerald-400' : Number(dailyRate) >= 5 ? 'text-blue-400' : 'text-amber-400'}`}>
+                                          {dailyRate}%
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              }}
+                              cursor={{ stroke: 'rgba(255,255,255,0.05)', strokeWidth: 2 }}
+                            />
+                            <Legend 
+                              verticalAlign="top" 
+                              height={36} 
+                              iconType="circle"
+                              iconSize={8}
+                              formatter={(value) => {
+                                const label = value === 'reach' ? 'Accounts Reached (Tiếp cận)' : 'Accounts Engaged (Tương tác)';
+                                return <span className="text-xs font-semibold text-white/70 hover:text-white transition-colors">{label}</span>;
+                              }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="reach" 
+                              stroke="#3b82f6" 
+                              strokeWidth={3}
+                              dot={{ r: 0 }}
+                              activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2, fill: '#121212' }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="engagement" 
+                              stroke="#f97316" 
+                              strokeWidth={3}
+                              dot={{ r: 0 }}
+                              activeDot={{ r: 6, stroke: '#f97316', strokeWidth: 2, fill: '#121212' }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {engagementInsight && (
+                        <div className={`p-4 rounded-xl border flex gap-3 items-start transition-all duration-300 ${engagementInsight.color}`}>
+                          <div className="mt-0.5 p-1.5 bg-white/5 rounded-lg flex-shrink-0">
+                            <Icon lucide={engagementInsight.icon} size={16} />
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-bold text-white">{engagementInsight.title}</h4>
+                            <p className="text-xs text-white/70 leading-relaxed font-medium">
+                              {engagementInsight.desc}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {activeChart === 'views-interactions' && (
+                    /* Views vs Interactions Comparison Chart */
+                    <div className="w-full bg-white/[0.02] backdrop-blur-md rounded-2xl border border-white/5 p-6 flex flex-col gap-6">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                            <Icon lucide={Eye} size={18} className="text-purple-400" />
+                            So sánh Lượt xem & Tương tác
+                          </h3>
+                          <p className="text-white/40 text-xs mt-1">
+                            Theo dõi mối quan hệ giữa tổng lượt hiển thị (Views) và tổng lượt tương tác nhận được (Interactions)
+                          </p>
+                        </div>
+
+                        <div className="flex gap-4">
+                          <div className="bg-white/[0.01] border border-white/5 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                            <span className="text-[10px] text-white/40 uppercase font-bold block mb-1">Views TB/Ngày</span>
+                            <span className="text-sm font-extrabold text-purple-400">{avgViews.toLocaleString()}</span>
+                          </div>
+                          <div className="bg-white/[0.01] border border-white/5 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                            <span className="text-[10px] text-white/40 uppercase font-bold block mb-1">Tương tác TB</span>
+                            <span className="text-sm font-extrabold text-emerald-400">{avgInteractions.toLocaleString()}</span>
+                          </div>
+                          <div className="bg-white/[0.01] border border-white/5 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                            <span className="text-[10px] text-white/40 uppercase font-bold block mb-1">Tỷ lệ tương tác</span>
+                            <span className={`text-sm font-extrabold ${avgInteractionRate >= 6 ? 'text-emerald-400' : avgInteractionRate >= 2 ? 'text-blue-400' : 'text-amber-400'}`}>
+                              {avgInteractionRate}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ width: '100%', height: '350px' }} className="relative mt-2">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                            <XAxis 
+                              dataKey="date" 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                              dy={10}
+                              interval={range === '30d' ? 4 : range === '90d' ? 6 : 0}
+                            />
+                            <YAxis 
+                              axisLine={false} 
+                              tickLine={false} 
+                              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                              allowDecimals={false}
+                            />
+                            <Tooltip
+                              content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                  const data = payload[0].payload;
+                                  const viewsVal = data.views || 0;
+                                  const engVal = data.engagement || 0;
+                                  const dailyRate = viewsVal > 0 ? ((engVal / viewsVal) * 100).toFixed(2) : '0';
+
+                                  return (
+                                    <div className="bg-[#121212]/95 backdrop-blur-xl border border-white/10 p-4 rounded-xl shadow-2xl space-y-2 min-w-[200px]">
+                                      <div className="text-xs font-bold text-white/50 border-b border-white/5 pb-1 mb-1">
+                                        {data.date}
+                                      </div>
+                                      <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-1.5 text-xs text-white/70">
+                                          <div className="w-2 h-2 rounded-full bg-purple-500" />
+                                          <span>Views (Lượt xem):</span>
+                                        </div>
+                                        <span className="text-xs font-bold text-white">{viewsVal.toLocaleString()}</span>
+                                      </div>
+                                      <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-1.5 text-xs text-white/70">
+                                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                                          <span>Interactions (Tương tác):</span>
+                                        </div>
+                                        <span className="text-xs font-bold text-white">{engVal.toLocaleString()}</span>
+                                      </div>
+                                      <div className="flex items-center justify-between gap-4 border-t border-white/5 pt-1.5 mt-1">
+                                        <span className="text-xs font-medium text-white/40">Tỷ lệ tương tác ngày:</span>
+                                        <span className={`text-xs font-bold ${Number(dailyRate) >= 6 ? 'text-emerald-400' : Number(dailyRate) >= 2 ? 'text-blue-400' : 'text-amber-400'}`}>
+                                          {dailyRate}%
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              }}
+                              cursor={{ stroke: 'rgba(255,255,255,0.05)', strokeWidth: 2 }}
+                            />
+                            <Legend 
+                              verticalAlign="top" 
+                              height={36} 
+                              iconType="circle"
+                              iconSize={8}
+                              formatter={(value) => {
+                                const label = value === 'views' ? 'Views (Lượt xem)' : 'Interactions (Tương tác)';
+                                return <span className="text-xs font-semibold text-white/70 hover:text-white transition-colors">{label}</span>;
+                              }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="views" 
+                              stroke="#a855f7" 
+                              strokeWidth={3}
+                              dot={{ r: 0 }}
+                              activeDot={{ r: 6, stroke: '#a855f7', strokeWidth: 2, fill: '#121212' }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="engagement" 
+                              stroke="#10b981" 
+                              strokeWidth={3}
+                              dot={{ r: 0 }}
+                              activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2, fill: '#121212' }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {interactionInsight && (
+                        <div className={`p-4 rounded-xl border flex gap-3 items-start transition-all duration-300 ${interactionInsight.color}`}>
+                          <div className="mt-0.5 p-1.5 bg-white/5 rounded-lg flex-shrink-0">
+                            <Icon lucide={interactionInsight.icon} size={16} />
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-bold text-white">{interactionInsight.title}</h4>
+                            <p className="text-xs text-white/70 leading-relaxed font-medium">
+                              {interactionInsight.desc}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {activeChart === 'followers' && (
+                    /* Followers chart: dynamics or trend */
+                    <>
+                      {isInstagram && !isFollowerInsufficientData ? (
+                        <div className="w-full bg-white/[0.02] backdrop-blur-md rounded-2xl border border-white/5 p-6 flex flex-col gap-6">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div>
+                              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <Icon lucide={TrendingUp} size={18} className="text-orange-400" />
+                                Biến động Followers
+                              </h3>
+                              <p className="text-white/40 text-xs mt-1">Số lượng tài khoản bấm theo dõi và bỏ theo dõi hàng ngày</p>
+                            </div>
+
+                            <div className="flex items-center gap-6 bg-white/[0.01] border border-white/5 rounded-2xl p-4 self-start md:self-auto">
+                              <div className="pr-6 border-r border-white/5">
+                                <div className="flex items-center gap-2 text-emerald-400 mb-1">
+                                  <Icon lucide={UserPlus} size={14} />
+                                  <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Follows</span>
+                                </div>
+                                <span className="text-xl font-black text-white">{totalFollows.toLocaleString()}</span>
+                              </div>
+
+                              <div className="pr-6 border-r border-white/5">
+                                <div className="flex items-center gap-2 text-rose-500 mb-1">
+                                  <Icon lucide={UserMinus} size={14} />
+                                  <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Unfollows</span>
+                                </div>
+                                <span className="text-xl font-black text-white">{totalUnfollows.toLocaleString()}</span>
+                              </div>
+
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  {netGrowth >= 0 ? (
+                                    <Icon lucide={TrendingUp} size={14} className="text-emerald-400 animate-bounce" />
+                                  ) : (
+                                    <Icon lucide={TrendingDown} size={14} className="text-rose-500 animate-bounce" />
+                                  )}
+                                  <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Tăng trưởng ròng</span>
+                                </div>
+                                <span className={`text-xl font-black ${netGrowth >= 0 ? 'text-emerald-400' : 'text-rose-500'}`}>
+                                  {netGrowth >= 0 ? `+${netGrowth.toLocaleString()}` : netGrowth.toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="w-full h-[350px] mt-2 relative">
+                            {followsAndUnfollows.length === 0 ? (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="text-white/20 text-sm">Chưa có dữ liệu biến động cho khoảng thời gian này</span>
+                              </div>
+                            ) : (
+                              <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={followsAndUnfollows} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                  <defs>
+                                    <linearGradient id="colorFollow" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.25}/>
+                                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                    </linearGradient>
+                                    <linearGradient id="colorUnfollow" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.25}/>
+                                      <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                                    </linearGradient>
+                                  </defs>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                                  <XAxis 
+                                    dataKey="date" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                                    dy={10}
+                                  />
+                                  <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                                    allowDecimals={false}
+                                  />
+                                  <Tooltip 
+                                    content={({ active, payload, label }: any) => {
+                                      if (active && payload && payload.length) {
+                                        return (
+                                          <div className="bg-[#121212]/95 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-2xl min-w-[140px] font-sans">
+                                            <div className="text-[10px] text-white/40 font-bold uppercase tracking-wider mb-2">{label}</div>
+                                            <div className="space-y-1.5">
+                                              {payload.map((item: any, i: number) => (
+                                                <div key={i} className="flex items-center justify-between gap-6">
+                                                  <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                                                    <span className="text-xs font-medium text-white/70">{item.name}</span>
+                                                  </div>
+                                                  <span className="text-xs font-black text-white" style={{ color: item.color }}>
+                                                    +${item.value.toLocaleString()}
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    }}
+                                    cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }}
+                                  />
+                                  <Area 
+                                    type="monotone" 
+                                    dataKey="follows" 
+                                    name="Follows"
+                                    stroke="#10b981" 
+                                    strokeWidth={2.5}
+                                    fillOpacity={1} 
+                                    fill="url(#colorFollow)" 
+                                  />
+                                  <Area 
+                                    type="monotone" 
+                                    dataKey="unfollows" 
+                                    name="Unfollows"
+                                    stroke="#f43f5e" 
+                                    strokeWidth={2.5}
+                                    fillOpacity={1} 
+                                    fill="url(#colorUnfollow)" 
+                                  />
+                                </AreaChart>
+                              </ResponsiveContainer>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full bg-white/[0.02] backdrop-blur-md rounded-2xl border border-white/5 p-6 flex flex-col gap-6">
+                          <div>
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                              <Icon lucide={TrendingUp} size={18} className="text-orange-400" />
+                              Xu hướng Followers
+                            </h3>
+                            <p className="text-white/40 text-xs mt-1">
+                              Tổng số lượng người theo dõi tích lũy của trang theo thời gian
+                            </p>
+                          </div>
+
+                          <div style={{ width: '100%', height: '350px' }} className="relative mt-2">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={chartData}>
+                                <defs>
+                                  <linearGradient id="colorFollowers" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.4}/>
+                                    <stop offset="50%" stopColor="#f97316" stopOpacity={0.1}/>
+                                    <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                                  </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                                <XAxis 
+                                  dataKey="date" 
+                                  axisLine={false} 
+                                  tickLine={false} 
+                                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                                  dy={10}
+                                  interval={range === '30d' ? 4 : range === '90d' ? 6 : 0}
+                                />
+                                <YAxis 
+                                  axisLine={false} 
+                                  tickLine={false} 
+                                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
+                                  domain={['dataMin - 100', 'dataMax + 100']}
+                                  allowDecimals={false}
+                                />
+                                <Tooltip 
+                                  content={<CustomTooltip activeMetric="followers" />}
+                                  cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
+                                />
+                                <Area 
+                                  type="monotone" 
+                                  dataKey="followers" 
+                                  stroke="#f97316" 
+                                  strokeWidth={3}
+                                  fillOpacity={1} 
+                                  fill="url(#colorFollowers)" 
+                                  connectNulls
+                                />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            )}
+          </div>
+
+          {/* Demographics details for Instagram */}
+          {isInstagram && (
+            <div className="mt-6">
+              <FollowerDetailedSection
+                accountId={selectedAccountId}
+                range={range}
+                customStart={cStart}
+                customEnd={cEnd}
+              />
+            </div>
+          )}
+          
               {/* Insufficient Data Guard */}
               {data?.data?.current[data.data.current.length - 1]?.insufficientData ? (
                 <InsufficientDataState />
@@ -678,8 +1209,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                   </div>
                 </>
               )}
-            </>
-          )}
         </>
       )}
     </div>
