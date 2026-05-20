@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateService } from '@/application/ai/generate.service';
+import { generateService } from '@features/ai-agent/services/generate.service';
 
 /**
  * POST /api/ai/rewrite

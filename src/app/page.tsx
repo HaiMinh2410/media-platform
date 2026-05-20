@@ -1,6 +1,6 @@
 import Link from "next/link";
 import styles from "./page.module.css";
-import { Button } from "@/components/ui/button";
+import { Button } from "@shared/ui/button";
 
 export default function Home() {
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from '@/components/ui/icon';
+import { Icon } from '@shared/ui/icon';
 import { Mail } from 'lucide-react';
 
 export default function InboxEmptyState() {

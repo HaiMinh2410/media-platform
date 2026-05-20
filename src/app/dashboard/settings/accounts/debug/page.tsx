@@ -1,7 +1,7 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
+import { createClient } from '@shared/api/supabase/server';
+import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
 import { DebugForm } from './debug-form';
 import Link from 'next/link';
 

@@ -1,7 +1,7 @@
 'use server';
 
-import { db } from '@/lib/db';
-import { getTokenEncryptionService } from '@/infrastructure/crypto/token-encryption.service';
+import { db } from '@shared/lib/db';
+import { getTokenEncryptionService } from '@features/settings/services/token-encryption.service';
 import { revalidatePath } from 'next/cache';
 
 export async function manualConnectAction(formData: FormData) {

@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Sidebar } from '@/components/layout/sidebar';
-import { CommandPalette } from '@/components/layout/command-palette';
-import { MainHeader } from '@/components/layout/main-header';
+import { Sidebar } from '@shared/components/layout/sidebar';
+import { CommandPalette } from '@shared/components/layout/command-palette';
+import { MainHeader } from '@shared/components/layout/main-header';
 import { Toaster } from 'sonner';
-import { getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
+import { getCurrentUserWorkspaceAction } from '@features/settings/actions/workspace.actions';
 
 export default function DashboardLayout({
   children,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@shared/lib/utils';
 
 /**
  * Predefined custom SVG paths for brand icons and special UI elements.

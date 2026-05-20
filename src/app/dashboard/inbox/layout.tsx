@@ -1,7 +1,7 @@
 import React from 'react';
-import { MiddlePanel } from './components/middle-panel';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
+import { MiddlePanel } from '@features/inbox/components/middle-panel';
+import { createClient } from '@shared/api/supabase/server';
+import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
 import { redirect } from 'next/navigation';
 
 export const metadata = {

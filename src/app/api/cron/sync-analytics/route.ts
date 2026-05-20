@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
-import { metaAnalyticsService } from '@/application/services/meta-analytics.service';
+import { getPlatformAccountRepository } from '@features/settings/repositories/platform-account.repository';
+import { metaAnalyticsService } from '@features/analytics/services/meta-analytics.service';
 
 // Number of ms to wait between account syncs to avoid Meta API rate limits
 const SYNC_DELAY_MS = 500;

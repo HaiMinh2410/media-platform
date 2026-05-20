@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
+import { createClient } from '@shared/api/supabase/server';
+import { getPlatformAccountRepository } from '@features/settings/repositories/platform-account.repository';
 import { BotConfigClient } from './bot-config-client';
 import Link from 'next/link';
 

@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
-import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
-import { WorkspaceCredentials } from '@/components/settings/workspace-credentials';
-import { MetaTokenUpserter } from '@/components/settings/meta-token-upserter';
-import { LinkedTokensList } from '@/components/settings/linked-tokens-list';
+import { createClient } from '@shared/api/supabase/server';
+import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
+import { getPlatformAccountRepository } from '@features/settings/repositories/platform-account.repository';
+import { WorkspaceCredentials } from '@features/settings/components/workspace-credentials';
+import { MetaTokenUpserter } from '@features/settings/components/meta-token-upserter';
+import { LinkedTokensList } from '@features/settings/components/linked-tokens-list';
 import { ArrowRight } from 'lucide-react';
 
 export default async function DeveloperSettingsPage() {

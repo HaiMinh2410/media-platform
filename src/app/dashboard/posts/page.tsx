@@ -1,15 +1,15 @@
 import React from 'react';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getPostRepository } from '@/infrastructure/repositories/post.repository';
-import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
-import { PostList } from '@/components/posts/post-list';
+import { createClient } from '@shared/api/supabase/server';
+import { getPostRepository } from '@features/posts/repositories/post.repository';
+import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
+import { PostList } from '@features/posts/components/post-list';
 import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
-import { BatchPublishTracker } from '@/components/publisher/batch-publish-tracker';
-import { FeatureFlagService, FLAGS } from '@/application/services/feature-flag.service';
-import { BatchPublishCard, BatchPublishSummary } from '@/components/publisher/batch-publish-card';
-import { db } from '@/lib/db';
+import { BatchPublishTracker } from '@features/posts/components/publisher/batch-publish-tracker';
+import { FeatureFlagService, FLAGS } from '@shared/lib/feature-flag.service';
+import { BatchPublishCard, BatchPublishSummary } from '@features/posts/components/publisher/batch-publish-card';
+import { db } from '@shared/lib/db';
 
 export default async function PostsPage({ 
   searchParams 

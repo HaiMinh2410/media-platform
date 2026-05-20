@@ -1,12 +1,12 @@
 import React from 'react';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getAccountSyncService } from '@/application/services/account-sync.service';
-import { getPublisherAccountRepository } from '@/infrastructure/repositories/publisher-account.repository';
-import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
-import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
-import { PostComposerRoot } from '@/components/post-composer/post-composer-root';
+import { createClient } from '@shared/api/supabase/server';
+import { getAccountSyncService } from '@features/settings/services/account-sync.service';
+import { getPublisherAccountRepository } from '@features/posts/repositories/publisher-account.repository';
+import { getPlatformAccountRepository } from '@features/settings/repositories/platform-account.repository';
+import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
+import { PostComposerRoot } from '@features/posts/components/post-composer/post-composer-root';
 import { redirect } from 'next/navigation';
-import { FeatureFlagService, FLAGS } from '@/application/services/feature-flag.service';
+import { FeatureFlagService, FLAGS } from '@shared/lib/feature-flag.service';
 
 export default async function ComposerPage() {
   const supabase = await createClient();

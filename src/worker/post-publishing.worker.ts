@@ -1,7 +1,7 @@
 import { Worker, Job } from 'bullmq';
-import { redisConnection } from '../infrastructure/queue/bullmq.provider';
-import { POST_PUBLISHING_QUEUE, PostJobData } from '../infrastructure/queue/post-queue';
-import { getMetaPublishingService } from '../infrastructure/services/meta-publishing.service';
+import { redisConnection } from '@shared/lib/queue/bullmq.provider';
+import { POST_PUBLISHING_QUEUE, PostJobData } from '@shared/lib/queue/post-queue';
+import { getMetaPublishingService } from '@features/posts/services/meta-publishing.service';
 
 console.log(`[Worker] Post Publishing Worker started...`);
 

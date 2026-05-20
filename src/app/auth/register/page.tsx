@@ -1,5 +1,5 @@
-import { AuthCard } from '@/components/auth/auth-card';
-import { RegisterForm } from '@/components/auth/register-form';
+import { AuthCard } from '@features/auth/components/auth-card';
+import { RegisterForm } from '@features/auth/components/register-form';
 import styles from '../login/login-page.module.css'; // Reusing page layout styles
 
 export default function RegisterPage() {

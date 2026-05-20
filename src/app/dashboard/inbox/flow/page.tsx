@@ -16,8 +16,8 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
-import { useInboxStore } from '../store/inbox.store';
-import { cn } from '@/lib/utils';
+import { useInboxStore } from '@features/inbox/store/inbox.store';
+import { cn } from '@shared/lib/utils';
 
 export default function FlowPage() {
   const { setViewMode } = useInboxStore();

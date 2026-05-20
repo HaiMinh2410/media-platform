@@ -1,11 +1,11 @@
 import { Worker, Job, UnrecoverableError } from 'bullmq';
-import { redisConnection } from '@/infrastructure/queue/bullmq.provider';
-import { QueueName, PublishJobPayload } from '@/domain/types/queue';
-import { db } from '@/lib/db';
-import { getFBPageAdapter } from '@/infrastructure/meta/adapters/fb-page.adapter';
-import { getIGBusinessAdapter } from '@/infrastructure/meta/adapters/ig-business.adapter';
-import { publishJobRepository } from '@/infrastructure/repositories/publish-job.repository';
-import { isTransientMetaError } from '@/utils/meta-error-mapper';
+import { redisConnection } from '@shared/lib/queue/bullmq.provider';
+import { QueueName, PublishJobPayload } from '@shared/types/queue';
+import { db } from '@shared/lib/db';
+import { getFBPageAdapter } from '@shared/api/meta/adapters/fb-page.adapter';
+import { getIGBusinessAdapter } from '@shared/api/meta/adapters/ig-business.adapter';
+import { publishJobRepository } from '@features/posts/repositories/publish-job.repository';
+import { isTransientMetaError } from '@shared/lib/meta-error-mapper';
 
 /**
  * Worker xử lý các jobs trong queue 'publish-events'.

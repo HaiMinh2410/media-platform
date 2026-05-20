@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation';
-import { createClient } from '@/infrastructure/supabase/server';
-import { db } from '@/lib/db';
-import { PersonaEditClient } from '../../../../../components/settings/personas/persona-edit-client';
+import { createClient } from '@shared/api/supabase/server';
+import { db } from '@shared/lib/db';
+import { PersonaEditClient } from '@features/settings/components/personas/persona-edit-client';
 
 export default async function PersonaEditPage(props: { params: Promise<{ accountId: string }> }) {
   const params = await props.params;

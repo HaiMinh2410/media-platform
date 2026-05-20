@@ -1,10 +1,10 @@
 import { Worker, Job } from 'bullmq';
-import { redisConnection } from '@/infrastructure/queue/bullmq.provider';
-import { QueueName } from '@/domain/types/queue';
-import { runWeeklyMetricsAggregation } from '@/application/ai-agent/metrics-collector';
-import { setupWeeklyMetricsJob } from '@/infrastructure/queue/metrics-queue';
-import { db } from '@/lib/db';
-import { promoteWinnerIfAny } from '@/application/ai-agent/ab-test-manager';
+import { redisConnection } from '@shared/lib/queue/bullmq.provider';
+import { QueueName } from '@shared/types/queue';
+import { runWeeklyMetricsAggregation } from '@features/ai-agent/services/metrics-collector';
+import { setupWeeklyMetricsJob } from '@shared/lib/queue/metrics-queue';
+import { db } from '@shared/lib/db';
+import { promoteWinnerIfAny } from '@features/ai-agent/services/ab-test-manager';
 
 console.log(`🚀 [MetricsWorker] AI Agent Metrics Worker starting...`);
 

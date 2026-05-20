@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card } from '@shared/ui/card';
+import { Button } from '@shared/ui/button';
 import { toast } from 'sonner';
-import { ROLE_TEMPLATES } from '@/application/ai/role-templates';
-import { cn } from '@/lib/utils';
+import { ROLE_TEMPLATES } from '@features/ai-agent/services/role-templates';
+import { cn } from '@shared/lib/utils';
 
 type BotConfig = {
   is_active: boolean;

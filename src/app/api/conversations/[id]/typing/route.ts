@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getConversationWithAccount } from '@/infrastructure/repositories/conversation.repository';
-import { metaSendService } from '@/application/services/meta-send.service';
-import { createClient } from '@/infrastructure/supabase/server';
-import type { MessagingPlatform } from '@/domain/types/messaging';
+import { getConversationWithAccount } from '@features/inbox/repositories/conversation.repository';
+import { metaSendService } from '@features/inbox/services/meta-send.service';
+import { createClient } from '@shared/api/supabase/server';
+import type { MessagingPlatform } from '@features/inbox/types';
 
 const SUPPORTED_PLATFORMS = new Set<string>(['messenger', 'instagram', 'facebook']);
 

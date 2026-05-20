@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { createClient } from '@/infrastructure/supabase/server';
+import { db } from '@shared/lib/db';
+import { createClient } from '@shared/api/supabase/server';
 
 export async function GET(req: NextRequest) {
   try {

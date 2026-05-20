@@ -1,7 +1,7 @@
 import React from 'react';
-import { db } from '@/lib/db';
+import { db } from '@shared/lib/db';
 import { notFound } from 'next/navigation';
-import { RightPanel } from '../components/right-panel';
+import { RightPanel } from '@features/inbox/components/right-panel';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

@@ -1,5 +1,5 @@
-import { AuthCard } from '@/components/auth/auth-card';
-import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
+import { AuthCard } from '@features/auth/components/auth-card';
+import { ForgotPasswordForm } from '@features/auth/components/forgot-password-form';
 import styles from '../login/login-page.module.css';
 
 export default function ForgotPasswordPage() {

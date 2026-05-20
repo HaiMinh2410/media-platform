@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMessages } from '../../../../../../message.repository';
-import { PaginationParams } from '@/domain/types/messaging';
+import { getMessages } from '@features/inbox/repositories/message.repository';
+import { PaginationParams } from '@features/inbox/types';
 
 /**
  * GET /api/conversations/[id]/messages

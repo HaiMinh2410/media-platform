@@ -15,8 +15,8 @@ import {
   ExternalLink,
   RefreshCw
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { getCurrentUserWorkspaceAction } from '@/application/actions/workspace.actions';
+import { cn } from '@shared/lib/utils';
+import { getCurrentUserWorkspaceAction } from '@features/settings/actions/workspace.actions';
 
 const LEAD_STAGES = [
   { id: 'new', label: 'Tiếp nhận', count: 3, icon: '🔵' },

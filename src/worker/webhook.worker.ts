@@ -1,21 +1,21 @@
 import { Worker, Job } from 'bullmq';
-import { redisConnection } from '@/infrastructure/queue/bullmq.provider';
-import { QueueName, WebhookJobPayload } from '@/domain/types/queue';
-import { idempotentPersistMessage, markAsRead, markAsDelivered } from '../../message.repository';
-import { classifyService } from '@/application/ai/classify.service';
-import { generateService } from '@/application/ai/generate.service';
-import { metaSendService } from '@/application/services/meta-send.service';
-import { metaProfileService } from '@/application/services/meta-profile.service';
-import { duplicateDetectionService } from '@/application/services/duplicate-detection.service';
-import { db } from '@/lib/db';
-import { AI_MODELS } from '@/domain/types/ai';
-import { selectModel } from '@/application/ai/model-selector';
-import { triageService } from '@/application/services/triage.service';
-import { aiRoutingService } from '@/application/services/ai-routing.service';
+import { redisConnection } from '@shared/lib/queue/bullmq.provider';
+import { QueueName, WebhookJobPayload } from '@shared/types/queue';
+import { idempotentPersistMessage, markAsRead, markAsDelivered } from '@features/inbox/repositories/message.repository';
+import { classifyService } from '@features/ai-agent/services/classify.service';
+import { generateService } from '@features/ai-agent/services/generate.service';
+import { metaSendService } from '@features/inbox/services/meta-send.service';
+import { metaProfileService } from '@features/settings/services/meta-profile.service';
+import { duplicateDetectionService } from '@features/posts/services/duplicate-detection.service';
+import { db } from '@shared/lib/db';
+import { AI_MODELS } from '@features/ai-agent/types';
+import { selectModel } from '@features/ai-agent/services/model-selector';
+import { triageService } from '@features/inbox/services/triage.service';
+import { aiRoutingService } from '@features/ai-agent/services/ai-routing.service';
 import { createClient } from '@supabase/supabase-js';
-import { metaParser } from '@/infrastructure/meta/meta-parser.service';
-import { processIncomingMessage } from '@/application/ai-agent';
-import { scheduleDelayedReply, aiAgentReplyWorker } from '@/application/ai-agent/reply-delay-scheduler';
+import { metaParser } from '@features/inbox';
+import { processIncomingMessage } from '@features/ai-agent';
+import { scheduleDelayedReply, aiAgentReplyWorker } from '@features/ai-agent/services/reply-delay-scheduler';
 
 
 /**

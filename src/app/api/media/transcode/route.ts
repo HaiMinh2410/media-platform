@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { queueService } from '@/application/queue/queue.service';
-import { mediaTranscodingQueue } from '@/infrastructure/queue/bullmq.provider';
+import { queueService } from '@shared/lib/queue/queue.service';
+import { mediaTranscodingQueue } from '@shared/lib/queue/bullmq.provider';
 
 const TranscodeRequestSchema = z.object({
   mediaId: z.string(),

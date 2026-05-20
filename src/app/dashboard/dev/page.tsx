@@ -1,8 +1,8 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
-import { db } from '@/lib/db';
+import { createClient } from '@shared/api/supabase/server';
+import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
+import { db } from '@shared/lib/db';
 import { DevPanel } from './dev-panel';
 
 export default async function DevPage() {

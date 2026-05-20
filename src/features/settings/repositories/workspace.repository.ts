@@ -1,0 +1,57 @@
+import { db } from '@shared/lib/db';
+import { WorkspaceResult } from '../types/workspace';
+
+export class WorkspaceRepository {
+  /**
+   * Finds all workspaces for a given user.
+   */
+  async findByUserId(userId: string): Promise<{ data: WorkspaceResult[] | null, error: string | null }> {
+    try {
+      const workspaces = await db.workspace.findMany({
+        where: {
+          workspace_members: {
+            some: {
+              profile_id: userId,
+            },
+          },
+        },
+      });
+      return { data: workspaces, error: null };
+    } catch (error) {
+      console.error('[WorkspaceRepository] findByUserId failed:', error);
+      return { data: null, error: 'DATABASE_ERROR' };
+    }
+  }
+
+  /**
+   * Finds the first workspace for a user (MVP default).
+   */
+  async findFirstByUserId(userId: string): Promise<{ data: WorkspaceResult | null, error: string | null }> {
+    try {
+      const workspace = await db.workspace.findFirst({
+        where: {
+          workspace_members: {
+            some: {
+              profile_id: userId,
+            },
+          },
+        },
+        orderBy: { createdAt: 'asc' },
+      });
+      return { data: workspace, error: null };
+    } catch (error) {
+      console.error('[WorkspaceRepository] findFirstByUserId failed:', error);
+      return { data: null, error: 'DATABASE_ERROR' };
+    }
+  }
+}
+
+// Singleton helper
+let instance: WorkspaceRepository | null = null;
+
+export function getWorkspaceRepository() {
+  if (!instance) {
+    instance = new WorkspaceRepository();
+  }
+  return instance;
+}

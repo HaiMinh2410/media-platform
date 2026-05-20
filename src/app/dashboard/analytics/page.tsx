@@ -1,6 +1,5 @@
-import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
-import { getAnalyticsAction } from '@/application/actions/analytics.actions';
-import { AnalyticsDashboardClient } from './analytics-client';
+import { getPlatformAccountRepository } from '@features/settings/repositories/platform-account.repository';
+import { getAnalyticsAction, AnalyticsDashboardClient } from '@features/analytics';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMetaSecurityService } from '@/infrastructure/meta/meta-security.service';
-import { webhookHandler } from '@/application/services/webhook-handler.service';
-import { webhookIngestion } from '@/application/services/webhook-ingestion.service';
+import { getMetaSecurityService } from '@features/inbox/services/meta-security.service';
+import { webhookHandler } from '@features/inbox/services/webhook-handler.service';
+import { webhookIngestion } from '@features/inbox/services/webhook-ingestion.service';
 
 /**
  * Meta Webhook Endpoint

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
-import { getTokenManagementService } from '@/application/services/token-management.service';
-import { createSyncLog } from '@/infrastructure/repositories/analytics.repository';
+import { getPlatformAccountRepository } from '@features/settings/repositories/platform-account.repository';
+import { getTokenManagementService } from '@features/settings/services/token-management.service';
+import { createSyncLog } from '@features/analytics/repositories/analytics.repository';
 
 /**
  * POST /api/cron/refresh-meta-tokens

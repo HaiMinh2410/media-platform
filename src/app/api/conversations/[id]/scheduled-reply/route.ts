@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/infrastructure/supabase/server';
-import { aiAgentReplyQueue } from '@/application/ai-agent/reply-delay-scheduler';
+import { createClient } from '@shared/api/supabase/server';
+import { aiAgentReplyQueue } from '@features/ai-agent/services/reply-delay-scheduler';
 
 export const dynamic = 'force-dynamic';
 

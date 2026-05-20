@@ -1,5 +1,5 @@
-import { classifyService } from '@/application/ai/classify.service';
-import { generateService } from '@/application/ai/generate.service';
+import { classifyService } from '@features/ai-agent/services/classify.service';
+import { generateService } from '@features/ai-agent/services/generate.service';
 
 /**
  * Script này dùng để kiểm tra xem AI (Groq) có đang hoạt động hay không.

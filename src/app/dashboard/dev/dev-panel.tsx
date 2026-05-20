@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { createClient } from '@/infrastructure/supabase/client';
+import { createClient } from '@shared/api/supabase/client';
 import { 
   clearWebhookLogsAction, 
   getDatabaseStatsAction, 

@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
-import { getPlatformAccountRepository } from '@/infrastructure/repositories/platform-account.repository';
-import { ConnectButtons } from '@/components/settings/connect-buttons';
-import { AccountsList } from '@/components/settings/accounts-list';
-import { PurgeAccountsButton } from '@/components/settings/purge-accounts-button';
-import { Icon } from '@/components/ui/icon';
+import { createClient } from '@shared/api/supabase/server';
+import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
+import { getPlatformAccountRepository } from '@features/settings/repositories/platform-account.repository';
+import { ConnectButtons } from '@features/settings/components/connect-buttons';
+import { AccountsList } from '@features/settings/components/accounts-list';
+import { PurgeAccountsButton } from '@features/settings/components/purge-accounts-button';
+import { Icon } from '@shared/ui/icon';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default async function AccountsSettingsPage(props: {

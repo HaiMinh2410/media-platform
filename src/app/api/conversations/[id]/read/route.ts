@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { markAllRead } from '@/infrastructure/repositories/conversation.repository';
+import { markAllRead } from '@features/inbox/repositories/conversation.repository';
 
 /**
  * PATCH /api/conversations/[id]/read

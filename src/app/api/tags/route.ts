@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db } from '@shared/lib/db';
 
 /**
  * GET /api/tags?workspaceId=...

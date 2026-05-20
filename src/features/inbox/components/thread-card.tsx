@@ -1,0 +1,222 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { ConversationWithLastMessage } from '@features/inbox/types';
+import { cn } from '@shared/lib/utils';
+import { MessageCircle, Flame, Star, Bot, Users, Pin } from 'lucide-react';
+import { Icon } from '@shared/ui/icon';
+import { useInboxStore } from '../store/inbox.store';
+
+export function ThreadCard({ conversation, style }: { conversation: ConversationWithLastMessage, style?: React.CSSProperties }) {
+  const pathname = usePathname();
+  const isActive = pathname.includes(`/inbox/${conversation.id}`);
+  const triggerRefresh = useInboxStore(state => state.triggerRefresh);
+  const [isPinning, setIsPinning] = React.useState(false);
+
+  const formatTime = (dateStr: Date | string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const oneDay = 24 * 60 * 60 * 1000;
+    
+    if (diff < oneDay && now.getDate() === date.getDate()) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    if (diff < oneDay * 2) {
+      return 'Yesterday';
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return '?';
+    const split = name.split(' ');
+    if (split.length > 1) {
+      return (split[0][0] + split[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const isUnread = conversation.unread_count > 0;
+
+  const getPriorityClass = (priority?: string | null) => {
+    switch (priority?.toLowerCase()) {
+      case 'high': return "bg-error/15 text-error";
+      case 'medium': return "bg-warning/15 text-warning";
+      case 'low': return "bg-info/15 text-info";
+      default: return '';
+    }
+  };
+
+
+  const LEAD_STAGE_LABELS: Record<string, string> = {
+    'new': 'Tiếp nhận',
+    'qualified': 'Đủ tiêu chuẩn',
+    'converted': 'Đã chuyển đổi',
+    'lost': 'Bị mất đi',
+    'unqualified': 'Không đủ tiêu chuẩn'
+  };
+
+  const handlePinClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isPinning) return;
+
+    try {
+      setIsPinning(true);
+      const res = await fetch(`/api/conversations/${conversation.id}/pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target: 'conversation',
+          isPinned: !conversation.is_pinned
+        })
+      });
+      if (res.ok) {
+        triggerRefresh();
+      }
+    } catch (err) {
+      console.error('Failed to toggle conversation pin:', err);
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
+  return (
+    <Link 
+      href={`/dashboard/inbox/${conversation.id}`} 
+      className={cn(
+        "flex gap-3 p-3 rounded-xl cursor-pointer transition-all border border-transparent no-underline absolute left-3 w-[calc(100%-24px)] box-border hover:bg-foreground/5 group", 
+        isActive && "bg-foreground/5 border-foreground/10 shadow-sm"
+      )}
+      style={style}
+    >
+      <div className="w-11 h-11 rounded-full bg-background-tertiary flex items-center justify-center text-base font-semibold text-foreground-secondary shrink-0 relative border border-foreground/10 overflow-visible">
+        {conversation.customer_avatar ? (
+          <img src={conversation.customer_avatar} alt={conversation.sender_name} className="w-full h-full rounded-full object-cover" />
+        ) : (
+          getInitials(conversation.sender_name)
+        )}
+        <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] rounded-full bg-background flex items-center justify-center p-0.5 shadow-lg border-[1.5px] border-background z-10">
+          {conversation.platform === 'instagram' ? (
+            <Icon name="instagram" size="100%" className="text-instagram" />
+          ) : (
+            <Icon name="facebook" size="100%" className="text-facebook" />
+          )}
+        </div>
+      </div>
+      
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
+        <div className="flex justify-between items-baseline mb-0.5">
+          <div className="flex items-center gap-1 min-w-0 flex-1">
+            <span className={cn(
+              "font-medium text-foreground text-base whitespace-nowrap overflow-hidden text-ellipsis",
+              isUnread && "font-semibold"
+            )}>
+              {conversation.sender_name || 'Unknown User'}
+            </span>
+            
+            {conversation.is_vip && (
+              <span className="text-warning flex items-center" title="VIP">
+                <Star size={12} fill="currentColor" />
+              </span>
+            )}
+
+
+            {conversation.priority === 'high' && (
+              <span className="text-error flex items-center" title="Hot Lead">
+                <Flame size={12} fill="currentColor" />
+              </span>
+            )}
+            
+            {conversation.ai_replied && (
+              <span className="text-primary flex items-center" title="AI Handled">
+                <Bot size={12} />
+              </span>
+            )}
+          </div>
+          
+          <div className="relative shrink-0 ml-2 min-w-[60px] h-5 flex items-center justify-end">
+            {/* If conversation is NOT pinned */}
+            {!conversation.is_pinned && (
+              <div className="relative w-full h-full flex items-center justify-end overflow-hidden">
+                {/* Timestamp - shown by default, hidden on hover */}
+                <span className="text-xs text-foreground-tertiary transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-[-10px] absolute right-0">
+                  {formatTime(conversation.last_message_at)}
+                </span>
+                {/* Pin Button - hidden by default, shown on hover */}
+                <button
+                  type="button"
+                  onClick={handlePinClick}
+                  disabled={isPinning}
+                  className="opacity-0 translate-y-[10px] group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 text-foreground-tertiary hover:text-indigo-500 hover:scale-110 p-1 rounded-full hover:bg-foreground/5 absolute right-0 flex items-center justify-center cursor-pointer border-0 bg-transparent"
+                  title="Ghim hội thoại"
+                >
+                  <Pin size={13} className="rotate-45" />
+                </button>
+              </div>
+            )}
+
+            {/* If conversation IS pinned */}
+            {conversation.is_pinned && (
+              <div className="flex items-center gap-1 shrink-0">
+                {/* Timestamp - ALWAYS shown, no animation to prevent layout shifts */}
+                <span className="text-xs text-foreground-tertiary mr-1">
+                  {formatTime(conversation.last_message_at)}
+                </span>
+                {/* Pin Button - ALWAYS shown, turns red on hover for intuitive unpinning */}
+                <button
+                  type="button"
+                  onClick={handlePinClick}
+                  disabled={isPinning}
+                  className="text-indigo-500 hover:text-error hover:scale-110 transition-all duration-150 p-1 rounded-full hover:bg-foreground/5 flex items-center justify-center cursor-pointer border-0 bg-transparent"
+                  title="Bỏ ghim hội thoại"
+                >
+                  <Pin size={13} fill="currentColor" className="rotate-45" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center gap-2">
+          <span className={cn(
+            "text-sm text-foreground-secondary whitespace-nowrap overflow-hidden text-ellipsis",
+            isUnread && "font-medium text-foreground"
+          )}>
+            {conversation.last_message_content ? (
+              (conversation.last_message_sender_type === 'agent' || conversation.last_message_sender_type === 'ai') ? (
+                `Bạn: ${conversation.last_message_content}`
+              ) : (
+                conversation.last_message_content
+              )
+            ) : (
+              'No messages'
+            )}
+          </span>
+          {isUnread && (
+            <span className="bg-primary text-primary-content min-w-[18px] h-[18px] rounded-full px-1.5 text-xs font-semibold flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+              {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 mt-1">
+          {conversation.priority && LEAD_STAGE_LABELS[conversation.priority] && (
+            <span className={cn("text-2xs font-bold uppercase px-1.5 py-0.5 rounded-md", getPriorityClass(conversation.priority))}>
+              {LEAD_STAGE_LABELS[conversation.priority]}
+            </span>
+          )}
+          {conversation.canonical_conversation_id && (
+            <span className="text-foreground-tertiary" title="Linked Identity">
+              <Users size={12} />
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}

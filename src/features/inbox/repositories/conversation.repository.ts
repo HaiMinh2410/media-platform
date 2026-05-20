@@ -1,0 +1,330 @@
+import { db } from '@shared/lib/db';
+import type { 
+  ConversationFilter, 
+  PaginationParams, 
+  ConversationWithLastMessage,
+  MarkReadResult,
+  ConversationSort
+} from '@features/inbox/types';
+
+
+/**
+ * Fetches a list of conversations for a specific workspace with pagination and filters.
+ * Each conversation includes the latest message snippet and unread count.
+ */
+export async function getConversations(
+  filter: ConversationFilter,
+  pagination: PaginationParams,
+  sort?: ConversationSort
+): Promise<{ 
+  data: ConversationWithLastMessage[] | null; 
+  nextCursor: string | null; 
+  error: string | null 
+}> {
+  try {
+    const limit = pagination.limit || 20;
+    const cursor = pagination.cursor;
+
+    // Fetch tags named "Bị chặn" or "bị chặn" to handle exclusion logic
+    const blockedTags = await db.workspaceTag.findMany({
+      where: {
+        workspace_id: filter.workspaceId,
+        name: {
+          in: ['Bị chặn', 'bị chặn'],
+          mode: 'insensitive'
+        }
+      },
+      select: { name: true, color: true }
+    });
+    
+    // Always include the hardcoded default to handle legacy/manual assignments
+    const blockedTagStrings = Array.from(new Set([
+      ...blockedTags.map((t: { name: string; color: string }) => `${t.name}::${t.color}`),
+      'Bị chặn::#ef4444'
+    ]));
+
+    const isFilteringByBlocked = filter.tag && (
+      blockedTagStrings.includes(filter.tag) || 
+      filter.tag.toLowerCase().startsWith('bị chặn::')
+    );
+
+    const conversations = await db.conversation.findMany({
+      where: {
+        platform_accounts: {
+          workspaceId: filter.workspaceId,
+          disconnected_at: null,
+          // Tier 2: Scoped Inbox (Account Group)
+          ...(filter.groupId ? {
+            account_memberships: {
+              some: { group_id: filter.groupId }
+            }
+          } : {}),
+          // Tier 3: Single Account
+          ...(filter.accountId ? { id: filter.accountId } : {}),
+          // Filter by platform if provided
+          ...(filter.platform ? { platform: filter.platform } : {}),
+        },
+        // Tier 4: Unified Contact (Identity)
+        ...(filter.identityId ? {
+          customer_platform_mappings: {
+            some: { identity_id: filter.identityId }
+          }
+        } : {}),
+        // Filter by status if provided (e.g., 'open', 'resolved')
+        ...(filter.status ? { status: filter.status } : {}),
+        // Filter by priority if provided
+        ...(filter.priority ? { priority: filter.priority } : {}),
+        // Filter by sentiment if provided
+        ...(filter.sentiment ? { sentiment: filter.sentiment } : {}),
+        // Filter by VIP status if provided
+        ...(filter.is_vip !== undefined ? { is_vip: filter.is_vip } : {}),
+        // Filter out duplicates by default
+        ...(filter.show_duplicates ? {} : { canonical_conversation_id: null }),
+        // Filter by unread if provided
+        ...(filter.unread ? { messages: { some: { is_read: false } } } : {}),
+        // Filter by tags if provided
+        ...(filter.tag ? { tags: { has: filter.tag } } : {}),
+        // Search in platform ID or message content or customer name
+        ...(filter.search ? {
+          OR: [
+            { platform_conversation_id: { contains: filter.search, mode: 'insensitive' } },
+            { customer_name: { contains: filter.search, mode: 'insensitive' } },
+            { messages: { some: { content: { contains: filter.search, mode: 'insensitive' } } } }
+          ]
+        } : {}),
+        // Global exclusion logic for "Bị chặn" tag
+        ...(isFilteringByBlocked ? {} : {
+          NOT: {
+            tags: {
+              hasSome: blockedTagStrings
+            }
+          }
+        })
+      },
+      // Take one extra to determine if there's a next page
+      take: limit + 1,
+      // Use standard Prisma cursor-based pagination
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0, // Skip the cursor element itself
+      orderBy: (sort ? [
+        { is_pinned: 'desc' as const },
+        { [sort.field]: sort.order }
+      ] : [
+        { is_pinned: 'desc' as const },
+        { lastMessageAt: 'desc' as const }
+      ]) as any,
+      include: {
+        platform_accounts: true,
+        // Include only the very latest message for the list snippet
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        },
+        // Efficient unread count via Prisma's relation count filtering
+        _count: {
+          select: {
+            messages: {
+              where: { is_read: false }
+            }
+          }
+        },
+        customer_platform_mappings: {
+          select: { identity_id: true },
+          take: 1
+        }
+      }
+    });
+
+    let nextCursor: string | null = null;
+    if (conversations.length > limit) {
+      const nextItem = conversations.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    const formatted: ConversationWithLastMessage[] = conversations.map(c => {
+      const lastMsg = c.messages[0];
+      let lastMsgContent = lastMsg?.content || '';
+      const attachments = lastMsg?.attachments as any[];
+      if (!lastMsgContent && attachments && Array.isArray(attachments) && attachments.length > 0) {
+        const attType = attachments[0]?.type;
+        if (attType === 'image') lastMsgContent = '📷 [Hình ảnh]';
+        else if (attType === 'audio') lastMsgContent = '🎵 [Tin nhắn thoại]';
+        else if (attType === 'video') lastMsgContent = '📹 [Video]';
+        else lastMsgContent = '📁 [Tệp đính kèm]';
+      }
+
+      return {
+        id: c.id,
+        platform_conversation_id: c.platform_conversation_id,
+        last_message_at: c.lastMessageAt,
+        status: c.status,
+        platform: c.platform_accounts.platform,
+        // Priority: customer_name (synced from Meta) > platform_conversation_id (ID string)
+        sender_name: c.customer_name || c.platform_conversation_id, 
+        customer_avatar: c.customer_avatar,
+        last_message_content: lastMsgContent,
+        unread_count: c._count.messages,
+        priority: c.priority,
+        sentiment: c.sentiment,
+        is_vip: c.is_vip,
+        canonical_conversation_id: c.canonical_conversation_id,
+        identity_id: c.customer_platform_mappings[0]?.identity_id ?? null,
+        is_pinned: (c as any).is_pinned,
+        last_message_sender_type: lastMsg?.senderType as any,
+        last_message_sender_id: lastMsg?.senderId || null
+      };
+    });
+
+    return { data: formatted, nextCursor, error: null };
+  } catch (error: any) {
+    console.error('❌ [ConversationRepository] Error fetching conversations:', error);
+    return { data: null, nextCursor: null, error: error.message || 'Unknown database error' };
+  }
+}
+
+/**
+ * ConversationWithAccount groups conversation data with its Platform Account
+ * and the latest Meta token — needed for agent replies.
+ */
+export type ConversationWithAccount = {
+  id: string;
+  platform_conversation_id: string;
+  status: string | null;
+  account: {
+    id: string;
+    platform: string;
+    platform_user_id: string;  // The page ID used as sender
+    encryptedToken: string | null;
+  };
+};
+
+/**
+ * Fetches a single conversation with its associated platform account
+ * and the most recent Meta access token (encrypted).
+ * Used by the reply endpoint to resolve the token for sending.
+ *
+ * @param conversationId UUID of the conversation
+ */
+export async function getConversationWithAccount(
+  conversationId: string
+): Promise<{ data: ConversationWithAccount | null; error: string | null }> {
+  try {
+    const conversation = await db.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        platform_accounts: {
+          include: {
+            meta_tokens: {
+              orderBy: { updated_at: 'desc' },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    if (!conversation) {
+      return { data: null, error: 'CONVERSATION_NOT_FOUND' };
+    }
+
+    const account = conversation.platform_accounts;
+    let latestToken = account.meta_tokens[0] ?? null;
+    let effectivePageId = account.platform_user_id;
+
+    // Preference: Instagram Messaging REQUIRES a Facebook Page Access Token.
+    // The send URL is /{ig-account-id}/messages but the token comes from the linked FB Page.
+    if (account.platform === 'instagram') {
+      // Strategy 1: Find FB page that has metadata.instagram_id matching this IG account
+      const linkedFbToken = await db.meta_tokens.findFirst({
+        where: {
+          platform_accounts: {
+            workspaceId: account.workspaceId,
+            platform: 'facebook',
+            metadata: {
+              path: ['instagram_id'],
+              equals: account.platform_user_id,
+            },
+          }
+        },
+        include: { platform_accounts: true },
+        orderBy: { updated_at: 'desc' }
+      });
+
+      if (linkedFbToken) {
+        // Use the FB Page ID as effectivePageId for the send URL
+        // Testing shows that /{fb-page-id}/messages works while /{ig-id}/messages fails with error #3
+        latestToken = linkedFbToken;
+        effectivePageId = linkedFbToken.platform_accounts.platform_user_id; 
+        console.log(`[Repository] IG linked FB page found → using FB Page ID ${effectivePageId} for IG messaging`);
+      } else if (!latestToken) {
+        // Strategy 2: IG account has its own token stored directly (could be an FB Page token saved against IG)
+        console.log(`[Repository] IG account ${account.platform_user_id}: no linked FB page found, using own token`);
+        // effectivePageId stays as account.platform_user_id (IG ID) — correct for send URL
+      }
+    }
+
+    // Secondary Fallback: Any Meta-compatible token in the workspace (for non-instagram accounts)
+    if (!latestToken && account.platform !== 'instagram') {
+      const workspaceToken = await db.meta_tokens.findFirst({
+        where: {
+          platform_accounts: {
+            workspaceId: account.workspaceId,
+            platform: { in: ['facebook', 'instagram', 'meta'] }
+          }
+        },
+        include: {
+          platform_accounts: true
+        },
+        orderBy: { updated_at: 'desc' }
+      });
+      if (workspaceToken) {
+        latestToken = workspaceToken;
+        effectivePageId = workspaceToken.platform_accounts.platform_user_id;
+        console.log(`[Repository] Using generic workspace fallback for account ${account.id}`);
+      }
+    }
+
+    return {
+      data: {
+        id: conversation.id,
+        platform_conversation_id: conversation.platform_conversation_id,
+        status: conversation.status,
+        account: {
+          id: account.id,
+          platform: account.platform,
+          platform_user_id: effectivePageId,
+          encryptedToken: latestToken?.encrypted_access_token ?? null,
+        },
+      },
+      error: null,
+    };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown database error';
+    console.error('❌ [ConversationRepository] Error in getConversationWithAccount:', error);
+    return { data: null, error: msg };
+  }
+}
+
+/**
+ * Marks all unread messages in a conversation as read.
+ * Returns the count of updated messages.
+ *
+ * @param conversationId UUID of the conversation
+ */
+export async function markAllRead(conversationId: string): Promise<MarkReadResult> {
+  try {
+    const result = await db.message.updateMany({
+      where: {
+        conversationId,
+        is_read: false,
+      },
+      data: { is_read: true },
+    });
+
+    return { data: { updatedCount: result.count }, error: null };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown database error';
+    console.error('❌ [ConversationRepository] Error in markAllRead:', error);
+    return { data: null, error: msg };
+  }
+}

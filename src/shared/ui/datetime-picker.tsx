@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { format, addDays, setHours, setMinutes, startOfToday, nextMonday } from 'date-fns';
 import { Calendar as CalendarIcon, Clock, Globe } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@shared/lib/utils';
 
 type DatetimePickerProps = {
   value: Date;

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getPublisherAccountRepository } from '@/infrastructure/repositories/publisher-account.repository';
-import { getTokenManagementService } from '@/application/services/token-management.service';
+import { createClient } from '@shared/api/supabase/server';
+import { getPublisherAccountRepository } from '@features/posts/repositories/publisher-account.repository';
+import { getTokenManagementService } from '@features/settings/services/token-management.service';
 
 export async function GET(request: Request) {
   try {

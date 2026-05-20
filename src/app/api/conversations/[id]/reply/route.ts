@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getConversationWithAccount } from '@/infrastructure/repositories/conversation.repository';
-import { createOutgoingMessage } from '../../../../../../message.repository';
-import { metaSendService } from '@/application/services/meta-send.service';
-import type { MessagingPlatform, MessageAttachment } from '@/domain/types/messaging';
-import { db } from '@/lib/db';
+import { getConversationWithAccount } from '@features/inbox/repositories/conversation.repository';
+import { createOutgoingMessage } from '@features/inbox/repositories/message.repository';
+import { metaSendService } from '@features/inbox/services/meta-send.service';
+import type { MessagingPlatform, MessageAttachment } from '@features/inbox/types';
+import { db } from '@shared/lib/db';
 
 const SUPPORTED_PLATFORMS = new Set<string>(['messenger', 'instagram', 'facebook']);
 

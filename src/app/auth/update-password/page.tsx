@@ -1,5 +1,5 @@
-import { AuthCard } from '@/components/auth/auth-card';
-import { UpdatePasswordForm } from '@/components/auth/update-password-form';
+import { AuthCard } from '@features/auth/components/auth-card';
+import { UpdatePasswordForm } from '@features/auth/components/update-password-form';
 import styles from '../login/login-page.module.css';
 
 export default function UpdatePasswordPage() {

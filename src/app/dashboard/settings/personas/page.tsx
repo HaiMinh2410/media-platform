@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/infrastructure/supabase/server';
-import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
-import { db } from '@/lib/db';
-import { PersonaList } from '@/components/settings/personas/persona-list';
+import { createClient } from '@shared/api/supabase/server';
+import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
+import { db } from '@shared/lib/db';
+import { PersonaList } from '@features/settings/components/personas/persona-list';
 
 export default async function PersonasSettingsPage() {
   const supabase = await createClient();

@@ -4,8 +4,8 @@
 //
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { evaluateABTest } from '@/application/ai-agent/ab-test-manager';
+import { db } from '@shared/lib/db';
+import { evaluateABTest } from '@features/ai-agent/services/ab-test-manager';
 
 export const dynamic = 'force-dynamic';
 

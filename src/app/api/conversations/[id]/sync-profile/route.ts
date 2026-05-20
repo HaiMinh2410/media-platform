@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { metaProfileService } from '@/application/services/meta-profile.service';
+import { db } from '@shared/lib/db';
+import { metaProfileService } from '@features/settings/services/meta-profile.service';
 
 /**
  * POST /api/conversations/[id]/sync-profile

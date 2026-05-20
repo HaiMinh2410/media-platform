@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPostRepository } from '@/infrastructure/repositories/post.repository';
+import { getPostRepository } from '@features/posts/repositories/post.repository';
 import { z } from 'zod';
 
 const UpdatePostSchema = z.object({

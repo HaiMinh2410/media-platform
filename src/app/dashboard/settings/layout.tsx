@@ -1,5 +1,5 @@
 import React from 'react';
-import { SettingsTabs } from '@/components/settings/settings-tabs';
+import { SettingsTabs } from '@features/settings/components/settings-tabs';
 
 export default function SettingsLayout({
   children,

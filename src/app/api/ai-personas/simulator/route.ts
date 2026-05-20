@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/infrastructure/supabase/server';
-import { buildDynamicSystemPrompt } from '@/application/ai-agent/prompts/response-generator.prompt';
-import { groqClient } from '@/infrastructure/ai/groq-client';
-import { AI_MODELS } from '@/domain/types/ai';
+import { createClient } from '@shared/api/supabase/server';
+import { buildDynamicSystemPrompt } from '@features/ai-agent/services/prompts/response-generator.prompt';
+import { groqClient } from '@features/ai-agent/services/groq-client';
+import { AI_MODELS } from '@features/ai-agent/types';
 
 // POST /api/ai-personas/simulator
 // Simulates persona execution with draft configuration and groq client

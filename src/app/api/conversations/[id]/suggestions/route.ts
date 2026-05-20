@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import type { AiSuggestion } from '@/domain/types/messaging';
+import { db } from '@shared/lib/db';
+import type { AiSuggestion } from '@features/inbox/types';
 
 /**
  * GET /api/conversations/[id]/suggestions

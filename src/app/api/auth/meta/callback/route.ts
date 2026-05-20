@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { getMetaConnectionService } from '@/application/services/meta-connection.service';
-import { createClient } from '@/infrastructure/supabase/server';
+import { getMetaConnectionService } from '@features/settings/services/meta-connection.service';
+import { createClient } from '@shared/api/supabase/server';
 
 export async function GET(request: Request) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

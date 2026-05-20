@@ -1,23 +1,23 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/infrastructure/supabase/server';
+import { createClient } from '@shared/api/supabase/server';
 import { redirect } from 'next/navigation';
-import { getWorkspaceRepository } from '@/infrastructure/repositories/workspace.repository';
+import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
 import { 
   getDashboardStats, 
   getAccountHealthData, 
   getDashboardTrends, 
   getInboxMetrics, 
   getAISummary 
-} from '@/application/actions/dashboard.actions';
-import { StatsStrip } from '@/components/dashboard/stats-strip';
-import { AccountHealthGrid } from '@/components/dashboard/account-health-grid';
-import { SectionTitle } from '@/components/dashboard/section-title';
-import { InboxMetricsCard } from '@/components/dashboard/inbox-metrics-card';
-import { AISummaryCard } from '@/components/dashboard/ai-summary-card';
+} from '@features/dashboard/actions/dashboard.actions';
+import { StatsStrip } from '@features/dashboard/components/stats-strip';
+import { AccountHealthGrid } from '@features/dashboard/components/account-health-grid';
+import { SectionTitle } from '@features/dashboard/components/section-title';
+import { InboxMetricsCard } from '@features/dashboard/components/inbox-metrics-card';
+import { AISummaryCard } from '@features/dashboard/components/ai-summary-card';
 import { ChevronRight, Sparkles, MessageSquare } from 'lucide-react';
-import { ErrorBoundary, SectionError } from '@/components/dashboard/error-boundary';
-import DashboardSkeleton from '@/components/dashboard/dashboard-skeleton';
+import { ErrorBoundary, SectionError } from '@features/dashboard/components/error-boundary';
+import DashboardSkeleton from '@features/dashboard/components/dashboard-skeleton';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
