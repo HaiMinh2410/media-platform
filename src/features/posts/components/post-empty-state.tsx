@@ -11,8 +11,8 @@ type PostEmptyStateProps = {
 
 export function PostEmptyState({ hasFilters, onClear }: PostEmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 px-6 bg-slate-900/20 border border-dashed border-slate-800 rounded-[2rem] text-center space-y-6">
-      <div className="w-20 h-20 rounded-3xl bg-slate-900 flex items-center justify-center shadow-2xl border border-slate-800 ring-4 ring-slate-900/50">
+    <div className="flex flex-col items-center justify-center py-20 px-6 bg-background-secondary border border-dashed border-foreground/10 rounded-[2rem] text-center space-y-6">
+      <div className="w-20 h-20 rounded-3xl bg-background-tertiary flex items-center justify-center shadow-2xl border border-foreground/10 ring-4 ring-foreground/5">
         {hasFilters ? (
           <XCircle className="text-slate-500" size={32} />
         ) : (
@@ -21,10 +21,10 @@ export function PostEmptyState({ hasFilters, onClear }: PostEmptyStateProps) {
       </div>
 
       <div className="max-w-xs space-y-2">
-        <h3 className="text-lg font-bold text-white">
+        <h3 className="text-lg font-bold text-foreground">
           {hasFilters ? 'No posts matched' : 'No posts yet'}
         </h3>
-        <p className="text-sm text-slate-500 leading-relaxed">
+        <p className="text-sm text-foreground-tertiary leading-relaxed">
           {hasFilters 
             ? 'Try adjusting your filters or search terms to find what you\'re looking for.'
             : 'Start creating amazing content and schedule them across your social platforms.'}

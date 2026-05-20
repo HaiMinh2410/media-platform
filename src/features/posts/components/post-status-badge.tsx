@@ -9,7 +9,7 @@ const STATUS_CONFIG = {
   draft: {
     label: 'Draft',
     icon: FileText,
-    className: 'bg-slate-800 text-slate-400 border-slate-700',
+    className: 'bg-background-tertiary text-foreground-secondary border-foreground/10',
   },
   scheduled: {
     label: 'Scheduled',

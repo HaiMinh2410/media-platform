@@ -25,13 +25,13 @@ export function SchedulingPanel({
   return (
     <div className="glass-card rounded-2xl p-6 space-y-8">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">Publishing</h3>
-        <div className="flex bg-slate-900/40 rounded-2xl p-1.5 border border-white/5 shadow-inner">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-base-content/70">Publishing</h3>
+        <div className="flex bg-base-200 rounded-2xl p-1.5 border border-base-content/10 shadow-inner">
           <button
             onClick={() => onChange(null)}
             className={cn(
               "px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all duration-300",
-              !isScheduled ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30" : "text-slate-500 hover:text-slate-300"
+              !isScheduled ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30" : "text-base-content/50 hover:text-base-content"
             )}
           >
             Now
@@ -40,7 +40,7 @@ export function SchedulingPanel({
             onClick={() => onChange(new Date(Date.now() + 60 * 60 * 1000))}
             className={cn(
               "px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all duration-300",
-              isScheduled ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30" : "text-slate-500 hover:text-slate-300"
+              isScheduled ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30" : "text-base-content/50 hover:text-base-content"
             )}
           >
             Schedule
@@ -54,7 +54,7 @@ export function SchedulingPanel({
             value={scheduledAt} 
             onChange={onChange} 
           />
-          <p className="text-[10px] text-slate-500 px-1 italic">
+          <p className="text-[10px] text-base-content/50 px-1 italic">
             Bài viết sẽ được tự động đăng vào thời gian đã chọn.
           </p>
         </div>
@@ -81,7 +81,7 @@ export function SchedulingPanel({
               <Clock size={18} />
               Lên lịch đăng
               {selectedAccountCount > 0 && (
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">[{selectedAccountCount}]</span>
+                <span className="bg-base-content/10 px-2 py-0.5 rounded-full text-[11px]">[{selectedAccountCount}]</span>
               )}
             </>
           ) : (
@@ -89,14 +89,14 @@ export function SchedulingPanel({
               <Zap size={18} />
               Đăng ngay
               {selectedAccountCount > 0 && (
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[11px]">[{selectedAccountCount}]</span>
+                <span className="bg-base-content/10 px-2 py-0.5 rounded-full text-[11px]">[{selectedAccountCount}]</span>
               )}
             </>
           )}
         </button>
         
         <button 
-          className="w-32 bg-slate-900/60 hover:bg-slate-800 text-slate-300 font-bold text-sm rounded-xl transition-all border border-white/5"
+          className="w-32 bg-base-200 hover:bg-base-300 text-base-content/70 font-bold text-sm rounded-xl transition-all border border-base-content/10"
         >
           💾 Bản nháp
         </button>

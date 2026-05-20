@@ -23,7 +23,7 @@ export function PostPreview({ content, mediaUrls, platform }: PostPreviewProps) 
         </div>
       </div>
 
-      <div className="relative mx-auto w-full max-w-[360px] aspect-[9/19.5] bg-neutral rounded-[3rem] border-[8px] border-neutral shadow-2xl overflow-hidden ring-1 ring-white/10">
+      <div className="relative mx-auto w-full max-w-[360px] aspect-[9/19.5] bg-neutral rounded-[3rem] border-[8px] border-neutral shadow-2xl overflow-hidden ring-1 ring-base-content/10">
         {/* Notch */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-neutral rounded-b-3xl z-50 flex items-center justify-center">
           <div className="w-12 h-1 bg-neutral-focus/30 rounded-full" />

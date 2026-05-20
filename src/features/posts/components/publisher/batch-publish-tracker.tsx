@@ -64,7 +64,7 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
             {status.status === 'RUNNING' && <Loader2 className="animate-spin text-blue-400" size={18} />}
             {status.status === 'SCHEDULED' && <Calendar className="text-blue-400" size={18} />}
           </h3>
-          <p className="text-slate-400 text-sm font-medium">
+          <p className="text-foreground-secondary text-sm font-medium">
             Batch ID: <span className="font-mono text-xs">{batchId}</span>
           </p>
         </div>
@@ -88,10 +88,10 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
       {/* Progress Bar */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm font-bold">
-          <span className="text-slate-300">Tổng quan ({progress}%)</span>
+          <span className="text-foreground-secondary">Tổng quan ({progress}%)</span>
           <span className="text-white">{status.completed + status.failed} / {status.total}</span>
         </div>
-        <div className="h-3 w-full bg-slate-800 rounded-full overflow-hidden flex">
+        <div className="h-3 w-full bg-background-secondary rounded-full overflow-hidden flex">
           <div 
             className="h-full bg-green-500 transition-all duration-500 ease-out shadow-[0_0_15px_rgba(34,197,94,0.4)]" 
             style={{ width: `${(status.completed / status.total) * 100}%` }}
@@ -109,13 +109,13 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
         <StatBox label="Lỗi" value={status.failed} color="text-red-400" icon={<XCircle size={14} />} />
         <StatBox label="Đang chạy" value={status.running} color="text-blue-400" icon={<Loader2 size={14} className="animate-spin" />} />
         <StatBox label="Đã lên lịch" value={status.scheduled || 0} color="text-blue-300" icon={<Calendar size={14} />} />
-        <StatBox label="Chờ" value={status.pending} color="text-slate-400" />
+        <StatBox label="Chờ" value={status.pending} color="text-foreground-secondary" />
       </div>
 
       {/* Job Details (Failed Only) */}
       {status.failed > 0 && (
         <div className="space-y-4 pt-2">
-          <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <h4 className="text-sm font-bold text-foreground-secondary uppercase tracking-widest flex items-center gap-2">
             <AlertCircle size={14} className="text-red-500" />
             Chi tiết các mục bị lỗi
           </h4>
@@ -128,7 +128,7 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
                 <div className="space-y-1">
                   <div className="text-[15px] font-bold text-white flex items-center gap-2">
                     {job.account?.name || 'Tài khoản không xác định'}
-                    <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg text-[10px] text-slate-400 uppercase font-bold tracking-tight">
+                    <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg text-[10px] text-foreground-secondary uppercase font-bold tracking-tight">
                       {job.platform}
                     </span>
                   </div>
@@ -147,8 +147,8 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
 
 function StatBox({ label, value, color, icon }: { label: string; value: number; color?: string; icon?: React.ReactNode }) {
   return (
-    <div className="bg-slate-900/50 rounded-2xl p-4 border border-white/5">
-      <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
+    <div className="bg-background-tertiary rounded-2xl p-4 border border-foreground/10">
+      <div className="text-foreground-tertiary text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
         {icon}
         {label}
       </div>
