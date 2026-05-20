@@ -57,25 +57,25 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center p-4 border-b border-white/5">
+      <div className="flex justify-between items-center p-4 border-b border-foreground/10">
         <h3 className="text-sm font-bold text-foreground">Search in Conversation</h3>
-        <button className="text-foreground-tertiary hover:text-foreground p-1 transition-colors" onClick={onClose}>
+        <button className="text-foreground-tertiary hover:text-foreground p-1 transition-colors animate-in fade-in" onClick={onClose}>
           <X size={16} />
         </button>
       </div>
       
       <div className="p-4 flex flex-col gap-4">
         <div className="relative group">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary group-focus-within:text-accent-primary transition-colors" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary group-focus-within:text-primary transition-colors" />
           <input 
             type="text" 
             placeholder="Search keywords..." 
-            className="w-full bg-black/20 border border-white/10 pl-10 pr-10 py-2 rounded-lg text-sm text-foreground outline-none focus:border-accent-primary transition-all" 
+            className="w-full bg-background-secondary border border-foreground/10 pl-10 pr-10 py-2 rounded-lg text-sm text-foreground outline-none focus:border-primary transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]" 
             autoFocus 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          {isSearching && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-accent-primary animate-spin" />}
+          {isSearching && <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin" />}
         </div>
         
         <div className="flex flex-wrap gap-2">
@@ -83,8 +83,8 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
               senderFilter === 'user' 
-                ? "bg-accent-primary/10 border-accent-primary/30 text-accent-primary" 
-                : "bg-white/5 border-white/10 text-foreground-tertiary hover:bg-white/10"
+                ? "bg-primary/10 border-primary/30 text-primary" 
+                : "bg-foreground/5 border-foreground/10 text-foreground-tertiary hover:bg-foreground/10"
             )}
             onClick={() => setSenderFilter(senderFilter === 'user' ? '' : 'user')}
           >
@@ -95,8 +95,8 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
               senderFilter === 'agent' 
-                ? "bg-accent-primary/10 border-accent-primary/30 text-accent-primary" 
-                : "bg-white/5 border-white/10 text-foreground-tertiary hover:bg-white/10"
+                ? "bg-primary/10 border-primary/30 text-primary" 
+                : "bg-foreground/5 border-foreground/10 text-foreground-tertiary hover:bg-foreground/10"
             )}
             onClick={() => setSenderFilter(senderFilter === 'agent' ? '' : 'agent')}
           >
@@ -107,8 +107,8 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
               dateFilter === 'today' 
-                ? "bg-accent-primary/10 border-accent-primary/30 text-accent-primary" 
-                : "bg-white/5 border-white/10 text-foreground-tertiary hover:bg-white/10"
+                ? "bg-primary/10 border-primary/30 text-primary" 
+                : "bg-foreground/5 border-foreground/10 text-foreground-tertiary hover:bg-foreground/10"
             )}
             onClick={() => setDateFilter(dateFilter === 'today' ? '' : 'today')}
           >
@@ -118,10 +118,10 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-white/10">
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-foreground/10">
         {!searchQuery.trim() ? (
-          <div className="flex flex-col items-center justify-center gap-4 py-10 px-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-foreground-tertiary">
+          <div className="flex flex-col items-center justify-center gap-4 py-10 px-6 text-center animate-in fade-in duration-300">
+            <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center text-foreground-tertiary">
               <Search size={32} />
             </div>
             <p className="text-sm text-foreground-tertiary leading-relaxed">Enter a keyword to start searching for messages and files in this conversation.</p>
@@ -130,13 +130,13 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
           searchResults.map((msg) => (
             <div 
               key={msg.id} 
-              className="p-3 bg-white/[0.03] border border-white/5 rounded-lg cursor-pointer transition-all hover:bg-white/10 hover:border-white/20"
+              className="p-3 bg-foreground/[0.03] border border-foreground/5 rounded-lg cursor-pointer transition-all hover:bg-foreground/10 hover:border-foreground/20 shadow-sm"
               onClick={() => onJumpToMessage?.(msg.id)}
             >
               <div className="flex justify-between items-center mb-1.5">
                 <span className={cn(
                   "text-xs font-bold px-2 py-0.5 rounded uppercase",
-                  msg.senderType === 'user' ? "bg-blue-500/10 text-blue-400" : "bg-purple-500/10 text-purple-400"
+                  msg.senderType === 'user' ? "bg-info/10 text-info" : "bg-primary/10 text-primary"
                 )}>
                   {msg.senderType === 'user' ? 'Customer' : 'Agent'}
                 </span>

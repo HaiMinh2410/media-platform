@@ -187,7 +187,7 @@ export function Sidebar() {
                 <span className={cn("w-5 h-5 flex items-center justify-center shrink-0 transition-colors", isActive && "text-primary")}>
                   {item.icon}
                 </span>
-                {!isCollapsed && <span className="text-md whitespace-nowrap">{item.label}</span>}
+                {!isCollapsed && <span className="text-sm whitespace-nowrap">{item.label}</span>}
               </div>
               {item.badge && (
                 <span className={cn(

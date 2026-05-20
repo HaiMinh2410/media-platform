@@ -167,8 +167,8 @@ const VoiceNotePlayer = ({
       "flex items-center gap-3 py-6 px-4.5 min-w-40 w-56 h-11 shadow-sm relative select-none",
       getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-2xl"),
       isUser 
-        ? "bg-[#e4e6eb] dark:bg-[#242526] text-[#050505] dark:text-white border-none" 
-        : "bg-[#7c3aed] text-white border-none"
+        ? "bg-background-secondary text-foreground border-none" 
+        : "bg-primary text-primary-content border-none"
     )}>
       {/* Play/Pause Button */}
       <button 
@@ -180,7 +180,7 @@ const VoiceNotePlayer = ({
           <Pause 
             size={15} 
             fill="currentColor" 
-            className={isUser ? "text-[#050505] dark:text-white" : "text-white"} 
+            className={isUser ? "text-foreground" : "text-primary-content"} 
           />
         ) : (
           <Play 
@@ -188,7 +188,7 @@ const VoiceNotePlayer = ({
             fill="currentColor" 
             className={cn(
               "ml-0.5",
-              isUser ? "text-[#050505] dark:text-white" : "text-white"
+              isUser ? "text-foreground" : "text-primary-content"
             )} 
           />
         )}
@@ -248,7 +248,7 @@ const VoiceNotePlayer = ({
       {/* Playback Time / Duration */}
       <span className={cn(
         "text-[11px] font-semibold select-none tabular-nums shrink-0 ml-1.5",
-        isUser ? "text-[#050505]/80 dark:text-white/80" : "text-white/95"
+        isUser ? "text-foreground-secondary" : "text-primary-content/95"
       )}>
         {formatTime(
           currentTime > 0 
@@ -357,7 +357,7 @@ const AttachmentRenderer = ({
                   getDynamicCornersClass(isUser, isPrevConsecutive, isNextConsecutive, "rounded-xl", isReply)
                 )}
               >
-                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
                   <FileText size={20} />
                 </div>
                 <div className="flex flex-col min-w-0 flex-1">
@@ -442,14 +442,14 @@ const HoverActions = ({
         type="button"
         onClick={onPinClick}
         className={cn(
-          "text-foreground-secondary hover:text-indigo-500 transition-all duration-100 flex items-center justify-center cursor-pointer p-1.5 rounded-full hover:bg-foreground/5",
-          isPinned && "text-indigo-500"
+          "text-foreground-secondary hover:text-primary transition-all duration-100 flex items-center justify-center cursor-pointer p-1.5 rounded-full hover:bg-foreground/5",
+          isPinned && "text-primary"
         )}
         whileHover={{ scale: 1.12 }}
         whileTap={{ scale: 0.95 }}
         title={isPinned ? "Bỏ ghim tin nhắn" : "Ghim tin nhắn"}
       >
-        <Pin size={13} className={cn(isPinned && "fill-indigo-500 rotate-45")} />
+        <Pin size={13} className={cn(isPinned && "fill-primary rotate-45")} />
       </motion.button>
     </motion.div>
   );
@@ -624,8 +624,7 @@ export const MessageBubble = memo(function MessageBubble({
         targets.forEach(target => {
           target.classList.add(
             "ring", 
-            "ring-indigo-500", 
-            "dark:ring-white", 
+            "ring-primary", 
             "ring-offset-2", 
             "ring-offset-background", 
             "scale-[1.03]", 
@@ -637,8 +636,7 @@ export const MessageBubble = memo(function MessageBubble({
           targets.forEach(target => {
             target.classList.remove(
               "ring", 
-              "ring-indigo-500", 
-              "dark:ring-white", 
+              "ring-primary", 
               "ring-offset-2", 
               "ring-offset-background", 
               "scale-[1.03]", 
@@ -787,8 +785,8 @@ export const MessageBubble = memo(function MessageBubble({
                   : "shadow-sm hover:shadow-md",
                 getBubbleCornersClass(),
                 isUser && "bg-background-secondary border border-foreground/10 text-foreground",
-                isAgent && "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-500/25",
-                isAi && "bg-gradient-to-br from-purple-500/15 to-purple-600/5 border border-purple-500/35 text-foreground shadow-md shadow-purple-500/15 backdrop-blur-md"
+                isAgent && "bg-gradient-to-br from-primary to-secondary text-primary-content shadow-md shadow-primary/25",
+                isAi && "bg-gradient-to-br from-accent/15 to-accent/5 border border-accent/35 text-foreground shadow-md shadow-accent/15 backdrop-blur-md"
               )}
             >
 
@@ -913,7 +911,7 @@ export const MessageBubble = memo(function MessageBubble({
 
             {/* 3. Ghim indicator */}
             {isPinned && (
-              <div className="flex items-center gap-1 text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-full text-[9px] font-semibold">
+              <div className="flex items-center gap-1 text-primary bg-primary/10 px-1.5 py-0.5 rounded-full text-[9px] font-semibold">
                 <Pin size={9} fill="currentColor" className="rotate-45" />
                 <span>Đã ghim</span>
               </div>

@@ -284,22 +284,22 @@ export function VoiceRecorder({
 
   return (
     <div className="flex items-center gap-3 w-full bg-transparent py-1 animate-in fade-in slide-in-from-bottom-1 duration-150">
-      {/* Left Cancel Button: Small dark circular button with blue X */}
+      {/* Left Cancel Button: Small dark circular button with primary X */}
       <button 
         type="button" 
         onClick={handleCancel}
-        className="w-8 h-8 rounded-full bg-foreground/5 dark:bg-[#1a1b1c] border border-[#0084FF]/10 text-[#0084FF] flex items-center justify-center hover:bg-[#0084FF]/10 transition-all active:scale-90"
+        className="w-8 h-8 rounded-full bg-foreground/5 dark:bg-background-tertiary border border-primary/10 text-primary flex items-center justify-center hover:bg-primary/10 transition-all active:scale-90"
         title="Hủy ghi âm"
       >
-        <X size={16} className="text-[#0084FF] stroke-[3]" />
+        <X size={16} className="text-primary stroke-[3]" />
       </button>
 
       {/* Main Messenger Blue Capsule */}
-      <div className="flex-1 flex items-center justify-between h-9 bg-[#0084FF] rounded-full px-1.5 shadow-md relative overflow-hidden">
+      <div className="flex-1 flex items-center justify-between h-9 bg-primary rounded-full px-1.5 shadow-md relative overflow-hidden">
         
         {/* Progress Fill Background Overlay */}
         <div 
-          className="absolute inset-y-0 left-0 bg-white/15 pointer-events-none z-0"
+          className="absolute inset-y-0 left-0 bg-primary-content/15 pointer-events-none z-0"
           style={{ width: `${isRecording ? (duration / 180) * 100 : (duration > 0 ? (playbackTime / duration) * 100 : 0)}%` }}
         />
 
@@ -312,7 +312,7 @@ export function VoiceRecorder({
             title="Dừng ghi âm"
             style={{ width: '26px', height: '26px' }}
           >
-            <Square fill="#0084FF" className="text-[#0084FF] size-1/2" />
+            <Square className="text-primary fill-primary size-1/2" />
           </button>
         ) : (
           <button 
@@ -323,27 +323,27 @@ export function VoiceRecorder({
             style={{ width: '26px', height: '26px' }}
           >
             {isPlayingPreview ? (
-              <Pause fill="#0084FF" className="text-[#0084FF] size-2/3" />
+              <Pause className="text-primary fill-primary size-2/3" />
             ) : (
-              <Play fill="#0084FF" className="text-[#0084FF] ml-0.5 size-2/3" />
+              <Play className="text-primary fill-primary ml-0.5 size-2/3" />
             )}
           </button>
         )}
 
-        {/* Right Side inside Capsule: White badge containing blue timer text */}
+        {/* Right Side inside Capsule: White badge containing primary timer text */}
         <div className="bg-white rounded-full px-2.5 py-0.5 flex items-center justify-center min-w-[46px] h-6 shrink-0 shadow-sm mr-0.5 z-10">
-          <span className="font-mono text-sm font-extrabold text-[#0084FF]">
+          <span className="font-mono text-sm font-extrabold text-primary">
             {formatTime(isRecording ? duration : Math.max(Math.ceil(duration - playbackTime), 0))}
           </span>
         </div>
       </div>
 
-      {/* Right Send Button: Blue paper plane pointing right */}
+      {/* Right Send Button: primary paper plane pointing right */}
       <SendButton 
         type="button" 
         onClick={handleConfirm}
-        className="w-8 h-8 rounded-full bg-transparent text-[#0084FF] hover:scale-110 active:scale-90 shrink-0"
-        iconClassName="text-[#0084FF] fill-current"
+        className="w-8 h-8 rounded-full bg-transparent text-primary hover:scale-110 active:scale-90 shrink-0"
+        iconClassName="text-primary fill-current"
         size={20}
         title="Xác nhận và đính kèm"
       />

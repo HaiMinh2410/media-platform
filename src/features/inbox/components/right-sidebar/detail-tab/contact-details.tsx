@@ -21,8 +21,8 @@ export function ContactDetails({ contactInfo, onEdit, onDelete }: ContactDetails
         <h3 className="text-xs font-bold text-foreground-tertiary uppercase tracking-wider">Chi tiết liên hệ</h3>
         {hasContactInfo && (
           <div className="flex items-center gap-3">
-            <span className="text-xs text-accent-primary cursor-pointer hover:underline" onClick={onEdit}>Chỉnh sửa</span>
-            <span className="text-xs text-red-400 cursor-pointer hover:underline" onClick={onDelete}>Xóa</span>
+            <span className="text-xs text-primary cursor-pointer hover:underline" onClick={onEdit}>Chỉnh sửa</span>
+            <span className="text-xs text-error cursor-pointer hover:underline" onClick={onDelete}>Xóa</span>
           </div>
         )}
       </div>
@@ -61,7 +61,7 @@ export function ContactDetails({ contactInfo, onEdit, onDelete }: ContactDetails
           <>
             <p className="text-sm text-foreground-tertiary leading-normal mb-1">Bổ sung chi tiết về người liên hệ này.</p>
             <button 
-              className="flex items-center justify-center gap-2 w-full py-2 border border-dashed border-white/20 rounded-lg text-sm text-foreground-tertiary transition-all hover:border-white/40 hover:text-foreground-secondary" 
+              className="flex items-center justify-center gap-2 w-full py-2 border border-dashed border-foreground/20 rounded-lg text-sm text-foreground-tertiary transition-all hover:border-foreground/40 hover:text-foreground-secondary" 
               onClick={onEdit}
             >
               <Plus size={16} /> Thêm chi tiết

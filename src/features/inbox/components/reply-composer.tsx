@@ -619,7 +619,7 @@ export function ReplyComposer({
         <button 
           type="button"
           className={cn(
-            "flex items-center gap-1.5 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/40 text-purple-200 text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer transition-all shadow-[0_2px_8px_rgba(168,85,247,0.1)] hover:from-purple-500/30 hover:to-indigo-500/30 hover:shadow-[0_4px_12px_rgba(168,85,247,0.2)] hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
+            "flex items-center gap-1.5 bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/40 text-foreground text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer transition-all shadow-sm hover:from-primary/30 hover:to-secondary/30 hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
             isRewriting && "opacity-80 cursor-wait"
           )}
           onClick={handleRewrite}
@@ -648,7 +648,7 @@ export function ReplyComposer({
             >
               <div className="flex items-center justify-between border-l-2 border-primary px-3 py-2 mb-0 text-sm">
                 <div className="flex items-center gap-2 text-foreground-secondary min-w-0">
-                  <Reply size={14} className="shrink-0 text-indigo-500" />
+                  <Reply size={14} className="shrink-0 text-primary" />
                   <div className="truncate">
                     <span className="font-bold text-primary mr-1">Đang trả lời:</span>
                     {getReplyMessagePreview(replyToMessage)}
@@ -688,7 +688,7 @@ export function ReplyComposer({
               onDrop={handleDrop}
             >
               {isDragging && (
-                <div className="absolute inset-0 z-10 bg-indigo-500/10 backdrop-blur-[1px] flex items-center justify-center rounded-lg border-2 border-dashed border-indigo-500 text-indigo-500 font-medium">
+                <div className="absolute inset-0 z-10 bg-primary/10 backdrop-blur-[1px] flex items-center justify-center rounded-lg border-2 border-dashed border-primary text-primary font-medium">
                   Thả tệp vào đây để đính kèm
                 </div>
               )}

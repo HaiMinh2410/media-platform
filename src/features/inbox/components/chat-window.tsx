@@ -625,7 +625,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
                     <img 
                       src={lightboxImage} 
                       alt="Full size view" 
-                      className="max-w-full max-h-[85vh] object-contain border border-white/10 pointer-events-auto"
+                      className="max-w-full max-h-[85vh] object-contain border border-foreground/10 pointer-events-auto"
                     />
                   </motion.div>
                 </motion.div>
@@ -757,10 +757,10 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
                                             onClick={() => setActiveMenuId(null)} 
                                           />
                                           <div
-                                            className="absolute left-0 mt-2 w-48 rounded-lg bg-[#242526] border border-white/10 shadow-2xl z-[100000] p-2 text-white select-none overflow-hidden"
+                                            className="absolute left-0 mt-2 w-48 rounded-lg bg-background-tertiary border border-foreground/10 shadow-2xl z-[100000] p-2 text-foreground select-none overflow-hidden"
                                           >
                                             {/* Arrow pointer */}
-                                            <div className="absolute top-[-5px] left-3 w-2.5 h-2.5 bg-[#242526] border-t border-l border-white/10 rotate-45" />
+                                            <div className="absolute top-[-5px] left-3 w-2.5 h-2.5 bg-background-tertiary border-t border-l border-foreground/10 rotate-45" />
 
                                             <button
                                               type="button"
@@ -769,7 +769,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
                                                 setIsPinnedModalOpen(false);
                                                 setActiveMenuId(null);
                                               }}
-                                              className="w-full text-left px-3 py-2 text-sm font-semibold hover:bg-white/10 transition-colors flex items-center gap-2 border-none bg-transparent text-foreground cursor-pointer rounded-md"
+                                              className="w-full text-left px-3 py-2 text-sm font-semibold hover:bg-foreground/10 transition-colors flex items-center gap-2 border-none bg-transparent text-foreground cursor-pointer rounded-md"
                                             >
                                               Xem trong đoạn chat
                                             </button>
@@ -779,7 +779,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
                                                 await handleUnpin(msg.id);
                                                 setActiveMenuId(null);
                                               }}
-                                              className="w-full text-left px-3 py-2 text-sm font-semibold hover:bg-white/10 transition-colors flex items-center gap-2 border-none bg-transparent text-foreground cursor-pointer rounded-md"
+                                              className="w-full text-left px-3 py-2 text-sm font-semibold hover:bg-foreground/10 transition-colors flex items-center gap-2 border-none bg-transparent text-foreground cursor-pointer rounded-md"
                                             >
                                               Bỏ ghim
                                             </button>

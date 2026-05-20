@@ -24,7 +24,7 @@ export function CustomerProfile({
 }: CustomerProfileProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-12 h-12 rounded-full bg-surface-primary border border-white/10 overflow-hidden flex items-center justify-center text-lg font-bold">
+      <div className="w-12 h-12 rounded-full bg-surface-primary border border-foreground/10 overflow-hidden flex items-center justify-center text-lg font-bold">
         {customerAvatar ? (
           <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover" />
         ) : (
@@ -39,7 +39,7 @@ export function CustomerProfile({
               href={`https://www.instagram.com/${customerUsername}/`} 
               target="_blank" 
               rel="noreferrer" 
-              className="text-xs text-accent-primary hover:underline"
+              className="text-xs text-primary hover:underline"
             >
               Xem trang cá nhân
             </a>
@@ -67,7 +67,7 @@ export function CustomerProfile({
               href={customerLink} 
               target="_blank" 
               rel="noreferrer" 
-              className="text-xs text-accent-primary hover:underline"
+              className="text-xs text-primary hover:underline"
             >
               Xem trang cá nhân
             </a>
@@ -92,7 +92,7 @@ export function CustomerProfile({
         )}
       </div>
       <div className="flex items-center gap-1">
-        <button className="p-2 text-foreground-tertiary hover:text-foreground hover:bg-white/5 rounded-md transition-all" onClick={onToggleCollapse}>
+        <button className="p-2 text-foreground-tertiary hover:text-foreground hover:bg-foreground/5 rounded-md transition-all" onClick={onToggleCollapse}>
           <ChevronRight size={18} />
         </button>
       </div>

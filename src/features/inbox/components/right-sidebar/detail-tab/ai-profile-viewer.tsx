@@ -10,13 +10,10 @@ import {
   Activity, 
   Calendar, 
   MessageSquare, 
-  ArrowRight,
-  ShieldCheck,
-  ShieldAlert,
-  Zap,
-  Info,
-  ChevronDown,
-  ChevronUp
+  ShieldAlert, 
+  Zap, 
+  ChevronDown, 
+  ChevronUp 
 } from 'lucide-react';
 import { cn } from '@shared/lib/utils';
 
@@ -48,7 +45,7 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
     return (
       <div className="p-4 bg-foreground/[0.02] border border-foreground/5 rounded-xl flex flex-col gap-3">
         <div className="flex items-center gap-2 text-foreground-secondary">
-          <Sparkles size={16} className="text-violet-400 animate-pulse" />
+          <Sparkles size={16} className="text-accent animate-pulse" />
           <h4 className="text-sm font-bold">Hồ sơ AI DM Agent</h4>
         </div>
         <p className="text-xs text-foreground-tertiary leading-normal">
@@ -64,31 +61,31 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
       case 'luy':
         return {
           label: 'Lụy (Emotional)',
-          style: 'bg-pink-500/10 text-pink-400 border-pink-500/20 shadow-[0_0_15px_rgba(236,72,153,0.05)]',
+          style: 'bg-secondary/10 text-secondary border-secondary/20 shadow-xs',
           desc: 'Thân thiện, nhiều cảm xúc, nhắn tin dài, dùng nhiều emoji. Cần Emotional Banking nhiều.',
         };
       case 'cool':
         return {
           label: 'Lạnh lùng (Cool)',
-          style: 'bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]',
+          style: 'bg-info/10 text-info border-info/20 shadow-xs',
           desc: 'Trả lời ngắn (1-3 từ), ít emoji, ít hỏi han. Áp dụng chiến thuật Tease & Withdraw.',
         };
       case 'whale':
         return {
           label: 'VIP (Whale)',
-          style: 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.05)] font-bold',
+          style: 'bg-warning/10 text-warning border-warning/20 shadow-xs font-bold',
           desc: 'Hỏi thẳng giá, dịch vụ cao cấp, chốt nhanh. Ưu tiên gửi link chốt đơn ngay.',
         };
       case 'drainer':
         return {
           label: 'Bào sức (Drainer)',
-          style: 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.05)]',
+          style: 'bg-error/10 text-error border-error/20 shadow-xs',
           desc: 'Đòi ảnh/nội dung miễn phí nhiều lần, né mua. Giới hạn tương tác, rút lui nhanh.',
         };
       default:
         return {
           label: 'Chưa rõ (Unknown)',
-          style: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+          style: 'bg-foreground/5 text-foreground-secondary border-foreground/10',
           desc: 'Chưa đủ dữ liệu để phân loại tính cách khách hàng.',
         };
     }
@@ -101,25 +98,25 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
         return {
           label: 'G1 - Gắn kết',
           target: 'Xây dựng lòng tin (Build Trust)',
-          style: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+          style: 'bg-success/10 text-success border-success/20',
         };
       case 'G2':
         return {
           label: 'G2 - Làm ấm',
           target: 'Khơi gợi nhu cầu (Warm-up)',
-          style: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+          style: 'bg-warning/10 text-warning border-warning/20',
         };
       case 'G3':
         return {
           label: 'G3 - Chốt đơn',
           target: 'Bán hàng/Upsell (Upsell)',
-          style: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+          style: 'bg-primary/10 text-primary border-primary/20',
         };
       default:
         return {
           label: stage,
           target: 'Không xác định',
-          style: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+          style: 'bg-foreground/5 text-foreground-secondary border-foreground/10',
         };
     }
   };
@@ -128,19 +125,19 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
   const getNextActionConfig = (action: string) => {
     switch (action.toLowerCase()) {
       case 'continue':
-        return { label: 'Tiếp tục trò chuyện tự nhiên', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
+        return { label: 'Tiếp tục trò chuyện tự nhiên', color: 'text-info bg-info/10 border-info/20' };
       case 'send_link':
-        return { label: 'Gửi liên kết chốt đơn', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20 font-bold animate-pulse' };
+        return { label: 'Gửi liên kết chốt đơn', color: 'text-warning bg-warning/10 border-warning/20 font-bold animate-pulse' };
       case 'soft_exit':
-        return { label: 'Giãn cách, kết thúc lịch sự', color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' };
+        return { label: 'Giãn cách, kết thúc lịch sự', color: 'text-primary bg-primary/10 border-primary/20' };
       case 'hard_exit':
-        return { label: 'Dừng hội thoại ngay lập tức', color: 'text-rose-400 bg-rose-500/10 border-rose-500/20' };
+        return { label: 'Dừng hội thoại ngay lập tức', color: 'text-error bg-error/10 border-error/20' };
       case 'escalate_to_human':
-        return { label: 'Chuyển nhân viên trực chat xử lý', color: 'text-red-400 bg-red-500/10 border-red-500/20 font-bold' };
+        return { label: 'Chuyển nhân viên trực chat xử lý', color: 'text-error bg-error/10 border-error/20 font-bold' };
       case 'wait':
-        return { label: 'Đợi khách hàng phản hồi', color: 'text-slate-400 bg-slate-500/10 border-slate-500/20' };
+        return { label: 'Đợi khách hàng phản hồi', color: 'text-foreground-secondary bg-foreground/5 border-foreground/10' };
       default:
-        return { label: action, color: 'text-slate-400 bg-slate-500/10 border-slate-500/20' };
+        return { label: action, color: 'text-foreground-secondary bg-foreground/5 border-foreground/10' };
     }
   };
 
@@ -149,14 +146,14 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
   const actionConfig = getNextActionConfig(profile.nextAction);
 
   return (
-    <div className="p-4 bg-background-secondary/60 border border-foreground/5 rounded-2xl flex flex-col gap-5 transition-all duration-300 hover:border-violet-500/20 shadow-sm relative overflow-hidden group">
+    <div className="p-4 bg-background-secondary/60 border border-foreground/5 rounded-2xl flex flex-col gap-5 transition-all duration-300 hover:border-accent/20 shadow-sm relative overflow-hidden group">
       {/* Decorative top ambient glow */}
-      <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-violet-500/30 to-transparent blur-xs group-hover:via-violet-500/50" />
+      <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-accent/30 to-transparent blur-xs group-hover:via-accent/50" />
       
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-violet-500/10 text-violet-400 border border-violet-500/20">
+          <div className="p-1.5 rounded-lg bg-accent/10 text-accent border border-accent/20">
             <Sparkles size={14} className="animate-pulse" />
           </div>
           <div>
@@ -165,7 +162,7 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-3xs font-bold px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20">AGENT ACTIVE</span>
+          <span className="text-3xs font-bold px-1.5 py-0.5 rounded bg-accent/10 text-accent border border-accent/20">AGENT ACTIVE</span>
         </div>
       </div>
 
@@ -203,14 +200,14 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
               {profile.emotionTrend === 'increasing' && <TrendingUp size={12} className="text-emerald-400" />}
               {profile.emotionTrend === 'decreasing' && <TrendingDown size={12} className="text-rose-400" />}
             </span>
-            <span className="text-2xs font-bold text-violet-400 bg-violet-500/10 px-1.5 py-0.2 rounded">
+            <span className="text-2xs font-bold text-accent bg-accent/10 px-1.5 py-0.2 rounded">
               {Math.round(profile.emotionScore * 100)}%
             </span>
           </div>
           
           <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden relative">
             <div 
-              className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-500 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-primary via-accent to-secondary transition-all duration-500 ease-out"
               style={{ width: `${profile.emotionScore * 100}%` }}
             />
           </div>
@@ -247,13 +244,13 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
         <div className={cn(
           "flex gap-2.5 p-3 rounded-xl border text-xs leading-normal",
           profile.riskLevel === 'high' 
-            ? "bg-rose-500/10 text-rose-400 border-rose-500/20" 
-            : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+            ? "bg-error/10 text-error border-error/20" 
+            : "bg-warning/10 text-warning border-warning/20"
         )}>
           {profile.riskLevel === 'high' ? (
-            <ShieldAlert size={16} className="text-rose-400 shrink-0 mt-0.5" />
+            <ShieldAlert size={16} className="text-error shrink-0 mt-0.5" />
           ) : (
-            <AlertTriangle size={16} className="text-amber-400 shrink-0 mt-0.5" />
+            <AlertTriangle size={16} className="text-warning shrink-0 mt-0.5" />
           )}
           <div className="flex-1 flex flex-col gap-0.5">
             <span className="font-bold uppercase tracking-wider text-2xs">
@@ -307,7 +304,7 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
                     <span className="text-3xs text-foreground-tertiary font-bold">Insight thu thập:</span>
                     <div className="flex flex-wrap gap-1">
                       {profile.keyInsights.map((insight: string, idx: number) => (
-                        <span key={idx} className="text-3xs px-2 py-0.5 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded">
+                        <span key={idx} className="text-3xs px-2 py-0.5 bg-accent/10 text-accent border border-accent/20 rounded">
                           {insight}
                         </span>
                       ))}
@@ -316,10 +313,10 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
                 )}
                 {profile.objectionsSeen.length > 0 && (
                   <div className="flex flex-col gap-1">
-                    <span className="text-3xs text-rose-400 font-bold">Rào cản/Từ chối đã gặp:</span>
+                    <span className="text-3xs text-error font-bold">Rào cản/Từ chối đã gặp:</span>
                     <div className="flex flex-wrap gap-1">
                       {profile.objectionsSeen.map((objection: string, idx: number) => (
-                        <span key={idx} className="text-3xs px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded">
+                        <span key={idx} className="text-3xs px-2 py-0.5 bg-error/10 text-error border border-error/20 rounded">
                           {objection}
                         </span>
                       ))}

@@ -98,7 +98,7 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
     <div className="flex flex-col gap-3">
       <div className="flex justify-between items-center">
         <h3 className="text-xs font-bold text-foreground-tertiary uppercase tracking-wider">Ghi chú</h3>
-        <span className="text-xs text-accent-primary cursor-pointer hover:underline" onClick={() => setIsAddingNote(!isAddingNote)}>
+        <span className="text-xs text-primary cursor-pointer hover:underline" onClick={() => setIsAddingNote(!isAddingNote)}>
           {isAddingNote ? 'Hủy' : 'Thêm ghi chú'}
         </span>
       </div>
@@ -106,13 +106,13 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
       {isAddingNote && (
         <div className="flex flex-col gap-3 mt-2">
           <textarea 
-            className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-foreground text-sm min-height-[80px] resize-vertical outline-none focus:border-accent-primary"
+            className="w-full bg-background-secondary border border-foreground/10 p-3 rounded-lg text-foreground text-sm min-height-[80px] resize-vertical outline-none focus:border-primary"
             placeholder="Nhập nội dung ghi chú..."
             value={noteContent}
             onChange={(e) => setNoteContent(e.target.value)}
           />
           <button 
-            className="bg-accent-primary text-white border-none p-2 rounded-lg text-sm font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
+            className="bg-primary text-primary-content border-none p-2 rounded-lg text-sm font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
             onClick={handleSaveNote}
           >
             Lưu ghi chú
@@ -128,7 +128,7 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
           </div>
         ) : notes.length > 0 ? (
           notes.map((note) => (
-            <div key={note.id} className="bg-white/[0.03] border border-white/10 rounded-lg p-3">
+            <div key={note.id} className="bg-foreground/5 border border-foreground/10 rounded-lg p-3">
               <div className="flex justify-between items-center text-xs text-foreground-tertiary mb-2">
                 <span>{formatNoteDate(note.createdAt)}</span>
                 <div className="flex gap-3">
@@ -149,13 +149,13 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
               {editingNoteId === note.id ? (
                 <div className="flex flex-col gap-3">
                   <textarea 
-                    className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-foreground text-sm min-height-[80px] resize-vertical outline-none focus:border-accent-primary"
+                    className="w-full bg-background-secondary border border-foreground/10 p-3 rounded-lg text-foreground text-sm min-height-[80px] resize-vertical outline-none focus:border-primary"
                     value={editingNoteContent}
                     onChange={(e) => setEditingNoteContent(e.target.value)}
                     autoFocus
                   />
                   <button 
-                    className="bg-accent-primary text-white border-none p-2 rounded-lg text-sm font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
+                    className="bg-primary text-primary-content border-none p-2 rounded-lg text-sm font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90"
                     onClick={() => handleUpdateNote(note.id)}
                   >
                     Cập nhật

@@ -52,7 +52,7 @@ export function CommandPalette() {
       open={open}
       onOpenChange={setOpen}
       label="Global Command Menu"
-      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[600px] bg-base-200/80 backdrop-blur-xl border border-foreground/10 rounded-xl shadow-2xl z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[600px] glass bg-background-secondary/80 rounded-xl glass-shadow z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
     >
       <div className="flex flex-col">
         <div className="flex items-center p-4 border-b border-foreground/5">
@@ -69,14 +69,14 @@ export function CommandPalette() {
           {items?.accounts && items.accounts.length > 0 && (
             <Command.Group 
               heading="Tài khoản" 
-              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-11 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
+              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-2xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
             >
               {items.accounts.map((account) => (
                 <Command.Item
                   key={account.id}
                   onSelect={() => runCommand(() => router.push(`/dashboard/inbox?account=${account.id}`))}
                   onPointerEnter={() => router.prefetch(`/dashboard/inbox?account=${account.id}`)}
-                  className="flex items-center p-[10px_12px] rounded-lg cursor-pointer gap-3 text-foreground-secondary text-sm transition-all duration-150 select-none aria-selected:bg-foreground/10 aria-selected:text-foreground group"
+                  className="flex items-center px-3 py-2.5 rounded-md cursor-pointer gap-3 text-foreground-secondary text-sm transition-all duration-150 select-none aria-selected:bg-foreground/10 aria-selected:text-foreground group"
                 >
                   <User size={16} />
                   <span>{account.name}</span>
@@ -90,14 +90,14 @@ export function CommandPalette() {
           {items?.groups && items.groups.length > 0 && (
             <Command.Group 
               heading="Nhóm" 
-              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-11 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
+              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-2xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
             >
               {items.groups.map((group) => (
                 <Command.Item
                   key={group.id}
                   onSelect={() => runCommand(() => router.push(`/dashboard/inbox?group=${group.id}`))}
                   onPointerEnter={() => router.prefetch(`/dashboard/inbox?group=${group.id}`)}
-                  className="flex items-center p-[10px_12px] rounded-lg cursor-pointer gap-3 text-foreground-secondary text-sm transition-all duration-150 select-none aria-selected:bg-foreground/10 aria-selected:text-foreground group"
+                  className="flex items-center px-3 py-2.5 rounded-md cursor-pointer gap-3 text-foreground-secondary text-sm transition-all duration-150 select-none aria-selected:bg-foreground/10 aria-selected:text-foreground group"
                 >
                   <Users size={16} />
                   <span>{group.name}</span>
@@ -110,14 +110,14 @@ export function CommandPalette() {
           {items?.tags && items.tags.length > 0 && (
             <Command.Group 
               heading="Tags" 
-              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-11 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
+              className="mb-3 [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-2xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-foreground-tertiary"
             >
               {items.tags.map((tag) => (
                 <Command.Item
                   key={tag.name}
                   onSelect={() => runCommand(() => router.push(`/dashboard/inbox?tag=${tag.name}`))}
                   onPointerEnter={() => router.prefetch(`/dashboard/inbox?tag=${tag.name}`)}
-                  className="flex items-center p-[10px_12px] rounded-lg cursor-pointer gap-3 text-foreground-secondary text-sm transition-all duration-150 select-none aria-selected:bg-foreground/10 aria-selected:text-foreground group"
+                  className="flex items-center px-3 py-2.5 rounded-md cursor-pointer gap-3 text-foreground-secondary text-sm transition-all duration-150 select-none aria-selected:bg-foreground/10 aria-selected:text-foreground group"
                 >
                   <Tag size={16} />
                   <span>{tag.name}</span>
