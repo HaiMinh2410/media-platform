@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageWithSender } from '@features/inbox/types';
-import { useInboxStore, InboxState } from '../../../../store/inbox.store';
-import { useMessageRealtime } from '../../../../hooks/use-inbox-realtime';
+import { useInboxStore, InboxState } from '../../../store/inbox.store';
+import { useMessageRealtime } from '../../../hooks/use-inbox-realtime';
 
 type UseChatMessagesProps = {
   conversationId: string;

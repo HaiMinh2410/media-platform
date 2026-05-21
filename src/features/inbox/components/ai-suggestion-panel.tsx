@@ -187,14 +187,14 @@ export function AiSuggestionPanel({
                 isCancelling={isCancelling}
               />
             ) : loading ? (
-              <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3 bg-foreground/[0.01] border border-foreground/5 rounded-xl">
+              <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3 bg-foreground/1 border border-foreground/5 rounded-xl">
                 <Loader2 size={18} className="animate-spin text-emerald-500" />
                 <p className="text-2xs italic leading-relaxed text-emerald-400 font-black animate-pulse">
                   AI đang phân tích tin nhắn và soạn thảo phản hồi tự động...
                 </p>
               </div>
             ) : (
-              <div className="flex items-start justify-center px-4 py-5 text-center text-foreground-tertiary gap-3 bg-foreground/[0.01] border border-foreground/5 rounded-xl relative">
+              <div className="flex items-start justify-center px-4 py-5 text-center text-foreground-tertiary gap-3 bg-foreground/1 border border-foreground/5 rounded-xl relative">
                 <span className="absolute top-0 left-0 flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -210,7 +210,7 @@ export function AiSuggestionPanel({
               {loading && (
                 <div className="flex flex-col gap-4">
                   {[1, 2].map(i => (
-                    <div key={i} className="bg-foreground/[0.02] border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
+                    <div key={i} className="bg-foreground/2 border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
                       <div className="h-3 bg-foreground/5 rounded w-1/3" />
                       <div className="h-4 bg-foreground/5 rounded w-full" />
                       <div className="h-4 bg-foreground/5 rounded w-4/5" />
@@ -224,7 +224,7 @@ export function AiSuggestionPanel({
               )}
 
               {!loading && visibleSuggestions.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3 bg-foreground/[0.01] border border-foreground/5 rounded-xl">
+                <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3 bg-foreground/1 border border-foreground/5 rounded-xl">
                   <Info size={24} className="text-foreground-tertiary opacity-40" />
                   <p className="text-xs italic">Chưa có gợi ý nào</p>
                 </div>

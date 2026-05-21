@@ -166,7 +166,8 @@ export function ReplyComposer({
     clearFiles();
     setSendState('idle');
     setErrorMsg(null);
-  }, [conversationId, setReplyToMessage, clearFiles]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, setReplyToMessage]);
 
   useEffect(() => {
     if (!replyAsId) setReplyAsId(platformUserName);

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { MessageWithSender } from '@features/inbox/types';
-import { useInboxStore, InboxState } from '../../../../store/inbox.store';
+import { useInboxStore, InboxState } from '../../../store/inbox.store';
 
 type UsePinnedMessagesProps = {
   conversationId: string;
