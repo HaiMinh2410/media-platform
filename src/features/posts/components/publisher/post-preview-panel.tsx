@@ -77,14 +77,14 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
   return (
     <div className="flex flex-col gap-5 w-full">
       {/* Level 1: Platform Tabs (Segmented Control) */}
-      <div className="flex items-center bg-[#161920] border-[1.5px] border-[#2a2f42] rounded-xl p-1 h-[42px]">
+      <div className="flex items-center bg-base-200 border-[1.5px] border-foreground/10 rounded-xl p-1 h-[42px]">
         <button
           onClick={() => setActivePlatform('facebook')}
           className={cn(
             "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all",
             activePlatform === 'facebook' 
-              ? "bg-[#1e2230] text-[#4f7cff] shadow-sm" 
-              : "text-[#7a7a9a] hover:text-white"
+              ? "bg-base-300 text-primary shadow-sm" 
+              : "text-foreground-secondary hover:text-foreground"
           )}
         >
           <div className="w-2 h-2 rounded-full bg-[#1877F2]" />
@@ -98,8 +98,8 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
           className={cn(
             "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all",
             activePlatform === 'instagram' 
-              ? "bg-[#1e2230] text-[#E1306C] shadow-sm" 
-              : "text-[#7a7a9a] hover:text-white"
+              ? "bg-base-300 text-[#E1306C] shadow-sm" 
+              : "text-foreground-secondary hover:text-foreground"
           )}
         >
           <div className="w-2 h-2 rounded-full bg-[#E1306C]" />
@@ -115,8 +115,8 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
         {currentAccounts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 w-full opacity-40">
             <span className="text-2xl mb-1">👆</span>
-            <span className="text-[12px] font-medium text-white">Chưa có tài khoản {activePlatform === 'facebook' ? 'Facebook' : 'Instagram'}</span>
-            <span className="text-[10px] text-[#7a7a9a]">Vui lòng chọn tài khoản ở cột bên trái</span>
+            <span className="text-[12px] font-medium text-foreground">Chưa có tài khoản {activePlatform === 'facebook' ? 'Facebook' : 'Instagram'}</span>
+            <span className="text-[10px] text-foreground-tertiary">Vui lòng chọn tài khoản ở cột bên trái</span>
           </div>
         ) : (
           currentAccounts.map(acc => {
@@ -128,15 +128,15 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all border shrink-0",
                   isActive 
-                    ? "bg-[#4f7cff]/10 border-[#4f7cff] text-[#4f7cff]" 
-                    : "bg-transparent border-[#2a2f42] text-[#7a7a9a] hover:border-[#4f7cff]/50"
+                    ? "bg-primary/10 border-primary text-primary" 
+                    : "bg-transparent border-foreground/10 text-foreground-secondary hover:border-primary/50"
                 )}
               >
-                <div className="w-4 h-4 rounded-full overflow-hidden flex items-center justify-center bg-[#252836] shrink-0">
+                <div className="w-4 h-4 rounded-full overflow-hidden flex items-center justify-center bg-base-300 shrink-0">
                   {acc.avatar_url ? (
                     <img src={acc.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-[9px] text-white font-bold">{acc.name.charAt(0)}</span>
+                    <span className="text-[9px] text-foreground font-bold">{acc.name.charAt(0)}</span>
                   )}
                 </div>
                 {acc.name}
@@ -148,7 +148,7 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
 
       {/* Post Mock */}
       {currentAccounts.length > 0 && activeAccount ? (
-        <div className="bg-[#161920] border-[1.5px] border-[#2a2f42] rounded-xl overflow-hidden shadow-2xl">
+        <div className="bg-base-200 border-[1.5px] border-foreground/10 rounded-xl overflow-hidden shadow-2xl">
           {activePlatform === 'facebook' ? (
             <FacebookMock account={activeAccount} content={content} media={doneMedia} />
           ) : (

@@ -38,9 +38,9 @@ export function AccountSelector({
 
   const getIcon = (platform: string) => {
     switch (platform.toLowerCase()) {
-      case 'facebook': return <Icon name="facebook" size={14} className="text-blue-400" />;
-      case 'instagram': return <Icon name="instagram" size={14} className="text-pink-400" />;
-      default: return <Icon lucide={Users} size={14} className="text-white/40" />;
+      case 'facebook': return <Icon name="facebook" size={14} className="text-facebook" />;
+      case 'instagram': return <Icon name="instagram" size={14} className="text-instagram" />;
+      default: return <Icon lucide={Users} size={14} className="text-foreground-tertiary" />;
     }
   };
 
@@ -48,15 +48,15 @@ export function AccountSelector({
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 min-w-[200px] justify-between group"
+        className="flex items-center gap-3 px-4 py-2 bg-base-300 border border-foreground/10 rounded-xl hover:bg-base-200 hover:border-foreground/20 transition-all duration-300 min-w-[200px] justify-between group cursor-pointer"
       >
         <div className="flex items-center gap-2">
           {selected && getIcon(selected.platform)}
-          <span className="text-sm font-medium text-white/90 group-hover:text-white">
+          <span className="text-sm font-medium text-foreground-secondary group-hover:text-foreground">
             {selected?.name || 'Chọn tài khoản'}
           </span>
         </div>
-        <Icon lucide={ChevronDown} size={16} className={`text-white/30 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <Icon lucide={ChevronDown} size={16} className={`text-foreground-tertiary transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -66,7 +66,7 @@ export function AccountSelector({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute right-0 mt-2 w-full min-w-[240px] bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl z-50 overflow-hidden"
+            className="absolute right-0 mt-2 w-full min-w-[240px] bg-base-200/95 backdrop-blur-xl border border-foreground/10 rounded-2xl p-2 shadow-2xl z-50 overflow-hidden"
           >
             <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
               {accounts.map(acc => (
@@ -76,14 +76,14 @@ export function AccountSelector({
                     onSelect(acc.id);
                     setIsOpen(false);
                   }}
-                  className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+                  className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl transition-all duration-200 group cursor-pointer ${
                     acc.id === selectedId 
-                      ? 'bg-blue-500/10 text-blue-400' 
-                      : 'hover:bg-white/5 text-white/60 hover:text-white'
+                      ? 'bg-primary/10 text-primary' 
+                      : 'hover:bg-foreground/5 text-foreground-secondary hover:text-foreground'
                   }`}
                 >
                   <div className={`p-1.5 rounded-lg border transition-colors ${
-                    acc.id === selectedId ? 'bg-blue-500/20 border-blue-500/30' : 'bg-white/5 border-white/10 group-hover:border-white/20'
+                    acc.id === selectedId ? 'bg-primary/20 border-primary/30' : 'bg-foreground/5 border-foreground/10 group-hover:border-foreground/20'
                   }`}>
                     {getIcon(acc.platform)}
                   </div>

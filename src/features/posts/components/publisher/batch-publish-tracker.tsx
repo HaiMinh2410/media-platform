@@ -56,10 +56,10 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
   const progress = Math.round(((status.completed + status.failed) / status.total) * 100);
 
   return (
-    <div className="glass-card p-8 rounded-[2.5rem] border-blue-500/20 border bg-blue-500/5 space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+    <div className="glass-card p-8 rounded-[2.5rem] border-info/20 border bg-info/5 space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
             {status.status === 'SCHEDULED' ? 'Đã lên lịch đăng bài' : 'Tiến độ đăng bài'}
             {status.status === 'RUNNING' && <Loader2 className="animate-spin text-blue-400" size={18} />}
             {status.status === 'SCHEDULED' && <Calendar className="text-blue-400" size={18} />}
@@ -89,7 +89,7 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
       <div className="space-y-2">
         <div className="flex justify-between text-sm font-bold">
           <span className="text-foreground-secondary">Tổng quan ({progress}%)</span>
-          <span className="text-white">{status.completed + status.failed} / {status.total}</span>
+          <span className="text-foreground">{status.completed + status.failed} / {status.total}</span>
         </div>
         <div className="h-3 w-full bg-background-secondary rounded-full overflow-hidden flex">
           <div 
@@ -126,9 +126,9 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
                    <XCircle size={20} className="text-red-500" />
                 </div>
                 <div className="space-y-1">
-                  <div className="text-[15px] font-bold text-white flex items-center gap-2">
+                  <div className="text-[15px] font-bold text-foreground flex items-center gap-2">
                     {job.account?.name || 'Tài khoản không xác định'}
-                    <span className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg text-[10px] text-foreground-secondary uppercase font-bold tracking-tight">
+                    <span className="px-2 py-0.5 bg-foreground/5 border border-foreground/10 rounded-lg text-[10px] text-foreground-secondary uppercase font-bold tracking-tight">
                       {job.platform}
                     </span>
                   </div>
@@ -152,7 +152,7 @@ function StatBox({ label, value, color, icon }: { label: string; value: number; 
         {icon}
         {label}
       </div>
-      <div className={cn("text-2xl font-bold", color || "text-white")}>{value}</div>
+      <div className={cn("text-2xl font-bold", color || "text-foreground")}>{value}</div>
     </div>
   );
 }

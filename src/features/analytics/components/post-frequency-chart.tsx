@@ -43,9 +43,9 @@ export function PostFrequencyChart({
 
   if (isPending) {
     return (
-      <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 animate-pulse">
-        <div className="w-48 h-6 bg-white/5 rounded mb-8"></div>
-        <div className="w-full h-[220px] bg-white/5 rounded-lg"></div>
+      <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 animate-pulse">
+        <div className="w-48 h-6 bg-foreground/5 rounded mb-8"></div>
+        <div className="w-full h-[220px] bg-foreground/5 rounded-lg"></div>
       </div>
     );
   }
@@ -57,12 +57,12 @@ export function PostFrequencyChart({
 
   if (totalPosts === 0) {
     return (
-      <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 h-full flex flex-col justify-center items-center text-center">
-        <div className="p-4 bg-white/5 rounded-full mb-4">
-          <Icon lucide={Calendar} size={24} className="text-white/20" />
+      <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 h-full flex flex-col justify-center items-center text-center">
+        <div className="p-4 bg-foreground/5 rounded-full mb-4">
+          <Icon lucide={Calendar} size={24} className="text-foreground/20" />
         </div>
-        <h3 className="text-white font-bold mb-1">Chưa có bài đăng nào</h3>
-        <p className="text-white/40 text-xs">Hãy thử đổi khoảng thời gian khác</p>
+        <h3 className="text-foreground font-bold mb-1">Chưa có bài đăng nào</h3>
+        <p className="text-foreground-secondary/40 text-xs">Hãy thử đổi khoảng thời gian khác</p>
       </div>
     );
   }
@@ -83,13 +83,13 @@ export function PostFrequencyChart({
   const optimalDays = chartData.filter(d => d.count === maxCount).map(d => d.name);
 
   return (
-    <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 h-full flex flex-col">
+    <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+        <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
           <Icon lucide={Calendar} size={18} className="text-blue-400" />
           Tần suất đăng bài
         </h3>
-        <div className="text-[10px] uppercase tracking-widest text-white/30 font-bold bg-white/5 px-2 py-1 rounded">
+        <div className="text-[10px] uppercase tracking-widest text-foreground-secondary/30 font-bold bg-foreground/5 px-2 py-1 rounded">
           {totalPosts} Posts
         </div>
       </div>
@@ -97,26 +97,26 @@ export function PostFrequencyChart({
       <div className="flex-1 min-h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.06} vertical={false} />
             <XAxis 
               dataKey="name" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+              tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11 }}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+              tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11 }}
               allowDecimals={false}
             />
             <Tooltip 
-              cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+              cursor={{ fill: 'currentColor', fillOpacity: 0.05 }}
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="bg-[#1a1a1a]/90 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl">
-                      <div className="text-xs font-bold text-white mb-1">{payload[0].payload.name}</div>
+                    <div className="bg-base-300/90 backdrop-blur-xl border border-foreground/10 p-3 rounded-xl shadow-2xl">
+                      <div className="text-xs font-bold text-foreground mb-1">{payload[0].payload.name}</div>
                       <div className="text-sm font-medium text-blue-400">
                         {payload[0].value} bài đăng
                       </div>
@@ -145,8 +145,8 @@ export function PostFrequencyChart({
 
       <div className="mt-4 p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl flex items-start gap-3">
         <Icon lucide={Sparkles} size={14} className="text-blue-400 mt-0.5 flex-shrink-0" />
-        <p className="text-xs text-white/70 leading-relaxed">
-          <span className="text-white font-bold">Thứ {optimalDays.join(', ')}</span> có tần suất đăng bài cao nhất. Hãy duy trì lịch đăng đều đặn vào những ngày này để tối đa hoá tiếp cận.
+        <p className="text-xs text-foreground-secondary leading-relaxed">
+          <span className="text-foreground font-bold">Thứ {optimalDays.join(', ')}</span> có tần suất đăng bài cao nhất. Hãy duy trì lịch đăng đều đặn vào những ngày này để tối đa hoá tiếp cận.
         </p>
       </div>
     </div>

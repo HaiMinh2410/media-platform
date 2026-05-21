@@ -77,7 +77,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
       {/* TRIGGER BAR */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center min-h-[52px] bg-[#161920] border-[1.5px] border-[#2a2f42] rounded-xl px-3 py-2 cursor-pointer hover:border-[#4f7cff]/50 transition-colors"
+        className="flex items-center min-h-[52px] bg-base-200 border-[1.5px] border-foreground/10 rounded-xl px-3 py-2 cursor-pointer hover:border-primary/50 transition-colors"
       >
         <div className="flex-1 flex flex-wrap items-center gap-2">
           {selectedAccounts.length === 0 ? (
@@ -87,21 +87,21 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
               {visibleChips.map(acc => {
                 const isFb = acc.platform.toLowerCase() === 'facebook';
                 return (
-                  <div key={acc.id} className="flex items-center bg-[#252836] rounded-[20px] pl-1 pr-2 py-1 border border-[#2a2f42] gap-2">
+                  <div key={acc.id} className="flex items-center bg-base-300 rounded-full pl-1 pr-2 py-1 border border-foreground/10 gap-2">
                     <div className="relative w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: isFb ? '#1877F2' : '#E1306C' }}>
                       {acc.avatar_url ? (
                         <img src={acc.avatar_url} alt="" className="w-full h-full object-cover rounded-full" />
                       ) : (
                         acc.name.charAt(0).toUpperCase()
                       )}
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center border border-[#161920]" style={{ background: isFb ? '#1877F2' : 'linear-gradient(45deg, #405DE6 0%, #E1306C 100%)' }}>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center border border-base-200" style={{ background: isFb ? '#1877F2' : 'linear-gradient(45deg, #405DE6 0%, #E1306C 100%)' }}>
                         {isFb ? <Icon name="facebook" size={6} className="text-white" /> : <Icon name="instagram" size={6} className="text-white" />}
                       </div>
                     </div>
-                    <span className="text-[12px] text-white font-medium whitespace-nowrap">{acc.name}</span>
+                    <span className="text-[12px] text-foreground font-medium whitespace-nowrap">{acc.name}</span>
                     <button 
                       onClick={(e) => toggleAccount(acc.id, e)}
-                      className="text-foreground-secondary hover:text-[#ff5c6a] transition-colors p-0.5"
+                      className="text-foreground-secondary hover:text-error transition-colors p-0.5"
                     >
                       <X size={12} />
                     </button>
@@ -109,7 +109,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
                 );
               })}
               {overflowCount > 0 && (
-                <div className="bg-[#4f7cff]/20 text-[#4f7cff] text-[12px] font-semibold px-3 py-1 rounded-[20px] border border-[#4f7cff]/30">
+                <div className="bg-primary/20 text-primary text-[12px] font-semibold px-3 py-1 rounded-full border border-primary/30">
                   +{overflowCount} khác
                 </div>
               )}
@@ -127,10 +127,10 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 top-[calc(100%+8px)] left-0 w-full bg-[#161920] border border-[#2a2f42] rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[400px]"
+            className="absolute z-50 top-[calc(100%+8px)] left-0 w-full bg-base-200/95 backdrop-blur-md border border-foreground/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[400px]"
           >
             {/* Search input */}
-            <div className="p-3 border-b border-[#2a2f42]">
+            <div className="p-3 border-b border-foreground/10">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary" />
                 <input 
@@ -138,23 +138,23 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Tìm tài khoản..." 
-                  className="w-full bg-[#0d0f14] border border-[#2a2f42] rounded-lg pl-9 pr-3 py-2 text-[13px] text-white placeholder:text-foreground-secondary focus:outline-none focus:border-[#4f7cff]"
+                  className="w-full bg-base-100 border border-foreground/10 rounded-lg pl-9 pr-3 py-2 text-[13px] text-foreground placeholder:text-foreground-secondary focus:outline-none focus:border-primary"
                 />
               </div>
             </div>
 
             {/* Quick Actions Row */}
             <div className="flex flex-wrap items-center gap-2 p-3 pb-2">
-              <button onClick={(e) => selectGroup('facebook', e)} className="text-[11px] font-medium bg-[#252836] text-[#e0e0e0] px-3 py-1.5 rounded-[20px] hover:bg-[#2a2f42] transition-colors border border-[#2a2f42]">
+              <button onClick={(e) => selectGroup('facebook', e)} className="text-[11px] font-medium bg-base-300 text-foreground-secondary px-3 py-1.5 rounded-full hover:bg-base-200 transition-colors border border-foreground/10">
                 ✓ Tất cả Facebook
               </button>
-              <button onClick={(e) => selectGroup('instagram', e)} className="text-[11px] font-medium bg-[#252836] text-[#e0e0e0] px-3 py-1.5 rounded-[20px] hover:bg-[#2a2f42] transition-colors border border-[#2a2f42]">
+              <button onClick={(e) => selectGroup('instagram', e)} className="text-[11px] font-medium bg-base-300 text-foreground-secondary px-3 py-1.5 rounded-full hover:bg-base-200 transition-colors border border-foreground/10">
                 ✓ Tất cả Instagram
               </button>
-              <button className="text-[11px] font-medium bg-[#252836] text-[#e0e0e0] px-3 py-1.5 rounded-[20px] hover:bg-[#2a2f42] transition-colors border border-[#2a2f42]">
+              <button className="text-[11px] font-medium bg-base-300 text-foreground-secondary px-3 py-1.5 rounded-full hover:bg-base-200 transition-colors border border-foreground/10">
                 📦 Preset Marketing
               </button>
-              <button onClick={clearAll} className="text-[11px] font-medium bg-transparent text-[#ff5c6a] px-3 py-1.5 rounded-[20px] hover:bg-[#ff5c6a]/10 transition-colors border border-transparent ml-auto">
+              <button onClick={clearAll} className="text-[11px] font-medium bg-transparent text-error px-3 py-1.5 rounded-full hover:bg-error/10 transition-colors border border-transparent ml-auto">
                 ✕ Bỏ hết
               </button>
             </div>
@@ -208,8 +208,8 @@ function AccountRow({ account, isSelected, onToggle }: { account: any; isSelecte
     <div 
       onClick={onToggle}
       className={cn(
-        "flex items-center gap-3 px-4 py-2 cursor-pointer transition-colors border-b border-[#2a2f42]/50 last:border-0",
-        isSelected ? "bg-[#dce8ff] hover:bg-[#c5d7fa]" : "hover:bg-[#252836]",
+        "flex items-center gap-3 px-4 py-2 cursor-pointer transition-colors border-b border-foreground/10 last:border-0",
+        isSelected ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-base-300",
         isLegacy && "opacity-70"
       )}
     >
@@ -221,7 +221,7 @@ function AccountRow({ account, isSelected, onToggle }: { account: any; isSelecte
         )}
         <div className={cn(
           "absolute -bottom-1 -right-1 w-[14px] h-[14px] rounded-full flex items-center justify-center border-2",
-          isSelected ? "border-[#dce8ff]" : "border-[#161920]"
+          isSelected ? "border-primary/20" : "border-base-200"
         )} style={{ background: isFb ? '#1877F2' : 'linear-gradient(45deg, #405DE6 0%, #E1306C 100%)' }}>
           {isFb ? <Icon name="facebook" size={7} className="text-white" /> : <Icon name="instagram" size={7} className="text-white" />}
         </div>
@@ -229,20 +229,20 @@ function AccountRow({ account, isSelected, onToggle }: { account: any; isSelecte
       
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex items-center gap-2">
-          <span className={cn("text-[13px] font-bold truncate", isSelected ? "text-[#1a3a8c]" : "text-white")}>{account.name}</span>
+          <span className={cn("text-[13px] font-bold truncate", isSelected ? "text-primary" : "text-foreground")}>{account.name}</span>
           {isLegacy && (
             <span className="flex items-center gap-1 text-[9px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded-full border border-amber-500/30 font-bold uppercase tracking-tighter">
               Cần kết nối lại
             </span>
           )}
         </div>
-        <span className={cn("text-[11px] truncate", isSelected ? "text-[#4f7cff]" : "text-foreground-secondary")}>
+        <span className={cn("text-[11px] truncate", isSelected ? "text-primary" : "text-foreground-secondary")}>
           {account.username ? `@${account.username}` : (isLegacy ? 'Tài khoản cũ' : '')}
         </span>
       </div>
       
       {isSelected && (
-        <div className="shrink-0 text-[#2d5be3]">
+        <div className="shrink-0 text-primary">
           <Check size={16} strokeWidth={3} />
         </div>
       )}

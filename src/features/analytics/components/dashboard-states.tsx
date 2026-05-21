@@ -13,13 +13,13 @@ export type ActiveMetric = 'reach' | 'views' | 'engagement' | 'followers';
 
 export function SkeletonChart() {
   return (
-    <div className="w-full h-[350px] bg-white/[0.02] rounded-xl border border-white/5 animate-pulse relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent shimmer" />
+    <div className="w-full h-[350px] bg-foreground/[0.02] rounded-xl border border-foreground/10 animate-pulse relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.05] to-transparent shimmer" />
       <div className="absolute bottom-10 left-10 right-10 top-10 flex flex-col justify-between">
-        <div className="w-full h-[1px] bg-white/5"></div>
-        <div className="w-full h-[1px] bg-white/5"></div>
-        <div className="w-full h-[1px] bg-white/5"></div>
-        <div className="w-full h-[1px] bg-white/5"></div>
+        <div className="w-full h-[1px] bg-foreground/5"></div>
+        <div className="w-full h-[1px] bg-foreground/5"></div>
+        <div className="w-full h-[1px] bg-foreground/5"></div>
+        <div className="w-full h-[1px] bg-foreground/5"></div>
       </div>
     </div>
   );
@@ -30,31 +30,31 @@ export function InsufficientDataState() {
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center justify-center p-12 bg-white/[0.02] rounded-3xl border border-white/5 border-dashed text-center min-h-[400px] mt-6"
+      className="flex flex-col items-center justify-center p-12 bg-foreground/[0.02] rounded-3xl border border-foreground/10 border-dashed text-center min-h-[400px] mt-6"
     >
       <div className="relative mb-6">
         <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full" />
-        <div className="relative p-6 bg-white/5 rounded-2xl border border-white/10 shadow-2xl">
+        <div className="relative p-6 bg-foreground/5 rounded-2xl border border-foreground/10 shadow-2xl">
           <Icon lucide={Users} size={40} className="text-blue-400" />
         </div>
         <div className="absolute -top-2 -right-2 bg-amber-500 rounded-full p-1.5 shadow-lg animate-bounce">
-          <Icon lucide={Sparkles} size={12} className="text-white" />
+          <Icon lucide={Sparkles} size={12} className="text-foreground" />
         </div>
       </div>
-      <h3 className="text-2xl font-bold text-white mb-3">Tài khoản đang được tối ưu</h3>
-      <p className="text-white/50 max-w-md leading-relaxed mb-8 text-sm">
+      <h3 className="text-2xl font-bold text-foreground mb-3">Tài khoản đang được tối ưu</h3>
+      <p className="text-foreground-secondary max-w-md leading-relaxed mb-8 text-sm">
         Meta Graph API yêu cầu tài khoản có ít nhất <span className="text-blue-400 font-bold">100 followers</span> để cung cấp các số liệu nhân khẩu học và thói quen hoạt động của người theo dõi.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-lg">
         {[
           { label: 'Followers', val: '< 100', icon: Users, color: 'text-blue-400' },
-          { label: 'Nhân khẩu học', val: 'Khóa', icon: BarChart3, color: 'text-white/20' },
-          { label: 'Hoạt động', val: 'Khóa', icon: Calendar, color: 'text-white/20' }
+          { label: 'Nhân khẩu học', val: 'Khóa', icon: BarChart3, color: 'text-foreground-secondary/20' },
+          { label: 'Hoạt động', val: 'Khóa', icon: Calendar, color: 'text-foreground-secondary/20' }
         ].map((item, i) => (
-          <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex flex-col items-center">
+          <div key={i} className="p-4 bg-foreground/5 rounded-2xl border border-foreground/10 flex flex-col items-center">
             <Icon lucide={item.icon} size={16} className={`${item.color} mb-2`} />
-            <div className="text-[10px] uppercase tracking-widest text-white/30 font-bold mb-1">{item.label}</div>
-            <div className="text-sm font-bold text-white">{item.val}</div>
+            <div className="text-[10px] uppercase tracking-widest text-foreground-secondary/30 font-bold mb-1">{item.label}</div>
+            <div className="text-sm font-bold text-foreground">{item.val}</div>
           </div>
         ))}
       </div>
@@ -74,8 +74,8 @@ export function ReauthNotice() {
           <Icon lucide={TrendingDown} size={20} className="text-red-400" />
         </div>
         <div>
-          <h4 className="text-sm font-bold text-white">Token kết nối đã hết hạn hoặc bị thu hồi</h4>
-          <p className="text-xs text-white/50">Vui lòng kết nối lại tài khoản Instagram của bạn để tiếp tục đồng bộ dữ liệu live theo thời gian thực.</p>
+          <h4 className="text-sm font-bold text-foreground">Token kết nối đã hết hạn hoặc bị thu hồi</h4>
+          <p className="text-xs text-foreground-secondary">Vui lòng kết nối lại tài khoản Instagram của bạn để tiếp tục đồng bộ dữ liệu live theo thời gian thực.</p>
         </div>
       </div>
       <Link 
@@ -113,17 +113,17 @@ export function CustomTooltip({ active, payload, label, activeMetric }: CustomTo
         default: return m;
       }
     };
-
+ 
     const getMetricColor = (m: string) => {
       switch(m) {
         case 'reach': return 'bg-blue-500';
         case 'views': return 'bg-purple-500';
         case 'engagement': return 'bg-emerald-500';
         case 'followers': return 'bg-orange-500';
-        default: return 'bg-white';
+        default: return 'bg-foreground';
       }
     };
-
+ 
     const prevKey = `prev${activeMetric.charAt(0).toUpperCase()}${activeMetric.slice(1)}`;
     const val = Number(data[activeMetric]) || 0;
     const prevValue = Number(data[prevKey]) || 0;

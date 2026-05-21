@@ -43,14 +43,14 @@ export function EngagementBreakdownChart({
 
   if (isPending) {
     return (
-      <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 animate-pulse">
-        <div className="w-48 h-6 bg-white/5 rounded mb-8"></div>
+      <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 animate-pulse">
+        <div className="w-48 h-6 bg-foreground/5 rounded mb-8"></div>
         <div className="flex items-center gap-8">
-          <div className="w-40 h-40 bg-white/5 rounded-full"></div>
+          <div className="w-40 h-40 bg-foreground/5 rounded-full"></div>
           <div className="flex-1 space-y-4">
-            <div className="w-full h-4 bg-white/5 rounded"></div>
-            <div className="w-2/3 h-4 bg-white/5 rounded"></div>
-            <div className="w-3/4 h-4 bg-white/5 rounded"></div>
+            <div className="w-full h-4 bg-foreground/5 rounded"></div>
+            <div className="w-2/3 h-4 bg-foreground/5 rounded"></div>
+            <div className="w-3/4 h-4 bg-foreground/5 rounded"></div>
           </div>
         </div>
       </div>
@@ -71,19 +71,19 @@ export function EngagementBreakdownChart({
 
   if (total === 0) {
     return (
-      <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 h-full flex flex-col justify-center items-center text-center">
-        <div className="p-4 bg-white/5 rounded-full mb-4">
-          <Icon lucide={MousePointer2} size={24} className="text-white/20" />
+      <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 h-full flex flex-col justify-center items-center text-center">
+        <div className="p-4 bg-foreground/5 rounded-full mb-4">
+          <Icon lucide={MousePointer2} size={24} className="text-foreground/20" />
         </div>
-        <h3 className="text-white font-bold mb-1">Chưa có dữ liệu tương tác</h3>
-        <p className="text-white/40 text-xs">Hãy thử đổi khoảng thời gian khác</p>
+        <h3 className="text-foreground font-bold mb-1">Chưa có dữ liệu tương tác</h3>
+        <p className="text-foreground-secondary/40 text-xs">Hãy thử đổi khoảng thời gian khác</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-white/[0.02] rounded-2xl border border-white/5 p-6 h-full">
-      <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+    <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 h-full">
+      <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
         <Icon lucide={BarChart3} size={18} className="text-emerald-400" />
         Engagement Breakdown
       </h3>
@@ -112,13 +112,13 @@ export function EngagementBreakdownChart({
                     const item = payload[0].payload;
                     const percent = ((item.value / total) * 100).toFixed(1);
                     return (
-                      <div className="bg-[#1a1a1a]/90 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl">
+                      <div className="bg-base-300/90 backdrop-blur-xl border border-foreground/10 p-3 rounded-xl shadow-2xl">
                         <div className="flex items-center gap-2 mb-1">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                          <span className="text-xs font-bold text-white">{item.name}</span>
+                          <span className="text-xs font-bold text-foreground">{item.name}</span>
                         </div>
-                        <div className="text-sm font-medium text-white/90">
-                          {item.value.toLocaleString()} <span className="text-white/40 ml-1">({percent}%)</span>
+                        <div className="text-sm font-medium text-foreground/90">
+                          {item.value.toLocaleString()} <span className="text-foreground-secondary/40 ml-1">({percent}%)</span>
                         </div>
                       </div>
                     );
@@ -129,21 +129,21 @@ export function EngagementBreakdownChart({
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-xs text-white/40 uppercase tracking-widest font-bold">Total</span>
-            <span className="text-xl font-bold text-white">{total.toLocaleString()}</span>
+            <span className="text-xs text-foreground-secondary/40 uppercase tracking-widest font-bold">Total</span>
+            <span className="text-xl font-bold text-foreground">{total.toLocaleString()}</span>
           </div>
         </div>
 
         <div className="w-full md:w-1/2 space-y-3">
           {data.map((item, i) => (
-            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] group hover:bg-white/[0.05] transition-all">
+            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-foreground/[0.02] border border-foreground/5 group hover:bg-foreground/[0.05] transition-all">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full shadow-lg" style={{ backgroundColor: item.color, boxShadow: `0 0 10px ${item.color}40` }} />
-                <span className="text-sm font-medium text-white/60 group-hover:text-white transition-colors">{item.name}</span>
+                <span className="text-sm font-medium text-foreground-secondary group-hover:text-foreground transition-colors">{item.name}</span>
               </div>
               <div className="text-right">
-                <div className="text-sm font-bold text-white">{item.value.toLocaleString()}</div>
-                <div className="text-[10px] text-white/30 font-medium">({((item.value / total) * 100).toFixed(1)}%)</div>
+                <div className="text-sm font-bold text-foreground">{item.value.toLocaleString()}</div>
+                <div className="text-[10px] text-foreground-tertiary font-medium">({((item.value / total) * 100).toFixed(1)}%)</div>
               </div>
             </div>
           ))}

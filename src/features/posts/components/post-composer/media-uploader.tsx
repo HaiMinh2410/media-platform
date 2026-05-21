@@ -173,7 +173,7 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
   const mediaIssues = issues.filter(i => i.message.includes('tệp đính kèm') || i.message.includes('Định dạng'));
 
   return (
-    <div className="bg-[#161920] p-4 font-sans border-t border-[#2a2f42]/50">
+    <div className="bg-base-200 p-4 font-sans border-t border-foreground/10">
       <div className="grid grid-cols-4 gap-3">
         <AnimatePresence>
           {files.map((file) => (
@@ -182,65 +182,65 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="group relative aspect-square rounded-[8px] overflow-hidden bg-[#252836] border border-[#2a2f42]"
+              className="group relative aspect-square rounded-md overflow-hidden bg-base-300 border border-foreground/10"
             >
               {file.type === 'image' ? (
                 <img src={file.url} alt="preview" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-[#252836]">
-                  <Film className="text-[#7a7a9a]" size={24} />
+                <div className="w-full h-full flex items-center justify-center bg-base-300">
+                  <Film className="text-foreground-secondary" size={24} />
                 </div>
               )}
               
               {file.status === 'uploading' && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center flex-col gap-2">
-                  <Loader2 className="text-[#4f7cff] animate-spin" size={20} />
+                <div className="absolute inset-0 bg-background/60 flex items-center justify-center flex-col gap-2">
+                  <Loader2 className="text-primary animate-spin" size={20} />
                 </div>
               )}
-
+ 
               {file.status === 'transcoding' && (
-                <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-3">
-                  <div className="w-full bg-[#2a2f42] rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-[#4f7cff] h-1.5 rounded-full transition-all duration-300" style={{ width: `${file.transcodeProgress || 0}%` }} />
+                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center p-3">
+                  <div className="w-full bg-base-300 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-primary h-1.5 rounded-full transition-all duration-300" style={{ width: `${file.transcodeProgress || 0}%` }} />
                   </div>
                 </div>
               )}
-
+ 
               {file.status === 'error' && (
-                <div className="absolute inset-0 bg-[#ff5c6a]/60 flex items-center justify-center">
-                  <span className="text-[10px] text-white font-medium">Lỗi</span>
+                <div className="absolute inset-0 bg-error/20 backdrop-blur-xs flex items-center justify-center">
+                  <span className="text-2xs text-error font-semibold">Lỗi</span>
                 </div>
               )}
-
+ 
               {file.status === 'transcode_error' && (
-                <div className="absolute inset-0 bg-[#ff5c6a]/80 flex flex-col items-center justify-center gap-1">
-                  <span className="text-[10px] text-white font-medium text-center">Lỗi xử lý</span>
+                <div className="absolute inset-0 bg-error/20 backdrop-blur-xs flex flex-col items-center justify-center gap-1">
+                  <span className="text-2xs text-error font-semibold text-center">Lỗi xử lý</span>
                 </div>
               )}
-
+ 
               <button
                 onClick={() => removeFile(file.id)}
-                className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#ff5c6a]"
+                className="absolute top-1.5 right-1.5 p-1 rounded-full bg-background/50 text-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error hover:text-error-content"
               >
                 <X size={12} />
               </button>
             </motion.div>
           ))}
         </AnimatePresence>
-
+ 
         {files.length < maxFiles && (
           <div
             {...getRootProps()}
             className={cn(
-              "aspect-square rounded-[8px] border-[1.5px] border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-2",
+              "aspect-square rounded-md border-[1.5px] border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-2",
               isDragActive 
-                ? "border-[#4f7cff] bg-[#4f7cff]/10" 
-                : "border-[#2a2f42] bg-[#252836] hover:border-[#7a7a9a]"
+                ? "border-primary bg-primary/10" 
+                : "border-foreground/10 bg-base-300 hover:border-foreground-secondary"
             )}
           >
             <input {...getInputProps()} />
-            <span className="text-[20px] text-[#7a7a9a] mb-1">🖼️</span>
-            <span className="text-[11px] font-medium text-[#7a7a9a] uppercase tracking-wide">Thêm</span>
+            <span className="text-xl text-foreground-secondary mb-1">🖼️</span>
+            <span className="text-2xs font-medium text-foreground-secondary uppercase tracking-wide">Thêm</span>
           </div>
         )}
       </div>
@@ -248,7 +248,7 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
       {mediaIssues.length > 0 && (
         <div className="flex flex-col gap-1 mt-3">
           {mediaIssues.map((issue, idx) => (
-            <span key={idx} className="text-[12px] font-medium text-[#ff5c6a]">{issue.message}</span>
+            <span key={idx} className="text-xs font-medium text-error">{issue.message}</span>
           ))}
         </div>
       )}

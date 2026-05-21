@@ -112,7 +112,7 @@ export function ChatSimulator({ accountId, accountName, personaDraft }: ChatSimu
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#0a0a0a] relative">
+    <div className="flex flex-col h-full bg-base-100 relative">
       <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-custom" ref={scrollRef}>
         <div className="text-center text-xs text-foreground-tertiary my-4">
           Bắt đầu phiên giả lập với {personaDraft.name || 'Persona'}
@@ -139,7 +139,7 @@ export function ChatSimulator({ accountId, accountName, personaDraft }: ChatSimu
 
             {/* Debug Info for Assistant messages */}
             {msg.role === 'assistant' && msg.debug && (
-              <div className="mt-1.5 ml-8 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-600/80 dark:text-emerald-400/80 max-w-full overflow-hidden">
+              <div className="mt-1.5 ml-8 p-2 rounded-lg bg-success/10 border border-success/20 text-[10px] text-success max-w-full overflow-hidden">
                 <div className="font-semibold mb-0.5">⚡ Debug Info:</div>
                 <div className="truncate">Action: {msg.debug.action}</div>
                 {msg.debug.confidence && <div>Confidence: {(msg.debug.confidence * 100).toFixed(1)}%</div>}

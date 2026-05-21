@@ -67,8 +67,8 @@ function ViewsContentBar({
 
   return (
     <div className="flex items-center gap-3 mb-4">
-      <div className="w-14 text-white text-sm shrink-0 font-medium">{label}</div>
-      <div className="flex-1 h-2.5 bg-[#1e1e1e] rounded-full overflow-hidden flex">
+      <div className="w-14 text-foreground text-sm shrink-0 font-medium">{label}</div>
+      <div className="flex-1 h-2.5 bg-base-300 rounded-full overflow-hidden flex">
         {pinkPct > 0 && (
           <motion.div
             initial={{ width: 0 }}
@@ -88,7 +88,7 @@ function ViewsContentBar({
           />
         )}
       </div>
-      <div className="w-11 text-white text-sm text-right font-semibold">{pct.toFixed(1).replace('.0', '')}%</div>
+      <div className="w-11 text-foreground text-sm text-right font-semibold">{pct.toFixed(1).replace('.0', '')}%</div>
     </div>
   );
 }
@@ -105,7 +105,7 @@ export function ViewsCard({
 
   if (isLoading) {
     return (
-      <div className="bg-[#111] border border-[#222] rounded-2xl p-6 h-full min-h-[400px] flex flex-col gap-6 font-sans">
+      <div className="glass rounded-2xl p-6 h-full min-h-[400px] flex flex-col gap-6 font-sans">
         <div className="flex items-center gap-2 mb-2">
           <Skeleton className="h-6 w-24" />
           <Skeleton className="h-4 w-4 rounded-full" />
@@ -156,11 +156,11 @@ export function ViewsCard({
   });
 
   return (
-    <div className="bg-[#111] border border-[#222] rounded-2xl p-6 text-white font-sans">
+    <div className="glass rounded-2xl p-6 text-foreground font-sans">
       {/* Title */}
       <div className="flex items-center gap-2 mb-6">
-        <h3 className="text-lg font-bold text-white tracking-tight">Views</h3>
-        <Info className="w-4 h-4 text-[#555] cursor-help" />
+        <h3 className="text-lg font-bold text-foreground tracking-tight">Views</h3>
+        <Info className="w-4 h-4 text-foreground-tertiary cursor-help" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -169,18 +169,18 @@ export function ViewsCard({
           <StatBlock value={totalViews} label="Views" />
 
           <div className="flex flex-col gap-1.5 mb-4">
-            <div className="flex justify-between text-sm text-[#aaa]">
+            <div className="flex justify-between text-sm text-foreground-secondary">
               <span>Followers</span>
               <span className="font-bold" style={{ color: COLORS.pink }}>{followersPct}%</span>
             </div>
-            <div className="flex justify-between text-sm text-[#aaa]">
+            <div className="flex justify-between text-sm text-foreground-secondary">
               <span>Non-followers</span>
               <span className="font-bold" style={{ color: COLORS.purple }}>{nonfollowersPct}%</span>
             </div>
           </div>
 
           {/* Stacked Progress Bar */}
-          <div className="h-2 rounded-full overflow-hidden bg-[#1e1e1e] mb-6 flex">
+          <div className="h-2 rounded-full overflow-hidden bg-base-300 mb-6 flex">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${followersPct}%` }}
@@ -197,17 +197,17 @@ export function ViewsCard({
             />
           </div>
 
-          <div className="mt-auto pt-4 border-t border-[#1e1e1e]">
+          <div className="mt-auto pt-4 border-t border-foreground/10">
             <div className="flex justify-between text-sm items-center">
               <span className="font-semibold" style={{ color: COLORS.pink }}>Accounts reached</span>
-              <span className="font-bold text-white text-base">{accountsReached.toLocaleString()}</span>
+              <span className="font-bold text-foreground text-base">{accountsReached.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
         {/* Right Side: By Content Type */}
         <div>
-          <div className="text-sm font-semibold text-[#ccc] mb-4">By content type</div>
+          <div className="text-sm font-semibold text-foreground-secondary mb-4">By content type</div>
           
           {/* Tab Switcher */}
           <div className="flex gap-2 mb-6">
@@ -218,12 +218,9 @@ export function ViewsCard({
                 className={cn(
                   "px-3.5 py-1.5 rounded-xl text-[13px] font-semibold transition-all duration-200 cursor-pointer",
                   activeTab === tab 
-                    ? "text-white shadow-lg shadow-blue-500/20 bg-blue-500" 
-                    : "bg-[#1e1e1e] text-[#888] hover:text-[#bbb] hover:bg-[#222]"
+                    ? "bg-primary text-primary-content shadow-lg shadow-primary/20" 
+                    : "bg-base-300 text-foreground-secondary hover:text-foreground hover:bg-base-200"
                 )}
-                style={{
-                  backgroundColor: activeTab === tab ? '#3b82f6' : undefined
-                }}
               >
                 {tab === 'all' ? 'All' : tab === 'followers' ? 'Followers' : 'Non-followers'}
               </button>
@@ -247,11 +244,11 @@ export function ViewsCard({
 
           {/* Legend */}
           <div className="flex gap-4 mt-6 justify-center">
-            <div className="flex items-center gap-1.5 text-xs text-[#888]">
+            <div className="flex items-center gap-1.5 text-xs text-foreground-tertiary">
               <div className="w-2 h-2 rounded-full" style={{ background: COLORS.pink }} />
               Followers
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-[#888]">
+            <div className="flex items-center gap-1.5 text-xs text-foreground-tertiary">
               <div className="w-2 h-2 rounded-full" style={{ background: COLORS.purple }} />
               Non-followers
             </div>

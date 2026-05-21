@@ -176,39 +176,39 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
     .join(', ');
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] text-white font-sans selection:bg-[#4f7cff]/30">
+    <div className="min-h-screen bg-base-100 text-foreground font-sans selection:bg-primary/30">
       {/* Top Navbar / Header */}
-      <div className="h-14 bg-[#161920] border-b border-[#2a2f42] flex items-center px-6 justify-between">
+      <div className="h-14 bg-base-200 border-b border-foreground/10 flex items-center px-6 justify-between">
         <Link 
           href="/dashboard/posts" 
-          className="inline-flex items-center gap-2 text-[#7a7a9a] hover:text-white transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 text-foreground-secondary hover:text-foreground transition-colors text-sm font-medium"
         >
           <ArrowLeft size={16} />
           SocialPub Pro
         </Link>
-        <div className="flex items-center gap-4 text-[#7a7a9a] text-[11px] uppercase tracking-widest font-mono">
-          <span className="hover:text-white cursor-pointer transition-colors">📅 Lịch</span>
-          <span className="hover:text-white cursor-pointer transition-colors">📊 Báo cáo</span>
-          <span className="hover:text-white cursor-pointer transition-colors">👤 Tài khoản</span>
+        <div className="flex items-center gap-4 text-foreground-secondary text-2xs uppercase tracking-widest font-mono">
+          <span className="hover:text-foreground cursor-pointer transition-colors">📅 Lịch</span>
+          <span className="hover:text-foreground cursor-pointer transition-colors">📊 Báo cáo</span>
+          <span className="hover:text-foreground cursor-pointer transition-colors">👤 Tài khoản</span>
         </div>
       </div>
-
+ 
       <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8">
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-10">
-
+ 
           {/* LEFT COLUMN (Composer) */}
           <div className="space-y-6">
-            <h2 className="text-[13px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
+            <h2 className="text-xs font-extrabold text-foreground uppercase tracking-widest flex items-center gap-2">
               ✍️ SOẠN BÀI ĐĂNG
             </h2>
-
+ 
             <div className="space-y-4">
               <AccountPicker
                 accounts={accounts}
                 selectedIds={selectedAccountIds}
                 onChange={setSelectedAccountIds}
               />
-
+ 
               <AnimatePresence>
                 {hasLink && hasInstagram && (
                   <motion.div 
@@ -216,9 +216,9 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.2 }}
-                    className="flex items-start gap-3 bg-[#fff8e7] border border-[#f5a623] rounded-[8px] px-[14px] py-[10px] text-[#7a5a00] shadow-sm"
+                    className="flex items-start gap-3 bg-warning/10 border border-warning/30 rounded-md px-[14px] py-[10px] text-warning shadow-sm"
                   >
-                    <AlertTriangle size={15} className="shrink-0 mt-0.5 text-[#f5a623]" />
+                    <AlertTriangle size={15} className="shrink-0 mt-0.5 text-warning" />
                     <div className="text-[13px] leading-[1.6]">
                       Link sẽ không thể nhấp được trên Instagram của <span className="font-bold">{igAccountNames}</span>
                     </div>
@@ -231,7 +231,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.2 }}
-                    className="flex items-center gap-3 bg-[#dce8ff] border-[1.5px] border-[#2d5be3] rounded-lg px-4 py-2.5 text-[#1a3a8c] shadow-sm"
+                    className="flex items-center gap-3 bg-info/10 border-[1.5px] border-info/30 rounded-lg px-4 py-2.5 text-info shadow-sm"
                   >
                     <Lock size={15} className="shrink-0" />
                     <div className="text-[12px] flex-1">
@@ -241,8 +241,8 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                 )}
               </AnimatePresence>
             </div>
-
-            <div className="bg-[#161920] border-[1.5px] border-[#2a2f42] rounded-[12px] overflow-hidden flex flex-col">
+ 
+            <div className="bg-base-200 border-[1.5px] border-foreground/10 rounded-lg overflow-hidden flex flex-col">
               <ContentEditor
                 content={content}
                 onChange={setContent}
@@ -261,7 +261,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                 issues={validation.issues}
               />
             </div>
-
+ 
             <SchedulingPanel
               scheduledAt={scheduledAt}
               onChange={setScheduledAt}
@@ -271,11 +271,11 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
             />
             
           </div>
-
+ 
           {/* RIGHT COLUMN (Preview) */}
-          <aside className="hidden xl:block border-l border-[#2a2f42] border-dashed pl-10 relative">
+          <aside className="hidden xl:block border-l border-foreground/10 border-dashed pl-10 relative">
             <div className="sticky top-8">
-              <h2 className="text-[13px] font-bold text-white uppercase tracking-widest flex items-center gap-2 mb-6">
+              <h2 className="text-xs font-extrabold text-foreground uppercase tracking-widest flex items-center gap-2 mb-6">
                 👁️ XEM TRƯỚC
               </h2>
               <PostPreviewPanel

@@ -19,7 +19,7 @@ export function InteractionsCard({
 }: InteractionsCardProps) {
   if (isLoading) {
     return (
-      <div className="bg-[#111] border border-[#222] rounded-2xl p-6 h-full min-h-[400px] flex flex-col gap-6 font-sans">
+      <div className="glass rounded-2xl p-6 h-full min-h-[400px] flex flex-col gap-6 font-sans">
         <div className="flex items-center gap-2 mb-2">
           <Skeleton className="h-6 w-32" />
           <Skeleton className="h-4 w-4 rounded-full" />
@@ -50,11 +50,11 @@ export function InteractionsCard({
   const contentData = byContentInteractions || { posts: 0, reels: 0, stories: 0 };
 
   return (
-    <div className="bg-[#111] border border-[#222] rounded-2xl p-6 text-white font-sans h-full">
+    <div className="glass rounded-2xl p-6 text-foreground font-sans h-full">
       {/* Title */}
       <div className="flex items-center gap-2 mb-6">
-        <h3 className="text-lg font-bold text-white tracking-tight">Interactions</h3>
-        <Info className="w-4 h-4 text-[#555] cursor-help" />
+        <h3 className="text-lg font-bold text-foreground tracking-tight">Interactions</h3>
+        <Info className="w-4 h-4 text-foreground-tertiary cursor-help" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -65,17 +65,17 @@ export function InteractionsCard({
           {/* Note: Meta API doesn't provide follower/non-follower breakdown for interactions 
               in the same way it does for views. So we skip the pink/purple divided bar here. */}
           
-          <div className="mt-auto pt-6 border-t border-[#1e1e1e]">
+          <div className="mt-auto pt-6 border-t border-foreground/10">
             <div className="flex justify-between text-sm items-center">
               <span className="font-semibold" style={{ color: COLORS.pink }}>Accounts engaged</span>
-              <span className="font-bold text-white text-base">{accountsEngaged.toLocaleString()}</span>
+              <span className="font-bold text-foreground text-base">{accountsEngaged.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
         {/* Right Side: By Content Type */}
         <div>
-          <div className="text-sm font-semibold text-[#ccc] mb-6">By content interactions</div>
+          <div className="text-sm font-semibold text-foreground-secondary mb-6">By content interactions</div>
           
           {/* Content Bars */}
           <div className="space-y-1">
@@ -83,9 +83,9 @@ export function InteractionsCard({
             <ContentBar label="Reels" pct={contentData.reels} color={COLORS.purple} />
             <ContentBar label="Stories" pct={contentData.stories} color={COLORS.pink} />
           </div>
-
+          
           {/* Legend */}
-          <div className="flex items-center gap-1.5 text-xs text-[#888] mt-6">
+          <div className="flex items-center gap-1.5 text-xs text-foreground-tertiary mt-6">
             <div className="w-2 h-2 rounded-full" style={{ background: COLORS.pink }} />
             Followers and non-followers
           </div>

@@ -115,7 +115,7 @@ function PostThumb({
     >
       {/* Media Container */}
       <div
-        className="relative w-[135px] h-[190px] sm:w-[155px] sm:h-[205px] rounded-[24px] overflow-hidden mb-2 shadow-md border border-white/5 cursor-pointer group"
+        className="relative w-[135px] h-[190px] sm:w-[155px] sm:h-[205px] rounded-2xl overflow-hidden mb-2 shadow-md border border-foreground/10 cursor-pointer group"
         style={{ background: gradient }}
       >
         {displayUrl ? (
@@ -128,36 +128,36 @@ function PostThumb({
             unoptimized
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/5">
-            <span className="text-white/30 text-[10px] font-bold tracking-widest uppercase">{post.mediaType}</span>
+          <div className="absolute inset-0 flex items-center justify-center bg-foreground/5">
+            <span className="text-foreground-tertiary text-[10px] font-bold tracking-widest uppercase">{post.mediaType}</span>
           </div>
         )}
 
         {/* Premium Shadow overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-base-300/80 via-transparent to-transparent pointer-events-none" />
 
         {/* Media Format Icon Overlay */}
         {post.mediaType === 'CAROUSEL_ALBUM' ? (
-          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg flex items-center justify-center">
-            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="absolute top-3 right-3 bg-base-300/70 backdrop-blur-md rounded-lg p-1.5 border border-foreground/10 shadow-lg flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 text-foreground animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
           </div>
         ) : post.mediaType === 'VIDEO' || post.mediaType === 'REELS' ? (
-          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg flex items-center justify-center">
-            <svg className="w-3.5 h-3.5 text-white fill-current" viewBox="0 0 24 24">
+          <div className="absolute top-3 right-3 bg-base-300/70 backdrop-blur-md rounded-lg p-1.5 border border-foreground/10 shadow-lg flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 text-foreground fill-current animate-pulse" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>
         ) : null}
 
         {/* Metric Value HUD (Horizontal center pill) */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-[#1a1a1a]/85 backdrop-blur-md text-white font-semibold text-xs px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg tracking-tight select-none min-w-[55px] text-center">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-base-200/90 backdrop-blur-md text-foreground font-semibold text-xs px-3.5 py-1.5 rounded-full border border-foreground/10 shadow-lg tracking-tight select-none min-w-[55px] text-center">
           {formatMetric(getMetricValue())}
         </div>
       </div>
-      <span className="text-xs text-white/90 font-medium mt-1">
+      <span className="text-xs text-foreground font-medium mt-1">
         {formattedDate}
       </span>
     </motion.div>
@@ -206,24 +206,24 @@ export function TopContentGrid({
 
   if (isLoading) {
     return (
-      <div className="bg-[#111] border border-white/5 rounded-3xl p-6 font-sans shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-500 via-indigo-500 to-pink-500 opacity-20" />
+      <div className="glass rounded-3xl p-6 font-sans shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-primary via-secondary to-accent opacity-20" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="space-y-2">
-            <div className="h-6 w-56 bg-white/5 rounded-lg animate-pulse" />
-            <div className="h-4 w-40 bg-white/5 rounded-lg animate-pulse" />
+            <div className="h-6 w-56 bg-foreground/5 rounded-lg animate-pulse" />
+            <div className="h-4 w-40 bg-foreground/5 rounded-lg animate-pulse" />
           </div>
           <div className="flex gap-2 flex-wrap">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-8 w-20 bg-white/5 rounded-full animate-pulse" />
+              <div key={i} className="h-8 w-20 bg-foreground/5 rounded-full animate-pulse" />
             ))}
           </div>
         </div>
         <div className="flex gap-4 flex-wrap justify-center sm:justify-start">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
-              <div className="w-[135px] h-[190px] sm:w-[155px] sm:h-[205px] bg-white/5 rounded-[24px] animate-pulse" />
-              <div className="h-3 w-16 bg-white/5 rounded animate-pulse" />
+              <div className="w-[135px] h-[190px] sm:w-[155px] sm:h-[205px] bg-foreground/5 rounded-2xl animate-pulse" />
+              <div className="h-3 w-16 bg-foreground/5 rounded animate-pulse" />
             </div>
           ))}
         </div>
@@ -233,9 +233,9 @@ export function TopContentGrid({
 
   return (
     <div 
-      className="bg-[#111] border border-white/5 rounded-3xl p-6 text-white font-sans overflow-hidden shadow-2xl relative transition-all duration-300"
+      className="glass rounded-3xl p-6 text-foreground font-sans overflow-hidden shadow-2xl relative transition-all duration-300"
       style={{
-        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px ${activeTabConfig.glow}`
+        boxShadow: `var(--glass-shadow)`
       }}
     >
       {/* Decorative Gradient Line matching active tab */}
@@ -249,13 +249,13 @@ export function TopContentGrid({
       <div className="flex flex-col gap-5 mb-8">
         {/* Header Title & See All Row */}
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-white tracking-tight">
+          <h3 className="text-xl font-bold text-foreground tracking-tight">
             Top content based on {activeTabConfig.label.toLowerCase()}
           </h3>
           {onSeeAll && (
             <button
               onClick={onSeeAll}
-              className="text-sm font-semibold text-blue-500 hover:text-blue-400 hover:underline transition-all cursor-pointer select-none"
+              className="text-sm font-semibold text-primary hover:text-primary/80 hover:underline transition-all cursor-pointer select-none"
             >
               See all
             </button>
@@ -263,7 +263,7 @@ export function TopContentGrid({
         </div>
 
         {/* Tab Controls */}
-        <div className="flex flex-wrap p-1 bg-white/5 rounded-2xl border border-white/5 gap-1 self-start max-w-full">
+        <div className="flex flex-wrap p-1 bg-base-300/50 rounded-2xl border border-foreground/10 gap-1 self-start max-w-full">
           {METRIC_TABS.map((tab) => {
             const IconComponent = tab.icon;
             const isActive = activeMetric === tab.id;
@@ -275,14 +275,14 @@ export function TopContentGrid({
                   "relative flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer select-none",
                   isActive 
                     ? "text-white" 
-                    : "text-white/40 hover:text-white/80 hover:bg-white/[0.02]"
+                    : "text-foreground-secondary hover:text-foreground hover:bg-foreground/5"
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activeTabGlow"
                     className={cn(
-                      "absolute inset-0 bg-gradient-to-r rounded-xl -z-10 shadow-lg border border-white/10",
+                      "absolute inset-0 bg-gradient-to-r rounded-xl -z-10 shadow-lg border border-foreground/10",
                       tab.gradient
                     )}
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
@@ -318,7 +318,7 @@ export function TopContentGrid({
                 />
               ))
             ) : (
-              <div className="w-full min-h-[180px] flex flex-col items-center justify-center border border-dashed border-white/5 rounded-2xl text-white/30 text-xs py-8">
+              <div className="w-full min-h-[180px] flex flex-col items-center justify-center border border-dashed border-foreground/10 rounded-2xl text-foreground-tertiary text-xs py-8">
                 <svg className="w-8 h-8 opacity-20 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>

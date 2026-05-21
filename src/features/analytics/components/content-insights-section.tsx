@@ -212,7 +212,7 @@ export function ContentInsightsSection({
     
     if (isVideo && post.mediaUrl) {
       return (
-        <div className="relative w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-full rounded-2xl overflow-hidden bg-black flex items-center justify-center group/player">
+        <div className="relative w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-full rounded-2xl overflow-hidden bg-neutral flex items-center justify-center group/player">
           <video 
             src={post.mediaUrl} 
             controls 
@@ -222,7 +222,7 @@ export function ContentInsightsSection({
             muted
             loop
           />
-          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-xs font-bold text-white px-3 py-1 rounded-full border border-white/10 uppercase tracking-wider">
+          <div className="absolute top-3 left-3 bg-neutral/80 backdrop-blur-md text-xs font-bold text-neutral-content px-3 py-1 rounded-full border border-neutral-content/10 uppercase tracking-wider">
             {post.mediaType}
           </div>
         </div>
@@ -230,7 +230,7 @@ export function ContentInsightsSection({
     }
     
     return (
-      <div className="relative w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-full rounded-2xl overflow-hidden bg-black/20 flex items-center justify-center border border-white/5">
+      <div className="relative w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-full rounded-2xl overflow-hidden bg-base-300/20 flex items-center justify-center border border-foreground/10">
         {url ? (
           <img 
             src={url} 
@@ -238,9 +238,9 @@ export function ContentInsightsSection({
             className="max-h-[500px] w-full object-contain rounded-2xl"
           />
         ) : (
-          <div className="text-white/20 text-sm font-bold uppercase tracking-widest">{post.mediaType}</div>
+          <div className="text-foreground/20 text-sm font-bold uppercase tracking-widest">{post.mediaType}</div>
         )}
-        <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-xs font-bold text-white px-3 py-1 rounded-full border border-white/10 uppercase tracking-wider">
+        <div className="absolute top-3 left-3 bg-neutral/80 backdrop-blur-md text-xs font-bold text-neutral-content px-3 py-1 rounded-full border border-neutral-content/10 uppercase tracking-wider">
           {post.mediaType}
         </div>
       </div>
@@ -253,12 +253,12 @@ export function ContentInsightsSection({
   const selectedRange = RANGE_FILTERS.find(r => r.id === rangeFilter);
 
   return (
-    <div className="bg-[#0b0c0e] min-h-[600px] text-white p-6 font-sans rounded-3xl border border-white/5 shadow-2xl relative transition-all duration-300">
+    <div className="glass min-h-[600px] text-foreground p-6 font-sans rounded-3xl border border-foreground/10 shadow-2xl relative transition-all duration-300">
       <div className="flex flex-col gap-6" ref={dropdownRef}>
         {/* Title Row */}
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-white">Content insights</h2>
-          <p className="text-white/40 text-xs mt-1">Phân tích hiệu suất truyền thông bài viết trọn đời</p>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Content insights</h2>
+          <p className="text-foreground/40 text-xs mt-1">Phân tích hiệu suất truyền thông bài viết trọn đời</p>
         </div>
 
         {/* Dropdowns Filter Row */}
@@ -268,11 +268,11 @@ export function ContentInsightsSection({
             <div className="relative">
               <button
                 onClick={() => setActiveDropdown(activeDropdown === 'media' ? null : 'media')}
-                className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+                className="bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 hover:border-foreground/20 rounded-full px-4.5 py-2 text-xs font-bold text-foreground/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
               >
-                {selectedMedia?.icon('w-3.5 h-3.5 text-white/80')}
+                {selectedMedia?.icon('w-3.5 h-3.5 text-foreground/80')}
                 <span>{selectedMedia?.label}</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'media' ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-foreground/40 transition-transform duration-200 ${activeDropdown === 'media' ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
                 {activeDropdown === 'media' && (
@@ -281,7 +281,7 @@ export function ContentInsightsSection({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[140px] flex flex-col gap-0.5 backdrop-blur-xl"
+                    className="absolute top-[110%] left-0 bg-base-200/95 border border-foreground/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[140px] flex flex-col gap-0.5 backdrop-blur-xl"
                   >
                     {MEDIA_FILTERS.map(m => (
                       <button
@@ -292,8 +292,8 @@ export function ContentInsightsSection({
                         }}
                         className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
                           mediaFilter === m.id
-                            ? 'text-white bg-white/10'
-                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                            ? 'text-foreground bg-foreground/10'
+                            : 'text-foreground/60 hover:text-foreground hover:bg-foreground/5'
                         }`}
                       >
                         {m.icon('w-3.5 h-3.5')}
@@ -309,10 +309,10 @@ export function ContentInsightsSection({
             <div className="relative">
               <button
                 onClick={() => setActiveDropdown(activeDropdown === 'metric' ? null : 'metric')}
-                className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+                className="bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 hover:border-foreground/20 rounded-full px-4.5 py-2 text-xs font-bold text-foreground/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
               >
                 <span>{selectedMetric?.label}</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'metric' ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-foreground/40 transition-transform duration-200 ${activeDropdown === 'metric' ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
                 {activeDropdown === 'metric' && (
@@ -321,7 +321,7 @@ export function ContentInsightsSection({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[160px] flex flex-col gap-0.5 backdrop-blur-xl"
+                    className="absolute top-[110%] left-0 bg-base-200/95 border border-foreground/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[160px] flex flex-col gap-0.5 backdrop-blur-xl"
                   >
                     {METRIC_FILTERS.map(m => (
                       <button
@@ -332,8 +332,8 @@ export function ContentInsightsSection({
                         }}
                         className={`px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center transition-all cursor-pointer ${
                           metricFilter === m.id
-                            ? 'text-white bg-white/10'
-                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                            ? 'text-foreground bg-foreground/10'
+                            : 'text-foreground/60 hover:text-foreground hover:bg-foreground/5'
                         }`}
                       >
                         {m.label}
@@ -348,10 +348,10 @@ export function ContentInsightsSection({
             <div className="relative">
               <button
                 onClick={() => setActiveDropdown(activeDropdown === 'order' ? null : 'order')}
-                className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+                className="bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 hover:border-foreground/20 rounded-full px-4.5 py-2 text-xs font-bold text-foreground/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
               >
                 <span>{selectedOrder?.label}</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'order' ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-foreground/40 transition-transform duration-200 ${activeDropdown === 'order' ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
                 {activeDropdown === 'order' && (
@@ -360,7 +360,7 @@ export function ContentInsightsSection({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-[110%] left-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[120px] flex flex-col gap-0.5 backdrop-blur-xl"
+                    className="absolute top-[110%] left-0 bg-base-200/95 border border-foreground/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[120px] flex flex-col gap-0.5 backdrop-blur-xl"
                   >
                     {ORDER_FILTERS.map(o => (
                       <button
@@ -371,8 +371,8 @@ export function ContentInsightsSection({
                         }}
                         className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center transition-all cursor-pointer ${
                           orderFilter === o.id
-                            ? 'text-white bg-white/10'
-                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                            ? 'text-foreground bg-foreground/10'
+                            : 'text-foreground/60 hover:text-foreground hover:bg-foreground/5'
                         }`}
                       >
                         {o.label}
@@ -387,19 +387,19 @@ export function ContentInsightsSection({
           {/* Range filter pill & Custom Date inputs */}
           <div className="flex items-center gap-2 self-end sm:self-auto">
             {rangeFilter === 'custom' && (
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 animate-in fade-in slide-in-from-right-2 duration-300">
+              <div className="flex items-center gap-2 bg-foreground/5 border border-foreground/10 rounded-full px-3 py-1.5 animate-in fade-in slide-in-from-right-2 duration-300">
                 <input 
                   type="date" 
                   value={customStart}
                   onChange={(e) => setCustomStart(e.target.value)}
-                  className="bg-transparent text-xs text-white outline-none [color-scheme:dark]"
+                  className="bg-transparent text-xs text-foreground outline-none [color-scheme:dark]"
                 />
-                <span className="text-white/20 text-xs">→</span>
+                <span className="text-foreground/20 text-xs">→</span>
                 <input 
                   type="date" 
                   value={customEnd}
                   onChange={(e) => setCustomEnd(e.target.value)}
-                  className="bg-transparent text-xs text-white outline-none [color-scheme:dark]"
+                  className="bg-transparent text-xs text-foreground outline-none [color-scheme:dark]"
                 />
               </div>
             )}
@@ -407,11 +407,11 @@ export function ContentInsightsSection({
             <div className="relative">
               <button
                 onClick={() => setActiveDropdown(activeDropdown === 'range' ? null : 'range')}
-                className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-full px-4.5 py-2 text-xs font-bold text-white/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
+                className="bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 hover:border-foreground/20 rounded-full px-4.5 py-2 text-xs font-bold text-foreground/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner"
               >
-                <Calendar className="w-3.5 h-3.5 text-white/80" />
+                <Calendar className="w-3.5 h-3.5 text-foreground/80" />
                 <span>{selectedRange?.label}</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${activeDropdown === 'range' ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-foreground/40 transition-transform duration-200 ${activeDropdown === 'range' ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
                 {activeDropdown === 'range' && (
@@ -420,7 +420,7 @@ export function ContentInsightsSection({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-[110%] right-0 bg-[#141416] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[145px] flex flex-col gap-0.5 backdrop-blur-xl"
+                    className="absolute top-[110%] right-0 bg-base-200/95 border border-foreground/10 rounded-2xl p-1.5 shadow-2xl z-50 min-w-[145px] flex flex-col gap-0.5 backdrop-blur-xl"
                   >
                     {RANGE_FILTERS.map(r => (
                       <button
@@ -431,13 +431,13 @@ export function ContentInsightsSection({
                         }}
                         className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-between transition-all cursor-pointer ${
                           rangeFilter === r.id
-                            ? 'text-white bg-white/10'
-                            : 'text-white/60 hover:text-white hover:bg-white/5'
+                            ? 'text-foreground bg-foreground/10'
+                            : 'text-foreground/60 hover:text-foreground hover:bg-foreground/5'
                         }`}
                       >
                         <span>{r.label}</span>
                         {rangeFilter === r.id && (
-                          <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                          <svg className="w-3.5 h-3.5 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         )}
@@ -455,15 +455,15 @@ export function ContentInsightsSection({
       {isPending ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="aspect-square bg-white/5 rounded-3xl animate-pulse" />
+            <div key={i} className="aspect-square bg-foreground/5 rounded-3xl animate-pulse" />
           ))}
         </div>
       ) : isError ? (
-        <div className="w-full min-h-[300px] flex items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/30 text-sm">
+        <div className="w-full min-h-[300px] flex items-center justify-center border border-dashed border-foreground/10 rounded-3xl text-foreground/30 text-sm">
           Lỗi khi tải dữ liệu bài viết
         </div>
       ) : processedPosts.length === 0 ? (
-        <div className="w-full min-h-[300px] flex flex-col items-center justify-center border border-dashed border-white/5 rounded-3xl text-white/30 text-sm py-12">
+        <div className="w-full min-h-[300px] flex flex-col items-center justify-center border border-dashed border-foreground/10 rounded-3xl text-foreground/30 text-sm py-12">
           <svg className="w-12 h-12 opacity-20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
@@ -481,7 +481,7 @@ export function ContentInsightsSection({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.02, duration: 0.3 }}
                 onClick={() => setSelectedPost(post)}
-                className="relative aspect-square rounded-[24px] overflow-hidden border border-white/5 bg-white/5 shadow-lg group cursor-pointer"
+                className="relative aspect-square rounded-[24px] overflow-hidden border border-foreground/10 bg-foreground/5 shadow-lg group cursor-pointer"
               >
                 {displayUrl ? (
                   <Image
@@ -493,7 +493,7 @@ export function ContentInsightsSection({
                     unoptimized
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/5 text-[10px] font-bold text-white/30 tracking-widest uppercase">
+                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/5 text-[10px] font-bold text-foreground/30 tracking-widest uppercase">
                     {post.mediaType}
                   </div>
                 )}
@@ -503,14 +503,14 @@ export function ContentInsightsSection({
 
                 {/* Format icon */}
                 {post.mediaType === 'CAROUSEL_ALBUM' ? (
-                  <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg flex items-center justify-center text-white">
+                  <div className="absolute top-3 right-3 bg-neutral/80 backdrop-blur-md rounded-lg p-1.5 border border-neutral-content/10 shadow-lg flex items-center justify-center text-neutral-content">
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                     </svg>
                   </div>
                 ) : post.mediaType === 'VIDEO' || post.mediaType === 'REELS' ? (
-                  <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-lg p-1.5 border border-white/10 shadow-lg flex items-center justify-center text-white">
+                  <div className="absolute top-3 right-3 bg-neutral/80 backdrop-blur-md rounded-lg p-1.5 border border-neutral-content/10 shadow-lg flex items-center justify-center text-neutral-content">
                     <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
@@ -518,7 +518,7 @@ export function ContentInsightsSection({
                 ) : null}
 
                 {/* White transparent pill badge (Image 2 style) */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md text-black font-extrabold text-xs px-3.5 py-1.5 rounded-full shadow-lg border border-white/20 select-none min-w-[55px] text-center">
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-base-100/90 hover:bg-base-100 text-base-content backdrop-blur-md font-extrabold text-xs px-3.5 py-1.5 rounded-full shadow-lg border border-foreground/10 select-none min-w-[55px] text-center transition-all duration-300">
                   {formatMetricValue(value)}
                 </div>
               </motion.div>

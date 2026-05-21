@@ -108,21 +108,21 @@ export function InboxMetricsCard({ workspaceId, accounts, initialData }: InboxMe
                 label="📨 Tổng đến" 
                 value={metrics?.totalMessages || 0} 
                 percent={100} 
-                colorClass="from-[#6d28d9] to-[#7c3aed]"
+                colorClass="from-primary to-primary/80"
                 delay="delay-0"
               />
               <FunnelBar 
                 label="🤖 AI xử lý" 
                 value={metrics?.aiHandled || 0} 
                 percent={metrics?.aiHandledPct || 0} 
-                colorClass="from-[#0891b2] to-[#06b6d4]"
+                colorClass="from-info to-info/80"
                 delay="delay-100"
               />
               <FunnelBar 
                 label="👤 Cần người" 
                 value={metrics?.humanNeeded || 0} 
                 percent={metrics?.humanNeededPct || 0} 
-                colorClass="from-[#c2410c] to-[#ea580c]"
+                colorClass="from-warning to-warning/80"
                 delay="delay-200"
               />
             </div>
@@ -180,15 +180,15 @@ function TagDistributionChart({ distribution }: { distribution?: InboxMetrics['l
       {/* Vertical Stacked Bar */}
       <div className="w-[38px] h-[140px] bg-base-200/50 rounded-lg overflow-hidden flex flex-col-reverse border border-base-content/5">
         <div 
-          className="bg-[#3b82f6] transition-all duration-1000 ease-out" 
+          className="bg-info transition-all duration-1000 ease-out" 
           style={{ height: mounted ? `${coldPct}%` : '0%' }}
         />
         <div 
-          className="bg-[#f97316] transition-all duration-1000 ease-out" 
+          className="bg-warning transition-all duration-1000 ease-out" 
           style={{ height: mounted ? `${warmPct}%` : '0%' }}
         />
         <div 
-          className="bg-[#ef4444] transition-all duration-1000 ease-out" 
+          className="bg-error transition-all duration-1000 ease-out" 
           style={{ height: mounted ? `${hotPct}%` : '0%' }}
         />
       </div>
@@ -196,21 +196,21 @@ function TagDistributionChart({ distribution }: { distribution?: InboxMetrics['l
       {/* Legend */}
       <div className="flex flex-col gap-4">
         <LegendItem 
-          color="#ef4444" 
+          colorClass="bg-error" 
           label="Hot Lead" 
           emoji="🔥"
           count={distribution?.hot || 0} 
           percent={hotPct} 
         />
         <LegendItem 
-          color="#f97316" 
+          colorClass="bg-warning" 
           label="Warm Lead" 
           emoji="🌡"
           count={distribution?.warm || 0} 
           percent={warmPct} 
         />
         <LegendItem 
-          color="#3b82f6" 
+          colorClass="bg-info" 
           label="Cold Lead" 
           emoji="❄️"
           count={distribution?.cold || 0} 
@@ -221,10 +221,10 @@ function TagDistributionChart({ distribution }: { distribution?: InboxMetrics['l
   );
 }
 
-function LegendItem({ color, label, emoji, count, percent }: { color: string, label: string, emoji: string, count: number, percent: number }) {
+function LegendItem({ colorClass, label, emoji, count, percent }: { colorClass: string, label: string, emoji: string, count: number, percent: number }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="w-2.5 h-2.5 rounded-[3px] shrink-0" style={{ backgroundColor: color }}></div>
+      <div className={cn("w-2.5 h-2.5 rounded-[3px] shrink-0", colorClass)}></div>
       <div className="flex flex-col leading-tight">
         <div className="flex items-baseline gap-1.5">
           <span className="text-[13px] font-bold text-base-content">{count.toLocaleString()}</span>

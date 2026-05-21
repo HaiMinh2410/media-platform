@@ -401,7 +401,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
           <textarea
             value={persona.system_prompt_override || ''}
             onChange={(e) => onChange({ system_prompt_override: e.target.value })}
-            className="w-full bg-[#1e1e1e] text-[#d4d4d4] border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all min-h-[200px] font-mono text-sm"
+            className="w-full bg-base-300 text-foreground border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all min-h-[200px] font-mono text-sm"
             placeholder="Leave blank to use dynamic system prompt..."
             spellCheck={false}
           />

@@ -37,10 +37,10 @@ export function TopContentLeaderboard({
 
   if (data.length === 0) {
     return (
-      <div className="bg-[#121212]/30 border border-white/5 rounded-3xl p-8 text-center flex flex-col items-center justify-center min-h-[300px]">
-        <Sparkles className="w-8 h-8 text-white/20 mb-3" />
-        <h3 className="text-sm font-bold text-white mb-1">Chưa có dữ liệu bảng xếp hạng</h3>
-        <p className="text-xs text-white/40">Không tìm thấy bài viết nào trong khoảng thời gian được lọc.</p>
+      <div className="glass rounded-3xl p-8 text-center flex flex-col items-center justify-center min-h-[300px]">
+        <Sparkles className="w-8 h-8 text-foreground-tertiary mb-3 animate-pulse" />
+        <h3 className="text-sm font-bold text-foreground mb-1">Chưa có dữ liệu bảng xếp hạng</h3>
+        <p className="text-xs text-foreground-secondary">Không tìm thấy bài viết nào trong khoảng thời gian được lọc.</p>
       </div>
     );
   }
@@ -86,7 +86,7 @@ export function TopContentLeaderboard({
         );
       default:
         return (
-          <span className="text-xs font-bold text-white/40 pl-2.5">
+          <span className="text-xs font-bold text-foreground-secondary pl-2.5">
             {index + 1}
           </span>
         );
@@ -94,15 +94,15 @@ export function TopContentLeaderboard({
   };
 
   return (
-    <div className="bg-[#121212]/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl transition-all duration-300">
+    <div className="glass rounded-3xl p-6 transition-all duration-300">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-lg font-bold text-foreground tracking-tight flex items-center gap-2">
             <Award className="w-5 h-5 text-amber-500" />
             Bảng Xếp Hạng Bài Viết Hiệu Quả
           </h2>
-          <p className="text-xs text-white/40 mt-0.5">Top 10 bài đăng có tương tác cao nhất trong chu kỳ</p>
+          <p className="text-xs text-foreground-secondary mt-0.5">Top 10 bài đăng có tương tác cao nhất trong chu kỳ</p>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ export function TopContentLeaderboard({
       <div className="overflow-x-auto w-full -mx-4 px-4 md:mx-0 md:px-0">
         <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
-            <tr className="border-b border-white/[0.04] text-[10px] text-white/40 uppercase font-bold tracking-wider">
+            <tr className="border-b border-foreground/10 text-[10px] text-foreground-secondary uppercase font-bold tracking-wider">
               <th className="pb-3 pl-2 w-12">Hạng</th>
               <th className="pb-3 w-48">Nội dung</th>
               <th className="pb-3 w-28 text-center">Bối cảnh</th>
@@ -121,13 +121,13 @@ export function TopContentLeaderboard({
               <th className="pb-3 w-16 text-center"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.02]">
+          <tbody className="divide-y divide-foreground/5">
             {data.map((post, index) => {
               const formattedDate = format(new Date(post.postedAt), "dd/MM/yyyy HH:mm", { locale: vi });
               return (
                 <tr 
                   key={post.id} 
-                  className="group hover:bg-white/[0.01] transition-all duration-200"
+                  className="group hover:bg-foreground/5 transition-all duration-200"
                 >
                   {/* Rank */}
                   <td className="py-4 pl-2">
@@ -138,7 +138,7 @@ export function TopContentLeaderboard({
                   <td className="py-4 pr-4">
                     <div className="flex items-center gap-3 max-w-[280px]">
                       {/* Media Thumb */}
-                      <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex-shrink-0">
+                      <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-base-300 border border-foreground/10 flex-shrink-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={post.thumbnailUrl} 
@@ -149,17 +149,17 @@ export function TopContentLeaderboard({
                           }}
                         />
                         {/* Media Overlay Badge */}
-                        <div className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-md p-1 rounded-md border border-white/5">
+                        <div className="absolute bottom-1 right-1 bg-base-300/80 backdrop-blur-md p-1 rounded-md border border-foreground/10">
                           {getMediaIcon(post.mediaType)}
                         </div>
                       </div>
 
                       {/* Text details */}
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-white truncate group-hover:text-purple-400 transition-colors">
+                        <span className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
                           {post.caption}
                         </span>
-                        <span className="text-[10px] text-white/30 mt-1 font-mono">
+                        <span className="text-[10px] text-foreground-tertiary mt-1 font-mono">
                           {formattedDate}
                         </span>
                       </div>
@@ -171,10 +171,10 @@ export function TopContentLeaderboard({
                     <span className={cn(
                       "px-2.5 py-0.5 rounded-full text-[10px] font-bold border",
                       post.locationType === 'Outdoor' 
-                        ? "bg-sky-500/10 border-sky-500/20 text-sky-400"
+                        ? "bg-info/10 border-info/20 text-info"
                         : post.locationType === 'Indoor'
-                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                          : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                          ? "bg-success/10 border-success/20 text-success"
+                          : "bg-warning/10 border-warning/20 text-warning"
                     )}>
                       {post.locationType}
                     </span>
@@ -182,15 +182,15 @@ export function TopContentLeaderboard({
 
                   {/* Views */}
                   <td className="py-4 text-right">
-                    <span className="text-xs font-bold text-white/80">{numberFormatter(post.views)}</span>
+                    <span className="text-xs font-bold text-foreground-secondary">{numberFormatter(post.views)}</span>
                   </td>
 
                   {/* Interactions Breakdown */}
                   <td className="py-4 text-right">
                     <div className="flex flex-col items-end">
-                      <span className="text-xs font-bold text-emerald-400">{numberFormatter(post.totalInteractions)}</span>
+                      <span className="text-xs font-bold text-success">{numberFormatter(post.totalInteractions)}</span>
                       {/* Mini Breakdown Hud on hover */}
-                      <div className="flex items-center gap-1.5 text-[9px] text-white/30 mt-0.5 font-semibold">
+                      <div className="flex items-center gap-1.5 text-[9px] text-foreground-tertiary mt-0.5 font-semibold">
                         <span className="flex items-center gap-0.5"><Heart className="w-2.5 h-2.5" />{numberFormatter(post.likeCount)}</span>
                         <span className="flex items-center gap-0.5"><MessageCircle className="w-2.5 h-2.5" />{numberFormatter(post.commentsCount)}</span>
                       </div>
@@ -199,7 +199,7 @@ export function TopContentLeaderboard({
 
                   {/* ER% */}
                   <td className="py-4 text-right">
-                    <span className="text-xs font-mono font-bold text-white">{post.er}%</span>
+                    <span className="text-xs font-mono font-bold text-foreground">{post.er}%</span>
                   </td>
 
                   {/* SVG Custom Sparkline (High Performance Line Curve) */}
@@ -213,7 +213,7 @@ export function TopContentLeaderboard({
                   <td className="py-4 text-center pr-2">
                     <button
                       onClick={() => onOpenPostDetail(post.postId)}
-                      className="p-1.5 rounded-lg bg-white/5 border border-white/5 text-white/60 hover:text-white hover:bg-purple-600/20 hover:border-purple-500/30 transition-all shadow-md active:scale-95"
+                      className="p-1.5 rounded-lg bg-base-300 border border-foreground/10 text-foreground-secondary hover:text-primary hover:bg-primary/10 hover:border-primary/20 transition-all shadow-md active:scale-95 cursor-pointer"
                       title="Xem chi tiết"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -289,27 +289,27 @@ function Sparkline({ points, color }: { points: number[]; color: string }) {
 // ==========================================
 function LeaderboardSkeleton() {
   return (
-    <div className="bg-[#121212]/50 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl animate-pulse space-y-4">
+    <div className="glass rounded-3xl p-6 animate-pulse space-y-4">
       <div className="space-y-1.5">
-        <div className="h-5 w-44 bg-white/10 rounded-lg" />
-        <div className="h-3.5 w-60 bg-white/5 rounded-md" />
+        <div className="h-5 w-44 bg-foreground/10 rounded-lg" />
+        <div className="h-3.5 w-60 bg-foreground/5 rounded-md" />
       </div>
 
       <div className="space-y-3 mt-6">
         {Array.from({ length: 5 }).map((_, idx) => (
-          <div key={idx} className="flex items-center justify-between py-2 border-b border-white/[0.02]">
+          <div key={idx} className="flex items-center justify-between py-2 border-b border-foreground/5">
             <div className="flex items-center gap-4 flex-1">
-              <div className="h-7 w-7 bg-white/5 rounded-full" />
-              <div className="h-10 w-10 bg-white/5 rounded-xl" />
+              <div className="h-7 w-7 bg-foreground/5 rounded-full" />
+              <div className="h-10 w-10 bg-foreground/5 rounded-xl" />
               <div className="space-y-2">
-                <div className="h-3 w-32 bg-white/10 rounded-md" />
-                <div className="h-2.5 w-20 bg-white/5 rounded-md" />
+                <div className="h-3 w-32 bg-foreground/10 rounded-md" />
+                <div className="h-2.5 w-20 bg-foreground/5 rounded-md" />
               </div>
             </div>
             <div className="flex items-center gap-8">
-              <div className="h-4 w-12 bg-white/5 rounded-md" />
-              <div className="h-4 w-16 bg-white/5 rounded-md" />
-              <div className="h-7 w-20 bg-white/5 rounded-lg" />
+              <div className="h-4 w-12 bg-foreground/5 rounded-md" />
+              <div className="h-4 w-16 bg-foreground/5 rounded-md" />
+              <div className="h-7 w-20 bg-foreground/5 rounded-lg" />
             </div>
           </div>
         ))}
