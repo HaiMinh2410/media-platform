@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -115,13 +115,13 @@ export function PostChartsDashboard({
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   "relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold tracking-tight transition-all duration-300 select-none",
-                  isActive ? "text-foreground font-bold" : "text-foreground/60 hover:text-foreground/80 hover:bg-foreground/[0.02]"
+                  isActive ? "text-foreground font-bold" : "text-foreground/60 hover:text-foreground/80 hover:bg-foreground/2"
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="activePostChartTab"
-                    className="absolute inset-0 bg-foreground/[0.06] border border-foreground/10 rounded-xl shadow-lg"
+                    className="absolute inset-0 bg-foreground/6 border border-foreground/10 rounded-xl shadow-lg"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -165,7 +165,7 @@ function PerformanceTab({ data }: { data: PostDeepAnalyticsData }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 1. Performance Line Chart (Col span 2) */}
-      <div className="lg:col-span-2 bg-foreground/[0.01] border border-foreground/10 rounded-2xl p-5">
+      <div className="lg:col-span-2 bg-foreground/1 border border-foreground/10 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-bold text-foreground">Xu hướng Hiệu suất theo thời gian</h3>
@@ -276,7 +276,7 @@ function PerformanceTab({ data }: { data: PostDeepAnalyticsData }) {
 
       {/* 2. MoM Comparison Metrics Cards */}
       <div className="flex flex-col gap-4">
-        <div className="bg-foreground/[0.01] border border-foreground/10 rounded-2xl p-5 flex-1 flex flex-col justify-between">
+        <div className="bg-foreground/1 border border-foreground/10 rounded-2xl p-5 flex-1 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-1.5 text-purple-400 mb-2">
               <Activity className="w-4 h-4" />
@@ -289,7 +289,7 @@ function PerformanceTab({ data }: { data: PostDeepAnalyticsData }) {
             {data.mom.map((m, idx) => {
               const isPositive = m.growth >= 0;
               return (
-                <div key={idx} className="bg-foreground/[0.02] border border-foreground/10 rounded-xl p-3 flex items-center justify-between">
+                <div key={idx} className="bg-foreground/2 border border-foreground/10 rounded-xl p-3 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-semibold text-foreground/50 uppercase tracking-wide">{m.metric}</span>
                     <div className="flex items-baseline gap-2 mt-0.5">
@@ -312,7 +312,7 @@ function PerformanceTab({ data }: { data: PostDeepAnalyticsData }) {
             })}
           </div>
 
-          <div className="text-[10px] text-foreground-secondary bg-foreground/[0.02] border border-foreground/10 rounded-xl p-2.5 flex items-center gap-2">
+          <div className="text-[10px] text-foreground-secondary bg-foreground/2 border border-foreground/10 rounded-xl p-2.5 flex items-center gap-2">
             <Heart className="w-3.5 h-3.5 text-rose-500" />
             <span>Mẹo: Tăng trưởng tương tác cao hơn lượt xem thể hiện chất lượng nội dung hấp dẫn tăng.</span>
           </div>
@@ -334,7 +334,7 @@ function ContentTab({ data }: { data: PostDeepAnalyticsData }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* 1. Media Type Donut Chart */}
-      <div className="bg-foreground/[0.01] border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
+      <div className="bg-foreground/1 border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
         <div>
           <h3 className="text-sm font-bold text-foreground mb-1">Phân phối Loại Media</h3>
           <p className="text-[11px] text-foreground/40">Tỷ lệ đóng góp bài viết của các định dạng nội dung khác nhau</p>
@@ -377,7 +377,7 @@ function ContentTab({ data }: { data: PostDeepAnalyticsData }) {
               const total = data.contentType.mediaDistribution.reduce((acc, curr) => acc + curr.value, 0);
               const percentage = total > 0 ? ((item.value / total) * 100).toFixed(0) : '0';
               return (
-                <div key={idx} className="flex items-center gap-3 bg-foreground/[0.02] border border-foreground/10 rounded-xl px-3.5 py-1.5 min-w-[140px] justify-between">
+                <div key={idx} className="flex items-center gap-3 bg-foreground/2 border border-foreground/10 rounded-xl px-3.5 py-1.5 min-w-[140px] justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
                     <span className="text-[11px] font-semibold text-foreground/70">{item.name}</span>
@@ -389,13 +389,13 @@ function ContentTab({ data }: { data: PostDeepAnalyticsData }) {
           </div>
         </div>
         
-        <div className="text-[10px] text-foreground/30 border border-foreground/10 bg-foreground/[0.02] rounded-xl p-2 text-center">
+        <div className="text-[10px] text-foreground/30 border border-foreground/10 bg-foreground/2 rounded-xl p-2 text-center">
           Tổng số lượng nội dung phân tích trong kỳ: <span className="font-bold text-foreground">{data.contentType.mediaDistribution.reduce((acc, curr) => acc + curr.value, 0)} bài viết</span>
         </div>
       </div>
 
       {/* 2. Location Type Performance Bar Chart */}
-      <div className="bg-foreground/[0.01] border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
+      <div className="bg-foreground/1 border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
         <div>
           <h3 className="text-sm font-bold text-foreground mb-1">Hiệu quả theo Bối cảnh chụp (Shot Type)</h3>
           <p className="text-[11px] text-foreground/40">So sánh lượt xem và tương tác trung bình của từng phong cách</p>
@@ -453,7 +453,7 @@ function ContentTab({ data }: { data: PostDeepAnalyticsData }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="text-[10px] text-foreground-tertiary border border-foreground/10 bg-foreground/[0.02] rounded-xl p-2 flex items-center gap-2 justify-center">
+        <div className="text-[10px] text-foreground-tertiary border border-foreground/10 bg-foreground/2 rounded-xl p-2 flex items-center gap-2 justify-center">
           <Sparkles className="w-3.5 h-3.5 text-purple-400" />
           <span>Gợi ý: Dữ liệu giúp định hướng phong cách chụp hình thu hút nhiều tương tác nhất.</span>
         </div>
@@ -480,7 +480,7 @@ function DistributionTab({ data }: { data: PostDeepAnalyticsData }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 1. Best Time to Post Heatmap (Col span 2) */}
-      <div className="lg:col-span-2 bg-foreground/[0.01] border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
+      <div className="lg:col-span-2 bg-foreground/1 border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between">
             <div>
@@ -528,7 +528,7 @@ function DistributionTab({ data }: { data: PostDeepAnalyticsData }) {
                         key={hourIdx}
                         className={cn(
                           "flex-1 h-5 rounded-[2px] transition-all duration-300 relative group cursor-pointer border border-transparent hover:border-foreground/20 hover:scale-105",
-                          cell.count > 0 ? "bg-purple-500" : "bg-foreground/[0.02]"
+                          cell.count > 0 ? "bg-purple-500" : "bg-foreground/2"
                         )}
                         style={{ opacity: cell.count > 0 ? opacityVal : 1 }}
                       >
@@ -547,14 +547,14 @@ function DistributionTab({ data }: { data: PostDeepAnalyticsData }) {
           </div>
         </div>
 
-        <div className="text-[10px] text-foreground/30 border border-foreground/10 bg-foreground/[0.02] rounded-xl p-2.5 flex items-center gap-2 mt-4">
-          <Calendar className="w-4 h-4 text-purple-400 flex-shrink-0" />
+        <div className="text-[10px] text-foreground/30 border border-foreground/10 bg-foreground/2 rounded-xl p-2.5 flex items-center gap-2 mt-4">
+          <Calendar className="w-4 h-4 text-purple-400 shrink-0" />
           <span>Thông tin: Đăng bài vào các ô màu đậm nhất giúp tối đa hóa khả năng tiếp cận khán giả mục tiêu.</span>
         </div>
       </div>
 
       {/* 2. Engagement Rate per Post Scatter Plot */}
-      <div className="bg-foreground/[0.01] border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
+      <div className="bg-foreground/1 border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
         <div>
           <h3 className="text-sm font-bold text-foreground mb-1">Độ lan truyền (Scatter Plot)</h3>
           <p className="text-[11px] text-foreground/40">Trục X: Lượt xem, Trục Y: Lượt Tương tác bài đăng</p>
@@ -616,7 +616,7 @@ function DistributionTab({ data }: { data: PostDeepAnalyticsData }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="text-[10px] text-foreground/30 border border-foreground/10 bg-foreground/[0.02] rounded-xl p-2.5 flex items-center gap-1.5 justify-center">
+        <div className="text-[10px] text-foreground/30 border border-foreground/10 bg-foreground/2 rounded-xl p-2.5 flex items-center gap-1.5 justify-center">
           <Percent className="w-3.5 h-3.5 text-pink-400" />
           <span>Bài viết nằm xa góc trên bên trái là bài có tỉ lệ tương tác rất cao.</span>
         </div>
@@ -671,7 +671,7 @@ function FollowsTab({ data }: { data: PostDeepAnalyticsData }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 1. Follower Growth Attribution (Waterfall Chart - Col span 2) */}
-      <div className="lg:col-span-2 bg-foreground/[0.01] border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
+      <div className="lg:col-span-2 bg-foreground/1 border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
         <div>
           <h3 className="text-sm font-bold text-foreground">Đóng góp Lượt Theo Dõi mới</h3>
           <p className="text-[11px] text-foreground/40">Biểu đồ thác nước (Waterfall) đóng góp Follows mới của từng bài viết dẫn đầu</p>
@@ -730,13 +730,13 @@ function FollowsTab({ data }: { data: PostDeepAnalyticsData }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="text-[10px] text-foreground-tertiary border border-foreground/10 bg-foreground/[0.02] rounded-xl p-2 text-center">
+        <div className="text-[10px] text-foreground-tertiary border border-foreground/10 bg-foreground/2 rounded-xl p-2 text-center">
           Tổng số lượng follower mang lại từ bài viết trong kỳ: <span className="font-bold text-foreground">+{data.waterfall[data.waterfall.length - 1]?.total} Follows</span>
         </div>
       </div>
 
       {/* 2. Audience Retention Conversion Funnel */}
-      <div className="bg-foreground/[0.01] border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
+      <div className="bg-foreground/1 border border-foreground/10 rounded-2xl p-5 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-foreground">Phễu Chuyển Đổi Khán Giả</h3>
@@ -760,7 +760,7 @@ function FollowsTab({ data }: { data: PostDeepAnalyticsData }) {
                 </div>
 
                 {/* Custom bar design simulating the tapered funnel shape */}
-                <div className="w-full h-4 bg-foreground/[0.02] border border-foreground/10 rounded-full overflow-hidden relative">
+                <div className="w-full h-4 bg-foreground/2 border border-foreground/10 rounded-full overflow-hidden relative">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: widthVal }}
@@ -768,10 +768,10 @@ function FollowsTab({ data }: { data: PostDeepAnalyticsData }) {
                     className={cn(
                       "h-full rounded-full shadow-lg",
                       idx === 0 
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-500" 
+                        ? "bg-linear-to-r from-blue-600 to-indigo-500" 
                         : idx === 5 
-                          ? "bg-gradient-to-r from-emerald-600 to-teal-500" 
-                          : "bg-gradient-to-r from-purple-600 to-pink-500"
+                          ? "bg-linear-to-r from-emerald-600 to-teal-500" 
+                          : "bg-linear-to-r from-purple-600 to-pink-500"
                     )}
                   />
                 </div>
@@ -780,8 +780,8 @@ function FollowsTab({ data }: { data: PostDeepAnalyticsData }) {
           })}
         </div>
 
-        <div className="text-[9px] text-foreground/30 border border-foreground/10 bg-foreground/[0.02] rounded-xl p-2.5 flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+        <div className="text-[9px] text-foreground/30 border border-foreground/10 bg-foreground/2 rounded-xl p-2.5 flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
           <span>Tỷ lệ New Followers / Reach thể hiện sức hút giữ chân khán giả trung thực của kênh.</span>
         </div>
       </div>

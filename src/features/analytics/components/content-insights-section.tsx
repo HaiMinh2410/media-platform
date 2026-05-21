@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
@@ -392,14 +392,14 @@ export function ContentInsightsSection({
                   type="date" 
                   value={customStart}
                   onChange={(e) => setCustomStart(e.target.value)}
-                  className="bg-transparent text-xs text-foreground outline-none [color-scheme:dark]"
+                  className="bg-transparent text-xs text-foreground outline-none scheme-dark"
                 />
                 <span className="text-foreground/20 text-xs">→</span>
                 <input 
                   type="date" 
                   value={customEnd}
                   onChange={(e) => setCustomEnd(e.target.value)}
-                  className="bg-transparent text-xs text-foreground outline-none [color-scheme:dark]"
+                  className="bg-transparent text-xs text-foreground outline-none scheme-dark"
                 />
               </div>
             )}
@@ -481,7 +481,7 @@ export function ContentInsightsSection({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.02, duration: 0.3 }}
                 onClick={() => setSelectedPost(post)}
-                className="relative aspect-square rounded-[24px] overflow-hidden border border-foreground/10 bg-foreground/5 shadow-lg group cursor-pointer"
+                className="relative aspect-square rounded-xl overflow-hidden border border-foreground/10 bg-foreground/5 shadow-lg group cursor-pointer"
               >
                 {displayUrl ? (
                   <Image
@@ -499,7 +499,7 @@ export function ContentInsightsSection({
                 )}
 
                 {/* Gradient shadow */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
 
                 {/* Format icon */}
                 {post.mediaType === 'CAROUSEL_ALBUM' ? (

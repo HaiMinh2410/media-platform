@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -13,13 +13,13 @@ export type ActiveMetric = 'reach' | 'views' | 'engagement' | 'followers';
 
 export function SkeletonChart() {
   return (
-    <div className="w-full h-[350px] bg-foreground/[0.02] rounded-xl border border-foreground/10 animate-pulse relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.05] to-transparent shimmer" />
+    <div className="w-full h-[350px] bg-foreground/2 rounded-xl border border-foreground/10 animate-pulse relative overflow-hidden">
+      <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/5 to-transparent shimmer" />
       <div className="absolute bottom-10 left-10 right-10 top-10 flex flex-col justify-between">
-        <div className="w-full h-[1px] bg-foreground/5"></div>
-        <div className="w-full h-[1px] bg-foreground/5"></div>
-        <div className="w-full h-[1px] bg-foreground/5"></div>
-        <div className="w-full h-[1px] bg-foreground/5"></div>
+        <div className="w-full h-px bg-foreground/5"></div>
+        <div className="w-full h-px bg-foreground/5"></div>
+        <div className="w-full h-px bg-foreground/5"></div>
+        <div className="w-full h-px bg-foreground/5"></div>
       </div>
     </div>
   );
@@ -30,7 +30,7 @@ export function InsufficientDataState() {
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center justify-center p-12 bg-foreground/[0.02] rounded-3xl border border-foreground/10 border-dashed text-center min-h-[400px] mt-6"
+      className="flex flex-col items-center justify-center p-12 bg-foreground/2 rounded-3xl border border-foreground/10 border-dashed text-center min-h-[400px] mt-6"
     >
       <div className="relative mb-6">
         <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full" />

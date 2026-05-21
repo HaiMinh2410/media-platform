@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { InboxMetrics, getInboxMetrics } from '@features/dashboard/actions/dashboard.actions';
@@ -65,7 +65,7 @@ export function InboxMetricsCard({ workspaceId, accounts, initialData }: InboxMe
       </div>
 
       {/* Body: account switcher + charts */}
-      <div className="grid grid-cols-1 md:grid-cols-[130px_1fr] gap-8 flex-grow">
+      <div className="grid grid-cols-1 md:grid-cols-[130px_1fr] gap-8 grow">
         {/* Switcher */}
         <div className="border-r border-base-content/5 pr-4 flex flex-col gap-1 overflow-y-auto max-h-[400px]">
           <div className="text-[9px] text-base-content/40 uppercase font-black tracking-widest px-2 mb-2">Chọn TK</div>
@@ -152,7 +152,7 @@ function FunnelBar({ label, value, percent, colorClass, delay }: { label: string
       <div className="h-[28px] bg-base-200/50 rounded-lg overflow-hidden border border-base-content/5">
         <div 
           className={cn(
-            "h-full bg-gradient-to-r flex items-center pl-3 text-[11px] text-white font-bold transition-all duration-1000 ease-out", 
+            "h-full bg-linear-to-r flex items-center pl-3 text-[11px] text-white font-bold transition-all duration-1000 ease-out", 
             colorClass,
             mounted ? "" : "w-0"
           )}

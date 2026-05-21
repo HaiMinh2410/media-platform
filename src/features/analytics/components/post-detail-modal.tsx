@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -41,7 +41,7 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
   const nonfollowersPct = 100 - followersPct;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-base-300/90 backdrop-blur-xl select-none overflow-hidden">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-base-300/90 backdrop-blur-xl select-none overflow-hidden">
       {/* Close button at top-left screen (Instagram style) */}
       <button 
         onClick={onClose}
@@ -63,7 +63,7 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
         {/* Left Column: Media Preview + Floating Reels Action Bar */}
         <div className="md:col-span-8 relative bg-base-300 flex items-center justify-center border-b md:border-b-0 md:border-r border-foreground/10 select-none overflow-hidden h-full py-6">
           {/* Center vertical media container */}
-          <div className="relative h-full max-h-[90vh] md:max-h-[80vh] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border border-foreground/10 bg-base-200 flex items-center justify-center group/media select-none">
+          <div className="relative h-full max-h-[90vh] md:max-h-[80vh] aspect-9/16 rounded-2xl overflow-hidden shadow-2xl border border-foreground/10 bg-base-200 flex items-center justify-center group/media select-none">
             {post.mediaType === 'VIDEO' || post.mediaType === 'REELS' ? (
               <video 
                 src={post.mediaUrl} 
@@ -152,7 +152,7 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
 
           {/* Caption preview (collapsible in concept, static here) */}
           {post.caption && (
-            <div className="px-5 py-4 border-b border-foreground/10 bg-foreground/[0.01]">
+            <div className="px-5 py-4 border-b border-foreground/10 bg-foreground/1">
               <p className="text-[11px] text-foreground-secondary leading-relaxed font-semibold uppercase tracking-wider mb-1.5 select-none">Caption</p>
               <p className="text-[11.5px] text-foreground-secondary leading-relaxed max-h-[75px] overflow-y-auto whitespace-pre-wrap custom-scrollbar pr-1">
                 {post.caption}
@@ -247,7 +247,7 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
               </div>
             </div>
 
-            <div className="h-[1px] bg-foreground/10" />
+            <div className="h-px bg-foreground/10" />
 
             {/* SECTION 1: REACH & VIEWS */}
             <div className="space-y-4">
@@ -272,7 +272,7 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
               </div>
             </div>
 
-            <div className="h-[1px] bg-foreground/5 my-1" />
+            <div className="h-px bg-foreground/5 my-1" />
 
             {/* SECTION 2: INTERACTIONS */}
             <div className="space-y-4">
@@ -332,7 +332,7 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
             {/* SECTION 3: PROFILE CONVERSIONS */}
             {post.mediaType !== 'REELS' && post.mediaType !== 'VIDEO' && (
               <>
-                <div className="h-[1px] bg-foreground/10" />
+                <div className="h-px bg-foreground/10" />
 
                 <div className="space-y-4">
                   {/* Section Title */}
@@ -362,7 +362,7 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
 
             {post.mediaType === 'REELS' && (
               <>
-                <div className="h-[1px] bg-foreground/10" />
+                <div className="h-px bg-foreground/10" />
 
                 <div className="space-y-4">
                   {/* Section Title */}

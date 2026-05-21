@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { cn } from '@shared/lib/utils';
 import { HelpCircle, Sparkles, Check, RotateCw, Undo2, Loader2 } from 'lucide-react';
 
@@ -275,7 +275,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
         )}
 
         {aiProposal && (
-          <div className="bg-gradient-to-r from-purple-500/10 via-primary/5 to-purple-500/10 border border-purple-500/20 rounded-2xl p-4 flex flex-col gap-4 animate-in slide-in-from-top-4 duration-300">
+          <div className="bg-linear-to-r from-purple-500/10 via-primary/5 to-purple-500/10 border border-purple-500/20 rounded-2xl p-4 flex flex-col gap-4 animate-in slide-in-from-top-4 duration-300">
             <div className="flex items-start gap-3">
               <Sparkles className="text-purple-400 shrink-0 mt-0.5 animate-bounce" size={18} />
               <div className="text-sm">

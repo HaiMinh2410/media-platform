@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -87,7 +87,7 @@ export function FollowerDetailedSection({
 
   if (isError || !result || result.error) {
     return (
-      <div className="w-full h-[400px] flex flex-col items-center justify-center bg-foreground/[0.02] rounded-3xl border border-foreground/10 p-6 text-center backdrop-blur-md">
+      <div className="w-full h-[400px] flex flex-col items-center justify-center bg-foreground/2 rounded-3xl border border-foreground/10 p-6 text-center backdrop-blur-md">
         <div className="p-4 bg-error/10 rounded-full mb-4 text-error">
           <Info size={28} />
         </div>
@@ -114,7 +114,7 @@ export function FollowerDetailedSection({
         animate={{ opacity: 1, y: 0 }}
         className="w-full bg-base-200 border border-foreground/10 rounded-3xl p-8 text-center font-sans shadow-2xl relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-tr from-warning/5 via-transparent to-orange-500/5 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-tr from-warning/5 via-transparent to-orange-500/5 pointer-events-none" />
         <div className="w-16 h-16 bg-warning/10 border border-warning/20 text-warning rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-warning/5">
           <Users size={28} className="animate-pulse" />
         </div>
@@ -123,14 +123,14 @@ export function FollowerDetailedSection({
           Meta chỉ cung cấp thông tin chi tiết về nhân khẩu học và biến động người theo dõi cho các tài khoản Instagram có từ <span className="text-warning font-bold">100 người theo dõi trở lên</span>.
         </p>
         
-        <div className="inline-flex flex-col items-center justify-center p-6 bg-foreground/[0.02] border border-foreground/10 rounded-2xl mb-6 min-w-[200px]">
+        <div className="inline-flex flex-col items-center justify-center p-6 bg-foreground/2 border border-foreground/10 rounded-2xl mb-6 min-w-[200px]">
           <span className="text-xs text-foreground/40 uppercase tracking-widest font-bold mb-1">Followers hiện tại</span>
           <span className="text-4xl font-black text-foreground">{followersCount.toLocaleString()}</span>
           {username && <span className="text-xs text-warning/70 font-semibold mt-1">@{username}</span>}
         </div>
 
         <div className="p-4 bg-warning/5 border border-warning/10 rounded-2xl max-w-md mx-auto flex items-start gap-3 text-left">
-          <Sparkles size={16} className="text-warning mt-0.5 flex-shrink-0" />
+          <Sparkles size={16} className="text-warning mt-0.5 shrink-0" />
           <p className="text-xs text-foreground/70 leading-relaxed">
             Hãy tiếp tục chia sẻ các nội dung thu hút, sử dụng Reels và đăng bài đều đặn để phát triển kênh của bạn lên mốc 100 followers nhé!
           </p>
@@ -253,7 +253,7 @@ export function FollowerDetailedSection({
                           initial={{ width: 0 }}
                           animate={{ width: `${percent}%` }}
                           transition={{ duration: 0.8, delay: idx * 0.1 }}
-                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                          className="h-full bg-linear-to-r from-blue-500 to-indigo-500 rounded-full"
                         />
                       </div>
                     </div>
@@ -303,7 +303,7 @@ export function FollowerDetailedSection({
                           initial={{ width: 0 }}
                           animate={{ width: `${visualPct}%` }}
                           transition={{ duration: 0.8, delay: idx * 0.1 }}
-                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+                          className="h-full bg-linear-to-r from-emerald-500 to-teal-500 rounded-full"
                         />
                       </div>
                     </div>
@@ -339,7 +339,7 @@ export function FollowerDetailedSection({
             ) : (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                 {/* Donut Chart container */}
-                <div className="w-[150px] h-[150px] relative flex-shrink-0">
+                <div className="w-[150px] h-[150px] relative shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -371,7 +371,7 @@ export function FollowerDetailedSection({
                 {/* Custom Legend list */}
                 <div className="flex-1 space-y-3.5 w-full">
                   {genderData.map((gender: any, idx: number) => (
-                    <div key={idx} className="flex justify-between items-center bg-foreground/[0.01] border border-foreground/10 p-2.5 rounded-xl group hover:bg-foreground/[0.03] transition-all">
+                    <div key={idx} className="flex justify-between items-center bg-foreground/1 border border-foreground/10 p-2.5 rounded-xl group hover:bg-foreground/3 transition-all">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full shadow-lg" style={{ backgroundColor: gender.color, boxShadow: `0 0 10px ${gender.color}30` }} />
                         <span className="text-xs font-semibold text-foreground/60 group-hover:text-foreground transition-colors">{gender.name}</span>
@@ -505,8 +505,8 @@ function SkeletonDetailedFollowers() {
   return (
     <div className="space-y-6 animate-pulse">
       {/* Chart Skeleton */}
-      <div className="w-full h-[360px] bg-foreground/[0.02] border border-foreground/10 rounded-3xl p-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.03] to-transparent shimmer" />
+      <div className="w-full h-[360px] bg-foreground/2 border border-foreground/10 rounded-3xl p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/3 to-transparent shimmer" />
         <div className="flex justify-between items-center mb-8">
           <div className="space-y-2">
             <div className="w-36 h-5 bg-foreground/5 rounded" />
@@ -520,8 +520,8 @@ function SkeletonDetailedFollowers() {
       {/* Grid Skeletons */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-foreground/[0.02] border border-foreground/10 rounded-3xl p-6 h-[320px] relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.03] to-transparent shimmer" />
+          <div key={i} className="bg-foreground/2 border border-foreground/10 rounded-3xl p-6 h-[320px] relative overflow-hidden">
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/3 to-transparent shimmer" />
             <div className="w-32 h-5 bg-foreground/5 rounded mb-8" />
             <div className="space-y-4">
               {[...Array(4)].map((_, j) => (

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { usePublishStatus } from '@features/posts/hooks/use-publish-status';
@@ -44,7 +44,7 @@ export function BatchPublishTracker({ batchId }: BatchPublishTrackerProps) {
 
   if (error) {
     return (
-      <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-[2rem] text-red-400 flex items-center gap-3">
+      <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-4xl text-red-400 flex items-center gap-3">
         <AlertCircle size={20} />
         <p className="font-medium">{error}</p>
       </div>

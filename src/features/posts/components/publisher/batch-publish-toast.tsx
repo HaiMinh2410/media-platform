@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { X, RefreshCcw, Loader2 } from 'lucide-react';
@@ -55,7 +55,7 @@ export function BatchPublishToast({ initialAccounts, onClose, onRetry }: BatchPu
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      className="fixed bottom-7 right-7 w-[340px] bg-base-200 border-[1.5px] border-foreground/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-[100] font-sans"
+      className="fixed bottom-7 right-7 w-[340px] bg-base-200 border-[1.5px] border-foreground/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-100 font-sans"
     >
       {/* HEADER */}
       <div className="bg-base-300 px-4 py-3 flex items-center justify-between border-b border-foreground/10">

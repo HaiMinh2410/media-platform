@@ -4,11 +4,8 @@ import * as React from 'react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { 
-  Eye, 
   Heart, 
   MessageCircle, 
-  Share2, 
-  Bookmark, 
   ExternalLink,
   Flame,
   Award,
@@ -68,19 +65,19 @@ export function TopContentLeaderboard({
     switch (index) {
       case 0:
         return (
-          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-600 shadow-lg shadow-amber-500/10 border border-amber-400/20 text-black font-extrabold text-xs">
+          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-linear-to-br from-amber-300 via-amber-500 to-amber-600 shadow-lg shadow-amber-500/10 border border-amber-400/20 text-black font-extrabold text-xs">
             <Award className="w-4 h-4" />
           </div>
         );
       case 1:
         return (
-          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 shadow-lg shadow-slate-400/10 border border-slate-300/20 text-black font-extrabold text-xs">
+          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-linear-to-br from-slate-300 via-slate-400 to-slate-500 shadow-lg shadow-slate-400/10 border border-slate-300/20 text-black font-extrabold text-xs">
             2
           </div>
         );
       case 2:
         return (
-          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-amber-700 via-amber-800 to-amber-900 shadow-lg shadow-amber-900/10 border border-amber-800/20 text-white/90 font-extrabold text-xs">
+          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-linear-to-br from-amber-700 via-amber-800 to-amber-900 shadow-lg shadow-amber-900/10 border border-amber-800/20 text-white/90 font-extrabold text-xs">
             3
           </div>
         );
@@ -138,7 +135,7 @@ export function TopContentLeaderboard({
                   <td className="py-4 pr-4">
                     <div className="flex items-center gap-3 max-w-[280px]">
                       {/* Media Thumb */}
-                      <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-base-300 border border-foreground/10 flex-shrink-0">
+                      <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-base-300 border border-foreground/10 shrink-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img 
                           src={post.thumbnailUrl} 

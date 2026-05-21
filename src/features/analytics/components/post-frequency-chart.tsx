@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -43,7 +43,7 @@ export function PostFrequencyChart({
 
   if (isPending) {
     return (
-      <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 animate-pulse">
+      <div className="w-full bg-foreground/2 rounded-2xl border border-foreground/10 p-6 animate-pulse">
         <div className="w-48 h-6 bg-foreground/5 rounded mb-8"></div>
         <div className="w-full h-[220px] bg-foreground/5 rounded-lg"></div>
       </div>
@@ -57,7 +57,7 @@ export function PostFrequencyChart({
 
   if (totalPosts === 0) {
     return (
-      <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 h-full flex flex-col justify-center items-center text-center">
+      <div className="w-full bg-foreground/2 rounded-2xl border border-foreground/10 p-6 h-full flex flex-col justify-center items-center text-center">
         <div className="p-4 bg-foreground/5 rounded-full mb-4">
           <Icon lucide={Calendar} size={24} className="text-foreground/20" />
         </div>
@@ -83,7 +83,7 @@ export function PostFrequencyChart({
   const optimalDays = chartData.filter(d => d.count === maxCount).map(d => d.name);
 
   return (
-    <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 h-full flex flex-col">
+    <div className="w-full bg-foreground/2 rounded-2xl border border-foreground/10 p-6 h-full flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
           <Icon lucide={Calendar} size={18} className="text-blue-400" />
@@ -144,7 +144,7 @@ export function PostFrequencyChart({
       </div>
 
       <div className="mt-4 p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl flex items-start gap-3">
-        <Icon lucide={Sparkles} size={14} className="text-blue-400 mt-0.5 flex-shrink-0" />
+        <Icon lucide={Sparkles} size={14} className="text-blue-400 mt-0.5 shrink-0" />
         <p className="text-xs text-foreground-secondary leading-relaxed">
           <span className="text-foreground font-bold">Thứ {optimalDays.join(', ')}</span> có tần suất đăng bài cao nhất. Hãy duy trì lịch đăng đều đặn vào những ngày này để tối đa hoá tiếp cận.
         </p>

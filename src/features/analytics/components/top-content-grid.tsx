@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { cn, formatMetric } from './primitives';
 import { 
-  Eye, MousePointer2, Users, Heart, User, UserPlus, Calendar, MessageCircle, Send, Bookmark 
+  MousePointer2, Users, Heart, User, UserPlus 
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getTopPostsAction } from '@features/analytics/actions/analytics.actions';
@@ -60,7 +60,7 @@ const formatShortDate = (dateStr: string | Date) => {
   try {
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  } catch (e) {
+  } catch {
     return '';
   }
 };
@@ -134,7 +134,7 @@ function PostThumb({
         )}
 
         {/* Premium Shadow overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-base-300/80 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-t from-base-300/80 via-transparent to-transparent pointer-events-none" />
 
         {/* Media Format Icon Overlay */}
         {post.mediaType === 'CAROUSEL_ALBUM' ? (
@@ -207,7 +207,7 @@ export function TopContentGrid({
   if (isLoading) {
     return (
       <div className="glass rounded-3xl p-6 font-sans shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-primary via-secondary to-accent opacity-20" />
+        <div className="absolute top-0 left-0 w-full h-[3px] bg-linear-to-r from-primary via-secondary to-accent opacity-20" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="space-y-2">
             <div className="h-6 w-56 bg-foreground/5 rounded-lg animate-pulse" />
@@ -241,7 +241,7 @@ export function TopContentGrid({
       {/* Decorative Gradient Line matching active tab */}
       <div 
         className={cn(
-          "absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r transition-all duration-500",
+          "absolute top-0 left-0 w-full h-[3px] bg-linear-to-r transition-all duration-500",
           activeTabConfig.gradient
         )}
       />
@@ -282,7 +282,7 @@ export function TopContentGrid({
                   <motion.div
                     layoutId="activeTabGlow"
                     className={cn(
-                      "absolute inset-0 bg-gradient-to-r rounded-xl -z-10 shadow-lg border border-foreground/10",
+                      "absolute inset-0 bg-linear-to-r rounded-xl -z-10 shadow-lg border border-foreground/10",
                       tab.gradient
                     )}
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}

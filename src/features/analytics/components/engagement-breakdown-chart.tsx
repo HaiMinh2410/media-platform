@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
@@ -43,7 +43,7 @@ export function EngagementBreakdownChart({
 
   if (isPending) {
     return (
-      <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 animate-pulse">
+      <div className="w-full bg-foreground/2 rounded-2xl border border-foreground/10 p-6 animate-pulse">
         <div className="w-48 h-6 bg-foreground/5 rounded mb-8"></div>
         <div className="flex items-center gap-8">
           <div className="w-40 h-40 bg-foreground/5 rounded-full"></div>
@@ -71,7 +71,7 @@ export function EngagementBreakdownChart({
 
   if (total === 0) {
     return (
-      <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 h-full flex flex-col justify-center items-center text-center">
+      <div className="w-full bg-foreground/2 rounded-2xl border border-foreground/10 p-6 h-full flex flex-col justify-center items-center text-center">
         <div className="p-4 bg-foreground/5 rounded-full mb-4">
           <Icon lucide={MousePointer2} size={24} className="text-foreground/20" />
         </div>
@@ -82,7 +82,7 @@ export function EngagementBreakdownChart({
   }
 
   return (
-    <div className="w-full bg-foreground/[0.02] rounded-2xl border border-foreground/10 p-6 h-full">
+    <div className="w-full bg-foreground/2 rounded-2xl border border-foreground/10 p-6 h-full">
       <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
         <Icon lucide={BarChart3} size={18} className="text-emerald-400" />
         Engagement Breakdown
@@ -136,7 +136,7 @@ export function EngagementBreakdownChart({
 
         <div className="w-full md:w-1/2 space-y-3">
           {data.map((item, i) => (
-            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-foreground/[0.02] border border-foreground/5 group hover:bg-foreground/[0.05] transition-all">
+            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-foreground/2 border border-foreground/5 group hover:bg-foreground/5 transition-all">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 rounded-full shadow-lg" style={{ backgroundColor: item.color, boxShadow: `0 0 10px ${item.color}40` }} />
                 <span className="text-sm font-medium text-foreground-secondary group-hover:text-foreground transition-colors">{item.name}</span>

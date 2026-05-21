@@ -87,9 +87,9 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
               : "text-foreground-secondary hover:text-foreground"
           )}
         >
-          <div className="w-2 h-2 rounded-full bg-[#1877F2]" />
+          <div className="w-2 h-2 rounded-full bg-facebook" />
           Facebook
-          <span className="bg-[#1877F2]/10 text-[#1877F2] text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-mono">
+          <span className="bg-facebook/10 text-facebook text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-mono">
             {fbAccounts.length}
           </span>
         </button>
@@ -166,7 +166,7 @@ function FacebookMock({ account, content, media }: { account: PlatformAccount; c
       <div className="p-3 pb-2">
         {/* Header */}
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center text-white font-bold text-[18px] overflow-hidden shrink-0">
+          <div className="w-10 h-10 rounded-full bg-facebook flex items-center justify-center text-white font-bold text-[18px] overflow-hidden shrink-0">
             {account.avatar_url ? <img src={account.avatar_url} className="w-full h-full object-cover" /> : account.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex flex-col">
@@ -179,7 +179,7 @@ function FacebookMock({ account, content, media }: { account: PlatformAccount; c
         </div>
 
         {/* Content */}
-        <div className="text-[13px] leading-[1.65] mb-3 whitespace-pre-wrap break-words">
+        <div className="text-[13px] leading-[1.65] mb-3 whitespace-pre-wrap wrap-break-word">
           {content || <span className="text-[#65676B] italic">Nội dung bài viết...</span>}
         </div>
       </div>
@@ -240,7 +240,7 @@ function InstagramMock({ account, content, media }: { account: PlatformAccount; 
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-bold p-[1.5px]">
+          <div className="w-9 h-9 rounded-full bg-linear-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-bold p-[1.5px]">
             <div className="w-full h-full rounded-full border-2 border-white overflow-hidden flex items-center justify-center bg-[#252836]">
               {account.avatar_url ? <img src={account.avatar_url} className="w-full h-full object-cover" /> : account.name.charAt(0).toUpperCase()}
             </div>

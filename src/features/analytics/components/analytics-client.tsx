@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { 
@@ -452,8 +452,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           onClick={() => setActiveTab('general')}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
             activeTab === 'general'
-              ? 'border-blue-500 text-foreground bg-foreground/[0.02]'
-              : 'border-transparent text-foreground-secondary hover:text-foreground hover:bg-foreground/[0.01]'
+              ? 'border-blue-500 text-foreground bg-foreground/2'
+              : 'border-transparent text-foreground-secondary hover:text-foreground hover:bg-foreground/1'
           }`}
         >
           <Icon lucide={BarChart3} size={14} />
@@ -463,8 +463,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           onClick={() => setActiveTab('content')}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
             activeTab === 'content'
-              ? 'border-indigo-500 text-indigo-400 bg-indigo-500/[0.01]'
-              : 'border-transparent text-foreground-secondary hover:text-foreground hover:bg-foreground/[0.01]'
+              ? 'border-indigo-500 text-indigo-400 bg-indigo-500/1'
+              : 'border-transparent text-foreground-secondary hover:text-foreground hover:bg-foreground/1'
           }`}
         >
           <Icon lucide={Layers} size={14} className={activeTab === 'content' ? "text-indigo-500" : "text-foreground-tertiary"} />
@@ -474,8 +474,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           onClick={() => setActiveTab('ai')}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
             activeTab === 'ai'
-              ? 'border-pink-500 text-pink-400 bg-pink-500/[0.01]'
-              : 'border-transparent text-foreground-secondary hover:text-foreground hover:bg-foreground/[0.01]'
+              ? 'border-pink-500 text-pink-400 bg-pink-500/1'
+              : 'border-transparent text-foreground-secondary hover:text-foreground hover:bg-foreground/1'
           }`}
         >
           <Icon lucide={Sparkles} size={14} className={activeTab === 'ai' ? "text-pink-500 animate-pulse" : "text-foreground-tertiary"} />
@@ -522,19 +522,19 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                     type="date" 
                     value={customStart}
                     onChange={(e) => setCustomStart(e.target.value)}
-                    className="bg-transparent text-xs text-foreground outline-none [color-scheme:dark]"
+                    className="bg-transparent text-xs text-foreground outline-none scheme-dark"
                   />
                   <span className="text-foreground-secondary/20 text-xs">→</span>
                   <input 
                     type="date" 
                     value={customEnd}
                     onChange={(e) => setCustomEnd(e.target.value)}
-                    className="bg-transparent text-xs text-foreground outline-none [color-scheme:dark]"
+                    className="bg-transparent text-xs text-foreground outline-none scheme-dark"
                   />
                 </div>
               )}
               
-              <div className="h-8 w-[1px] bg-foreground/10 mx-1" />
+              <div className="h-8 w-px bg-foreground/10 mx-1" />
               
               <AccountSelector 
                 accounts={accounts} 
@@ -662,7 +662,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
 
           <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
             {/* CHART SELECTOR BUTTONS */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-foreground/[0.01] border border-foreground/10 p-2 rounded-2xl">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-foreground/1 border border-foreground/10 p-2 rounded-2xl">
               <div className="flex flex-wrap p-1 bg-foreground/5 border border-foreground/10 rounded-xl select-none gap-1">
                 <button
                   onClick={() => setActiveChart('reach-engagement')}
@@ -710,7 +710,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             {isPending ? (
               <SkeletonChart />
             ) : isError || !totals ? (
-              <div className="w-full h-[350px] flex items-center justify-center bg-foreground/[0.02] rounded-xl border border-foreground/10">
+              <div className="w-full h-[350px] flex items-center justify-center bg-foreground/2 rounded-xl border border-foreground/10">
                 <span className="text-foreground-secondary/40">No data available</span>
               </div>
             ) : (
@@ -738,15 +738,15 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                         </div>
 
                         <div className="flex gap-4">
-                          <div className="bg-foreground/[0.01] border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                          <div className="bg-foreground/1 border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
                             <span className="text-[10px] text-foreground-secondary/60 uppercase font-bold block mb-1">Reach TB/Ngày</span>
                             <span className="text-sm font-extrabold text-blue-400">{avgReach.toLocaleString()}</span>
                           </div>
-                          <div className="bg-foreground/[0.01] border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                          <div className="bg-foreground/1 border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
                             <span className="text-[10px] text-foreground-secondary/60 uppercase font-bold block mb-1">Tương tác TB</span>
                             <span className="text-sm font-extrabold text-orange-400">{avgEngagement.toLocaleString()}</span>
                           </div>
-                          <div className="bg-foreground/[0.01] border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                          <div className="bg-foreground/1 border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
                             <span className="text-[10px] text-foreground-secondary/60 uppercase font-bold block mb-1">Tỷ lệ tương tác</span>
                             <span className={`text-sm font-extrabold ${avgEngagementRate >= 15 ? 'text-emerald-400' : avgEngagementRate >= 5 ? 'text-blue-400' : 'text-amber-400'}`}>
                               {avgEngagementRate}%
@@ -845,7 +845,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
 
                       {engagementInsight && (
                         <div className={`p-4 rounded-xl border flex gap-3 items-start transition-all duration-300 ${engagementInsight.color}`}>
-                          <div className="mt-0.5 p-1.5 bg-foreground/5 rounded-lg flex-shrink-0">
+                          <div className="mt-0.5 p-1.5 bg-foreground/5 rounded-lg shrink-0">
                             <Icon lucide={engagementInsight.icon} size={16} />
                           </div>
                           <div className="space-y-1">
@@ -861,7 +861,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
 
                   {activeChart === 'views-interactions' && (
                     /* Views vs Interactions Comparison Chart */
-                    <div className="w-full bg-foreground/[0.02] backdrop-blur-md rounded-2xl border border-foreground/10 p-6 flex flex-col gap-6">
+                    <div className="w-full bg-foreground/2 backdrop-blur-md rounded-2xl border border-foreground/10 p-6 flex flex-col gap-6">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                           <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
@@ -874,15 +874,15 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                         </div>
 
                         <div className="flex gap-4">
-                          <div className="bg-foreground/[0.01] border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                          <div className="bg-foreground/1 border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
                             <span className="text-[10px] text-foreground-secondary/40 uppercase font-bold block mb-1">Views TB/Ngày</span>
                             <span className="text-sm font-extrabold text-purple-400">{avgViews.toLocaleString()}</span>
                           </div>
-                          <div className="bg-foreground/[0.01] border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                          <div className="bg-foreground/1 border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
                             <span className="text-[10px] text-foreground-secondary/40 uppercase font-bold block mb-1">Tương tác TB</span>
                             <span className="text-sm font-extrabold text-emerald-400">{avgInteractions.toLocaleString()}</span>
                           </div>
-                          <div className="bg-foreground/[0.01] border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
+                          <div className="bg-foreground/1 border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
                             <span className="text-[10px] text-foreground-secondary/40 uppercase font-bold block mb-1">Tỷ lệ tương tác</span>
                             <span className={`text-sm font-extrabold ${avgInteractionRate >= 6 ? 'text-emerald-400' : avgInteractionRate >= 2 ? 'text-blue-400' : 'text-amber-400'}`}>
                               {avgInteractionRate}%
@@ -981,7 +981,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
 
                       {interactionInsight && (
                         <div className={`p-4 rounded-xl border flex gap-3 items-start transition-all duration-300 ${interactionInsight.color}`}>
-                          <div className="mt-0.5 p-1.5 bg-foreground/5 rounded-lg flex-shrink-0">
+                          <div className="mt-0.5 p-1.5 bg-foreground/5 rounded-lg shrink-0">
                             <Icon lucide={interactionInsight.icon} size={16} />
                           </div>
                           <div className="space-y-1">
@@ -999,7 +999,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                     /* Followers chart: dynamics or trend */
                     <>
                       {isInstagram && !isFollowerInsufficientData ? (
-                        <div className="w-full bg-foreground/[0.02] backdrop-blur-md rounded-2xl border border-foreground/10 p-6 flex flex-col gap-6">
+                        <div className="w-full bg-foreground/2 backdrop-blur-md rounded-2xl border border-foreground/10 p-6 flex flex-col gap-6">
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div>
                               <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
@@ -1009,7 +1009,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                               <p className="text-foreground-secondary/40 text-xs mt-1">Số lượng tài khoản bấm theo dõi và bỏ theo dõi hàng ngày</p>
                             </div>
 
-                            <div className="flex items-center gap-6 bg-foreground/[0.01] border border-foreground/10 rounded-2xl p-4 self-start md:self-auto">
+                            <div className="flex items-center gap-6 bg-foreground/1 border border-foreground/10 rounded-2xl p-4 self-start md:self-auto">
                               <div className="pr-6 border-r border-foreground/10">
                                 <div className="flex items-center gap-2 text-emerald-400 mb-1">
                                   <Icon lucide={UserPlus} size={14} />
@@ -1124,7 +1124,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                           </div>
                         </div>
                       ) : (
-                        <div className="w-full bg-foreground/[0.02] backdrop-blur-md rounded-2xl border border-foreground/10 p-6 flex flex-col gap-6">
+                        <div className="w-full bg-foreground/2 backdrop-blur-md rounded-2xl border border-foreground/10 p-6 flex flex-col gap-6">
                           <div>
                             <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                               <Icon lucide={TrendingUp} size={18} className="text-orange-400" />
