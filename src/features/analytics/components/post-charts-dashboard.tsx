@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,11 +22,9 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, 
-  BarChart2, 
   PieChart as PieIcon, 
   Grid3X3, 
   Users, 
-  Flame, 
   Activity, 
   ArrowUpRight, 
   ArrowDownRight, 
@@ -38,6 +36,16 @@ import {
 } from 'lucide-react';
 import { cn } from '@shared/lib/utils';
 import type { PostDeepAnalyticsData } from '@features/analytics/services/post-analytics-engine';
+
+const SafeTooltip = Tooltip as unknown as React.ComponentType<
+  Omit<React.ComponentProps<typeof Tooltip>, 'formatter'> & {
+    formatter?: (
+      value: number,
+      name: string
+    ) => [React.ReactNode, React.ReactNode] | React.ReactNode;
+  }
+>;
+
 
 interface PostChartsDashboardProps {
   accountId: string;
@@ -51,11 +59,8 @@ interface PostChartsDashboardProps {
 type TabType = 'performance' | 'content' | 'distribution' | 'follows';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#10b981'];
-const LOCATION_COLORS = ['#3b82f6', '#10b981', '#f59e0b'];
 
 export function PostChartsDashboard({
-  accountId,
-  range,
   data,
   isLoading = false
 }: PostChartsDashboardProps) {
@@ -226,7 +231,7 @@ function PerformanceTab({ data }: { data: PostDeepAnalyticsData }) {
                 axisLine={false} 
                 tickFormatter={numberFormatter}
               />
-              <Tooltip
+              <SafeTooltip
                 contentStyle={{
                   backgroundColor: 'oklch(var(--b3))',
                   border: '1px solid oklch(var(--bc) / 0.1)',
@@ -236,11 +241,10 @@ function PerformanceTab({ data }: { data: PostDeepAnalyticsData }) {
                 }}
                 labelStyle={{ color: 'oklch(var(--bc))', fontWeight: 'bold', fontSize: '11px', marginBottom: '8px' }}
                 itemStyle={{ fontSize: '11px', padding: '2px 0' }}
-                formatter={(value: any, name: any) => {
+                formatter={(value, name) => {
                   const label = name === 'views' ? 'Lượt xem' : name === 'reach' ? 'Tiếp cận' : 'Tương tác';
-                  return [numberFormatter(Number(value)), label];
+                  return [numberFormatter(value), label];
                 }}
-
               />
               <Line 
                 yAxisId="left"
@@ -357,7 +361,7 @@ function ContentTab({ data }: { data: PostDeepAnalyticsData }) {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0.5)" strokeWidth={1} />
                   ))}
                 </Pie>
-                <Tooltip
+                <SafeTooltip
                   contentStyle={{
                     backgroundColor: 'oklch(var(--b3))',
                     border: '1px solid oklch(var(--bc) / 0.1)',
@@ -365,7 +369,7 @@ function ContentTab({ data }: { data: PostDeepAnalyticsData }) {
                     fontSize: '11px'
                   }}
                   itemStyle={{ color: 'oklch(var(--bc))' }}
-                  formatter={(value: any) => [`${value} bài viết`, 'Số lượng']}
+                  formatter={(value) => [`${value} bài viết`, 'Số lượng']}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -425,7 +429,7 @@ function ContentTab({ data }: { data: PostDeepAnalyticsData }) {
                 axisLine={false}
                 tickFormatter={numberFormatter}
               />
-              <Tooltip
+              <SafeTooltip
                 contentStyle={{
                   backgroundColor: 'oklch(var(--b3))',
                   border: '1px solid oklch(var(--bc) / 0.1)',
@@ -435,9 +439,9 @@ function ContentTab({ data }: { data: PostDeepAnalyticsData }) {
                 }}
                 labelStyle={{ color: 'oklch(var(--bc))', fontWeight: 'bold', fontSize: '11px', marginBottom: '6px' }}
                 itemStyle={{ fontSize: '11px' }}
-                formatter={(value: any, name: any) => {
+                formatter={(value, name) => {
                   const label = name === 'avgViews' ? 'Lượt xem TB' : 'Tương tác TB';
-                  return [numberFormatter(Number(value)), label];
+                  return [numberFormatter(value), label];
                 }}
               />
               <Legend 
@@ -587,7 +591,7 @@ function DistributionTab({ data }: { data: PostDeepAnalyticsData }) {
                 tickFormatter={numberFormatter}
               />
               <ZAxis type="number" dataKey="er" range={[40, 160]} name="ER" />
-              <Tooltip
+              <SafeTooltip
                 cursor={{ strokeDasharray: '3 3', stroke: 'oklch(var(--bc) / 0.1)' }}
                 contentStyle={{
                   backgroundColor: 'oklch(var(--b3))',
@@ -598,9 +602,9 @@ function DistributionTab({ data }: { data: PostDeepAnalyticsData }) {
                 }}
                 labelStyle={{ color: 'oklch(var(--bc))', fontWeight: 'bold', fontSize: '10px' }}
                 itemStyle={{ fontSize: '10px' }}
-                formatter={(value: any, name: any) => {
-                  if (name === 'Views') return [numberFormatter(Number(value)), 'Lượt xem'];
-                  if (name === 'Interactions') return [numberFormatter(Number(value)), 'Tương tác'];
+                formatter={(value, name) => {
+                  if (name === 'Views') return [numberFormatter(value), 'Lượt xem'];
+                  if (name === 'Interactions') return [numberFormatter(value), 'Tương tác'];
                   return [`${value}%`, 'ER%'];
                 }}
               />
@@ -637,35 +641,44 @@ function FollowsTab({ data }: { data: PostDeepAnalyticsData }) {
   // Build Waterfall Stack Data for Recharts safely
   // base = bottom transparent buffer, value = height of bar, color = rendering gradient
   const waterfallData = React.useMemo(() => {
-    let accumulated = 0;
-    return data.waterfall.map((w, index) => {
+    const result: Array<{
+      name: string;
+      base: number;
+      value: number;
+      displayVal: number;
+      isFinal: boolean;
+    }> = [];
+
+    data.waterfall.reduce((acc, w, index) => {
       const isFinal = index === data.waterfall.length - 1;
-      
       let base = 0;
       let value = 0;
-      
+
       if (isFinal) {
         base = 0;
         value = w.total;
       } else {
         if (w.change > 0) {
-          base = accumulated;
+          base = acc;
           value = w.change;
-          accumulated += w.change;
         } else {
-          accumulated += w.change;
-          base = accumulated;
+          base = acc + w.change;
           value = Math.abs(w.change);
         }
       }
-      return {
+
+      result.push({
         name: w.name,
         base,
         value,
         displayVal: w.change,
-        isFinal
-      };
-    });
+        isFinal,
+      });
+
+      return isFinal ? acc : acc + w.change;
+    }, 0);
+
+    return result;
   }, [data.waterfall]);
 
   return (
@@ -700,7 +713,7 @@ function FollowsTab({ data }: { data: PostDeepAnalyticsData }) {
                 axisLine={false}
                 tickFormatter={numberFormatter}
               />
-              <Tooltip
+              <SafeTooltip
                 contentStyle={{
                   backgroundColor: 'oklch(var(--b3))',
                   border: '1px solid oklch(var(--bc) / 0.1)',
@@ -710,8 +723,9 @@ function FollowsTab({ data }: { data: PostDeepAnalyticsData }) {
                 }}
                 labelStyle={{ color: 'oklch(var(--bc))', fontWeight: 'bold', fontSize: '10px' }}
                 itemStyle={{ fontSize: '10px' }}
-                formatter={(value: any, name: any, props: any) => {
-                  const item = props.payload;
+                formatter={(value, name) => {
+                  const item = waterfallData.find(w => w.name === name);
+                  if (!item) return [numberFormatter(value), String(name)];
                   if (item.isFinal) return [`+${item.value} Follows`, 'Tổng cộng kênh'];
                   return [`+${item.displayVal} Follows`, 'Lượt đóng góp'];
                 }}
