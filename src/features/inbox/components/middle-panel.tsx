@@ -373,7 +373,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
               </div>
 
               {isFilterOpen && (
-                <div className="absolute top-full left-0 mt-1 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl z-[100] w-[180px] overflow-hidden flex flex-col">
+                <div className="absolute top-full left-0 mt-1 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl z-100 w-[180px] overflow-hidden flex flex-col">
                   <div 
                     className={cn("p-[8px_12px] text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground", filterBy === 'all' && "bg-accent-primary/10 text-accent-primary")}
                     onClick={() => { setFilterBy('all'); setIsFilterOpen(false); }}
