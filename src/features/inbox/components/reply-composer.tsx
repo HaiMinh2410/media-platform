@@ -1,16 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageWithSender, MessageAttachment } from '@features/inbox/types';
-import { Wand2, BookOpen, Paperclip, Mic, X, Reply, Loader2 } from 'lucide-react';
+import { Paperclip, Mic, Loader2 } from 'lucide-react';
 import { Icon } from '@shared/ui/icon';
-import { useInboxStore, ToneMode } from '../store/inbox.store';
+import { useInboxStore } from '../store/inbox.store';
 import { cn } from '@shared/lib/utils';
 import { AttachmentPreview, FileAttachment } from './attachment-preview';
 import { VoiceRecorder } from './voice-recorder';
 import { SendButton } from './send-button';
-import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@shared/api/supabase/client';
+
+// Import sub-components and utils
+import { MAX_TEXTAREA_HEIGHT } from './reply-composer/reply-composer-utils';
+import { ToneSelector } from './reply-composer/ToneSelector';
+import { ReplyPreview } from './reply-composer/ReplyPreview';
+import { SnippetSelector } from './reply-composer/SnippetSelector';
 
 type SendState = 'idle' | 'sending' | 'error';
 
@@ -25,34 +31,6 @@ type ReplyComposerProps = {
   botConfig?: any;
 };
 
-// Mock data for snippets
-const SNIPPETS = [
-  { id: '1', title: 'Welcome', text: 'Chào mừng bạn đến với Media Platform! Rất vui được hỗ trợ bạn.' },
-  { id: '2', title: 'Pricing', text: 'Hiện tại chúng tôi có các gói: Basic (9$), Pro (29$) và Enterprise.' },
-  { id: '3', title: 'Bye', text: 'Cảm ơn bạn. Chúc bạn một ngày tốt lành!' },
-];
-
-const MAX_TEXTAREA_HEIGHT = 320;
-
-const getReplyMessagePreview = (message: MessageWithSender) => {
-  if (message.content) return message.content;
-  if (!message.attachments || message.attachments.length === 0) return '[Tệp đính kèm]';
-  
-  const first = message.attachments[0];
-  switch (first.type) {
-    case 'image':
-      return '[Hình ảnh]';
-    case 'video':
-      return '[Video]';
-    case 'audio':
-      return '[Tin nhắn thoại]';
-    case 'file':
-      return '[Tài liệu]';
-    default:
-      return '[Tệp đính kèm]';
-  }
-};
-
 export function ReplyComposer({ 
   workspaceId,
   conversationId, 
@@ -61,7 +39,6 @@ export function ReplyComposer({
   platform,
   platformUserName,
   onTypingStateChange,
-  botConfig
 }: ReplyComposerProps) {
   const [text, setText] = useState('');
   const [aiStatusText, setAiStatusText] = useState<string>('');
@@ -110,9 +87,9 @@ export function ReplyComposer({
       clearTimeout(clearTimer);
     };
   }, [conversationId]);
+
   const [sendState, setSendState] = useState<SendState>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [showSnippets, setShowSnippets] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   
   const [files, setFiles] = useState<FileAttachment[]>([]);
@@ -132,8 +109,6 @@ export function ReplyComposer({
   } = useInboxStore();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const snippetsRef = useRef<HTMLDivElement>(null);
-
   const isCurrentlyTyping = useRef(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -187,16 +162,6 @@ export function ReplyComposer({
       }
     });
   }, [fillText]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (snippetsRef.current && !snippetsRef.current.contains(event.target as Node)) {
-        setShowSnippets(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -548,7 +513,6 @@ export function ReplyComposer({
 
   const handleSnippetClick = (snippetText: string) => {
     setText(snippetText);
-    setShowSnippets(false);
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
@@ -600,35 +564,14 @@ export function ReplyComposer({
         </div>
       )}
       
-      <div className="flex items-center justify-end gap-3 mb-2 px-1">
-        <div className="flex items-center gap-1">
-          {(['professional', 'sales', 'warm', 'flirty'] as ToneMode[]).map((t) => (
-            <button 
-              key={t}
-              type="button"
-              className={cn(
-                "bg-transparent border-none text-foreground-tertiary text-xs px-2 py-1 rounded-sm cursor-pointer transition-all hover:text-foreground-secondary hover:bg-foreground/5",
-                selectedTone === t && "text-accent-primary bg-accent-primary/10"
-              )}
-              onClick={() => setTone(t)}
-            >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </button>
-          ))}
-        </div>
-        <button 
-          type="button"
-          className={cn(
-            "flex items-center gap-1.5 bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/40 text-foreground text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer transition-all shadow-sm hover:from-primary/30 hover:to-secondary/30 hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
-            isRewriting && "opacity-80 cursor-wait"
-          )}
-          onClick={handleRewrite}
-          disabled={isRewriting || !text.trim()}
-        >
-          <Wand2 size={14} className={cn(isRewriting && "animate-spin")} />
-          {isRewriting ? 'Rewriting...' : 'AI Rewrite'}
-        </button>
-      </div>
+      {/* AI Tone Selector & Rewrite Trigger */}
+      <ToneSelector
+        selectedTone={selectedTone}
+        setTone={setTone}
+        onRewrite={handleRewrite}
+        isRewriting={isRewriting}
+        text={text}
+      />
       
       <div className="relative">
         {aiStatusText && (
@@ -637,34 +580,12 @@ export function ReplyComposer({
             <span>{aiStatusText}</span>
           </div>
         )}
-        <AnimatePresence initial={false}>
-          {replyToMessage && (
-            <motion.div
-              initial={{ height: 0, opacity: 0, y: 15 }}
-              animate={{ height: 'auto', opacity: 1, y: 0 }}
-              exit={{ height: 0, opacity: 0, y: 15 }}
-              transition={{ type: "spring", stiffness: 380, damping: 30 }}
-              className="overflow-hidden"
-            >
-              <div className="flex items-center justify-between border-l-2 border-primary px-3 py-2 mb-0 text-sm">
-                <div className="flex items-center gap-2 text-foreground-secondary min-w-0">
-                  <Reply size={14} className="shrink-0 text-primary" />
-                  <div className="truncate">
-                    <span className="font-bold text-primary mr-1">Đang trả lời:</span>
-                    {getReplyMessagePreview(replyToMessage)}
-                  </div>
-                </div>
-                <button 
-                  type="button"
-                  onClick={() => setReplyToMessage(null)}
-                  className="text-foreground-tertiary hover:text-foreground transition-colors p-1"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
+        {/* Original reply message quote preview banner */}
+        <ReplyPreview
+          replyToMessage={replyToMessage}
+          onCancel={() => setReplyToMessage(null)}
+        />
 
         {isRecording ? (
           <div className="pt-2">
@@ -700,7 +621,7 @@ export function ReplyComposer({
 
                 <textarea
                   ref={textareaRef}
-                  className="w-full bg-transparent border-none text-foreground text-base resize-none outline-none max-h-[160px] min-h-[24px] overflow-y-auto placeholder:text-foreground-tertiary caret-primary"
+                  className="w-full bg-transparent border-none text-foreground text-base resize-none outline-none max-h-[160px] min-h-lg overflow-y-auto placeholder:text-foreground-tertiary caret-primary"
                   placeholder={isSending ? 'Sending…' : 'Type a message…'}
                   rows={1}
                   value={text}
@@ -716,39 +637,14 @@ export function ReplyComposer({
                 
                 <div className="flex justify-between items-center pt-3 border-t border-foreground/5 mt-2">
                   <div className="flex items-center gap-2">
-                    <div className="relative" ref={snippetsRef}>
-                      <button 
-                        type="button" 
-                        className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary"
-                        onClick={() => setShowSnippets(!showSnippets)}
-                        title="Saved Snippets"
-                      >
-                        <BookOpen size={18} />
-                      </button>
-                      
-                      {showSnippets && (
-                        <div className="absolute bottom-full left-0 mb-2 w-64 bg-base-200 border border-foreground/10 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-                          <div className="px-3 py-2 text-xs font-bold text-foreground-tertiary uppercase tracking-wider border-b border-foreground/5">Saved Snippets</div>
-                          <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
-                            {SNIPPETS.map(s => (
-                              <button 
-                                key={s.id} 
-                                type="button" 
-                                className="w-full px-3 py-2 flex flex-col gap-0.5 text-left hover:bg-foreground/5 transition-colors"
-                                onClick={() => handleSnippetClick(s.text)}
-                              >
-                                <span className="text-sm font-semibold text-foreground">{s.title}</span>
-                                <span className="text-xs text-foreground-tertiary truncate">{s.text.substring(0, 30)}...</span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    {/* Saved Snippets Selector */}
+                    <SnippetSelector
+                      onSnippetSelect={handleSnippetClick}
+                    />
                     
                     <button 
                       type="button" 
-                      className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary" 
+                      className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5" 
                       title="Attach file"
                       onClick={() => fileInputRef.current?.click()}
                     >
@@ -764,7 +660,7 @@ export function ReplyComposer({
 
                     <button 
                       type="button" 
-                      className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5 text-primary" 
+                      className="bg-transparent border-none text-foreground-tertiary size-8 rounded-full flex items-center justify-center cursor-pointer transition-all hover:bg-foreground/5" 
                       title="Record voice note"
                       onClick={() => setIsRecording(true)}
                     >
