@@ -10,7 +10,7 @@ interface StatItemProps {
 function StatItem({ label, value, trend, isPositive }: StatItemProps) {
   return (
     <div className="px-[22px] py-[18px] flex flex-col gap-1 h-full border-r border-base-content/5 last:border-r-0 sm:even:border-r-0 lg:even:border-r lg:last:border-r-0">
-      <span className="text-[9px] font-bold text-base-content/40 uppercase tracking-[0.1em] font-mono">
+      <span className="text-[9px] font-bold text-base-content/40 uppercase tracking-widest font-mono">
         {label}
       </span>
       <span className="text-[26px] font-black tracking-tighter text-base-content font-mono">

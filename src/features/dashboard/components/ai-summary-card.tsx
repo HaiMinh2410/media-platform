@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
-import { Card } from '@shared/ui/card';
+
 import { getAISummary, AISummary } from '@features/dashboard/actions/dashboard.actions';
 import { Shimmer } from './shimmer';
 import { cn } from '@shared/lib/utils';
@@ -71,7 +71,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
   ];
 
   return (
-    <Card className="p-6 border border-base-content/5 bg-base-100/50 backdrop-blur-md shadow-sm rounded-3xl h-full flex flex-col transition-all duration-300 hover:shadow-lg">
+    <div className="p-6 border border-base-content/5 bg-base-100/50 backdrop-blur-md shadow-sm rounded-3xl h-full flex flex-col transition-all duration-300 hover:shadow-lg glass glass-shadow">
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
           <span className="text-lg">🤖</span>
@@ -79,7 +79,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
         <h3 className="font-bold text-sm tracking-tight">AI Activity Summary</h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 mb-6 flex-grow">
+      <div className="grid grid-cols-2 gap-2.5 mb-6 grow">
         {tiles.map((tile, i) => {
           // Special logic for Tile 4 (Response Time) status text
           let statusText = tile.trend;
@@ -121,17 +121,17 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
       <div className="bg-base-200/40 p-3 rounded-xl border border-base-content/5 flex flex-col gap-2">
         <div className="text-[10px] text-base-content/40 font-semibold italic">AI đang soạn draft...</div>
         <div className="flex flex-col gap-1.5">
-          <div className="h-2.5 bg-gradient-to-r from-base-content/5 via-base-content/10 to-base-content/5 bg-[length:200%_100%] animate-shimmer rounded-full w-[70%]" />
-          <div className="h-2.5 bg-gradient-to-r from-base-content/5 via-base-content/10 to-base-content/5 bg-[length:200%_100%] animate-shimmer rounded-full w-[45%]" />
+          <div className="h-2.5 bg-linear-to-r from-base-content/5 via-base-content/10 to-base-content/5 bg-size-[200%_100%] animate-shimmer rounded-full w-[70%]" />
+          <div className="h-2.5 bg-linear-to-r from-base-content/5 via-base-content/10 to-base-content/5 bg-size-[200%_100%] animate-shimmer rounded-full w-[45%]" />
         </div>
       </div>
-    </Card>
+    </div>
 
   );
 };
 
 const AISummaryCardSkeleton = () => (
-  <Card className="p-6 border border-base-content/5 bg-base-100/50 rounded-3xl h-full">
+  <div className="p-6 border border-base-content/5 bg-base-100/50 rounded-3xl h-full glass glass-shadow">
     <div className="flex items-center gap-2 mb-6">
       <Shimmer width="32px" height="32px" className="rounded-lg" />
       <Shimmer width="160px" height="20px" />
@@ -151,5 +151,5 @@ const AISummaryCardSkeleton = () => (
       <Shimmer height="10px" className="rounded-full w-[70%] mb-1" />
       <Shimmer height="10px" className="rounded-full w-[45%]" />
     </div>
-  </Card>
+  </div>
 );
