@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { InboxMetrics, getInboxMetrics } from '@features/dashboard/actions/dashboard.actions';

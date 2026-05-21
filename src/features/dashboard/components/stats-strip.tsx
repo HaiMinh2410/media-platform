@@ -9,14 +9,14 @@ interface StatItemProps {
 
 function StatItem({ label, value, trend, isPositive }: StatItemProps) {
   return (
-    <div className="px-[22px] py-[18px] flex flex-col gap-1 h-full border-r border-base-content/5 last:border-r-0 sm:even:border-r-0 lg:even:border-r lg:last:border-r-0">
-      <span className="text-[9px] font-bold text-base-content/40 uppercase tracking-widest font-mono">
+    <div className="px-md py-sm flex flex-col gap-1 h-full border-r border-foreground/5 last:border-r-0 sm:even:border-r-0 lg:even:border-r lg:last:border-r-0">
+      <span className="text-3xs font-bold text-foreground-tertiary uppercase tracking-widest font-mono">
         {label}
       </span>
-      <span className="text-[26px] font-black tracking-tighter text-base-content font-mono">
+      <span className="text-3xl font-black tracking-tighter text-base-content font-mono">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </span>
-      <span className={`text-[11px] font-bold ${isPositive ? 'text-success' : 'text-error'}`}>
+      <span className={`text-2xs font-bold ${isPositive ? 'text-success' : 'text-error'}`}>
         {trend}
       </span>
     </div>

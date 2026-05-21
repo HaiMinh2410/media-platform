@@ -68,7 +68,9 @@ function AccountHealthCard({ account }: AccountHealthCardProps) {
         <div className="flex gap-4 items-center">
           <div className={cn(
             "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-3",
-            account.platform === 'facebook' ? "bg-blue-600 text-white shadow-blue-500/20" : "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white shadow-pink-500/20"
+            account.platform === 'facebook'
+              ? "bg-facebook text-white shadow-facebook/20"
+              : "bg-instagram text-white shadow-instagram/20"
           )}>
             {account.platform === 'facebook' ? <Icon name="facebook" size={24} /> : <Icon name="instagram" size={24} />}
           </div>
@@ -109,7 +111,7 @@ function AccountHealthCard({ account }: AccountHealthCardProps) {
                 </span>
               </div>
               {account.pendingCount > 0 && (
-                <div className="bg-orange-500 text-white px-3 py-1.5 rounded-xl text-[10px] font-black shadow-lg shadow-orange-500/30 animate-bounce">
+                <div className="bg-warning text-warning-content px-3 py-1.5 rounded-xl text-2xs font-black shadow-lg shadow-warning/20 animate-bounce">
                   {account.pendingCount} PENDING
                 </div>
               )}

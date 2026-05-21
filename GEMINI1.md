@@ -66,7 +66,7 @@ RULE: DEBUG auto-upgrades REVIEW → FULL if severity = major.
 | ai | llm, groq, prompt, classify, generate | architect, builder, reviewer |
 | webhook | webhook, meta, tiktok, callback | builder, reviewer |
 | tailwind-best-practices | ui, component, page, style, tailwind, css | builder, reviewer |
-| daisy-theme | ui, component, page, theme, daisyui, css | builder, reviewer |
+| daisy | ui, component, page, theme, daisyui, css | builder, reviewer |
 
 RULE: Missing skill file → warning only, never block.
 RULE: Inject skills only to Target Agents listed above.

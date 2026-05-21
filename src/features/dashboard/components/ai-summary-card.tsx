@@ -35,6 +35,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
     return <AISummaryCardSkeleton />;
   }
 
+  // Static class mapping — Tailwind can statically scan all classes
   const tiles = [
     {
       icon: '⏱',
@@ -42,7 +43,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
       label: 'Tiết kiệm hôm nay',
       trend: data?.timeSaved.trend,
       trendDir: data?.timeSaved.trendDirection,
-      borderColor: '#7c3aed'
+      accentClass: 'border-t-primary',
     },
     {
       icon: '😊',
@@ -50,7 +51,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
       label: 'Khách hài lòng với AI',
       trend: data?.satisfaction.trend,
       trendDir: data?.satisfaction.trendDirection,
-      borderColor: '#10b981'
+      accentClass: 'border-t-success',
     },
     {
       icon: '🤖',
@@ -58,7 +59,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
       label: 'Tin nhắn AI đã xử lý',
       trend: data?.messagesProcessed.trend,
       trendDir: data?.messagesProcessed.trendDirection,
-      borderColor: '#2563eb'
+      accentClass: 'border-t-info',
     },
     {
       icon: '⚡',
@@ -66,8 +67,8 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
       label: 'Thời gian phản hồi TB',
       trend: data?.avgResponseTime.trend,
       trendDir: data?.avgResponseTime.trendDirection,
-      borderColor: '#f59e0b'
-    }
+      accentClass: 'border-t-warning',
+    },
   ];
 
   return (
@@ -102,7 +103,12 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
           }
 
           return (
-            <div key={i} className="bg-base-100 rounded-xl p-3.5 border border-base-content/5 flex flex-col gap-1 relative overflow-hidden" style={{ borderTop: `2px solid ${tile.borderColor}` }}>
+            <div key={i} className={cn(
+              "bg-base-100 rounded-xl p-3.5",
+              "border border-foreground/10 border-t-2",
+              tile.accentClass,
+              "flex flex-col gap-1 relative overflow-hidden"
+            )}>
               <div className="text-lg mb-1">{tile.icon}</div>
               <div className={cn("text-2xl font-bold tracking-tight leading-none", valueColor)}>{tile.value}</div>
               <div className="text-[10px] text-base-content/40 font-medium leading-tight">{tile.label}</div>

@@ -13,7 +13,6 @@
 
   /* Font Sizes - Only define non-standard sizes if absolutely necessary */
   --font-size-2xs: 10px;
-  --font-size-3xs: 8px;
   /* Use standard tailwind sizes: xs(12), sm(14), base(16), lg(18), xl(20), 2xl(24), 3xl(30), 4xl(36) */
 
   /* Colors - Map to daisyUI variables */
