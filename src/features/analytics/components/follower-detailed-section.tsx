@@ -1,30 +1,18 @@
-﻿'use client';
+'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
-} from 'recharts';
-import { 
-  Users, UserPlus, UserMinus, MapPin, Sparkles, TrendingUp, TrendingDown,
-  Globe, Info, Award, Clock, BarChart3
-} from 'lucide-react';
+import { Info } from 'lucide-react';
 import { getFollowerDetailedAnalyticsAction } from '@features/analytics/actions/analytics.actions';
 import { AnalyticsRange } from '@features/analytics/types';
-import { cn } from './primitives';
 
-interface DemographicItem {
-  name: string;
-  value: number;
-}
-
-interface FollowUnfollowItem {
-  date: string;
-  follows: number;
-  unfollows: number;
-}
+// Sub-components import
+import { FollowerDetailedSkeleton } from './follower-detailed/FollowerDetailedSkeleton';
+import { FollowerInsufficientDataState } from './follower-detailed/FollowerInsufficientDataState';
+import { FollowerLocationsCard } from './follower-detailed/FollowerLocationsCard';
+import { FollowerAgeCard } from './follower-detailed/FollowerAgeCard';
+import { FollowerGenderCard } from './follower-detailed/FollowerGenderCard';
+import { FollowerActiveTimesCard } from './follower-detailed/FollowerActiveTimesCard';
 
 interface FollowerDetailedSectionProps {
   accountId: string;
@@ -34,33 +22,6 @@ interface FollowerDetailedSectionProps {
   activeTimes: Record<string, number[]> | null;
 }
 
-const DAYS = ["M", "Tu", "W", "Th", "F", "Sa", "Su"] as const;
-const TIME_LABELS = ["12a", "3a", "6a", "9a", "12p", "3p", "6p", "9p"];
-
-function ActiveTimeBarRow({ label, value, max, index }: { label: string; value: number; max: number; index: number }) {
-  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
-  
-  return (
-    <div className="flex items-center gap-3 mb-2.5 last:mb-0 group">
-      <div className="w-8 text-foreground/40 text-[10px] font-bold text-right shrink-0 transition-colors group-hover:text-foreground/60">
-        {label}
-      </div>
-      <div className="flex-1 h-2 bg-foreground/5 rounded-full overflow-hidden">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.8, delay: index * 0.05, ease: [0.4, 0, 0.2, 1] }}
-          className="h-full rounded-full shadow-lg shadow-pink-500/10"
-          style={{ background: '#e91e8c' }}
-        />
-      </div>
-      <div className="w-10 text-foreground/70 text-[10px] font-bold text-right shrink-0 group-hover:text-foreground transition-colors">
-        {value.toLocaleString()}
-      </div>
-    </div>
-  );
-}
-
 export function FollowerDetailedSection({
   accountId,
   range,
@@ -68,11 +29,6 @@ export function FollowerDetailedSection({
   customEnd,
   activeTimes
 }: FollowerDetailedSectionProps) {
-  const [locationTab, setLocationTab] = useState<'country' | 'city'>('country');
-  const currentDayIndex = new Date().getDay();
-  const initialDay = DAYS[(currentDayIndex + 6) % 7];
-  const [activeDay, setActiveDay] = useState<typeof DAYS[number]>(initialDay);
-
   // Query follower details using TanStack Query
   const { data: result, isPending, isError } = useQuery({
     queryKey: ['follower-details', accountId, range, customStart, customEnd],
@@ -82,7 +38,7 @@ export function FollowerDetailedSection({
   });
 
   if (isPending) {
-    return <SkeletonDetailedFollowers />;
+    return <FollowerDetailedSkeleton />;
   }
 
   if (isError || !result || result.error) {
@@ -103,439 +59,45 @@ export function FollowerDetailedSection({
   const followersCount = details?.followersCount || 0;
   const username = details?.username || '';
   const insufficientData = details?.insufficientData ?? false;
-  const followsAndUnfollows: FollowUnfollowItem[] = details?.followsAndUnfollows || [];
   const demographics = details?.demographics || { age: [], city: [], country: [], gender: [] };
 
   // 1. Under 100 followers warning state
   if (insufficientData) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full bg-base-200 border border-foreground/10 rounded-3xl p-8 text-center font-sans shadow-2xl relative overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-linear-to-tr from-warning/5 via-transparent to-orange-500/5 pointer-events-none" />
-        <div className="w-16 h-16 bg-warning/10 border border-warning/20 text-warning rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-warning/5">
-          <Users size={28} className="animate-pulse" />
-        </div>
-        <h3 className="text-xl font-extrabold text-foreground mb-2 tracking-tight">Dữ liệu Người theo dõi hạn chế</h3>
-        <p className="text-foreground/60 text-sm max-w-lg mx-auto mb-6 leading-relaxed">
-          Meta chỉ cung cấp thông tin chi tiết về nhân khẩu học và biến động người theo dõi cho các tài khoản Instagram có từ <span className="text-warning font-bold">100 người theo dõi trở lên</span>.
-        </p>
-        
-        <div className="inline-flex flex-col items-center justify-center p-6 bg-foreground/2 border border-foreground/10 rounded-2xl mb-6 min-w-[200px]">
-          <span className="text-xs text-foreground/40 uppercase tracking-widest font-bold mb-1">Followers hiện tại</span>
-          <span className="text-4xl font-black text-foreground">{followersCount.toLocaleString()}</span>
-          {username && <span className="text-xs text-warning/70 font-semibold mt-1">@{username}</span>}
-        </div>
-
-        <div className="p-4 bg-warning/5 border border-warning/10 rounded-2xl max-w-md mx-auto flex items-start gap-3 text-left">
-          <Sparkles size={16} className="text-warning mt-0.5 shrink-0" />
-          <p className="text-xs text-foreground/70 leading-relaxed">
-            Hãy tiếp tục chia sẻ các nội dung thu hút, sử dụng Reels và đăng bài đều đặn để phát triển kênh của bạn lên mốc 100 followers nhé!
-          </p>
-        </div>
-      </motion.div>
+      <FollowerInsufficientDataState
+        followersCount={followersCount}
+        username={username}
+      />
     );
   }
-
-  // Calculate quick stats for follows and unfollows
-  const totalFollows = followsAndUnfollows.reduce((sum: number, d: FollowUnfollowItem) => sum + (d.follows || 0), 0);
-  const totalUnfollows = followsAndUnfollows.reduce((sum: number, d: FollowUnfollowItem) => sum + (d.unfollows || 0), 0);
-  const netGrowth = totalFollows - totalUnfollows;
-  const growthRate = totalUnfollows > 0 ? (totalFollows / totalUnfollows).toFixed(1) : totalFollows.toFixed(0);
-
-  // Parse Demographics Locations
-  const locations: DemographicItem[] = locationTab === 'country' ? demographics.country : demographics.city;
-  const topLocations = locations.slice(0, 5);
-  const maxLocationVal = topLocations.length > 0 ? Math.max(...topLocations.map((l: DemographicItem) => l.value)) : 100;
-  const totalLocationVal = locations.reduce((sum: number, l: DemographicItem) => sum + l.value, 0) || 1;
-
-  // Parse Gender Donut Chart
-  const genderColors = {
-    female: '#f43f5e', // Sleek Rose
-    male: '#3b82f6',   // Sleek Blue
-    unknown: '#9ca3af' // Sleek Gray
-  };
-  const rawGenders: DemographicItem[] = demographics.gender || [];
-  const totalGenders = rawGenders.reduce((sum: number, g: DemographicItem) => sum + g.value, 0) || 1;
-
-  const genderData = rawGenders.map((g: DemographicItem) => {
-    let name = 'Khác';
-    let color = genderColors.unknown;
-    const lowerName = g.name.toLowerCase();
-
-    if (lowerName === 'f' || lowerName.includes('female') || lowerName.includes('nữ')) {
-      name = 'Nữ';
-      color = genderColors.female;
-    } else if (lowerName === 'm' || lowerName.includes('male') || lowerName.includes('nam')) {
-      name = 'Nam';
-      color = genderColors.male;
-    }
-
-    return {
-      name,
-      value: g.value,
-      percentage: Math.round((g.value / totalGenders) * 100),
-      color
-    };
-  }).filter((g: any) => g.value > 0);
-
-  // Parse Age Progress Groups
-  const ageData: DemographicItem[] = demographics.age || [];
-  const topAge = ageData.slice(0, 5);
-  const maxAgeVal = topAge.length > 0 ? Math.max(...topAge.map((a: DemographicItem) => a.value)) : 100;
 
   return (
     <div className="space-y-6 font-sans">
-      
-
-
-      {/* 3. DEMOGRAPHICS GRID - 2 COLUMNS */}
+      {/* DEMOGRAPHICS GRID - 2 COLUMNS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* CARD A: LOCATION TABS COUNTRY / CITY */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="glass rounded-3xl p-6 shadow-2xl flex flex-col justify-between"
-        >
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2">
-                <Globe size={18} className="text-info" />
-                <h4 className="font-bold text-foreground tracking-tight">Khu vực sinh sống</h4>
-              </div>
-              
-              {/* Country / City Selector Tabs */}
-              <div className="flex p-0.5 bg-foreground/5 border border-foreground/10 rounded-xl select-none">
-                <button
-                  onClick={() => setLocationTab('country')}
-                  className={cn(
-                    "px-3 py-1 rounded-lg text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer",
-                    locationTab === 'country' ? "bg-primary text-primary-content shadow-lg font-extrabold" : "text-foreground/40 hover:text-foreground/80"
-                  )}
-                >
-                  Quốc gia
-                </button>
-                <button
-                  onClick={() => setLocationTab('city')}
-                  className={cn(
-                    "px-3 py-1 rounded-lg text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer",
-                    locationTab === 'city' ? "bg-primary text-primary-content shadow-lg font-extrabold" : "text-foreground/40 hover:text-foreground/80"
-                  )}
-                >
-                  Thành phố
-                </button>
-              </div>
-            </div>
-
-            {topLocations.length === 0 ? (
-              <div className="h-[220px] flex items-center justify-center">
-                <span className="text-foreground/20 text-xs">Không có dữ liệu vị trí</span>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {topLocations.map((loc: DemographicItem, idx: number) => {
-                  const percent = Math.round((loc.value / totalLocationVal) * 100) || 0;
-                  return (
-                    <div key={idx} className="space-y-1.5 group">
-                      <div className="flex justify-between items-center text-xs font-semibold">
-                        <span className="text-foreground/70 group-hover:text-foreground transition-colors flex items-center gap-1.5">
-                          <MapPin size={12} className="text-info/75" />
-                          {loc.name}
-                        </span>
-                        <span className="text-foreground font-bold">{percent}%</span>
-                      </div>
-                      <div className="h-2 bg-foreground/5 rounded-full overflow-hidden flex">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percent}%` }}
-                          transition={{ duration: 0.8, delay: idx * 0.1 }}
-                          className="h-full bg-linear-to-r from-blue-500 to-indigo-500 rounded-full"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          
-          <div className="mt-6 pt-4 border-t border-foreground/10 flex items-center gap-2 text-[10px] text-foreground/30 font-bold uppercase tracking-wider">
-            <Award size={14} className="text-info/50" />
-            <span>Phân tích dựa trên {followersCount.toLocaleString()} followers</span>
-          </div>
-        </motion.div>
+        <FollowerLocationsCard
+          countryData={demographics.country}
+          cityData={demographics.city}
+          followersCount={followersCount}
+        />
 
         {/* CARD B: AGE GROUPS */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass rounded-3xl p-6 shadow-2xl flex flex-col justify-between"
-        >
-          <div>
-            <div className="flex items-center gap-2 mb-6">
-              <Award size={18} className="text-success" />
-              <h4 className="font-bold text-foreground tracking-tight">Nhóm tuổi phổ biến</h4>
-            </div>
-
-            {topAge.length === 0 ? (
-              <div className="h-[220px] flex items-center justify-center">
-                <span className="text-foreground/20 text-xs">Không có dữ liệu độ tuổi</span>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {topAge.map((age: DemographicItem, idx: number) => {
-                  const percent = Math.round((age.value / totalLocationVal) * 100) || 0; // standard percentage of total demographics
-                  // Calculate dynamic percentage against max age count for cleaner horizontal bar visuals
-                  const visualPct = Math.round((age.value / maxAgeVal) * 100) || 0;
-                  return (
-                    <div key={idx} className="space-y-1.5 group">
-                      <div className="flex justify-between items-center text-xs font-semibold">
-                        <span className="text-foreground/70 group-hover:text-foreground transition-colors">{age.name}</span>
-                        <span className="text-foreground font-bold">{age.value.toLocaleString()} <span className="text-foreground/30 text-[10px] font-normal">({percent}%)</span></span>
-                      </div>
-                      <div className="h-2 bg-foreground/5 rounded-full overflow-hidden flex">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${visualPct}%` }}
-                          transition={{ duration: 0.8, delay: idx * 0.1 }}
-                          className="h-full bg-linear-to-r from-emerald-500 to-teal-500 rounded-full"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-foreground/10 flex items-center gap-2 text-[10px] text-foreground/30 font-bold uppercase tracking-wider">
-            <Sparkles size={14} className="text-success/50" />
-            <span>Độ tuổi tập trung lớn nhất: {topAge[0]?.name || 'N/A'}</span>
-          </div>
-        </motion.div>
+        <FollowerAgeCard
+          ageData={demographics.age}
+        />
 
         {/* CARD C: GENDER DONUT PIE */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="glass rounded-3xl p-6 shadow-2xl flex flex-col justify-between"
-        >
-          <div>
-            <div className="flex items-center gap-2 mb-6">
-              <Users size={18} className="text-secondary" />
-              <h4 className="font-bold text-foreground tracking-tight">Tỷ lệ Giới tính</h4>
-            </div>
-
-            {genderData.length === 0 ? (
-              <div className="h-[220px] flex items-center justify-center">
-                <span className="text-foreground/20 text-xs">Không có dữ liệu giới tính</span>
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-                {/* Donut Chart container */}
-                <div className="w-[150px] h-[150px] relative shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={genderData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={45}
-                        outerRadius={65}
-                        paddingAngle={4}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        {genderData.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  
-                  {/* Inside Center label */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-[10px] text-foreground/35 font-bold uppercase tracking-wider">Giới tính</span>
-                    <span className="text-sm font-black text-foreground">
-                      {genderData[0]?.name || 'N/A'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Custom Legend list */}
-                <div className="flex-1 space-y-3.5 w-full">
-                  {genderData.map((gender: any, idx: number) => (
-                    <div key={idx} className="flex justify-between items-center bg-foreground/1 border border-foreground/10 p-2.5 rounded-xl group hover:bg-foreground/3 transition-all">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full shadow-lg" style={{ backgroundColor: gender.color, boxShadow: `0 0 10px ${gender.color}30` }} />
-                        <span className="text-xs font-semibold text-foreground/60 group-hover:text-foreground transition-colors">{gender.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-foreground">{gender.percentage}%</span>
-                        <span className="block text-[8px] text-foreground/30 font-medium">({gender.value.toLocaleString()})</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-foreground/10 flex items-center gap-2 text-[10px] text-foreground/30 font-bold uppercase tracking-wider">
-            <Info size={14} className="text-secondary/50" />
-            <span>Cân bằng giới tính: {genderData[0]?.name || 'N/A'} chiếm ưu thế</span>
-          </div>
-        </motion.div>
+        <FollowerGenderCard
+          genderDataRaw={demographics.gender}
+        />
 
         {/* CARD D: ACTIVE TIMES */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="glass rounded-3xl p-6 shadow-2xl flex flex-col justify-between"
-        >
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2">
-                <Clock size={18} className="text-secondary animate-pulse" />
-                <h4 className="font-bold text-foreground tracking-tight">Giờ hoạt động nhiều nhất</h4>
-              </div>
+        <FollowerActiveTimesCard
+          activeTimes={activeTimes}
+        />
 
-              {/* Day Selector Tabs */}
-              {activeTimes && (
-                <div className="flex p-0.5 bg-foreground/5 border border-foreground/10 rounded-xl select-none flex-wrap max-w-[200px] justify-end">
-                  {DAYS.map((d) => (
-                    <button
-                      key={d}
-                      onClick={() => setActiveDay(d)}
-                      className={cn(
-                        "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all duration-200 cursor-pointer",
-                        activeDay === d ? "bg-secondary text-secondary-content shadow-lg font-extrabold" : "text-foreground/40 hover:text-foreground/80"
-                      )}
-                    >
-                      {d}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {!activeTimes ? (
-              <div className="h-[220px] flex flex-col items-center justify-center text-center">
-                <BarChart3 className="w-8 h-8 text-foreground/20 mb-2" />
-                <span className="text-foreground/20 text-xs font-semibold">Không có dữ liệu giờ hoạt động</span>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="text-xs font-bold text-foreground/40 mb-2 uppercase tracking-wider">Thời gian online nhiều nhất</div>
-                <div className="space-y-1">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeDay}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {(() => {
-                        const dayData = activeTimes[activeDay] || [0, 0, 0, 0, 0, 0, 0, 0];
-                        const maxActive = Math.max(...dayData, 1);
-                        return TIME_LABELS.map((h, i) => (
-                          <ActiveTimeBarRow
-                            key={h}
-                            label={h}
-                            value={dayData[i] || 0}
-                            max={maxActive}
-                            index={i}
-                          />
-                        ));
-                      })()}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-foreground/10 flex items-center gap-2 text-[10px] text-foreground/30 font-bold uppercase tracking-wider">
-            <Info size={14} className="text-secondary/50" />
-            <span>Follower hoạt động sôi nổi nhất vào 9 PM</span>
-          </div>
-        </motion.div>
-
-      </div>
-
-    </div>
-  );
-}
-
-// Custom tooltip component for follows/unfollows AreaChart
-function CustomChartTooltip({ active, payload, label }: any) {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-base-300 border border-foreground/10 p-3 rounded-2xl shadow-2xl min-w-[140px] font-sans backdrop-blur-md">
-        <div className="text-[10px] text-foreground/40 font-bold uppercase tracking-wider mb-2">{label}</div>
-        <div className="space-y-1.5">
-          {payload.map((item: any, i: number) => (
-            <div key={i} className="flex items-center justify-between gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="text-xs font-medium text-foreground/70">{item.name}</span>
-              </div>
-              <span className="text-xs font-black text-foreground" style={{ color: item.color }}>
-                +{item.value.toLocaleString()}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
-
-// Internal component for statistics card loading skeletons
-function SkeletonDetailedFollowers() {
-  return (
-    <div className="space-y-6 animate-pulse">
-      {/* Chart Skeleton */}
-      <div className="w-full h-[360px] bg-foreground/2 border border-foreground/10 rounded-3xl p-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/3 to-transparent shimmer" />
-        <div className="flex justify-between items-center mb-8">
-          <div className="space-y-2">
-            <div className="w-36 h-5 bg-foreground/5 rounded" />
-            <div className="w-24 h-3 bg-foreground/5 rounded" />
-          </div>
-          <div className="w-48 h-12 bg-foreground/5 rounded-2xl" />
-        </div>
-        <div className="w-full h-[200px] bg-foreground/5 rounded-xl mt-4" />
-      </div>
-
-      {/* Grid Skeletons */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-foreground/2 border border-foreground/10 rounded-3xl p-6 h-[320px] relative overflow-hidden">
-            <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/3 to-transparent shimmer" />
-            <div className="w-32 h-5 bg-foreground/5 rounded mb-8" />
-            <div className="space-y-4">
-              {[...Array(4)].map((_, j) => (
-                <div key={j} className="space-y-2">
-                  <div className="flex justify-between">
-                    <div className="w-20 h-3 bg-foreground/5 rounded" />
-                    <div className="w-8 h-3 bg-foreground/5 rounded" />
-                  </div>
-                  <div className="w-full h-2 bg-foreground/5 rounded-full" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );

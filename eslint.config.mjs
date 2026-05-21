@@ -22,43 +22,43 @@ const eslintConfig = defineConfig([
             {
               target: "./src/features/analytics",
               from: "./src/features",
-              except: ["./analytics"],
+              except: ["./analytics", "./*/index.ts", "./*/server.ts", "./*/client.ts", "./*/index", "./*/server", "./*/client", "./*/index.tsx"],
               message: "Giao tiep cheo giua cac features phai thong qua public API (@features/feature-name). Khong duoc import truc tiep tu internals cua feature khac."
             },
             {
               target: "./src/features/dashboard",
               from: "./src/features",
-              except: ["./dashboard"],
+              except: ["./dashboard", "./*/index.ts", "./*/server.ts", "./*/client.ts", "./*/index", "./*/server", "./*/client", "./*/index.tsx"],
               message: "Giao tiep cheo giua cac features phai thong qua public API (@features/feature-name). Khong duoc import truc tiep tu internals cua feature khac."
             },
             {
               target: "./src/features/inbox",
               from: "./src/features",
-              except: ["./inbox"],
+              except: ["./inbox", "./*/index.ts", "./*/server.ts", "./*/client.ts", "./*/index", "./*/server", "./*/client", "./*/index.tsx"],
               message: "Giao tiep cheo giua cac features phai thong qua public API (@features/feature-name). Khong duoc import truc tiep tu internals cua feature khac."
             },
             {
               target: "./src/features/posts",
               from: "./src/features",
-              except: ["./posts"],
+              except: ["./posts", "./*/index.ts", "./*/server.ts", "./*/client.ts", "./*/index", "./*/server", "./*/client", "./*/index.tsx"],
               message: "Giao tiep cheo giua cac features phai thong qua public API (@features/feature-name). Khong duoc import truc tiep tu internals cua feature khac."
             },
             {
               target: "./src/features/settings",
               from: "./src/features",
-              except: ["./settings"],
+              except: ["./settings", "./*/index.ts", "./*/server.ts", "./*/client.ts", "./*/index", "./*/server", "./*/client", "./*/index.tsx"],
               message: "Giao tiep cheo giua cac features phai thong qua public API (@features/feature-name). Khong duoc import truc tiep tu internals cua feature khac."
             },
             {
               target: "./src/features/ai-agent",
               from: "./src/features",
-              except: ["./ai-agent"],
+              except: ["./ai-agent", "./*/index.ts", "./*/server.ts", "./*/client.ts", "./*/index", "./*/server", "./*/client", "./*/index.tsx"],
               message: "Giao tiep cheo giua cac features phai thong qua public API (@features/feature-name). Khong duoc import truc tiep tu internals cua feature khac."
             },
             {
               target: "./src/features/auth",
               from: "./src/features",
-              except: ["./auth"],
+              except: ["./auth", "./*/index.ts", "./*/server.ts", "./*/client.ts", "./*/index", "./*/server", "./*/client", "./*/index.tsx"],
               message: "Giao tiep cheo giua cac features phai thong qua public API (@features/feature-name). Khong duoc import truc tiep tu internals cua feature khac."
             }
           ]
