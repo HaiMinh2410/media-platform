@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ConversationWithLastMessage } from '@features/inbox/types';
 import { cn } from '@shared/lib/utils';
-import { MessageCircle, Flame, Star, Bot, Users, Pin } from 'lucide-react';
+import { Flame, Star, Bot, Users, Pin } from 'lucide-react';
 import { Icon } from '@shared/ui/icon';
 import { useInboxStore } from '../store/inbox.store';
 

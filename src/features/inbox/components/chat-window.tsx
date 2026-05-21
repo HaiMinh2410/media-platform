@@ -1,501 +1,247 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { MessageWithSender } from '@features/inbox/types';
 import { MessageBubble } from './message-bubble';
 import { ChatSkeleton } from './skeletons';
-import { useMessageRealtime } from '../hooks/use-inbox-realtime';
 import { formatChatSeparator } from '@shared/lib/utils';
 import { useInboxStore } from '../store/inbox.store';
 import { TypingUser } from '../hooks/use-presence-typing';
 
-// Import sub-components and utils
+// Import existing sub-components
 import { PinnedMessageBanner } from './chat-window/PinnedMessageBanner';
 import { LightboxOverlay } from './chat-window/LightboxOverlay';
 import { PinnedMessagesModal } from './chat-window/PinnedMessagesModal';
+
+// Import newly refactored custom hooks and sub-components
+import { usePinnedMessages } from './chat-window/hooks/usePinnedMessages';
+import { useChatMessages } from './chat-window/hooks/useChatMessages';
+import { TypingIndicatorList } from './chat-window/components/TypingIndicatorList';
+import { SystemMessage } from './chat-window/components/SystemMessage';
 
 export type ChatWindowRef = {
   addMessage: (message: MessageWithSender) => void;
   scrollToMessage: (messageId: string) => void;
 };
 
-export const ChatWindow = forwardRef<ChatWindowRef, { 
-  conversationId: string; 
+export const ChatWindow = forwardRef<ChatWindowRef, {
+  conversationId: string;
   typingUsers?: TypingUser[];
   customerAvatar?: string;
   customerName?: string;
 }>(
   ({ conversationId, typingUsers = [], customerAvatar, customerName }, ref) => {
-  const [messages, setMessages] = useState<MessageWithSender[]>([]);
-  const [pinnedMessages, setPinnedMessages] = useState<MessageWithSender[]>([]);
-  const [isPinnedModalOpen, setIsPinnedModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-  
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const observerTarget = useRef<HTMLDivElement>(null);
-  const previousScrollHeight = useRef<number>(0);
-  const isInitialLoad = useRef(true);
-  const seenIds = useRef<Set<string>>(new Set());
-
-  const refreshCounter = useInboxStore(state => state.refreshCounter);
-  const triggerRefresh = useInboxStore(state => state.triggerRefresh);
-  const lightboxImage = useInboxStore(state => state.lightboxImage);
-  const setLightboxImage = useInboxStore(state => state.setLightboxImage);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setLightboxImage(null);
-      }
-    };
-    if (lightboxImage) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [lightboxImage, setLightboxImage]);
-
-  const fetchPinnedMessages = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/conversations/${conversationId}/messages?isPinned=true`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.data) {
-          setPinnedMessages(data.data);
-        }
-      }
-    } catch (err) {
-      console.error('[ChatWindow] Failed to fetch pinned messages:', err);
-    }
-  }, [conversationId]);
-
-  const handleUnpin = useCallback(async (messageId: string) => {
-    try {
-      const res = await fetch(`/api/conversations/${conversationId}/pin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          target: 'message',
-          messageId,
-          isPinned: false
-        })
+    useEffect(() => {
+      const handle = requestAnimationFrame(() => {
+        setIsMounted(true);
       });
-      if (res.ok) {
-        setPinnedMessages(prev => prev.filter(m => m.id !== messageId));
-        triggerRefresh();
-      }
-    } catch (err) {
-      console.error('[ChatWindow] Failed to unpin message:', err);
-    }
-  }, [conversationId, triggerRefresh]);
+      return () => cancelAnimationFrame(handle);
+    }, []);
 
-  const fetchMessages = useCallback(async (cursor?: string | null) => {
-    try {
-      setLoading(true);
-      const url = new URL(`/api/conversations/${conversationId}/messages`, window.location.origin);
-      url.searchParams.set('limit', '50');
-      if (cursor) url.searchParams.set('cursor', cursor);
+    const lightboxImage = useInboxStore(state => state.lightboxImage);
+    const setLightboxImage = useInboxStore(state => state.setLightboxImage);
 
-      if (scrollRef.current) {
-        previousScrollHeight.current = scrollRef.current.scrollHeight;
-      }
-
-      const res = await fetch(url.toString());
-      const data = await res.json();
-
-      if (data.data) {
-        const chronologicalChunk = [...data.data].reverse() as MessageWithSender[];
-        chronologicalChunk.forEach(m => seenIds.current.add(m.id));
-        
-        setMessages(prev => {
-          return cursor ? [...chronologicalChunk, ...prev] : chronologicalChunk;
-        });
-        
-        setNextCursor(data.meta?.nextCursor || null);
-      }
-    } catch (err) {
-      console.error('Failed to fetch messages:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [conversationId]);
-
-  useEffect(() => {
-    isInitialLoad.current = true;
-    seenIds.current = new Set();
-    fetchMessages(null);
-    fetchPinnedMessages();
-
-    fetch(`/api/conversations/${conversationId}/read`, { method: 'PATCH' }).catch(
-      (err) => console.warn('[ChatWindow] Failed to mark conversation as read:', err)
-    );
-  }, [fetchMessages, fetchPinnedMessages, conversationId]);
-
-  useEffect(() => {
-    fetchPinnedMessages();
-    fetchMessages(null);
-  }, [fetchPinnedMessages, fetchMessages, refreshCounter]);
-
-  useEffect(() => {
-    if (!scrollRef.current) return;
-    const scrollEl = scrollRef.current;
-
-    if (isInitialLoad.current && messages.length > 0) {
-      scrollEl.scrollTo(0, scrollEl.scrollHeight);
-      isInitialLoad.current = false;
-    } else if (messages.length > 0 && previousScrollHeight.current > 0) {
-      const heightDifference = scrollEl.scrollHeight - previousScrollHeight.current;
-      scrollEl.scrollTo(0, scrollEl.scrollTop + heightDifference);
-      previousScrollHeight.current = 0;
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && nextCursor && !loading) {
-          fetchMessages(nextCursor);
+    // Escape listener for Lightbox
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setLightboxImage(null);
         }
+      };
+      if (lightboxImage) {
+        window.addEventListener('keydown', handleKeyDown);
+      }
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }, [lightboxImage, setLightboxImage]);
+
+    // 1. Manage pinned messages state and logic
+    const {
+      pinnedMessages,
+      isPinnedModalOpen,
+      setIsPinnedModalOpen,
+      fetchPinnedMessages,
+      handleUnpin,
+    } = usePinnedMessages({ conversationId });
+
+    // 2. Manage all messages state, loading, pagination, scrolling, realtime, etc.
+    const {
+      messages,
+      loading,
+      nextCursor,
+      scrollRef,
+      observerTarget,
+      handleNewMessage,
+      scrollToMessage,
+    } = useChatMessages({
+      conversationId,
+      typingUsersCount: typingUsers.length,
+      fetchPinnedMessages,
+    });
+
+    // Expose ref functions to parent (Inbox dashboard / RightSidePanel)
+    useImperativeHandle(ref, () => ({
+      addMessage: (message: MessageWithSender) => {
+        handleNewMessage(message);
       },
-      { threshold: 0 }
-    );
+      scrollToMessage: (messageId: string) => {
+        scrollToMessage(messageId);
+      },
+    }), [handleNewMessage, scrollToMessage]);
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
+    // Identify latest outgoing and read outgoing messages for read receipts
+    const outgoingMessages = messages.filter(m => m.senderType === 'ai' || m.senderType === 'agent');
+    const latestOutgoingMessageId = outgoingMessages.length > 0
+      ? outgoingMessages[outgoingMessages.length - 1].id
+      : null;
+    const readOutgoingMessages = outgoingMessages.filter(m => m.is_read);
+    const latestReadOutgoingMessageId = readOutgoingMessages.length > 0
+      ? readOutgoingMessages[readOutgoingMessages.length - 1].id
+      : null;
 
-    return () => observer.disconnect();
-  }, [nextCursor, loading, fetchMessages]);
-
-  const handleNewMessage = useCallback((message: MessageWithSender) => {
-    if (seenIds.current.has(message.id)) return;
-    seenIds.current.add(message.id);
-
-    setMessages(prev => {
-      const resolvedMessage = { ...message };
-      // Nếu có parentMessageId nhưng thiếu đối tượng parentMessage, tự động ánh xạ từ tin nhắn hiện tại
-      if (resolvedMessage.parentMessageId && !resolvedMessage.parentMessage) {
-        const parent = prev.find(m => m.id === resolvedMessage.parentMessageId);
-        if (parent) {
-          resolvedMessage.parentMessage = parent;
-        }
-      }
-
-      // Check if there is an explicit tempId to replace
-      const tempId = (message as MessageWithSender & { tempId?: string }).tempId;
-      if (tempId) {
-        return prev.map(m => m.id === tempId ? resolvedMessage : m);
-      }
-
-      // Fallback: if this is a real agent message, search for any matching temp- message and replace it
-      if (resolvedMessage.senderType === 'agent' && !resolvedMessage.id.startsWith('temp-')) {
-        const existingTempIndex = prev.findIndex(m => 
-          m.id.startsWith('temp-') && 
-          m.content === resolvedMessage.content
-        );
-        if (existingTempIndex !== -1) {
-          const updated = [...prev];
-          updated[existingTempIndex] = resolvedMessage;
-          return updated;
-        }
-      }
-
-      return [...prev, resolvedMessage];
-    });
-
-    requestAnimationFrame(() => {
-      const el = scrollRef.current;
-      if (!el) return;
-      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-      if (isNearBottom) {
-        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-      }
-    });
-  }, []);
-
-  const handleUpdateMessage = useCallback((updated: {
-    id: string;
-    is_read?: boolean;
-    isRead?: boolean;
-    is_delivered?: boolean;
-    isDelivered?: boolean;
-    is_pinned?: boolean;
-    isPinned?: boolean;
-  }) => {
-    setMessages(prev => prev.map(m => {
-      if (m.id === updated.id) {
-        return {
-          ...m,
-          is_read: updated.is_read ?? updated.isRead ?? m.is_read,
-          is_delivered: updated.is_delivered ?? updated.isDelivered ?? m.is_delivered,
-          is_pinned: updated.is_pinned ?? updated.isPinned ?? m.is_pinned,
-        };
-      }
-      return m;
-    }));
-    fetchPinnedMessages();
-  }, [fetchPinnedMessages]);
-
-  const scrollToMessage = useCallback((messageId: string) => {
-    const element = document.getElementById(`msg-${messageId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      
-      const targets = element.querySelectorAll('.bubble-highlight-target');
-      if (targets.length > 0) {
-        targets.forEach(target => {
-          target.classList.add(
-            "ring-2", 
-            "ring-indigo-500", 
-            "dark:ring-white", 
-            "ring-offset-2", 
-            "ring-offset-background", 
-            "scale-[1.03]", 
-            "shadow-lg", 
-            "z-30"
-          );
-        });
-        setTimeout(() => {
-          targets.forEach(target => {
-            target.classList.remove(
-              "ring-2", 
-              "ring-indigo-500", 
-              "dark:ring-white", 
-              "ring-offset-2", 
-              "ring-offset-background", 
-              "scale-[1.03]", 
-              "shadow-lg", 
-              "z-30"
-            );
-          });
-        }, 2000);
-      } else {
-        // Fallback gorgeous focus ring if no bubble target classes are found
-        element.classList.add("ring-4", "ring-indigo-500/50", "ring-offset-4", "scale-[1.01]", "transition-all", "duration-500", "ease-out", "z-10");
-        const bubble = element.querySelector('.w-fit');
-        if (bubble) {
-          bubble.classList.add("shadow-xl", "shadow-indigo-500/20", "border-indigo-500/50");
-        }
-        
-        setTimeout(() => {
-          element.classList.remove("ring-4", "ring-indigo-500/50", "ring-offset-4", "scale-[1.01]");
-          if (bubble) {
-            bubble.classList.remove("shadow-xl", "shadow-indigo-500/20", "border-indigo-500/50");
-          }
-        }, 2000);
-      }
-    } else {
-      console.warn(`[ChatWindow] Message ${messageId} not found in current window`);
-    }
-  }, []);
-
-  useImperativeHandle(ref, () => ({
-    addMessage: (message: MessageWithSender) => {
-      handleNewMessage(message);
-    },
-    scrollToMessage: (messageId: string) => {
-      scrollToMessage(messageId);
-    }
-  }), [handleNewMessage, scrollToMessage]);
-
-  useMessageRealtime({ 
-    conversationId, 
-    onNewMessage: handleNewMessage,
-    onMessageUpdate: handleUpdateMessage 
-  });
-
-  // Scroll to bottom when someone starts typing to ensure the indicator is visible
-  useEffect(() => {
-    if (typingUsers.length > 0 && scrollRef.current) {
-      const el = scrollRef.current;
-      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 240;
-      if (isNearBottom) {
-        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-      }
-    }
-  }, [typingUsers.length]);
-
-  // Find latest outgoing and read outgoing messages for delivery status & read receipt
-  const outgoingMessages = messages.filter(m => m.senderType === 'ai' || m.senderType === 'agent');
-  const latestOutgoingMessageId = outgoingMessages.length > 0 
-    ? outgoingMessages[outgoingMessages.length - 1].id 
-    : null;
-  const readOutgoingMessages = outgoingMessages.filter(m => m.is_read);
-  const latestReadOutgoingMessageId = readOutgoingMessages.length > 0 
-    ? readOutgoingMessages[readOutgoingMessages.length - 1].id 
-    : null;
-
-  return (
-    <div className="flex-1 flex flex-col overflow-y-auto relative">
-      {/* Glassmorphic Sticky Pinned Message Banner */}
-      {pinnedMessages.length > 0 && (
-        <PinnedMessageBanner 
-          pinnedMessages={pinnedMessages} 
-          customerName={customerName}
-          onJumpToMessage={scrollToMessage}
-          onUnpin={handleUnpin}
-        />
-      )}
-
-      {/* Main scrolling chat window */}
-      <div 
-        className="flex-1 overflow-y-auto overflow-x-hidden p-md px-4 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent" 
-        ref={scrollRef}
-      >
-        <div ref={observerTarget} style={{ height: '1px', opacity: 0 }} />
-
-        {loading && nextCursor && (
-          <div className="p-4 text-center text-foreground-tertiary text-sm">Loading older messages...</div>
-        )}
-        
-        {loading && messages.length === 0 && <ChatSkeleton />}
-
-        {messages.map((msg, index) => {
-          if (msg.senderId === 'system') {
-            return (
-              <div key={msg.id} className="flex justify-center items-center my-1.5 select-none animate-in fade-in duration-300">
-                <span className="text-xs font-medium text-foreground-secondary/75 flex items-center gap-1.5">
-                  <span>{msg.content}</span>
-                  <button 
-                    onClick={() => {
-                      setIsPinnedModalOpen(true);
-                    }}
-                    className="text-primary transition-colors hover:underline cursor-pointer border-0 bg-transparent p-0"
-                  >
-                    Xem tất cả
-                  </button>
-                </span>
-              </div>
-            );
-          }
-
-          const prevMsg = index > 0 ? messages[index - 1] : null;
-          const nextMsg = index < messages.length - 1 ? messages[index + 1] : null;
-          
-          let showSeparator = false;
-          if (!prevMsg) {
-            showSeparator = true;
-          } else {
-            const currDate = new Date(msg.createdAt);
-            const prevDate = new Date(prevMsg.createdAt);
-            const isSameDay = currDate.toDateString() === prevDate.toDateString();
-            const diffMins = (currDate.getTime() - prevDate.getTime()) / (1000 * 60);
-            
-            if (!isSameDay || diffMins > 10) {
-              showSeparator = true;
-            }
-          }
-
-          let showNextSeparator = false;
-          if (nextMsg) {
-            const currDate = new Date(msg.createdAt);
-            const nextDate = new Date(nextMsg.createdAt);
-            const isNextSameDay = currDate.toDateString() === nextDate.toDateString();
-            const diffNextMins = (nextDate.getTime() - currDate.getTime()) / (1000 * 60);
-            
-            if (!isNextSameDay || diffNextMins > 10) {
-              showNextSeparator = true;
-            }
-          } else {
-            showNextSeparator = true;
-          }
-
-          const isLastMessage = index === messages.length - 1;
-          const isOutgoing = msg.senderType === 'ai' || msg.senderType === 'agent';
-          const showStatus = isLastMessage && isOutgoing;
-
-          const isPrevMsgOutgoing = prevMsg ? (prevMsg.senderType === 'ai' || prevMsg.senderType === 'agent') : false;
-          const isPrevConsecutive = !!(prevMsg && !showSeparator && (
-            (isOutgoing && isPrevMsgOutgoing) ||
-            (!isOutgoing && !isPrevMsgOutgoing)
-          ));
-
-          const isNextMsgOutgoing = nextMsg ? (nextMsg.senderType === 'ai' || nextMsg.senderType === 'agent') : false;
-          const isNextConsecutive = !!(nextMsg && !showNextSeparator && (
-            (isOutgoing && isNextMsgOutgoing) ||
-            (!isOutgoing && !isNextMsgOutgoing)
-          ));
-
-          return (
-            <React.Fragment key={msg.id}>
-              {showSeparator && (
-                <div className="flex justify-center items-center my-6 relative">
-                  <span className="px-4 py-1 rounded-full text-xs font-semibold text-foreground/85 relative z-10">
-                    {formatChatSeparator(msg.createdAt)}
-                  </span>
-                </div>
-              )}
-              <MessageBubble 
-                message={msg} 
-                showStatus={showStatus} 
-                conversationId={conversationId}
-                isNextConsecutive={isNextConsecutive}
-                isPrevConsecutive={isPrevConsecutive}
-                customerAvatar={customerAvatar}
-                customerName={customerName}
-                showSeparator={showSeparator}
-                isLatestOutgoing={msg.id === latestOutgoingMessageId}
-                isLatestReadOutgoing={msg.id === latestReadOutgoingMessageId}
-              />
-            </React.Fragment>
-          );
-        })}
-        
-        {/* Typing Indicators */}
-        {typingUsers.map((u) => (
-          <div key={u.senderId} className="flex items-center gap-2.5 px-3 py-1.5 mt-2 animate-in fade-in duration-300">
-            <div className="w-8 h-8 rounded-full bg-background-tertiary flex items-center justify-center font-bold text-xs border border-foreground/10 overflow-hidden shrink-0 shadow-sm">
-              {u.avatar ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={u.avatar} alt="" className="w-full h-full object-cover" />
-              ) : (
-                u.name?.charAt(0) || 'U'
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 bg-background-secondary border border-foreground/10 px-4 py-2 rounded-2xl max-w-[70%] shadow-sm">
-              <span className="text-sm font-medium text-foreground-secondary">{u.name} đang soạn tin</span>
-              <div className="flex gap-1 items-center ml-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-foreground-tertiary typing-dot" />
-                <span className="w-1.5 h-1.5 rounded-full bg-foreground-tertiary typing-dot" />
-                <span className="w-1.5 h-1.5 rounded-full bg-foreground-tertiary typing-dot" />
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {!loading && messages.length === 0 && (
-          <div className="p-4 text-center text-foreground-tertiary text-sm">No messages found for this conversation.</div>
-        )}
-      </div>
-
-      {/* Premium Lightbox Overlay and Pinned Messages Modal Portals */}
-      {isMounted && (
-        <>
-          <LightboxOverlay 
-            imageUrl={lightboxImage} 
-            onClose={() => setLightboxImage(null)} 
-          />
-
-          <PinnedMessagesModal
-            isOpen={isPinnedModalOpen}
-            onClose={() => setIsPinnedModalOpen(false)}
+    return (
+      <div className="flex-1 flex flex-col overflow-y-auto relative">
+        {/* Glassmorphic Sticky Pinned Message Banner */}
+        {pinnedMessages.length > 0 && (
+          <PinnedMessageBanner
             pinnedMessages={pinnedMessages}
             customerName={customerName}
-            customerAvatar={customerAvatar}
             onJumpToMessage={scrollToMessage}
             onUnpin={handleUnpin}
           />
-        </>
-      )}
-    </div>
-  );
-});
+        )}
+
+        {/* Main scrolling chat window */}
+        <div
+          className="flex-1 overflow-y-auto overflow-x-hidden p-md px-4 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent"
+          ref={scrollRef}
+        >
+          <div ref={observerTarget} style={{ height: '1px', opacity: 0 }} />
+
+          {loading && nextCursor && (
+            <div className="p-4 text-center text-foreground-tertiary text-sm">Loading older messages...</div>
+          )}
+
+          {loading && messages.length === 0 && <ChatSkeleton />}
+
+          {messages.map((msg, index) => {
+            if (msg.senderId === 'system') {
+              return (
+                <SystemMessage
+                  key={msg.id}
+                  content={msg.content}
+                  onViewAllPinned={() => setIsPinnedModalOpen(true)}
+                />
+              );
+            }
+
+            const prevMsg = index > 0 ? messages[index - 1] : null;
+            const nextMsg = index < messages.length - 1 ? messages[index + 1] : null;
+
+            let showSeparator = false;
+            if (!prevMsg) {
+              showSeparator = true;
+            } else {
+              const currDate = new Date(msg.createdAt);
+              const prevDate = new Date(prevMsg.createdAt);
+              const isSameDay = currDate.toDateString() === prevDate.toDateString();
+              const diffMins = (currDate.getTime() - prevDate.getTime()) / (1000 * 60);
+
+              if (!isSameDay || diffMins > 10) {
+                showSeparator = true;
+              }
+            }
+
+            let showNextSeparator = false;
+            if (nextMsg) {
+              const currDate = new Date(msg.createdAt);
+              const nextDate = new Date(nextMsg.createdAt);
+              const isNextSameDay = currDate.toDateString() === nextDate.toDateString();
+              const diffNextMins = (nextDate.getTime() - currDate.getTime()) / (1000 * 60);
+
+              if (!isNextSameDay || diffNextMins > 10) {
+                showNextSeparator = true;
+              }
+            } else {
+              showNextSeparator = true;
+            }
+
+            const isLastMessage = index === messages.length - 1;
+            const isOutgoing = msg.senderType === 'ai' || msg.senderType === 'agent';
+            const showStatus = isLastMessage && isOutgoing;
+
+            const isPrevMsgOutgoing = prevMsg ? (prevMsg.senderType === 'ai' || prevMsg.senderType === 'agent') : false;
+            const isPrevConsecutive = !!(prevMsg && !showSeparator && (
+              (isOutgoing && isPrevMsgOutgoing) ||
+              (!isOutgoing && !isPrevMsgOutgoing)
+            ));
+
+            const isNextMsgOutgoing = nextMsg ? (nextMsg.senderType === 'ai' || nextMsg.senderType === 'agent') : false;
+            const isNextConsecutive = !!(nextMsg && !showNextSeparator && (
+              (isOutgoing && isNextMsgOutgoing) ||
+              (!isOutgoing && !isNextMsgOutgoing)
+            ));
+
+            return (
+              <React.Fragment key={msg.id}>
+                {showSeparator && (
+                  <div className="flex justify-center items-center my-6 relative">
+                    <span className="px-4 py-1 rounded-full text-xs font-semibold text-foreground/85 relative z-10">
+                      {formatChatSeparator(msg.createdAt)}
+                    </span>
+                  </div>
+                )}
+                <MessageBubble
+                  message={msg}
+                  showStatus={showStatus}
+                  conversationId={conversationId}
+                  isNextConsecutive={isNextConsecutive}
+                  isPrevConsecutive={isPrevConsecutive}
+                  customerAvatar={customerAvatar}
+                  customerName={customerName}
+                  showSeparator={showSeparator}
+                  isLatestOutgoing={msg.id === latestOutgoingMessageId}
+                  isLatestReadOutgoing={msg.id === latestReadOutgoingMessageId}
+                />
+              </React.Fragment>
+            );
+          })}
+
+          {/* Typing Indicators list */}
+          <TypingIndicatorList typingUsers={typingUsers} />
+
+          {!loading && messages.length === 0 && (
+            <div className="p-4 text-center text-foreground-tertiary text-sm">
+              No messages found for this conversation.
+            </div>
+          )}
+        </div>
+
+        {/* Premium Lightbox Overlay and Pinned Messages Modal Portals */}
+        {isMounted && (
+          <>
+            <LightboxOverlay
+              imageUrl={lightboxImage}
+              onClose={() => setLightboxImage(null)}
+            />
+
+            <PinnedMessagesModal
+              isOpen={isPinnedModalOpen}
+              onClose={() => setIsPinnedModalOpen(false)}
+              pinnedMessages={pinnedMessages}
+              customerName={customerName}
+              customerAvatar={customerAvatar}
+              onJumpToMessage={scrollToMessage}
+              onUnpin={handleUnpin}
+            />
+          </>
+        )}
+      </div>
+    );
+  }
+);
 
 ChatWindow.displayName = 'ChatWindow';

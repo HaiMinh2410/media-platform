@@ -8,6 +8,15 @@ export const SNIPPETS = [
 
 export const MAX_TEXTAREA_HEIGHT = 320;
 
+export const TIMEOUT_CLEAR_AI_STATUS_MS = 8000;
+export const TIMEOUT_CLEAR_TYPING_INDICATOR_MS = 3500;
+
+export const API_ENDPOINTS = {
+  UPLOAD: '/api/upload',
+  REWRITE: '/api/ai/rewrite',
+  REPLY: (conversationId: string) => `/api/conversations/${conversationId}/reply`,
+};
+
 export const getReplyMessagePreview = (message: MessageWithSender): string => {
   if (message.content) return message.content;
   if (!message.attachments || message.attachments.length === 0) return '[Tệp đính kèm]';
@@ -26,3 +35,4 @@ export const getReplyMessagePreview = (message: MessageWithSender): string => {
       return '[Tệp đính kèm]';
   }
 };
+

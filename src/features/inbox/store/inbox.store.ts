@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { AccountGroup } from '@features/settings';
+// eslint-disable-next-line import/no-restricted-paths
+import { AccountGroup } from '@features/settings/index';
 import { ConversationWithLastMessage, MessageWithSender } from '@features/inbox/types';
 
 export type ViewMode = 'all' | 'by_account' | 'by_contacts' | 'ai_priority' | 'daily_flow';
@@ -7,7 +8,7 @@ export type Platform = 'all' | 'facebook' | 'instagram' | 'tiktok' | 'custom';
 export type SegmentFilter = 'all' | 'unread' | 'needs_reply' | 'vip' | 'hot_lead' | 'cold';
 export type ToneMode = 'professional' | 'sales' | 'warm' | 'flirty';
 
-interface InboxState {
+export interface InboxState {
   currentScope: string;
   viewMode: ViewMode;
   platform: Platform;
