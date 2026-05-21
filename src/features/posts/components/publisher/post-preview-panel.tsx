@@ -185,7 +185,7 @@ function FacebookMock({ account, content, media }: { account: PlatformAccount; c
       </div>
 
       {/* Media Placeholder */}
-      <div className="w-full aspect-[4/3] bg-[#f0f2f5] flex flex-col items-center justify-center border-y border-[#e4e6eb] relative overflow-hidden">
+      <div className="w-full aspect-4/3 bg-[#f0f2f5] flex flex-col items-center justify-center border-y border-[#e4e6eb] relative overflow-hidden">
         {media.length > 0 ? (
            media[0].type === 'video' ? (
              <video src={media[0].url} className="w-full h-full object-contain" />

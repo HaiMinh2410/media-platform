@@ -1,4 +1,4 @@
-﻿import * as React from 'react';
+import * as React from 'react';
 import { cn } from '@shared/lib/utils';
 import { HelpCircle, Sparkles, Check, RotateCw, Undo2, Loader2 } from 'lucide-react';
 
@@ -161,7 +161,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
             type="text"
             value={persona.name}
             onChange={(e) => onChange({ name: e.target.value })}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
             placeholder="VD: Em, Mai, Trợ lý..."
           />
         </div>
@@ -172,7 +172,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
             <select
               value={persona.gender}
               onChange={(e) => onChange({ gender: e.target.value })}
-              className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+              className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
             >
               <option value="female">Nữ</option>
               <option value="male">Nam</option>
@@ -185,7 +185,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
               type="number"
               value={persona.age || ''}
               onChange={(e) => onChange({ age: parseInt(e.target.value) || 20 })}
-              className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
               placeholder="VD: 22"
             />
           </div>
@@ -204,7 +204,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
           <textarea
             value={persona.personality}
             onChange={(e) => onChange({ personality: e.target.value })}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px] resize-y"
+            className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px] resize-y"
             placeholder="VD: Vui vẻ, nhiệt tình, hơi gen Z một chút, hay dùng teencode nhẹ..."
           />
         </div>
@@ -214,7 +214,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
           <textarea
             value={persona.tone}
             onChange={(e) => onChange({ tone: e.target.value })}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-y"
+            className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all min-h-[80px] resize-y"
             placeholder="VD: Chuyên nghiệp nhưng gần gũi, xưng hô anh/chị và em..."
           />
         </div>
@@ -225,7 +225,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
             type="text"
             value={persona.signature_emojis?.join(', ') || ''}
             onChange={(e) => onChange({ signature_emojis: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
             placeholder="VD: ✨, 💖, 🥰 (ngăn cách bằng dấu phẩy)"
           />
         </div>
@@ -242,7 +242,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
             type="text"
             value={persona.campaign_name || ''}
             onChange={(e) => onChange({ campaign_name: e.target.value })}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
             placeholder="VD: Sale Cuối Tháng 5"
           />
         </div>
@@ -252,7 +252,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
           <select
             value={persona.settings?.campaign_objective || 'lead_generation'}
             onChange={(e) => updateSettings('campaign_objective', e.target.value)}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+            className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
           >
             <option value="lead_generation">Thu thập Lead (SĐT/Email)</option>
             <option value="direct_sale">Chốt Sale Trực tiếp (Gửi Link)</option>
@@ -263,7 +263,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
 
         {/* AI Proposal Action and Info Bars */}
         {isGenerating && (
-          <div className="bg-foreground/[0.02] border border-foreground/10 rounded-2xl p-4 flex items-center justify-between gap-4 animate-pulse">
+          <div className="bg-foreground/2 border border-foreground/10 rounded-2xl p-4 flex items-center justify-between gap-4 animate-pulse">
             <div className="flex items-center gap-3">
               <Loader2 className="animate-spin text-primary" size={18} />
               <div className="text-sm">
@@ -288,7 +288,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
               <button
                 type="button"
                 onClick={handleRejectProposal}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-foreground/[0.03] border border-foreground/10 hover:bg-foreground/[0.08] transition-all text-foreground"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-foreground/3 border border-foreground/10 hover:bg-foreground/8 transition-all text-foreground"
                 title="Khôi phục giá trị gốc"
               >
                 <Undo2 size={14} />
@@ -331,9 +331,9 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
             value={persona.current_offer || ''}
             onChange={(e) => onChange({ current_offer: e.target.value })}
             className={cn(
-              "w-full bg-foreground/[0.03] border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[60px]",
+              "w-full bg-foreground/3 border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[60px]",
               aiProposal 
-                ? "border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.1)] bg-purple-500/[0.01]" 
+                ? "border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.1)] bg-purple-500/1" 
                 : "border-foreground/10 focus:border-primary/50"
             )}
             placeholder="VD: Giảm giá 50% cho 100 khách hàng đầu tiên mua combo X..."
@@ -355,9 +355,9 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
             value={persona.scarcity_message || ''}
             onChange={(e) => onChange({ scarcity_message: e.target.value })}
             className={cn(
-              "w-full bg-foreground/[0.03] border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[46px]",
+              "w-full bg-foreground/3 border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[46px]",
               aiProposal 
-                ? "border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.1)] bg-purple-500/[0.01]" 
+                ? "border-purple-500/40 ring-2 ring-purple-500/10 shadow-[0_0_15px_rgba(168,85,247,0.1)] bg-purple-500/1" 
                 : "border-foreground/10 focus:border-primary/50"
             )}
             placeholder="VD: Chỉ còn duy nhất 2 suất áp dụng mã giảm giá này thôi ạ..."
@@ -383,7 +383,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
           <textarea
             value={persona.custom_instructions || ''}
             onChange={(e) => onChange({ custom_instructions: e.target.value })}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all min-h-[120px] font-mono text-sm"
+            className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all min-h-[120px] font-mono text-sm"
             placeholder="VD: Never mention competitors. Always push the VIP package first."
           />
         </div>
@@ -420,7 +420,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
               type="number"
               value={persona.settings?.delay_min || 15}
               onChange={(e) => updateSettings('delay_min', parseInt(e.target.value) || 0)}
-              className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
           <div className="space-y-2">
@@ -429,7 +429,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
               type="number"
               value={persona.settings?.delay_max || 120}
               onChange={(e) => updateSettings('delay_max', parseInt(e.target.value) || 0)}
-              className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
         </div>
@@ -440,7 +440,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
             type="number"
             value={persona.settings?.link_rate_limit || 3}
             onChange={(e) => updateSettings('link_rate_limit', parseInt(e.target.value) || 0)}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+            className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
           />
           <p className="text-xs text-foreground-tertiary">Giới hạn số lần AI được phép gửi link chốt sale để tránh spam.</p>
         </div>
@@ -450,7 +450,7 @@ export function PersonaFormTabs({ activeTab, persona, onChange }: PersonaFormTab
           <textarea
             value={persona.settings?.blacklist_keywords?.join(', ') || ''}
             onChange={(e) => updateSettings('blacklist_keywords', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-            className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px]"
+            className="w-full bg-foreground/3 border border-foreground/10 rounded-xl px-4 py-3 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all min-h-[100px]"
             placeholder="VD: lừa đảo, báo công an, scam..."
           />
           <p className="text-xs text-foreground-tertiary">Nếu tin nhắn của khách chứa các từ này, AI sẽ ngừng tương tác và chuyển cho người thật (Escalate).</p>
