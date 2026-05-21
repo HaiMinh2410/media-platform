@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { ResponsiveContainer, AreaChart, Area, YAxis } from 'recharts';
-import { Icon } from '@shared/ui/icon';
+
 
 interface StatsCardProps { 
   label: string; 
@@ -19,7 +19,7 @@ interface StatsCardProps {
 
 export function SkeletonStatsCard() {
   return (
-    <div className="stats-card animate-pulse relative overflow-hidden">
+    <div className="relative bg-foreground/2 backdrop-blur-md border border-foreground/5 rounded-2xl p-6 transition-all duration-300 overflow-hidden animate-pulse">
       <div className="absolute inset-0 bg-linear-to-r from-transparent via-foreground/5 to-transparent shimmer" />
       <div className="flex justify-between items-start mb-4">
         <div className="w-10 h-10 bg-foreground/5 rounded-lg"></div>
@@ -46,10 +46,10 @@ export function StatsCard({
   return (
     <div 
       onClick={onClick}
-      className={`stats-card cursor-pointer transition-all duration-300 select-none group ${
+      className={`relative bg-foreground/2 backdrop-blur-md border border-foreground/5 rounded-2xl p-6 transition-all duration-300 select-none group cursor-pointer ${
         isActive 
-          ? 'stats-card-active border-opacity-50 ring-1 ring-opacity-20 shadow-lg scale-[1.02]' 
-          : 'hover:bg-foreground/5 active:scale-95'
+          ? 'bg-foreground/5 -translate-y-1 scale-[1.02] border-opacity-50 ring-1 ring-opacity-20 shadow-lg' 
+          : 'hover:-translate-y-0.5 hover:border-foreground/10 hover:bg-foreground/4 active:scale-95'
       }`}
       style={isActive ? { 
         borderColor: `${activeColor}40`, 
@@ -86,10 +86,10 @@ export function StatsCard({
           </ResponsiveContainer>
         </div>
       </div>
-      <div className="stats-label">{label}</div>
+      <div className="text-sm text-foreground/50 mb-2">{label}</div>
       <div className="flex items-end justify-between gap-2 mt-1">
         <div className="flex flex-col">
-          <div className="stats-value">
+          <div className="text-3xl font-bold text-foreground">
             {value}
           </div>
           <div className="flex items-center gap-1.5 mt-1">

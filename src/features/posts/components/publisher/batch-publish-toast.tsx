@@ -1,10 +1,9 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, RefreshCcw, Loader2 } from 'lucide-react';
+import { X, RefreshCcw } from 'lucide-react';
 import { cn } from '@shared/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
-import { PlatformAccount } from '@features/settings';
+import { motion } from 'framer-motion';
 
 export type AccountPublishState = {
   id: string;
@@ -43,7 +42,7 @@ export function BatchPublishToast({ initialAccounts, onClose, onRetry }: BatchPu
       });
     }, 500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [accounts]);
 
   const failedAccounts = accounts.filter(a => a.status === 'FAILED');
   const hasFailed = failedAccounts.length > 0;
@@ -73,6 +72,7 @@ export function BatchPublishToast({ initialAccounts, onClose, onRetry }: BatchPu
           <div key={acc.id} className="flex items-center gap-3 px-4 h-[52px] border-b border-foreground/10 last:border-0">
             <div className="relative w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-[12px] shrink-0 overflow-hidden" style={{ backgroundColor: acc.platform.toLowerCase() === 'facebook' ? '#1877F2' : '#E1306C' }}>
               {acc.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={acc.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
                 acc.name.charAt(0).toUpperCase()

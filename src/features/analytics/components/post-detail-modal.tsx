@@ -1,10 +1,34 @@
-﻿'use client';
+'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 
+export interface PostDetailData {
+  postId?: string;
+  mediaType: string;
+  mediaUrl?: string;
+  thumbnailUrl?: string;
+  caption?: string;
+  postedAt?: string | Date;
+  syncedAt?: string | Date;
+  likeCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  savedCount: number;
+  views?: number;
+  reach?: number;
+  totalInteractions?: number;
+  profileVisits?: number;
+  follows?: number;
+  igReelsAvgWatchTime?: number;
+  igReelsVideoViewTotalTime?: number;
+  reelsSkipRate?: number;
+  crosspostedViews?: number;
+}
+
 interface PostDetailModalProps {
-  post: any;
+  post: PostDetailData;
   onClose: () => void;
 }
 
@@ -26,7 +50,20 @@ const formatPlayTime = (ms: number): string => {
 };
 
 export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    // Khóa cuộn body khi mở modal
+    document.body.style.overflow = 'hidden';
+    return () => {
+      cancelAnimationFrame(handle);
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   const handleCopy = (text: string, field: string) => {
     if (!text) return;
@@ -35,17 +72,14 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
     setTimeout(() => setCopiedField(null), 1500);
   };
 
-  // Generate stable percentage rates based on post ID for vivid simulation
-  const seed = post.id ? post.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) : 100;
-  const followersPct = Math.round(80 + (seed % 15));
-  const nonfollowersPct = 100 - followersPct;
+  if (!mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-base-300/90 backdrop-blur-xl select-none overflow-hidden">
+  return createPortal(
+    <div className="fixed inset-0 z-100 flex bg-base-100 select-none overflow-hidden">
       {/* Close button at top-left screen (Instagram style) */}
       <button 
         onClick={onClose}
-        className="absolute top-6 left-6 z-50 text-foreground-secondary hover:text-foreground transition-all hover:scale-105 active:scale-95 cursor-pointer p-2.5 rounded-full hover:bg-foreground/5"
+        className="absolute top-6 left-6 z-110 text-foreground-secondary hover:text-foreground transition-all hover:scale-105 active:scale-95 cursor-pointer p-2.5 rounded-full hover:bg-foreground/5"
       >
         <svg className="w-8 h-8 stroke-[1.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -54,16 +88,16 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
 
       {/* Modal Body */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.98, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.98, y: 10 }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
-        className="relative w-screen h-screen md:w-[90vw] md:h-[90vh] md:max-w-6xl md:rounded-3xl bg-base-100 border border-foreground/10 overflow-hidden shadow-2xl z-10 flex flex-col md:grid md:grid-cols-12 text-foreground select-text"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="relative w-screen h-screen bg-base-100 z-10 flex flex-col md:grid md:grid-cols-12 text-foreground select-text"
       >
         {/* Left Column: Media Preview + Floating Reels Action Bar */}
         <div className="md:col-span-8 relative bg-base-300 flex items-center justify-center border-b md:border-b-0 md:border-r border-foreground/10 select-none overflow-hidden h-full py-6">
           {/* Center vertical media container */}
-          <div className="relative h-full max-h-[90vh] md:max-h-[80vh] aspect-9/16 rounded-2xl overflow-hidden shadow-2xl border border-foreground/10 bg-base-200 flex items-center justify-center group/media select-none">
+          <div className="relative h-full max-h-[95vh] md:max-h-[92vh] aspect-9/16 rounded-2xl overflow-hidden shadow-2xl border border-foreground/10 bg-base-200 flex items-center justify-center group/media select-none">
             {post.mediaType === 'VIDEO' || post.mediaType === 'REELS' ? (
               <video 
                 src={post.mediaUrl} 
@@ -75,6 +109,7 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
                 loop
               />
             ) : post.thumbnailUrl || post.mediaUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img 
                 src={post.thumbnailUrl || post.mediaUrl} 
                 alt="Reels item" 
@@ -408,6 +443,7 @@ export function PostDetailModal({ post, onClose }: PostDetailModalProps) {
           </div>
         </div>
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 }

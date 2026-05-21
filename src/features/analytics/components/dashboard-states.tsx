@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -133,20 +133,20 @@ export function CustomTooltip({ active, payload, label, activeMetric }: CustomTo
     const absDiff = val - prevValue;
 
     return (
-      <div className="custom-tooltip">
-        <div className="tooltip-date">
+      <div className="bg-base-300/85 backdrop-blur-xl border border-foreground/10 rounded-2xl p-5 min-w-[220px] shadow-2xl pointer-events-none animate-in fade-in zoom-in-95 duration-200">
+        <div className="text-[10px] font-bold text-foreground/30 mb-4 uppercase tracking-wider flex items-center gap-2">
           <Icon lucide={Calendar} size={10} />
           {label}
         </div>
-        <div className="tooltip-items">
-          <div className="tooltip-item">
-            <div className="tooltip-item-label">
-              <div className={`tooltip-item-dot ${getMetricColor(activeMetric)}`} />
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3 text-sm font-medium text-foreground/90">
+              <div className={`w-2 h-2 rounded-sm shadow-[0_0_10px_currentColor] ${getMetricColor(activeMetric)}`} />
               <span>{getMetricLabel(activeMetric)}</span>
             </div>
-            <div className="tooltip-values">
+            <div className="flex flex-col items-end">
               <div className="flex items-center gap-2">
-                <span className="tooltip-value-current">{val.toLocaleString()}</span>
+                <span className="text-lg font-extrabold text-foreground tabular-nums">{val.toLocaleString()}</span>
                 {absDiff !== 0 && (
                   <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                     isPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
@@ -158,7 +158,7 @@ export function CustomTooltip({ active, payload, label, activeMetric }: CustomTo
               </div>
               {prevValue > 0 && (
                 <div className="flex flex-col mt-1">
-                  <span className="tooltip-value-previous">Kỳ trước: {prevValue.toLocaleString()}</span>
+                  <span className="text-[10px] font-medium text-foreground/25 mt-0.5">Kỳ trước: {prevValue.toLocaleString()}</span>
                   <span className={`text-[10px] ${isPositive ? 'text-emerald-400' : 'text-red-400'} font-medium`}>
                     ({isPositive ? '+' : ''}{trend.toFixed(1)}%)
                   </span>

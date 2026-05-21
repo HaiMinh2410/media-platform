@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { 
@@ -6,9 +6,11 @@ import {
   LineChart, Line, Legend
 } from 'recharts';
 import { 
-  Users, BarChart3, Eye, MousePointer2, TrendingUp, TrendingDown, RefreshCw, 
-  CloudDownload, Layers, Sparkles, Flame, Star, AlertTriangle, HelpCircle,
-  UserPlus, UserMinus, UserCheck, Link2
+  Users, BarChart3, Eye, TrendingDown, RefreshCw, 
+  CloudDownload, Layers, Flame, Star, AlertTriangle,
+  UserPlus, UserMinus, UserCheck, Link2,
+  Sparkles,
+  TrendingUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@shared/ui/icon';
@@ -31,10 +33,9 @@ import { EngagementBreakdownChart } from '@features/analytics/components/engagem
 import { PostFrequencyChart } from '@features/analytics/components/post-frequency-chart';
 import { ContentInsightsSection } from '@features/analytics/components/content-insights-section';
 import { 
-  SkeletonChart, InsufficientDataState, ReauthNotice, CustomTooltip, ActiveMetric 
+  SkeletonChart, InsufficientDataState, ReauthNotice, CustomTooltip 
 } from '@features/analytics/components/dashboard-states';
 import AIAnalyticsPage from '@/app/dashboard/ai-analytics/page';
-import './analytics.css';
 
 type Props = {
   initialData?: AnalyticsPeriodData;
@@ -66,7 +67,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'general' | 'ai' | 'content'>('general');
-  const [activeMetric, setActiveMetric] = useState<ActiveMetric>('reach');
   const [activeChart, setActiveChart] = useState<'reach-engagement' | 'views-interactions' | 'followers'>('reach-engagement');
   const [isSyncing, setIsSyncing] = useState(false);
   const [selectedPostForDetail, setSelectedPostForDetail] = useState<any | null>(null);
@@ -182,16 +182,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     };
   });
 
-  const getMetricConfig = (metric: ActiveMetric) => {
-    switch (metric) {
-      case 'reach': return { color: '#3b82f6', gradientId: 'colorReach', label: 'Reach' };
-      case 'views': return { color: '#a855f7', gradientId: 'colorImpressions', label: 'Views' };
-      case 'engagement': return { color: '#10b981', gradientId: 'colorEng', label: 'Engagement' };
-      case 'followers': return { color: '#f97316', gradientId: 'colorFollowers', label: 'Followers' };
-    }
-  };
-
-  const activeConfig = getMetricConfig(activeMetric);
   
   // Find the latest snapshot with active times (since it's a lifetime metric, latest is best)
   const latestWithActiveTimes = [...(data?.data?.current || [])].reverse().find(s => s.activeTimes);
@@ -286,9 +276,9 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         const s = breakdown.stories;
         const total = p + r + s;
         if (total > 0) {
-          let posts = Number((p / total * 100).toFixed(1));
-          let reels = Number((r / total * 100).toFixed(1));
-          let stories = Number(Math.max(0, 100 - posts - reels).toFixed(1));
+          const posts = Number((p / total * 100).toFixed(1));
+          const reels = Number((r / total * 100).toFixed(1));
+          const stories = Number(Math.max(0, 100 - posts - reels).toFixed(1));
           return { posts, reels, stories };
         }
         return { posts: 0, reels: 0, stories: 0 };
@@ -352,9 +342,9 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       const s = temp.stories;
       const total = p + r + s;
       if (total > 0) {
-        let posts = Number((p / total * 100).toFixed(1));
-        let reels = Number((r / total * 100).toFixed(1));
-        let stories = Number(Math.max(0, 100 - posts - reels).toFixed(1));
+        const posts = Number((p / total * 100).toFixed(1));
+        const reels = Number((r / total * 100).toFixed(1));
+        const stories = Number(Math.max(0, 100 - posts - reels).toFixed(1));
         aggregatedByContentInteractions = { posts, reels, stories };
       }
     }
@@ -445,7 +435,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const interactionInsight = getInteractionInsight(avgInteractionRate);
 
   return (
-    <div className="analytics-container">
+    <div className="flex flex-col gap-6 p-6 max-w-[1200px] mx-auto">
       {/* TABS SELECTOR */}
       <div className="flex border-b border-foreground/10 mb-4 select-none">
         <button
@@ -491,26 +481,34 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         <ContentInsightsSection accountId={selectedAccountId} />
       ) : (
         <>
-          <div className="analytics-header">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
               <p className="text-foreground-secondary text-sm">Track your performance across platforms</p>
             </div>
             
-            <div className="filter-controls items-center">
-              <div className="range-selector">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex gap-0.5 bg-foreground/5 border border-foreground/10 rounded-xl p-1">
                 {(['7d', '30d', '90d'] as AnalyticsRange[]).map(r => (
                   <button
                     key={r}
                     onClick={() => setRange(r)}
-                    className={`range-btn ${range === r ? 'active' : ''}`}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                      range === r 
+                        ? 'bg-primary/15 text-primary shadow-lg' 
+                        : 'text-foreground/40 hover:text-foreground/80 hover:bg-foreground/5'
+                    }`}
                   >
                     {r.toUpperCase()}
                   </button>
                 ))}
                 <button 
                   onClick={() => setRange('custom')}
-                  className={`range-btn ${range === 'custom' ? 'active' : ''}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                    range === 'custom' 
+                      ? 'bg-primary/15 text-primary shadow-lg' 
+                      : 'text-foreground/40 hover:text-foreground/80 hover:bg-foreground/5'
+                  }`}
                 >
                   Custom
                 </button>
@@ -573,7 +571,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
  
  
 
-          <div className={`stats-grid transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
             {isPending ? (
               <>
                 <SkeletonStatsCard />
@@ -660,7 +658,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             />
           </div>
 
-          <div className={`chart-container transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
+          <div className={`bg-foreground/2 border border-foreground/5 rounded-2xl p-6 min-h-[450px] transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
             {/* CHART SELECTOR BUTTONS */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-foreground/1 border border-foreground/10 p-2 rounded-2xl">
               <div className="flex flex-wrap p-1 bg-foreground/5 border border-foreground/10 rounded-xl select-none gap-1">
@@ -1081,7 +1079,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                                           <div className="bg-base-300/95 backdrop-blur-xl border border-foreground/10 p-3 rounded-2xl shadow-2xl min-w-[140px] font-sans">
                                             <div className="text-[10px] text-foreground-secondary/40 font-bold uppercase tracking-wider mb-2">{label}</div>
                                             <div className="space-y-1.5">
-                                              {payload.map((item: any, i: number) => (
+                                              {payload.map((item: never, i: number) => (
                                                 <div key={i} className="flex items-center justify-between gap-6">
                                                   <div className="flex items-center gap-2">
                                                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />

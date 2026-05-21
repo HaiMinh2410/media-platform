@@ -183,11 +183,11 @@
 
   .ai-gradient-border {
     padding: 1.5px !important;
-    border-radius: 10px !important;
-    background: linear-gradient(90deg, #ec4899, #8b5cf6, #10b981, #ec4899) !important;
+    border-radius: var(--radius-md) !important;
+    background: linear-gradient(90deg, var(--color-pink-500), var(--color-violet-500), var(--color-emerald-500), var(--color-pink-500)) !important;
     background-size: 300% 300% !important;
     animation: gradient-border-anim 4s ease infinite !important;
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.35) !important;
+    box-shadow: 0 0 15px color-mix(in srgb, var(--color-violet-500) 35%, transparent) !important;
     transition: all 0.3s ease !important;
   }
 
@@ -243,11 +243,11 @@
   }
 
   .glow-badge-green {
-    box-shadow: 0 0 8px #22c55e;
+    box-shadow: 0 0 8px var(--color-success);
   }
 
   .glow-badge-primary {
-    box-shadow: 0 0 10px #6366f1;
+    box-shadow: 0 0 10px var(--color-primary);
   }
 
   .animate-pulse-red {
