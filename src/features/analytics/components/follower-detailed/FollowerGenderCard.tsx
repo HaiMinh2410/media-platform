@@ -13,9 +13,9 @@ interface FollowerGenderCardProps {
 }
 
 const GENDER_COLORS = {
-  female: '#f43f5e', // Sleek Rose
-  male: '#3b82f6',   // Sleek Blue
-  unknown: '#9ca3af' // Sleek Gray
+  female: 'var(--color-secondary)', // Secondary Rose
+  male: 'var(--color-info)',       // Info Blue
+  unknown: 'var(--color-base-content)' // Neutral Base Content
 };
 
 export function FollowerGenderCard({
@@ -49,17 +49,17 @@ export function FollowerGenderCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="glass rounded-3xl p-6 shadow-2xl flex flex-col justify-between"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans"
     >
       <div>
         <div className="flex items-center gap-2 mb-6">
-          <Users size={18} className="text-secondary" />
-          <h4 className="font-bold text-foreground tracking-tight">Tỷ lệ Giới tính</h4>
+          <Users size={18} className="text-secondary animate-pulse" />
+          <h4 className="font-bold text-base-content tracking-tight font-brand">Tỷ lệ Giới tính</h4>
         </div>
 
         {genderData.length === 0 ? (
           <div className="h-[220px] flex items-center justify-center">
-            <span className="text-foreground/20 text-xs">Không có dữ liệu giới tính</span>
+            <span className="text-base-content/20 text-xs font-semibold">Không có dữ liệu giới tính</span>
           </div>
         ) : (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -75,7 +75,8 @@ export function FollowerGenderCard({
                     outerRadius={65}
                     paddingAngle={4}
                     dataKey="value"
-                    stroke="none"
+                    stroke="var(--color-base-100)"
+                    strokeWidth={2}
                   >
                     {genderData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -86,8 +87,8 @@ export function FollowerGenderCard({
               
               {/* Inside Center label */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[10px] text-foreground/35 font-bold uppercase tracking-wider">Giới tính</span>
-                <span className="text-sm font-black text-foreground">
+                <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">Giới tính</span>
+                <span className="text-sm font-black text-base-content font-brand">
                   {genderData[0]?.name || 'N/A'}
                 </span>
               </div>
@@ -96,14 +97,20 @@ export function FollowerGenderCard({
             {/* Custom Legend list */}
             <div className="flex-1 space-y-3.5 w-full">
               {genderData.map((gender, idx) => (
-                <div key={idx} className="flex justify-between items-center bg-foreground/1 border border-foreground/10 p-2.5 rounded-xl group hover:bg-foreground/3 transition-all">
+                <div key={idx} className="flex justify-between items-center bg-base-200/50 border border-base-content/5 p-2.5 rounded-xl group hover:bg-base-300/30 transition-all shadow-xs">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full shadow-lg" style={{ backgroundColor: gender.color, boxShadow: `0 0 10px ${gender.color}30` }} />
-                    <span className="text-xs font-semibold text-foreground/60 group-hover:text-foreground transition-colors">{gender.name}</span>
+                    <div 
+                      className="w-2.5 h-2.5 rounded-full shadow-md" 
+                      style={{ 
+                        backgroundColor: gender.color, 
+                        boxShadow: `0 0 8px color-mix(in srgb, ${gender.color} 25%, transparent)` 
+                      }} 
+                    />
+                    <span className="text-xs font-semibold text-base-content/70 group-hover:text-base-content transition-colors font-brand">{gender.name}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold text-foreground">{gender.percentage}%</span>
-                    <span className="block text-[8px] text-foreground/30 font-medium">({gender.value.toLocaleString()})</span>
+                    <span className="text-xs font-bold text-base-content font-mono">{gender.percentage}%</span>
+                    <span className="block text-[8px] text-base-content/40 font-medium font-mono">({gender.value.toLocaleString()})</span>
                   </div>
                 </div>
               ))}
@@ -112,7 +119,7 @@ export function FollowerGenderCard({
         )}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-foreground/10 flex items-center gap-2 text-[10px] text-foreground/30 font-bold uppercase tracking-wider">
+      <div className="mt-6 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Info size={14} className="text-secondary/50" />
         <span>Cân bằng giới tính: {genderData[0]?.name || 'N/A'} chiếm ưu thế</span>
       </div>

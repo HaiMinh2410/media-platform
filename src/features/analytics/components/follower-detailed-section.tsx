@@ -43,12 +43,12 @@ export function FollowerDetailedSection({
 
   if (isError || !result || result.error) {
     return (
-      <div className="w-full h-[400px] flex flex-col items-center justify-center bg-foreground/2 rounded-3xl border border-foreground/10 p-6 text-center backdrop-blur-md">
-        <div className="p-4 bg-error/10 rounded-full mb-4 text-error">
+      <div className="w-full h-[400px] flex flex-col items-center justify-center bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 text-center font-sans">
+        <div className="p-4 bg-error/10 border border-error/20 rounded-full mb-4 text-error animate-pulse">
           <Info size={28} />
         </div>
-        <h3 className="text-foreground font-bold mb-2 text-lg">Không thể lấy dữ liệu người theo dõi</h3>
-        <p className="text-foreground/40 text-sm max-w-md">
+        <h3 className="text-base-content font-bold mb-2 text-lg font-brand">Không thể lấy dữ liệu người theo dõi</h3>
+        <p className="text-base-content/50 text-sm max-w-md font-medium">
           {result?.error || 'Vui lòng kiểm tra lại kết nối tài khoản hoặc thử lại sau.'}
         </p>
       </div>

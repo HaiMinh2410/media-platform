@@ -23,17 +23,17 @@ export function FollowerAgeCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="glass rounded-3xl p-6 shadow-2xl flex flex-col justify-between"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans"
     >
       <div>
         <div className="flex items-center gap-2 mb-6">
-          <Award size={18} className="text-success" />
-          <h4 className="font-bold text-foreground tracking-tight">Nhóm tuổi phổ biến</h4>
+          <Award size={18} className="text-success animate-pulse" />
+          <h4 className="font-bold text-base-content tracking-tight font-brand">Nhóm tuổi phổ biến</h4>
         </div>
 
         {topAge.length === 0 ? (
           <div className="h-[220px] flex items-center justify-center">
-            <span className="text-foreground/20 text-xs">Không có dữ liệu độ tuổi</span>
+            <span className="text-base-content/20 text-xs font-semibold">Không có dữ liệu độ tuổi</span>
           </div>
         ) : (
           <div className="space-y-4">
@@ -43,18 +43,18 @@ export function FollowerAgeCard({
               return (
                 <div key={idx} className="space-y-1.5 group">
                   <div className="flex justify-between items-center text-xs font-semibold">
-                    <span className="text-foreground/70 group-hover:text-foreground transition-colors">{age.name}</span>
-                    <span className="text-foreground font-bold">
+                    <span className="text-base-content/70 group-hover:text-base-content transition-colors font-brand">{age.name}</span>
+                    <span className="text-base-content font-bold font-mono">
                       {age.value.toLocaleString()}{' '}
-                      <span className="text-foreground/30 text-[10px] font-normal">({percent}%)</span>
+                      <span className="text-base-content/40 text-[10px] font-normal font-mono">({percent}%)</span>
                     </span>
                   </div>
-                  <div className="h-2 bg-foreground/5 rounded-full overflow-hidden flex">
+                  <div className="h-2 bg-base-200 rounded-full overflow-hidden flex">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${visualPct}%` }}
                       transition={{ duration: 0.8, delay: idx * 0.1 }}
-                      className="h-full bg-linear-to-r from-emerald-500 to-teal-500 rounded-full"
+                      className="h-full bg-linear-to-r from-success to-teal-500 rounded-full"
                     />
                   </div>
                 </div>
@@ -64,7 +64,7 @@ export function FollowerAgeCard({
         )}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-foreground/10 flex items-center gap-2 text-[10px] text-foreground/30 font-bold uppercase tracking-wider">
+      <div className="mt-6 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Sparkles size={14} className="text-success/50" />
         <span>Độ tuổi tập trung lớn nhất: {topAge[0]?.name || 'N/A'}</span>
       </div>

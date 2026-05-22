@@ -81,7 +81,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
 
   if (isLoading) {
     return (
-      <div className="p-10 text-center text-foreground-secondary bg-foreground/[0.02] rounded-xl border border-dashed border-foreground/10">
+      <div className="p-10 text-center text-foreground-secondary bg-foreground/2 rounded-xl border border-dashed border-foreground/10">
         Loading configuration...
       </div>
     );
@@ -97,7 +97,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="p-6 bg-foreground/[0.02] border-foreground/10 flex flex-col gap-5 transition-opacity duration-300 backdrop-blur-xl">
+      <Card className="p-6 bg-foreground/2 border-foreground/10 flex flex-col gap-5 transition-opacity duration-300 backdrop-blur-xl">
         <div className="flex justify-between items-center">
           <div>
             <h2 className="m-0 text-lg font-semibold text-foreground">AI Assistant Status</h2>
@@ -116,7 +116,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
       </Card>
 
       <Card className={cn(
-        "p-6 bg-foreground/[0.02] border-foreground/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
+        "p-6 bg-foreground/2 border-foreground/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
         !config.is_active && "opacity-50 pointer-events-none"
       )}>
         <h2 className="m-0 text-base font-semibold text-foreground">Behavior Settings</h2>
@@ -204,13 +204,13 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
           </div>
 
           {config.auto_send && (
-            <div className="mt-4 p-4 bg-foreground/[0.03] rounded-xl border border-foreground/5 flex flex-col gap-4">
+            <div className="mt-4 p-4 bg-foreground/3 rounded-xl border border-foreground/5 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-foreground-tertiary">Auto-Reply for Priorities:</label>
                 <div className="flex flex-wrap gap-3">
                   {PRIORITY_OPTIONS.map(prio => (
                     <label key={prio} className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-foreground cursor-pointer bg-foreground/[0.05] border border-transparent transition-all hover:bg-foreground/[0.08]",
+                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-foreground cursor-pointer bg-foreground/5 border border-transparent transition-all hover:bg-foreground/8",
                       config.auto_reply_priorities.includes(prio) && "bg-primary/10 border-primary/30 text-primary"
                     )}>
                       <input 
@@ -235,7 +235,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
                 <div className="flex flex-wrap gap-3">
                   {SENTIMENT_OPTIONS.map(sent => (
                     <label key={sent} className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-foreground cursor-pointer bg-foreground/[0.05] border border-transparent transition-all hover:bg-foreground/[0.08]",
+                      "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-foreground cursor-pointer bg-foreground/5 border border-transparent transition-all hover:bg-foreground/8",
                       config.auto_reply_sentiments.includes(sent) && "bg-primary/10 border-primary/30 text-primary"
                     )}>
                       <input 
@@ -260,7 +260,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
       </Card>
 
       <Card className={cn(
-        "p-6 bg-foreground/[0.02] border-foreground/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
+        "p-6 bg-foreground/2 border-foreground/10 flex flex-col gap-5 transition-all duration-300 backdrop-blur-xl",
         !config.is_active && "opacity-50 pointer-events-none"
       )}>
         <h2 className="m-0 text-base font-semibold text-foreground">Intent Routing</h2>

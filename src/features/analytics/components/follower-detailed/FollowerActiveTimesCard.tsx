@@ -14,20 +14,19 @@ function ActiveTimeBarRow({ label, value, max, index }: { label: string; value: 
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   
   return (
-    <div className="flex items-center gap-3 mb-2.5 last:mb-0 group">
-      <div className="w-8 text-foreground/40 text-[10px] font-bold text-right shrink-0 transition-colors group-hover:text-foreground/60">
+    <div className="flex items-center gap-3 mb-2.5 last:mb-0 group font-sans">
+      <div className="w-8 text-base-content/40 text-[10px] font-bold text-right shrink-0 transition-colors group-hover:text-base-content/60 font-mono">
         {label}
       </div>
-      <div className="flex-1 h-2 bg-foreground/5 rounded-full overflow-hidden">
+      <div className="flex-1 h-2 bg-base-200 rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.8, delay: index * 0.05, ease: [0.4, 0, 0.2, 1] }}
-          className="h-full rounded-full shadow-lg shadow-pink-500/10"
-          style={{ background: '#e91e8c' }}
+          className="h-full rounded-full shadow-md bg-secondary"
         />
       </div>
-      <div className="w-10 text-foreground/70 text-[10px] font-bold text-right shrink-0 group-hover:text-foreground transition-colors">
+      <div className="w-10 text-base-content/70 text-[10px] font-bold text-right shrink-0 group-hover:text-base-content transition-colors font-mono">
         {value.toLocaleString()}
       </div>
     </div>
@@ -46,25 +45,27 @@ export function FollowerActiveTimesCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="glass rounded-3xl p-6 shadow-2xl flex flex-col justify-between"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans"
     >
       <div>
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <Clock size={18} className="text-secondary animate-pulse" />
-            <h4 className="font-bold text-foreground tracking-tight">Giờ hoạt động nhiều nhất</h4>
+            <h4 className="font-bold text-base-content tracking-tight font-brand">Giờ hoạt động nhiều nhất</h4>
           </div>
 
           {/* Day Selector Tabs */}
           {activeTimes && (
-            <div className="flex p-0.5 bg-foreground/5 border border-foreground/10 rounded-xl select-none flex-wrap max-w-[200px] justify-end">
+            <div className="flex p-0.5 bg-base-200/70 border border-base-content/5 rounded-2xl select-none flex-wrap max-w-[200px] justify-end shadow-inner">
               {DAYS.map((d) => (
                 <button
                   key={d}
                   onClick={() => setActiveDay(d)}
                   className={cn(
-                    "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all duration-200 cursor-pointer",
-                    activeDay === d ? "bg-secondary text-secondary-content shadow-lg font-extrabold" : "text-foreground/40 hover:text-foreground/80"
+                    "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all duration-200 cursor-pointer font-brand",
+                    activeDay === d 
+                      ? "bg-secondary text-secondary-content shadow-sm font-extrabold" 
+                      : "text-base-content/40 hover:text-base-content/70"
                   )}
                 >
                   {d}
@@ -76,12 +77,12 @@ export function FollowerActiveTimesCard({
 
         {!activeTimes ? (
           <div className="h-[220px] flex flex-col items-center justify-center text-center">
-            <BarChart3 className="w-8 h-8 text-foreground/20 mb-2" />
-            <span className="text-foreground/20 text-xs font-semibold">Không có dữ liệu giờ hoạt động</span>
+            <BarChart3 className="w-8 h-8 text-base-content/20 mb-2" />
+            <span className="text-base-content/20 text-xs font-semibold">Không có dữ liệu giờ hoạt động</span>
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="text-xs font-bold text-foreground/40 mb-2 uppercase tracking-wider">Thời gian online nhiều nhất</div>
+            <div className="text-xs font-bold text-base-content/50 mb-2 uppercase tracking-wider font-brand">Thời gian online nhiều nhất</div>
             <div className="space-y-1">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -111,7 +112,7 @@ export function FollowerActiveTimesCard({
         )}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-foreground/10 flex items-center gap-2 text-[10px] text-foreground/30 font-bold uppercase tracking-wider">
+      <div className="mt-6 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Info size={14} className="text-secondary/50" />
         <span>Follower hoạt động sôi nổi nhất vào 9 PM</span>
       </div>
