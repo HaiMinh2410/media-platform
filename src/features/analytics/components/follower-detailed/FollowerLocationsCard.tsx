@@ -8,6 +8,52 @@ interface DemographicItem {
   value: number;
 }
 
+const COUNTRY_MAP: Record<string, { name: string; flag: string }> = {
+  VN: { name: 'Vietnam', flag: '🇻🇳' },
+  US: { name: 'United States', flag: '🇺🇸' },
+  ID: { name: 'Indonesia', flag: '🇮🇩' },
+  TH: { name: 'Thailand', flag: '🇹🇭' },
+  PH: { name: 'Philippines', flag: '🇵🇭' },
+  MY: { name: 'Malaysia', flag: '🇲🇾' },
+  SG: { name: 'Singapore', flag: '🇸🇬' },
+  JP: { name: 'Japan', flag: '🇯🇵' },
+  KR: { name: 'South Korea', flag: '🇰🇷' },
+  IN: { name: 'India', flag: '🇮🇳' },
+  BR: { name: 'Brazil', flag: '🇧🇷' },
+  MX: { name: 'Mexico', flag: '🇲🇽' },
+  GB: { name: 'United Kingdom', flag: '🇬🇧' },
+  FR: { name: 'France', flag: '🇫🇷' },
+  DE: { name: 'Germany', flag: '🇩🇪' },
+  AU: { name: 'Australia', flag: '🇦🇺' },
+  CA: { name: 'Canada', flag: '🇨🇦' },
+  CN: { name: 'China', flag: '🇨🇳' },
+  RU: { name: 'Russia', flag: '🇷🇺' },
+  ES: { name: 'Spain', flag: '🇪🇸' },
+  IT: { name: 'Italy', flag: '🇮🇹' },
+};
+
+function formatCountryName(code: string): string {
+  const cleanCode = code.trim().toUpperCase();
+  const country = COUNTRY_MAP[cleanCode];
+  if (country) {
+    return `${country.flag} ${country.name}`;
+  }
+  
+  if (cleanCode.length === 2) {
+    try {
+      const codePoints = cleanCode
+        .split('')
+        .map(char => 127397 + char.charCodeAt(0));
+      const flag = String.fromCodePoint(...codePoints);
+      return `${flag} ${cleanCode}`;
+    } catch (e) {
+      return code;
+    }
+  }
+  
+  return code;
+}
+
 interface FollowerLocationsCardProps {
   countryData: DemographicItem[];
   cityData: DemographicItem[];
@@ -74,12 +120,13 @@ export function FollowerLocationsCard({
           <div className="space-y-4">
             {topLocations.map((loc: DemographicItem, idx: number) => {
               const percent = Math.round((loc.value / totalLocationVal) * 100) || 0;
+              const displayName = locationTab === 'country' ? formatCountryName(loc.name) : loc.name;
               return (
                 <div key={idx} className="space-y-1.5 group">
                   <div className="flex justify-between items-center text-xs font-semibold">
                     <span className="text-base-content/70 group-hover:text-base-content transition-colors flex items-center gap-1.5 font-brand">
                       <MapPin size={12} className="text-info/75" />
-                      {loc.name}
+                      {displayName}
                     </span>
                     <span className="text-base-content font-bold font-mono">{percent}%</span>
                   </div>

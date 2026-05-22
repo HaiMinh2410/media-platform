@@ -2,36 +2,22 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, BarChart3, Info } from 'lucide-react';
 import { cn } from '../primitives';
+import { 
+  ResponsiveContainer, 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  CartesianGrid 
+} from 'recharts';
 
 interface FollowerActiveTimesCardProps {
   activeTimes: Record<string, number[]> | null;
 }
 
 const DAYS = ["M", "Tu", "W", "Th", "F", "Sa", "Su"] as const;
-const TIME_LABELS = ["12a", "3a", "6a", "9a", "12p", "3p", "6p", "9p"];
-
-function ActiveTimeBarRow({ label, value, max, index }: { label: string; value: number; max: number; index: number }) {
-  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
-  
-  return (
-    <div className="flex items-center gap-3 mb-2.5 last:mb-0 group font-sans">
-      <div className="w-8 text-base-content/40 text-[10px] font-bold text-right shrink-0 transition-colors group-hover:text-base-content/60 font-mono">
-        {label}
-      </div>
-      <div className="flex-1 h-2 bg-base-200 rounded-full overflow-hidden">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.8, delay: index * 0.05, ease: [0.4, 0, 0.2, 1] }}
-          className="h-full rounded-full shadow-md bg-secondary"
-        />
-      </div>
-      <div className="w-10 text-base-content/70 text-[10px] font-bold text-right shrink-0 group-hover:text-base-content transition-colors font-mono">
-        {value.toLocaleString()}
-      </div>
-    </div>
-  );
-}
+const TIME_LABELS_FULL = ["12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM"];
 
 export function FollowerActiveTimesCard({
   activeTimes
@@ -45,7 +31,7 @@ export function FollowerActiveTimesCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans min-h-[380px]"
     >
       <div>
         <div className="flex justify-between items-center mb-6">
@@ -81,29 +67,104 @@ export function FollowerActiveTimesCard({
             <span className="text-base-content/20 text-xs font-semibold">Không có dữ liệu giờ hoạt động</span>
           </div>
         ) : (
-          <div className="space-y-3">
-            <div className="text-xs font-bold text-base-content/50 mb-2 uppercase tracking-wider font-brand">Thời gian online nhiều nhất</div>
-            <div className="space-y-1">
+          <div className="space-y-3 flex-1 flex flex-col justify-between">
+            <div className="text-xs font-bold text-base-content/50 mb-2 uppercase tracking-wider font-brand">
+              Thời gian online nhiều nhất
+            </div>
+            
+            <div className="h-[220px] w-full mt-2">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeDay}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full h-full"
                 >
                   {(() => {
                     const dayData = activeTimes[activeDay] || [0, 0, 0, 0, 0, 0, 0, 0];
-                    const maxActive = Math.max(...dayData, 1);
-                    return TIME_LABELS.map((h, i) => (
-                      <ActiveTimeBarRow
-                        key={h}
-                        label={h}
-                        value={dayData[i] || 0}
-                        max={maxActive}
-                        index={i}
-                      />
-                    ));
+                    const chartData = TIME_LABELS_FULL.map((label, idx) => ({
+                      time: label,
+                      value: dayData[idx] || 0
+                    }));
+
+                    return (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                          data={chartData}
+                          margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                        >
+                          <defs>
+                            <linearGradient id="activeTimeGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="var(--color-secondary)" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="var(--color-secondary)" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid 
+                            strokeDasharray="3 3" 
+                            stroke="var(--color-base-content)" 
+                            opacity={0.06} 
+                            vertical={false} 
+                          />
+                          <XAxis
+                            dataKey="time"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ 
+                              fill: 'var(--color-base-content)', 
+                              opacity: 0.5, 
+                              fontSize: 9, 
+                              fontWeight: 700, 
+                              fontFamily: 'var(--font-brand, sans-serif)' 
+                            }}
+                          />
+                          <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ 
+                              fill: 'var(--color-base-content)', 
+                              opacity: 0.5, 
+                              fontSize: 9, 
+                              fontWeight: 700, 
+                              fontFamily: 'monospace' 
+                            }}
+                          />
+                          <Tooltip
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                return (
+                                  <div className="bg-base-100 border border-base-content/10 px-3 py-2 rounded-2xl shadow-xl font-sans">
+                                    <p className="text-[10px] text-base-content/50 font-bold uppercase tracking-wider font-mono">
+                                      {payload[0].payload.time}
+                                    </p>
+                                    <p className="text-sm font-extrabold text-secondary mt-0.5">
+                                      {payload[0].value?.toLocaleString()} <span className="text-xs text-base-content/60 font-medium">hoạt động</span>
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="value"
+                            stroke="var(--color-secondary)"
+                            strokeWidth={3}
+                            fillOpacity={1}
+                            fill="url(#activeTimeGrad)"
+                            activeDot={{ 
+                              r: 6, 
+                              stroke: 'var(--color-base-100)', 
+                              strokeWidth: 2, 
+                              fill: 'var(--color-secondary)',
+                              className: 'shadow-lg'
+                            }}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    );
                   })()}
                 </motion.div>
               </AnimatePresence>

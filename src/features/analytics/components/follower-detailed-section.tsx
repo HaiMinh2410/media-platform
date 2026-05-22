@@ -73,30 +73,36 @@ export function FollowerDetailedSection({
 
   return (
     <div className="space-y-6 font-sans">
-      {/* DEMOGRAPHICS GRID - 2 COLUMNS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* DEMOGRAPHICS GRID - ASYMMETRICAL 40% / 60% LAYOUT */}
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
         
-        {/* CARD A: LOCATION TABS COUNTRY / CITY */}
-        <FollowerLocationsCard
-          countryData={demographics.country}
-          cityData={demographics.city}
-          followersCount={followersCount}
-        />
+        {/* LEFT COLUMN: GENDER & AGE (40% width on large screens) */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          {/* CARD C: GENDER DONUT PIE */}
+          <FollowerGenderCard
+            genderDataRaw={demographics.gender}
+          />
 
-        {/* CARD B: AGE GROUPS */}
-        <FollowerAgeCard
-          ageData={demographics.age}
-        />
+          {/* CARD B: AGE GROUPS */}
+          <FollowerAgeCard
+            ageData={demographics.age}
+          />
+        </div>
 
-        {/* CARD C: GENDER DONUT PIE */}
-        <FollowerGenderCard
-          genderDataRaw={demographics.gender}
-        />
+        {/* RIGHT COLUMN: ACTIVE TIMES & LOCATIONS (60% width on large screens) */}
+        <div className="lg:col-span-6 flex flex-col gap-6">
+          {/* CARD D: ACTIVE TIMES (On top as the most important behavioral data) */}
+          <FollowerActiveTimesCard
+            activeTimes={activeTimes}
+          />
 
-        {/* CARD D: ACTIVE TIMES */}
-        <FollowerActiveTimesCard
-          activeTimes={activeTimes}
-        />
+          {/* CARD A: LOCATION TABS COUNTRY / CITY (At the bottom) */}
+          <FollowerLocationsCard
+            countryData={demographics.country}
+            cityData={demographics.city}
+            followersCount={followersCount}
+          />
+        </div>
 
       </div>
     </div>
