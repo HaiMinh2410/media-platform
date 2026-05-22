@@ -23,7 +23,7 @@ export function FollowerAgeCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans min-h-[360px]"
     >
       <div>
         <div className="flex items-center gap-2 mb-6">
@@ -64,7 +64,15 @@ export function FollowerAgeCard({
         )}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
+      {/* Key Insight Box */}
+      <div className="mt-5 p-3 bg-success/5 border-l-4 border-success rounded-r-xl text-[11px] text-base-content/85 font-medium leading-relaxed">
+        <span className="font-extrabold text-success flex items-center gap-1.5 mb-1 text-[10px] uppercase tracking-wider">
+          <Sparkles size={12} className="animate-pulse" /> Key Insight
+        </span>
+        63% khán giả nằm trong độ tuổi chín chắn, đã đi làm và có thu nhập ổn định. Thích hợp cho các nội dung mang tính chuyên sâu, chia sẻ giá trị thực tế hoặc các sản phẩm có phân khúc giá từ trung đến cao cấp.
+      </div>
+
+      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Sparkles size={14} className="text-success/50" />
         <span>Độ tuổi tập trung lớn nhất: {topAge[0]?.name || 'N/A'}</span>
       </div>

@@ -13,6 +13,7 @@ import { FollowerLocationsCard } from './follower-detailed/FollowerLocationsCard
 import { FollowerAgeCard } from './follower-detailed/FollowerAgeCard';
 import { FollowerGenderCard } from './follower-detailed/FollowerGenderCard';
 import { FollowerActiveTimesCard } from './follower-detailed/FollowerActiveTimesCard';
+import { FollowerPersonaCard } from './follower-detailed/FollowerPersonaCard';
 
 interface FollowerDetailedSectionProps {
   accountId: string;
@@ -73,34 +74,39 @@ export function FollowerDetailedSection({
 
   return (
     <div className="space-y-6 font-sans">
-      {/* DEMOGRAPHICS GRID - ASYMMETRICAL 40% / 60% LAYOUT */}
+      {/* DEMOGRAPHICS GRID - PERFECT BENTO GRID LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
         
-        {/* LEFT COLUMN: GENDER & AGE (40% width on large screens) */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          {/* CARD C: GENDER DONUT PIE */}
-          <FollowerGenderCard
-            genderDataRaw={demographics.gender}
-          />
+        {/* ROW 1: HERO - AUDIENCE PERSONA CARD (10 columns width) */}
+        <FollowerPersonaCard 
+          followersCount={followersCount}
+        />
 
-          {/* CARD B: AGE GROUPS */}
+        {/* ROW 2: ACTIVE TIMES (6 columns) & LOCATIONS (4 columns) */}
+        <div className="lg:col-span-6 flex flex-col">
+          <FollowerActiveTimesCard
+            activeTimes={activeTimes}
+          />
+        </div>
+        
+        <div className="lg:col-span-4 flex flex-col">
+          <FollowerLocationsCard
+            countryData={demographics.country}
+            cityData={demographics.city}
+            followersCount={followersCount}
+          />
+        </div>
+
+        {/* ROW 3: AGE GROUPS (5 columns) & GENDER (5 columns) */}
+        <div className="lg:col-span-5 flex flex-col">
           <FollowerAgeCard
             ageData={demographics.age}
           />
         </div>
 
-        {/* RIGHT COLUMN: ACTIVE TIMES & LOCATIONS (60% width on large screens) */}
-        <div className="lg:col-span-6 flex flex-col gap-6">
-          {/* CARD D: ACTIVE TIMES (On top as the most important behavioral data) */}
-          <FollowerActiveTimesCard
-            activeTimes={activeTimes}
-          />
-
-          {/* CARD A: LOCATION TABS COUNTRY / CITY (At the bottom) */}
-          <FollowerLocationsCard
-            countryData={demographics.country}
-            cityData={demographics.city}
-            followersCount={followersCount}
+        <div className="lg:col-span-5 flex flex-col">
+          <FollowerGenderCard
+            genderDataRaw={demographics.gender}
           />
         </div>
 

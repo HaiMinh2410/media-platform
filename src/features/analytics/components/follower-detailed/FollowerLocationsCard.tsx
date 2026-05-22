@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Globe, MapPin, Award } from 'lucide-react';
+import { Globe, MapPin, Award, Sparkles } from 'lucide-react';
 import { cn } from '../primitives';
 
 interface DemographicItem {
@@ -76,7 +76,7 @@ export function FollowerLocationsCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans min-h-[380px]"
     >
       <div>
         <div className="flex justify-between items-center mb-6">
@@ -144,8 +144,16 @@ export function FollowerLocationsCard({
           </div>
         )}
       </div>
+
+      {/* Key Insight Box */}
+      <div className="mt-5 p-3 bg-info/5 border-l-4 border-info rounded-r-xl text-[11px] text-base-content/85 font-medium leading-relaxed">
+        <span className="font-extrabold text-info flex items-center gap-1.5 mb-1 text-[10px] uppercase tracking-wider">
+          <Sparkles size={12} className="animate-pulse" /> Key Insight
+        </span>
+        Việt Nam là thị trường trọng điểm, nhưng khối ASEAN (ID, TH, MY) đang chiếm tới 30% tổng dung lượng. Cần có chiến lược nội dung song ngữ hoặc bản địa hóa để tối ưu hóa tệp khán giả Đông Nam Á này.
+      </div>
       
-      <div className="mt-6 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
+      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Award size={14} className="text-info/50" />
         <span>Phân tích dựa trên {followersCount.toLocaleString()} followers</span>
       </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Users, Info } from 'lucide-react';
+import { Users, Info, Sparkles } from 'lucide-react';
 
 interface DemographicItem {
   name: string;
@@ -49,7 +49,7 @@ export function FollowerGenderCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans min-h-[360px]"
     >
       <div>
         <div className="flex items-center gap-2 mb-6">
@@ -119,7 +119,15 @@ export function FollowerGenderCard({
         )}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
+      {/* Key Insight Box */}
+      <div className="mt-5 p-3 bg-secondary/5 border-l-4 border-secondary rounded-r-xl text-[11px] text-base-content/85 font-medium leading-relaxed">
+        <span className="font-extrabold text-secondary flex items-center gap-1.5 mb-1 text-[10px] uppercase tracking-wider">
+          <Sparkles size={12} className="animate-pulse" /> Key Insight
+        </span>
+        Cộng đồng mang tính nam cực kỳ cao. Mọi hoạt động truyền thông, từ ngữ, hình ảnh trực quan và chủ đề bài viết nên được thiết kế đánh trúng tâm lý, sở thích hoặc thói quen của nam giới.
+      </div>
+
+      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Info size={14} className="text-secondary/50" />
         <span>Cân bằng giới tính: {genderData[0]?.name || 'N/A'} chiếm ưu thế</span>
       </div>

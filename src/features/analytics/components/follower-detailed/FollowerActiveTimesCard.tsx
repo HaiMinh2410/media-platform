@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, BarChart3, Info } from 'lucide-react';
+import { Clock, BarChart3, Info, Sparkles } from 'lucide-react';
 import { cn } from '../primitives';
 import { 
   ResponsiveContainer, 
@@ -173,7 +173,15 @@ export function FollowerActiveTimesCard({
         )}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
+      {/* Key Insight Box */}
+      <div className="mt-5 p-3 bg-secondary/5 border-l-4 border-secondary rounded-r-xl text-[11px] text-base-content/85 font-medium leading-relaxed">
+        <span className="font-extrabold text-secondary flex items-center gap-1.5 mb-1 text-[10px] uppercase tracking-wider">
+          <Sparkles size={12} className="animate-pulse" /> Key Insight
+        </span>
+        Khán giả có thói quen &quot;lướt mạng&quot; muộn. Đây là Khung Giờ Vàng duy nhất trong ngày — tất cả các bài đăng quan trọng, thông báo hoặc sản phẩm mới bắt buộc phải lên lịch phát hành vào lúc 20:45 để đón đầu đỉnh sóng.
+      </div>
+
+      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Info size={14} className="text-secondary/50" />
         <span>Follower hoạt động sôi nổi nhất vào 9 PM</span>
       </div>
