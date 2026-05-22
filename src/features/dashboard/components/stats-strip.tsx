@@ -9,14 +9,14 @@ interface StatItemProps {
 
 function StatItem({ label, value, trend, isPositive }: StatItemProps) {
   return (
-    <div className="px-md py-sm flex flex-col gap-1 h-full border-r border-foreground/10 last:border-r-0 sm:even:border-r-0 lg:even:border-r lg:last:border-r-0">
-      <span className="text-3xs font-bold text-foreground-tertiary uppercase tracking-widest font-mono">
+    <div className="px-md py-sm flex flex-col gap-1 h-full border-r border-base-content/5 last:border-r-0 sm:even:border-r-0 lg:even:border-r lg:last:border-r-0">
+      <span className="text-sm font-bold text-base-content/40 uppercase tracking-widest font-mono">
         {label}
       </span>
-      <span className="text-3xl font-black tracking-tighter text-base-content font-mono">
+      <span className="text-2xl font-black tracking-tighter text-base-content font-mono">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </span>
-      <span className={`text-2xs font-bold ${isPositive ? 'text-success' : 'text-error'}`}>
+      <span className={`text-xs font-semibold ${isPositive ? 'text-success' : 'text-error'}`}>
         {trend}
       </span>
     </div>
@@ -34,7 +34,7 @@ interface StatsStripProps {
 
 export function StatsStrip({ stats }: StatsStripProps) {
   return (
-    <div className="w-full bg-base-100/40 border-b border-foreground/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="w-full bg-base-100 border-b border-base-content/5 shadow-xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       <StatItem 
         label="Connected Accounts" 
         value={stats.connected.value} 

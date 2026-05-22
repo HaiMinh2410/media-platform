@@ -45,7 +45,7 @@ function ResponseRateBar({ rate }: { rate: number }) {
           {rate}%
         </span>
       </div>
-      <div className="h-1.5 w-full bg-base-200 rounded-full overflow-hidden border border-foreground/10">
+      <div className="h-1.5 w-full bg-base-200/50 rounded-full overflow-hidden border border-base-content/5">
         <div
           className={cn("h-full transition-all duration-1000 ease-[cubic-bezier(0.34,1.56,0.64,1)]", color)}
           style={{ width: mounted ? `${rate}%` : '0%' }}
@@ -60,14 +60,11 @@ function AccountHealthCard({ account }: AccountHealthCardProps) {
   const isWarning = account.status === 'warning';
 
   return (
-    <div className={cn(
-      "group bg-base-100/40 rounded-3xl border p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-sm hover:-translate-y-1",
-      isError ? "border-error/30 bg-error/5" : isWarning ? "border-warning/40" : "border-foreground/10"
-    )}>
+    <div className="group bg-base-100 rounded-2xl border border-base-content/5 p-6 flex flex-col gap-6 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1">
       <div className="flex justify-between items-start">
         <div className="flex gap-4 items-center">
           <div className={cn(
-            "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-3",
+            "w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-3",
             account.platform === 'facebook'
               ? "bg-facebook text-white shadow-facebook/20"
               : "bg-instagram text-white shadow-instagram/20"
@@ -87,7 +84,7 @@ function AccountHealthCard({ account }: AccountHealthCardProps) {
         <StatusDot status={account.status} />
       </div>
 
-      <div className="flex-grow">
+      <div className="grow">
         {isError ? (
           <div className="flex flex-col gap-3 py-1">
             <div className="flex items-center gap-2 text-error text-[11px] font-black bg-error/10 px-4 py-3 rounded-2xl border border-error/20 animate-pulse">
@@ -111,7 +108,7 @@ function AccountHealthCard({ account }: AccountHealthCardProps) {
                 </span>
               </div>
               {account.pendingCount > 0 && (
-                <div className="bg-warning text-warning-content px-3 py-1.5 rounded-xl text-2xs font-black shadow-lg shadow-warning/20 animate-bounce">
+                <div className="bg-warning text-warning-content px-3 py-1.5 rounded-xl text-xs font-black shadow-lg shadow-warning/20 animate-bounce">
                   {account.pendingCount} PENDING
                 </div>
               )}
@@ -124,7 +121,7 @@ function AccountHealthCard({ account }: AccountHealthCardProps) {
         {isError ? (
           <Link
             href="/dashboard/settings/accounts"
-            className="flex-grow bg-error text-error-content py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-error/20"
+            className="grow bg-error text-error-content py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-error/20"
           >
             <Icon lucide={RefreshCw} size={16} />
             RECONNECT NOW
@@ -133,14 +130,14 @@ function AccountHealthCard({ account }: AccountHealthCardProps) {
           <>
             <Link
               href={`/dashboard/inbox?account=${account.id}`}
-              className="flex-grow bg-base-200/50 hover:bg-primary hover:text-primary-content text-base-content py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 active:scale-95 transition-all border border-foreground/10"
+              className="grow bg-base-200/50 hover:bg-primary hover:text-primary-content text-base-content py-3.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 active:scale-95 transition-all border border-base-content/5"
             >
               Open Inbox
               <Icon lucide={ChevronRight} size={16} />
             </Link>
             <Link 
               href="/dashboard/settings/accounts" 
-              className="p-3.5 bg-base-200/50 hover:bg-base-300 rounded-2xl active:scale-95 transition-all border border-foreground/10"
+              className="p-3.5 bg-base-200/50 hover:bg-base-300 rounded-xl active:scale-95 transition-all border border-base-content/5"
             >
               <Icon lucide={Settings} size={18} className="text-base-content/40" />
             </Link>
@@ -158,7 +155,7 @@ export function AccountHealthGrid({
 }) {
   if (accounts.length === 0) {
     return (
-      <div className="bg-base-100/40 rounded-3xl border border-dashed border-foreground/10 p-12 text-center">
+      <div className="bg-base-100 rounded-2xl border border-dashed border-base-content/5 p-12 text-center shadow-sm">
         <p className="text-base-content/50 font-medium">No accounts found in this workspace.</p>
       </div>
     );
