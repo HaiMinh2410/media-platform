@@ -18,44 +18,44 @@ export function ChartSelector({
   isFollowerInsufficientData,
 }: ChartSelectorProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-foreground/1 border border-foreground/10 p-2 rounded-2xl">
-      <div className="flex flex-wrap p-1 bg-foreground/5 border border-foreground/10 rounded-xl select-none gap-1">
+    <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-base-200/50 border border-base-content/5 p-2 rounded-2xl">
+      <div className="flex flex-wrap p-1 bg-base-300/30 border border-base-content/5 rounded-xl select-none gap-1">
         <button
           onClick={() => setActiveChart('reach-engagement')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 font-brand ${
             activeChart === 'reach-engagement'
-              ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/10'
-              : 'text-foreground-secondary hover:text-foreground'
+              ? 'bg-info text-info-content shadow-sm scale-[1.02]'
+              : 'text-base-content/50 hover:text-base-content hover:bg-base-200/50'
           }`}
         >
-          <Icon lucide={Users} size={14} />
+          <Icon lucide={Users} size={14} className={activeChart === 'reach-engagement' ? 'text-info-content' : 'text-info'} />
           Tiếp cận & Tương tác
         </button>
         <button
           onClick={() => setActiveChart('views-interactions')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 font-brand ${
             activeChart === 'views-interactions'
-              ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/10'
-              : 'text-foreground-secondary hover:text-foreground'
+              ? 'bg-secondary text-secondary-content shadow-sm scale-[1.02]'
+              : 'text-base-content/50 hover:text-base-content hover:bg-base-200/50'
           }`}
         >
-          <Icon lucide={Eye} size={14} />
+          <Icon lucide={Eye} size={14} className={activeChart === 'views-interactions' ? 'text-secondary-content' : 'text-secondary'} />
           Lượt xem & Tương tác
         </button>
         <button
           onClick={() => setActiveChart('followers')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 font-brand ${
             activeChart === 'followers'
-              ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/10'
-              : 'text-foreground-secondary hover:text-foreground'
+              ? 'bg-warning text-warning-content shadow-sm scale-[1.02]'
+              : 'text-base-content/50 hover:text-base-content hover:bg-base-200/50'
           }`}
         >
-          <Icon lucide={TrendingUp} size={14} />
+          <Icon lucide={TrendingUp} size={14} className={activeChart === 'followers' ? 'text-warning-content' : 'text-warning'} />
           {isInstagram && !isFollowerInsufficientData ? 'Biến động Followers' : 'Xu hướng Followers'}
         </button>
       </div>
 
-      <div className="text-foreground-secondary/40 text-xs font-semibold px-2">
+      <div className="text-base-content/40 text-xs font-bold px-2 font-brand">
         {activeChart === 'reach-engagement' && 'Hiệu suất thu hút (Reach vs Engagement)'}
         {activeChart === 'views-interactions' && 'Hiệu suất chuyển đổi (Views vs Interactions)'}
         {activeChart === 'followers' &&

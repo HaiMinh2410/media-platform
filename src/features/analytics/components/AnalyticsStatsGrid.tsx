@@ -33,43 +33,47 @@ export function AnalyticsStatsGrid({
           <SkeletonStatsCard />
         </>
       ) : isError || !totals ? (
-        <div className="col-span-4 p-4 text-center text-foreground-secondary bg-foreground/5 rounded-xl border border-red-500/20">
-          Failed to load analytics data.
+        <div className="col-span-4 p-6 text-center text-base-content/70 bg-base-200/50 rounded-2xl border border-error/20 font-sans">
+          Không thể tải dữ liệu phân tích.
         </div>
       ) : (
         <>
           <StatsCard 
             label="Total Reach" 
             value={totals.reach.value.toLocaleString()} 
-            icon={<Icon lucide={Users} className="text-blue-400" size={20} />} 
+            icon={<Icon lucide={Users} className="text-info" size={20} />} 
             trend={totals.reach.trend.display} 
             isPositive={totals.reach.trend.isPositive}
             sparklineData={chartData.map(d => d.reach || 0)}
+            activeColor="var(--color-info)"
           />
           <StatsCard 
             label="Profile Visits" 
             value={totals.profileVisits.value.toLocaleString()} 
-            icon={<Icon lucide={UserCheck} className="text-purple-400" size={20} />} 
+            icon={<Icon lucide={UserCheck} className="text-secondary" size={20} />} 
             trend={totals.profileVisits.trend.display} 
             isPositive={totals.profileVisits.trend.isPositive}
             sparklineData={chartData.map(d => d.profileVisits || 0)}
+            activeColor="var(--color-secondary)"
           />
           <StatsCard 
             label="Website Taps" 
             value={totals.profileLinksTaps.value.toLocaleString()} 
-            icon={<Icon lucide={Link2} className="text-emerald-400" size={20} />} 
+            icon={<Icon lucide={Link2} className="text-success" size={20} />} 
             trend={totals.profileLinksTaps.trend.display} 
             isPositive={totals.profileLinksTaps.trend.isPositive}
             sparklineData={chartData.map(d => d.profileLinksTaps || 0)}
+            activeColor="var(--color-success)"
           />
           <StatsCard 
             label="Followers" 
             value={totals.followers.value.toLocaleString()} 
-            icon={<Icon lucide={TrendingUp} className="text-orange-400" size={20} />} 
+            icon={<Icon lucide={TrendingUp} className="text-warning" size={20} />} 
             trend={totals.followers.trend.display} 
             isPositive={totals.followers.trend.isPositive}
             delta={totals.followers.delta}
             sparklineData={chartData.map(d => d.followers || 0)}
+            activeColor="var(--color-warning)"
           />
         </>
       )}

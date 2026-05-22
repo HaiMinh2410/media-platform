@@ -321,7 +321,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
       return {
         type: 'low',
         icon: AlertTriangle,
-        color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+        color: 'text-warning bg-warning/10 border-warning/20',
         title: 'Khoảng cách rộng (Tương tác thấp)',
         desc: 'Số lượng tài khoản tiếp cận cao nhưng tương tác lại thấp. Điều này cho thấy nội dung của bạn chưa đủ sức hút để người xem hành động. Hãy thử thiết kế thumbnail nổi bật hơn, tối ưu 3 giây đầu của video hoặc chèn câu hỏi mở (CTA) hấp dẫn để kêu gọi bình luận.',
       };
@@ -329,7 +329,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
       return {
         type: 'good',
         icon: Star,
-        color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+        color: 'text-info bg-info/10 border-info/20',
         title: 'Khoảng cách ổn định (Tương tác khá)',
         desc: 'Tỷ lệ tương tác trên lượt tiếp cận đang hoạt động ổn định. Nội dung của bạn đi đúng hướng và có sức hút nhất định. Hãy tiếp tục tối ưu hóa khung giờ đăng bài và giữ vững phong cách chia sẻ hữu ích hiện tại.',
       };
@@ -337,7 +337,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
       return {
         type: 'excellent',
         icon: Flame,
-        color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+        color: 'text-success bg-success/10 border-success/20',
         title: 'Khoảng cách hẹp (Tương tác xuất sắc!)',
         desc: 'Hiệu suất tuyệt vời! Tỷ lệ tương tác trên mỗi lượt tiếp cận đạt mức rất cao. Khán giả cực kỳ hứng thú và có sự gắn kết sâu sắc với nội dung của bạn. Đây là công thức thành công, hãy nhân bản định dạng và chủ đề này ngay lập tức!',
       };
@@ -356,7 +356,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
       return {
         type: 'low',
         icon: AlertTriangle,
-        color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+        color: 'text-warning bg-warning/10 border-warning/20',
         title: 'Hiệu suất chuyển đổi tương tác thấp',
         desc: 'Nội dung của bạn nhận được nhiều lượt xem nhưng tỷ lệ người thực hiện hành động tương tác (Like, Comment, Share, Save) khá thấp. Bạn nên thử đặt các câu hỏi kích thích thảo luận dưới caption, tạo minigame hoặc chèn lời kêu gọi hành động (CTA) trực tiếp trên hình ảnh/video để thúc đẩy người dùng tương tác.',
       };
@@ -364,7 +364,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
       return {
         type: 'good',
         icon: Star,
-        color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+        color: 'text-info bg-info/10 border-info/20',
         title: 'Tỷ lệ tương tác ổn định',
         desc: 'Khả năng chuyển đổi từ lượt xem sang tương tác đạt mức ổn định so với trung bình. Khán giả phản hồi tương đối tích cực với các nội dung hiển thị. Hãy tiếp tục tối ưu hóa chất lượng hình ảnh, duy trì đều đặn tần suất đăng để củng cố thói quen tương tác của fan.',
       };
@@ -372,7 +372,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
       return {
         type: 'excellent',
         icon: Flame,
-        color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+        color: 'text-success bg-success/10 border-success/20',
         title: 'Hiệu suất tương tác cực kỳ xuất sắc!',
         desc: 'Tỷ lệ chuyển đổi tương tác trên mỗi lượt xem đạt mức rất cao! Khán giả cực kỳ hứng thú và không ngần ngại tương tác với các bài viết của bạn. Đây là những nội dung có giá trị giữ chân và tạo sự kết nối cộng đồng mạnh mẽ. Bạn nên ưu tiên phát triển thêm nhiều nội dung theo chủ đề này.',
       };

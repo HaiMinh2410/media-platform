@@ -85,39 +85,39 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   return (
     <div className="flex flex-col gap-6 p-6 max-w-[1200px] mx-auto">
       {/* TABS SELECTOR */}
-      <div className="flex border-b border-foreground/10 mb-4 select-none">
+      <div className="flex flex-wrap gap-1.5 bg-base-200/70 border border-base-content/5 rounded-2xl p-1.5 select-none w-fit shadow-inner mb-2 self-start">
         <button
           onClick={() => setActiveTab('general')}
-          className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
             activeTab === 'general'
-              ? 'border-blue-500 text-foreground bg-foreground/2'
-              : 'border-transparent text-foreground-secondary hover:text-foreground hover:bg-foreground/1'
+              ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
+              : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
           }`}
         >
-          <Icon lucide={BarChart3} size={14} />
+          <Icon lucide={BarChart3} size={14} className={activeTab === 'general' ? 'text-primary-content' : 'text-info'} />
           <span>Tổng quan Kênh</span>
         </button>
         <button
           onClick={() => setActiveTab('content')}
-          className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
             activeTab === 'content'
-              ? 'border-indigo-500 text-indigo-400 bg-indigo-500/1'
-              : 'border-transparent text-foreground-secondary hover:text-foreground hover:bg-foreground/1'
+              ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
+              : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
           }`}
         >
-          <Icon lucide={Layers} size={14} className={activeTab === 'content' ? "text-indigo-500" : "text-foreground-tertiary"} />
+          <Icon lucide={Layers} size={14} className={activeTab === 'content' ? 'text-primary-content' : 'text-secondary'} />
           <span>Bài viết</span>
         </button>
         <button
           onClick={() => setActiveTab('ai')}
-          className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
             activeTab === 'ai'
-              ? 'border-pink-500 text-pink-400 bg-pink-500/1'
-              : 'border-transparent text-foreground-secondary hover:text-foreground hover:bg-foreground/1'
+              ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
+              : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
           }`}
         >
-          <Icon lucide={Sparkles} size={14} className={activeTab === 'ai' ? "text-pink-500 animate-pulse" : "text-foreground-tertiary"} />
-          <span>Phân tích AI Agent</span>
+          <Icon lucide={Sparkles} size={14} className={activeTab === 'ai' ? 'text-primary-content animate-pulse' : 'text-accent'} />
+          <span>AI Insights</span>
         </button>
       </div>
 

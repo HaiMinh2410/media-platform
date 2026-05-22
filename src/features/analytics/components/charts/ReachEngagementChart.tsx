@@ -4,10 +4,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Users } from 'lucide-react';
 import { Icon } from '@shared/ui/icon';
 
-// --- CONSTANTS (Clean Code: Tránh Magic Numbers) ---
-const COLOR_REACH = '#3b82f6';
-const COLOR_ENGAGEMENT = '#f97316';
-const COLOR_BACKGROUND_DARK = '#121212';
+// --- CONSTANTS ---
+const COLOR_REACH = 'var(--color-info)';
+const COLOR_ENGAGEMENT = 'var(--color-warning)';
+const COLOR_BACKGROUND_VAR = 'var(--color-base-100)';
 
 const RATE_EXCELLENT = 15;
 const RATE_GOOD = 5;
@@ -30,45 +30,44 @@ export function ReachEngagementChart({
   engagementInsight,
 }: ReachEngagementChartProps) {
   
-  // Tránh lặp lại kiểu định nghĩa màu sắc động cho tỷ lệ tương tác
   const getRateColorClass = (rate: number) => {
-    if (rate >= RATE_EXCELLENT) return 'text-emerald-400';
-    if (rate >= RATE_GOOD) return 'text-blue-400';
-    return 'text-amber-400';
+    if (rate >= RATE_EXCELLENT) return 'text-success';
+    if (rate >= RATE_GOOD) return 'text-info';
+    return 'text-warning';
   };
 
   return (
-    <div className="w-full glass rounded-2xl p-6 flex flex-col gap-6">
+    <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md font-sans">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Icon lucide={Users} size={18} className="text-blue-400" />
+          <h3 className="text-lg font-bold text-base-content flex items-center gap-2 font-brand">
+            <Icon lucide={Users} size={18} className="text-info" />
             So sánh Tiếp cận & Tương tác
           </h3>
-          <p className="text-foreground-secondary/50 text-xs mt-1">
+          <p className="text-base-content/40 text-xs mt-1 font-medium">
             Xem mối tương quan giữa số người tiếp cận (Reach) và người tương tác thực tế (Engagement)
           </p>
         </div>
 
         <div className="flex gap-4">
-          <div className="bg-foreground/1 border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
-            <span className="text-[10px] text-foreground-secondary/60 uppercase font-bold block mb-1">Reach TB/Ngày</span>
-            <span className="text-sm font-extrabold text-blue-400">{avgReach.toLocaleString()}</span>
+          <div className="bg-base-200/50 border border-base-content/5 rounded-xl px-4 py-2 text-center min-w-[100px]">
+            <span className="text-[10px] text-base-content/40 uppercase font-bold block mb-1">Reach TB/Ngày</span>
+            <span className="text-sm font-extrabold text-info font-mono">{avgReach.toLocaleString()}</span>
           </div>
-          <div className="bg-foreground/1 border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
-            <span className="text-[10px] text-foreground-secondary/60 uppercase font-bold block mb-1">Tương tác TB</span>
-            <span className="text-sm font-extrabold text-orange-400">{avgEngagement.toLocaleString()}</span>
+          <div className="bg-base-200/50 border border-base-content/5 rounded-xl px-4 py-2 text-center min-w-[100px]">
+            <span className="text-[10px] text-base-content/40 uppercase font-bold block mb-1">Tương tác TB</span>
+            <span className="text-sm font-extrabold text-warning font-mono">{avgEngagement.toLocaleString()}</span>
           </div>
-          <div className="bg-foreground/1 border border-foreground/10 rounded-xl px-4 py-2 text-center min-w-[100px]">
-            <span className="text-[10px] text-foreground-secondary/60 uppercase font-bold block mb-1">Tỷ lệ tương tác</span>
-            <span className={`text-sm font-extrabold ${getRateColorClass(avgEngagementRate)}`}>
+          <div className="bg-base-200/50 border border-base-content/5 rounded-xl px-4 py-2 text-center min-w-[100px]">
+            <span className="text-[10px] text-base-content/40 uppercase font-bold block mb-1">Tỷ lệ tương tác</span>
+            <span className={`text-sm font-extrabold font-mono ${getRateColorClass(avgEngagementRate)}`}>
               {avgEngagementRate}%
             </span>
           </div>
         </div>
       </div>
 
-      <div style={{ width: '100%', height: '350px' }} className="relative mt-2 text-foreground-secondary">
+      <div style={{ width: '100%', height: '350px' }} className="relative mt-2 text-base-content/70">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.06} vertical={false} />
@@ -76,14 +75,14 @@ export function ReachEngagementChart({
               dataKey="date" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11 }}
+              tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11, fontFamily: 'var(--font-mono)' }}
               dy={10}
               interval={range === '30d' ? 4 : range === '90d' ? 6 : 0}
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11 }}
+              tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11, fontFamily: 'var(--font-mono)' }}
               allowDecimals={false}
             />
             <Tooltip
@@ -95,27 +94,27 @@ export function ReachEngagementChart({
                   const dailyRate = reachVal > 0 ? ((engVal / reachVal) * 100).toFixed(2) : '0';
 
                   return (
-                    <div className="bg-base-300/95 backdrop-blur-xl border border-foreground/10 p-4 rounded-xl shadow-2xl space-y-2 min-w-[200px]">
-                      <div className="text-xs font-bold text-foreground-tertiary border-b border-foreground/10 pb-1 mb-1">
+                    <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-4 rounded-xl shadow-2xl space-y-2 min-w-[200px] font-sans">
+                      <div className="text-xs font-bold text-base-content/40 border-b border-base-content/10 pb-1 mb-1 font-mono">
                         {data.date}
                       </div>
                       <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
-                          <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                        <div className="flex items-center gap-1.5 text-xs text-base-content/70">
+                          <div className="w-2.5 h-2.5 rounded-full bg-info" />
                           <span>Reach (Tiếp cận):</span>
                         </div>
-                        <span className="text-xs font-bold text-foreground">{reachVal.toLocaleString()}</span>
+                        <span className="text-xs font-bold text-base-content font-mono">{reachVal.toLocaleString()}</span>
                       </div>
                       <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-1.5 text-xs text-foreground-secondary">
-                          <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                        <div className="flex items-center gap-1.5 text-xs text-base-content/70">
+                          <div className="w-2.5 h-2.5 rounded-full bg-warning" />
                           <span>Engagement (Tương tác):</span>
                         </div>
-                        <span className="text-xs font-bold text-foreground">{engVal.toLocaleString()}</span>
+                        <span className="text-xs font-bold text-base-content font-mono">{engVal.toLocaleString()}</span>
                       </div>
-                      <div className="flex items-center justify-between gap-4 border-t border-foreground/10 pt-1.5 mt-1">
-                        <span className="text-xs font-medium text-foreground-secondary/40">Tỷ lệ tương tác ngày:</span>
-                        <span className={`text-xs font-bold ${getRateColorClass(Number(dailyRate))}`}>
+                      <div className="flex items-center justify-between gap-4 border-t border-base-content/10 pt-1.5 mt-1">
+                        <span className="text-xs font-medium text-base-content/30">Tỷ lệ tương tác ngày:</span>
+                        <span className={`text-xs font-bold font-mono ${getRateColorClass(Number(dailyRate))}`}>
                           {dailyRate}%
                         </span>
                       </div>
@@ -133,7 +132,7 @@ export function ReachEngagementChart({
               iconSize={8}
               formatter={(value) => {
                 const label = value === 'reach' ? 'Accounts Reached (Tiếp cận)' : 'Accounts Engaged (Tương tác)';
-                return <span className="text-xs font-semibold text-foreground-secondary hover:text-foreground transition-colors">{label}</span>;
+                return <span className="text-xs font-semibold text-base-content/70 hover:text-base-content transition-colors">{label}</span>;
               }}
             />
             <Line 
@@ -142,7 +141,7 @@ export function ReachEngagementChart({
               stroke={COLOR_REACH} 
               strokeWidth={3}
               dot={{ r: 0 }}
-              activeDot={{ r: 6, stroke: COLOR_REACH, strokeWidth: 2, fill: COLOR_BACKGROUND_DARK }}
+              activeDot={{ r: 6, stroke: COLOR_REACH, strokeWidth: 2, fill: COLOR_BACKGROUND_VAR }}
             />
             <Line 
               type="monotone" 
@@ -150,7 +149,7 @@ export function ReachEngagementChart({
               stroke={COLOR_ENGAGEMENT} 
               strokeWidth={3}
               dot={{ r: 0 }}
-              activeDot={{ r: 6, stroke: COLOR_ENGAGEMENT, strokeWidth: 2, fill: COLOR_BACKGROUND_DARK }}
+              activeDot={{ r: 6, stroke: COLOR_ENGAGEMENT, strokeWidth: 2, fill: COLOR_BACKGROUND_VAR }}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -158,12 +157,12 @@ export function ReachEngagementChart({
 
       {engagementInsight && (
         <div className={`p-4 rounded-xl border flex gap-3 items-start transition-all duration-300 ${engagementInsight.color}`}>
-          <div className="mt-0.5 p-1.5 bg-foreground/5 rounded-lg shrink-0">
+          <div className="mt-0.5 p-1.5 bg-base-content/5 rounded-lg shrink-0 flex items-center justify-center">
             <Icon lucide={engagementInsight.icon} size={16} />
           </div>
           <div className="space-y-1">
-            <h4 className="text-sm font-bold text-foreground">{engagementInsight.title}</h4>
-            <p className="text-xs text-foreground-secondary leading-relaxed font-medium">
+            <h4 className="text-sm font-bold text-base-content">{engagementInsight.title}</h4>
+            <p className="text-xs text-base-content/70 leading-relaxed font-medium">
               {engagementInsight.desc}
             </p>
           </div>

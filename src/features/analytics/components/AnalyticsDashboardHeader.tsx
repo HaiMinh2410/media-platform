@@ -34,22 +34,22 @@ export function AnalyticsDashboardHeader({
   handleSyncAll
 }: AnalyticsDashboardHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
-        <p className="text-foreground-secondary text-sm">Track your performance across platforms</p>
+        <h1 className="text-3xl font-black text-base-content font-brand tracking-tight">Analytics</h1>
+        <p className="text-base-content/50 text-sm font-medium mt-1">Theo dõi hiệu suất truyền thông trên các nền tảng</p>
       </div>
       
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex gap-0.5 bg-foreground/5 border border-foreground/10 rounded-xl p-1">
+        <div className="flex gap-0.5 bg-base-200/70 border border-base-content/5 rounded-xl p-1 shadow-inner">
           {(['7d', '30d', '90d'] as AnalyticsRange[]).map(r => (
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 range === r 
-                  ? 'bg-primary/15 text-primary shadow-lg' 
-                  : 'text-foreground/40 hover:text-foreground/80 hover:bg-foreground/5'
+                  ? 'bg-primary text-primary-content shadow-sm scale-[1.02]' 
+                  : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
               }`}
             >
               {r.toUpperCase()}
@@ -57,10 +57,10 @@ export function AnalyticsDashboardHeader({
           ))}
           <button 
             onClick={() => setRange('custom')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               range === 'custom' 
-                ? 'bg-primary/15 text-primary shadow-lg' 
-                : 'text-foreground/40 hover:text-foreground/80 hover:bg-foreground/5'
+                ? 'bg-primary text-primary-content shadow-sm scale-[1.02]' 
+                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
             }`}
           >
             Custom
@@ -68,24 +68,24 @@ export function AnalyticsDashboardHeader({
         </div>
 
         {range === 'custom' && (
-          <div className="flex items-center gap-2 bg-foreground/5 border border-foreground/10 rounded-lg px-2 py-1 animate-in fade-in slide-in-from-right-2 duration-300">
+          <div className="flex items-center gap-2 bg-base-200/50 border border-base-content/5 rounded-xl px-3 py-1.5 animate-in fade-in slide-in-from-right-2 duration-300">
             <input 
               type="date" 
               value={customStart}
               onChange={(e) => setCustomStart(e.target.value)}
-              className="bg-transparent text-xs text-foreground outline-none scheme-dark"
+              className="bg-transparent text-xs text-base-content outline-none scheme-light dark:scheme-dark font-mono font-semibold"
             />
-            <span className="text-foreground-secondary/20 text-xs">→</span>
+            <span className="text-base-content/20 text-xs font-bold">→</span>
             <input 
               type="date" 
               value={customEnd}
               onChange={(e) => setCustomEnd(e.target.value)}
-              className="bg-transparent text-xs text-foreground outline-none scheme-dark"
+              className="bg-transparent text-xs text-base-content outline-none scheme-light dark:scheme-dark font-mono font-semibold"
             />
           </div>
         )}
         
-        <div className="h-8 w-px bg-foreground/10 mx-1" />
+        <div className="h-8 w-px bg-base-content/10 mx-1" />
         
         <AccountSelector 
           accounts={accounts} 
@@ -96,10 +96,10 @@ export function AnalyticsDashboardHeader({
         <button
           onClick={handleSync}
           disabled={isSyncing}
-          className={`p-2 rounded-lg border transition-all duration-300 ${
+          className={`btn btn-square btn-sm transition-all duration-300 ${
             isSyncing 
-              ? 'bg-foreground/5 border-foreground/10 cursor-not-allowed opacity-50' 
-              : 'bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20 text-blue-400'
+              ? 'btn-disabled opacity-50 bg-base-300' 
+              : 'btn-soft btn-info hover:scale-105'
           }`}
           title="Đồng bộ dữ liệu tài khoản này"
         >
@@ -109,14 +109,14 @@ export function AnalyticsDashboardHeader({
         <button
           onClick={handleSyncAll}
           disabled={isSyncing}
-          className={`px-3 py-2 rounded-lg border flex items-center gap-2 text-xs font-semibold transition-all duration-300 ${
+          className={`btn btn-sm transition-all duration-300 font-bold ${
             isSyncing 
-              ? 'bg-foreground/5 border-foreground/10 cursor-not-allowed opacity-50 text-foreground-tertiary' 
-              : 'bg-foreground/5 border-foreground/10 hover:bg-foreground/10 hover:border-foreground/20 text-foreground'
+              ? 'btn-disabled opacity-50 bg-base-300' 
+              : 'btn-soft hover:scale-105'
           }`}
           title="Đồng bộ tất cả tài khoản"
         >
-          <Icon lucide={CloudDownload} size={14} className={isSyncing ? 'animate-pulse text-blue-400' : ''} />
+          <Icon lucide={CloudDownload} size={14} className={isSyncing ? 'animate-pulse text-info' : ''} />
           <span className="hidden sm:inline">Sync All</span>
         </button>
       </div>

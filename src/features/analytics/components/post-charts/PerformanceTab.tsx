@@ -27,46 +27,47 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
       {/* 1. Performance Line Chart (Col span 2) */}
-      <div className="lg:col-span-2 bg-foreground/1 border border-foreground/10 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
+      <div className="lg:col-span-2 bg-base-200/50 border border-base-content/5 rounded-2xl p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h3 className="text-sm font-bold text-foreground">Xu hướng Hiệu suất theo thời gian</h3>
-            <p className="text-[11px] text-foreground/40">Biểu diễn lượt xem, lượt tiếp cận và tương tác tích lũy</p>
+            <h3 className="text-sm font-bold text-base-content font-brand">Xu hướng Hiệu suất theo thời gian</h3>
+            <p className="text-[11px] text-base-content/50 font-medium">Biểu diễn lượt xem, lượt tiếp cận và tương tác tích lũy</p>
           </div>
-          <div className="flex items-center gap-4 text-[10px] font-medium">
-            <span className="flex items-center gap-1.5 text-purple-400">
-              <span className="w-2.5 h-1.5 bg-purple-500 rounded-full" /> Views
+          <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold font-brand uppercase tracking-wider">
+            <span className="flex items-center gap-1.5 text-secondary">
+              <span className="w-2.5 h-1.5 bg-secondary rounded-full" /> Views
             </span>
-            <span className="flex items-center gap-1.5 text-blue-400">
-              <span className="w-2.5 h-1.5 bg-blue-500 rounded-full" /> Reach
+            <span className="flex items-center gap-1.5 text-info">
+              <span className="w-2.5 h-1.5 bg-info rounded-full" /> Reach
             </span>
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <span className="w-2.5 h-1.5 bg-emerald-500 rounded-full" /> Interactions
+            <span className="flex items-center gap-1.5 text-success">
+              <span className="w-2.5 h-1.5 bg-success rounded-full" /> Interactions
             </span>
           </div>
         </div>
 
-        <div className="h-[360px] w-full mt-6">
+        <div className="h-[360px] w-full mt-6 text-base-content/70">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data.performance} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
               <defs>
                 <linearGradient id="viewsGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#a855f7" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="var(--color-secondary)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--color-secondary)" stopOpacity={0.0} />
                 </linearGradient>
                 <linearGradient id="reachGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="var(--color-info)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--color-info)" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.03} vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.05} vertical={false} />
               <XAxis 
                 dataKey="date" 
                 stroke="currentColor" 
-                opacity={0.3} 
+                opacity={0.5} 
                 fontSize={10} 
+                fontFamily="var(--font-mono)"
                 tickLine={false} 
                 axisLine={false}
                 dy={10}
@@ -74,8 +75,9 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
               <YAxis 
                 yAxisId="left"
                 stroke="currentColor" 
-                opacity={0.3} 
+                opacity={0.5} 
                 fontSize={10} 
+                fontFamily="var(--font-mono)"
                 tickLine={false} 
                 axisLine={false} 
                 tickFormatter={numberFormatter}
@@ -84,53 +86,68 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
                 yAxisId="right"
                 orientation="right"
                 stroke="currentColor" 
-                opacity={0.3} 
+                opacity={0.5} 
                 fontSize={10} 
+                fontFamily="var(--font-mono)"
                 tickLine={false} 
                 axisLine={false} 
                 tickFormatter={numberFormatter}
               />
               <SafeTooltip
-                contentStyle={{
-                  backgroundColor: 'oklch(var(--b3))',
-                  border: '1px solid oklch(var(--bc) / 0.1)',
-                  borderRadius: '16px',
-                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)',
-                  backdropFilter: 'blur(10px)'
+                content={({ active, payload, label }: any) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl space-y-1.5 min-w-[150px] font-sans">
+                        <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-1 font-mono">{label}</div>
+                        {payload.map((item: any, i: number) => (
+                          <div key={i} className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                              <span className="text-xs text-base-content/70 font-semibold">
+                                {item.name === 'views' ? 'Lượt xem' : item.name === 'reach' ? 'Tiếp cận' : 'Tương tác'}
+                              </span>
+                            </div>
+                            <span className="text-xs font-black font-mono" style={{ color: item.color }}>
+                              {numberFormatter(item.value)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return null;
                 }}
-                labelStyle={{ color: 'oklch(var(--bc))', fontWeight: 'bold', fontSize: '11px', marginBottom: '8px' }}
-                itemStyle={{ fontSize: '11px', padding: '2px 0' }}
-                formatter={(value, name) => {
-                  const label = name === 'views' ? 'Lượt xem' : name === 'reach' ? 'Tiếp cận' : 'Tương tác';
-                  return [numberFormatter(value), label];
-                }}
+                cursor={{ stroke: 'currentColor', strokeOpacity: 0.1, strokeWidth: 1.5 }}
               />
               <Line 
                 yAxisId="left"
                 type="monotone" 
                 dataKey="views" 
-                stroke="#a855f7" 
+                name="views"
+                stroke="var(--color-secondary)" 
                 strokeWidth={2.5} 
-                dot={{ stroke: '#a855f7', strokeWidth: 1, r: 2 }}
-                activeDot={{ r: 5, strokeWidth: 0, fill: '#a855f7' }}
+                dot={{ stroke: 'var(--color-secondary)', strokeWidth: 1, r: 2 }}
+                activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--color-secondary)', fill: 'var(--color-base-100)' }}
               />
               <Line 
                 yAxisId="left"
                 type="monotone" 
                 dataKey="reach" 
-                stroke="#3b82f6" 
+                name="reach"
+                stroke="var(--color-info)" 
                 strokeWidth={2} 
-                dot={{ stroke: '#3b82f6', strokeWidth: 1, r: 1 }}
-                activeDot={{ r: 4, strokeWidth: 0, fill: '#3b82f6' }}
+                dot={{ stroke: 'var(--color-info)', strokeWidth: 1, r: 1 }}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: 'var(--color-info)', fill: 'var(--color-base-100)' }}
               />
               <Line 
                 yAxisId="right"
                 type="monotone" 
                 dataKey="interactions" 
-                stroke="#10b981" 
+                name="interactions"
+                stroke="var(--color-success)" 
                 strokeWidth={2} 
-                dot={{ stroke: '#10b981', strokeWidth: 1, r: 1 }}
-                activeDot={{ r: 4, strokeWidth: 0, fill: '#10b981' }}
+                dot={{ stroke: 'var(--color-success)', strokeWidth: 1, r: 1 }}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: 'var(--color-success)', fill: 'var(--color-base-100)' }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -139,33 +156,33 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
 
       {/* 2. MoM Comparison Metrics Cards */}
       <div className="flex flex-col gap-4">
-        <div className="bg-foreground/1 border border-foreground/10 rounded-2xl p-5 flex-1 flex flex-col justify-between">
+        <div className="bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex-1 flex flex-col justify-between shadow-sm">
           <div>
-            <div className="flex items-center gap-1.5 text-purple-400 mb-2">
+            <div className="flex items-center gap-1.5 text-secondary mb-2">
               <Activity className="w-4 h-4" />
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">So sánh chu kỳ trước (MoM)</h3>
+              <h3 className="text-xs font-bold text-base-content uppercase tracking-wider font-brand">So sánh chu kỳ trước (MoM)</h3>
             </div>
-            <p className="text-[11px] text-foreground/40">Phân tích mức độ tăng trưởng tương đối giữa 2 chu kỳ gần nhất</p>
+            <p className="text-[11px] text-base-content/50 font-medium">Phân tích mức độ tăng trưởng tương đối giữa 2 chu kỳ gần nhất</p>
           </div>
 
           <div className="space-y-4 my-4 flex-1 flex flex-col justify-center">
             {data.mom.map((m, idx) => {
               const isPositive = m.growth >= 0;
               return (
-                <div key={idx} className="bg-foreground/2 border border-foreground/10 rounded-xl p-3 flex items-center justify-between">
+                <div key={idx} className="bg-base-100 border border-base-content/5 rounded-xl p-3 flex items-center justify-between shadow-sm">
                   <div>
-                    <span className="text-[10px] font-semibold text-foreground/50 uppercase tracking-wide">{m.metric}</span>
+                    <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-wide font-brand">{m.metric}</span>
                     <div className="flex items-baseline gap-2 mt-0.5">
-                      <span className="text-sm font-bold text-foreground">{numberFormatter(m.current)}</span>
-                      <span className="text-[9px] text-foreground/30">vs {numberFormatter(m.previous)}</span>
+                      <span className="text-sm font-extrabold text-base-content font-mono">{numberFormatter(m.current)}</span>
+                      <span className="text-[9px] text-base-content/30 font-bold font-mono">vs {numberFormatter(m.previous)}</span>
                     </div>
                   </div>
 
                   <div className={cn(
-                    "flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[10px] font-bold shadow-lg border",
+                    "flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold border shadow-xs font-mono",
                     isPositive 
-                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
-                      : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                      ? "bg-success/10 border-success/20 text-success" 
+                      : "bg-error/10 border-error/20 text-error"
                   )}>
                     {isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
                     <span>{isPositive ? '+' : ''}{m.growth}%</span>
@@ -175,9 +192,9 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
             })}
           </div>
 
-          <div className="text-[10px] text-foreground-secondary bg-foreground/2 border border-foreground/10 rounded-xl p-2.5 flex items-center gap-2">
-            <Heart className="w-3.5 h-3.5 text-rose-500" />
-            <span>Mẹo: Tăng trưởng tương tác cao hơn lượt xem thể hiện chất lượng nội dung hấp dẫn tăng.</span>
+          <div className="text-[10px] text-base-content/70 bg-base-100 border border-base-content/5 rounded-xl p-2.5 flex items-start gap-2 shadow-xs">
+            <Heart className="w-3.5 h-3.5 text-error mt-0.5 shrink-0" />
+            <span className="font-semibold leading-relaxed">Mẹo: Tăng trưởng tương tác cao hơn lượt xem thể hiện chất lượng nội dung hấp dẫn tăng.</span>
           </div>
         </div>
       </div>

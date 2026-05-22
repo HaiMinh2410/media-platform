@@ -57,7 +57,7 @@ export function AnalyticsChartsSection({
   interactionInsight
 }: AnalyticsChartsSectionProps) {
   return (
-    <div className={`bg-foreground/2 border border-foreground/5 rounded-2xl p-6 min-h-[450px] transition-opacity duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
+    <div className={`bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 min-h-[450px] transition-all duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
       {/* CHART SELECTOR BUTTONS */}
       <ChartSelector
         activeChart={activeChart}
@@ -70,8 +70,8 @@ export function AnalyticsChartsSection({
       {isPending ? (
         <SkeletonChart />
       ) : isError || !totals ? (
-        <div className="w-full h-[350px] flex items-center justify-center bg-foreground/2 rounded-xl border border-foreground/10">
-          <span className="text-foreground-secondary/40">No data available</span>
+        <div className="w-full h-[350px] flex items-center justify-center bg-base-200/30 rounded-xl border border-base-content/10 font-sans">
+          <span className="text-base-content/40 font-semibold">Chưa có dữ liệu thống kê biểu đồ</span>
         </div>
       ) : (
         <AnimatePresence mode="wait">
