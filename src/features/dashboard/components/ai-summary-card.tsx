@@ -72,7 +72,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
   ];
 
   return (
-    <div className="p-6 border border-base-content/5 bg-base-100/50 backdrop-blur-md shadow-sm rounded-3xl h-full flex flex-col transition-all duration-300 hover:shadow-lg glass glass-shadow">
+    <div className="p-6 border border-foreground/10 bg-base-100/40 shadow-sm rounded-3xl h-full flex flex-col transition-all duration-300 hover:shadow-sm hover:-translate-y-1">
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
           <span className="text-lg">🤖</span>
@@ -124,7 +124,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
       </div>
 
       {/* Shimmer / Active Task */}
-      <div className="bg-base-200/40 p-3 rounded-xl border border-base-content/5 flex flex-col gap-2">
+      <div className="bg-base-100 p-3 rounded-xl border border-foreground/10 flex flex-col gap-2">
         <div className="text-[10px] text-base-content/40 font-semibold italic">AI đang soạn draft...</div>
         <div className="flex flex-col gap-1.5">
           <div className="h-2.5 bg-linear-to-r from-base-content/5 via-base-content/10 to-base-content/5 bg-size-[200%_100%] animate-shimmer rounded-full w-[70%]" />
@@ -137,14 +137,14 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
 };
 
 const AISummaryCardSkeleton = () => (
-  <div className="p-6 border border-base-content/5 bg-base-100/50 rounded-3xl h-full glass glass-shadow">
+  <div className="p-6 border border-foreground/10 bg-base-100/40 rounded-3xl h-full flex flex-col">
     <div className="flex items-center gap-2 mb-6">
       <Shimmer width="32px" height="32px" className="rounded-lg" />
       <Shimmer width="160px" height="20px" />
     </div>
     <div className="grid grid-cols-2 gap-2.5 mb-6">
       {[1, 2, 3, 4].map(i => (
-        <div key={i} className="bg-base-100 rounded-xl p-3.5 border border-base-content/5 flex flex-col gap-2">
+        <div key={i} className="bg-base-100 rounded-xl p-3.5 border border-foreground/10 flex flex-col gap-2">
           <Shimmer width="24px" height="24px" className="mb-1" />
           <Shimmer width="80px" height="28px" className="mb-1" />
           <Shimmer width="100px" height="12px" />
@@ -152,7 +152,7 @@ const AISummaryCardSkeleton = () => (
         </div>
       ))}
     </div>
-    <div className="bg-base-200/40 p-3 rounded-xl border border-base-content/5 flex flex-col gap-2">
+    <div className="bg-base-100 p-3 rounded-xl border border-foreground/10 flex flex-col gap-2">
       <Shimmer width="100px" height="10px" className="mb-1" />
       <Shimmer height="10px" className="rounded-full w-[70%] mb-1" />
       <Shimmer height="10px" className="rounded-full w-[45%]" />

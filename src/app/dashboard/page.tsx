@@ -38,9 +38,9 @@ export default async function DashboardPage() {
         <header className="mb-10">
           <h1 className="text-4xl mb-1 font-brand font-bold text-gradient">Dashboard</h1>
         </header>
-        <div className="glass p-10 text-center rounded-2xl border border-foreground/10 bg-foreground/2 backdrop-blur-xl">
-          <p className="text-foreground-secondary text-lg mb-6">Bạn chưa có không gian làm việc. Vui lòng thiết lập tài khoản trong cài đặt.</p>
-          <Link href="/dashboard/settings/accounts" className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-primary text-primary-content font-bold transition-all hover:opacity-90 active:scale-[0.98]">
+        <div className="bg-base-100/40 p-10 text-center rounded-3xl border border-foreground/10 shadow-sm">
+          <p className="text-foreground-secondary text-lg mb-6 font-medium">Bạn chưa có không gian làm việc. Vui lòng thiết lập tài khoản trong cài đặt.</p>
+          <Link href="/dashboard/settings/accounts" className="btn btn-primary rounded-xl px-6 font-bold">
             Đi tới Cài đặt
           </Link>
         </div>

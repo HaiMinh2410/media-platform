@@ -36,7 +36,7 @@ export function InboxMetricsCard({ workspaceId, accounts, initialData }: InboxMe
   const selectedAccount = accounts.find(a => a.id === selectedAccountId);
 
   return (
-    <div className="bg-base-100/50 rounded-3xl border border-base-content/5 p-8 flex flex-col gap-8 shadow-sm h-full backdrop-blur-sm transition-all duration-300 hover:shadow-lg">
+    <div className="bg-base-100/40 rounded-3xl border border-foreground/10 p-8 flex flex-col gap-8 shadow-sm h-full transition-all duration-300 hover:shadow-sm hover:-translate-y-1">
       {/* Panel header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
@@ -46,7 +46,7 @@ export function InboxMetricsCard({ workspaceId, accounts, initialData }: InboxMe
           </h2>
         </div>
 
-        <div className="flex items-center gap-1 bg-base-200/50 p-1 rounded-xl border border-base-content/5">
+        <div className="flex items-center gap-1 bg-base-200/50 p-1 rounded-xl border border-foreground/10">
           {(['24h', '7d', '30d'] as const).map((p) => (
             <button
               key={p}
@@ -67,7 +67,7 @@ export function InboxMetricsCard({ workspaceId, accounts, initialData }: InboxMe
       {/* Body: account switcher + charts */}
       <div className="grid grid-cols-1 md:grid-cols-[130px_1fr] gap-8 grow">
         {/* Switcher */}
-        <div className="border-r border-base-content/5 pr-4 flex flex-col gap-1 overflow-y-auto max-h-[400px]">
+        <div className="border-r border-foreground/10 pr-4 flex flex-col gap-1 overflow-y-auto max-h-[400px]">
           <div className="text-[9px] text-base-content/40 uppercase font-black tracking-widest px-2 mb-2">Chọn TK</div>
           
           <button 
@@ -149,7 +149,7 @@ function FunnelBar({ label, value, percent, colorClass, delay }: { label: string
         <span className="text-[10px] text-base-content/60 font-semibold">{label}</span>
         <span className="text-[10px] text-base-content/60 font-mono">{value.toLocaleString()}{percent < 100 ? ` (${percent}%)` : ''}</span>
       </div>
-      <div className="h-[28px] bg-base-200/50 rounded-lg overflow-hidden border border-base-content/5">
+      <div className="h-[28px] bg-base-200/50 rounded-lg overflow-hidden border border-foreground/10">
         <div 
           className={cn(
             "h-full bg-linear-to-r flex items-center pl-3 text-[11px] text-white font-bold transition-all duration-1000 ease-out", 
@@ -178,7 +178,7 @@ function TagDistributionChart({ distribution }: { distribution?: InboxMetrics['l
   return (
     <div className="flex items-center gap-6">
       {/* Vertical Stacked Bar */}
-      <div className="w-[38px] h-[140px] bg-base-200/50 rounded-lg overflow-hidden flex flex-col-reverse border border-base-content/5">
+      <div className="w-[38px] h-[140px] bg-base-200/50 rounded-lg overflow-hidden flex flex-col-reverse border border-foreground/10">
         <div 
           className="bg-info transition-all duration-1000 ease-out" 
           style={{ height: mounted ? `${coldPct}%` : '0%' }}

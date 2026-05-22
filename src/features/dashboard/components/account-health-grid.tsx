@@ -45,7 +45,7 @@ function ResponseRateBar({ rate }: { rate: number }) {
           {rate}%
         </span>
       </div>
-      <div className="h-1.5 w-full bg-base-200 rounded-full overflow-hidden border border-base-content/5 shadow-inner">
+      <div className="h-1.5 w-full bg-base-200 rounded-full overflow-hidden border border-foreground/10">
         <div
           className={cn("h-full transition-all duration-1000 ease-[cubic-bezier(0.34,1.56,0.64,1)]", color)}
           style={{ width: mounted ? `${rate}%` : '0%' }}
@@ -61,8 +61,8 @@ function AccountHealthCard({ account }: AccountHealthCardProps) {
 
   return (
     <div className={cn(
-      "group bg-base-100/60 backdrop-blur-sm rounded-3xl border p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1",
-      isError ? "border-error/30 bg-error/5 shadow-sm" : isWarning ? "border-warning/40 shadow-sm" : "border-base-content/5"
+      "group bg-base-100/40 rounded-3xl border p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-sm hover:-translate-y-1",
+      isError ? "border-error/30 bg-error/5" : isWarning ? "border-warning/40" : "border-foreground/10"
     )}>
       <div className="flex justify-between items-start">
         <div className="flex gap-4 items-center">
@@ -133,14 +133,14 @@ function AccountHealthCard({ account }: AccountHealthCardProps) {
           <>
             <Link
               href={`/dashboard/inbox?account=${account.id}`}
-              className="flex-grow bg-base-200/80 hover:bg-primary hover:text-primary-content text-base-content py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 active:scale-95 transition-all border border-base-content/5 shadow-sm"
+              className="flex-grow bg-base-200/50 hover:bg-primary hover:text-primary-content text-base-content py-3.5 rounded-2xl text-xs font-black flex items-center justify-center gap-2 active:scale-95 transition-all border border-foreground/10"
             >
               Open Inbox
               <Icon lucide={ChevronRight} size={16} />
             </Link>
             <Link 
               href="/dashboard/settings/accounts" 
-              className="p-3.5 bg-base-200/80 hover:bg-base-300 rounded-2xl active:scale-95 transition-all border border-base-content/5 shadow-sm"
+              className="p-3.5 bg-base-200/50 hover:bg-base-300 rounded-2xl active:scale-95 transition-all border border-foreground/10"
             >
               <Icon lucide={Settings} size={18} className="text-base-content/40" />
             </Link>
@@ -158,7 +158,7 @@ export function AccountHealthGrid({
 }) {
   if (accounts.length === 0) {
     return (
-      <div className="bg-base-200/50 rounded-2xl border-2 border-dashed border-base-300 p-12 text-center">
+      <div className="bg-base-100/40 rounded-3xl border border-dashed border-foreground/10 p-12 text-center">
         <p className="text-base-content/50 font-medium">No accounts found in this workspace.</p>
       </div>
     );
