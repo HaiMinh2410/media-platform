@@ -14,7 +14,6 @@ import { SlidingTabs } from '@shared/ui/sliding-tabs';
 import { cn } from '@shared/lib/utils';
 import type { PostDeepAnalyticsData } from '@features/analytics/services/post-analytics-engine';
 import type { AnalyticsRange } from '@features/analytics/types';
-import { ContentTab } from './post-charts/ContentTab';
 import { DistributionTab } from './post-charts/DistributionTab';
 import { FollowsTab } from './post-charts/FollowsTab';
 import { PostChartsSkeleton } from './post-charts/PostChartsSkeleton';
@@ -32,7 +31,7 @@ interface PostChartsDashboardProps {
   insufficientData?: boolean;
 }
 
-type TabType = 'content' | 'distribution' | 'follows' | 'engagement-frequency';
+type TabType = 'distribution' | 'follows' | 'engagement-frequency';
 
 export function PostChartsDashboard({
   accountId,
@@ -44,10 +43,9 @@ export function PostChartsDashboard({
   insufficientData = false
 }: PostChartsDashboardProps) {
   const [mounted, setMounted] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState<TabType>('content');
+  const [activeTab, setActiveTab] = React.useState<TabType>('distribution');
 
   const tabItems = React.useMemo(() => [
-    { value: 'content', label: 'Loại nội dung', icon: PieIcon },
     { value: 'distribution', label: 'Thời điểm & Chuyển đổi', icon: Grid3X3 },
     { value: 'follows', label: 'Tăng trưởng Follower', icon: Users },
     { value: 'engagement-frequency', label: 'Tương tác & Tần suất', icon: Activity }
@@ -63,8 +61,6 @@ export function PostChartsDashboard({
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'content':
-        return <ContentTab data={data} />;
       case 'distribution':
         return <DistributionTab data={data} />;
       case 'follows':

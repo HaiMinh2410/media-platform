@@ -54,6 +54,8 @@ export interface WaterfallStep {
   name: string;
   change: number;
   total: number;
+  thumbnailUrl?: string | null;
+  caption?: string | null;
 }
 
 export interface LeaderboardPostItem {
@@ -322,7 +324,9 @@ export function buildDeepAnalytics(
     waterfall.push({
       name: p.caption ? (p.caption.length > 12 ? p.caption.slice(0, 12) + '...' : p.caption) : `Post #${p.postId.slice(0,4)}`,
       change: val,
-      total: accumulated
+      total: accumulated,
+      thumbnailUrl: p.thumbnailUrl,
+      caption: p.caption
     });
   });
 

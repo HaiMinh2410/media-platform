@@ -36,6 +36,8 @@ export function FollowsTab({ data }: FollowsTabProps) {
       value: number;
       displayVal: number;
       isFinal: boolean;
+      thumbnailUrl?: string | null;
+      caption?: string | null;
     }> = [];
 
     data.waterfall.reduce((acc, w, index) => {
@@ -62,6 +64,8 @@ export function FollowsTab({ data }: FollowsTabProps) {
         value,
         displayVal: w.change,
         isFinal,
+        thumbnailUrl: w.thumbnailUrl,
+        caption: w.caption,
       });
 
       return isFinal ? acc : acc + w.change;
@@ -111,16 +115,57 @@ export function FollowsTab({ data }: FollowsTabProps) {
                     const item = waterfallData.find(w => w.name === name);
                     if (!item) return null;
                     
-                    const label = item.isFinal ? 'Tổng cộng kênh' : 'Lượt đóng góp';
-                    const displayValText = item.isFinal ? `+${item.value} Follows` : `+${item.displayVal} Follows`;
+                    const isOther = name === 'Các bài viết khác';
+                    const isTotal = item.isFinal;
+                    
+                    const label = isTotal ? 'Tổng cộng kênh' : 'Lượt đóng góp';
+                    const displayValText = isTotal ? `+${item.value} Follows` : `+${item.displayVal} Follows`;
                     
                     return (
-                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[140px]">
-                        <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-1.5 font-mono">{name}</div>
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="text-xs text-base-content/70 font-semibold">{label}:</span>
-                          <span className="text-xs font-black font-mono text-base-content">{displayValText}</span>
-                        </div>
+                      <div className="flex min-w-[100px] max-w-[150px] animate-in fade-in zoom-in-95 duration-150">
+                        {item.thumbnailUrl ? (
+                          <div className="flex flex-col items-center">
+                            <div className="relative w-full aspect-square rounded-t-md overflow-hidden shrink-0">
+                              <img 
+                                src={item.thumbnailUrl} 
+                                alt="Post Preview" 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex flex-col justify-between bg-base-300/90 backdrop-blur-xl border border-base-content/10 p-3 rounded-b-md">
+                              <div className="text-[11px] text-base-content font-bold line-clamp-2 leading-tight">
+                                {item.caption || name}
+                              </div>
+                              <div className="flex items-center gap-1.5 mt-1.5">
+                                <span className="text-[10px] text-base-content/50 font-bold uppercase tracking-wider font-mono">
+                                  {label}
+                                </span>
+                                <span className="text-xs font-black font-mono text-accent">
+                                  {displayValText}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-3 rounded-md bg-base-300/90 backdrop-blur-xl border border-base-content/10">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-xs font-black text-base-content">
+                                {name}
+                              </span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[10px] text-base-content/50 font-bold uppercase tracking-wider font-mono">
+                                  {label}
+                                </span>
+                                <span className={cn(
+                                  "text-xs font-black font-mono",
+                                  isTotal ? "text-primary" : "text-secondary"
+                                )}>
+                                  {displayValText}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   }

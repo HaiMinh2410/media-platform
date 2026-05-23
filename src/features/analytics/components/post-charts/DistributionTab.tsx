@@ -80,14 +80,27 @@ export function DistributionTab({ data }: DistributionTabProps) {
                     return (
                       <div
                         key={hourIdx}
-                        className={cn(
-                          "flex-1 h-5 rounded-[2px] transition-all duration-300 relative group cursor-pointer border border-transparent hover:border-base-content/20 hover:scale-105",
-                          cell.count > 0 ? "bg-secondary" : "bg-base-300/30"
-                        )}
-                        style={{ opacity: cell.count > 0 ? opacityVal : 1 }}
+                        className="flex-1 h-5 rounded-[2px] transition-all duration-300 relative group cursor-pointer border border-transparent hover:border-base-content/20 hover:scale-105 hover:z-30"
                       >
+                        {/* Cell Background with Opacity */}
+                        <div 
+                          className={cn(
+                            "absolute inset-0 rounded-[2px]",
+                            cell.count > 0 ? "bg-secondary" : "bg-base-300/30"
+                          )}
+                          style={{ opacity: cell.count > 0 ? opacityVal : 1 }}
+                        />
+
                         {/* Hover Tooltip HUD */}
-                        <div className="hidden group-hover:block absolute bottom-7 left-1/2 -translate-x-1/2 z-50 bg-base-300/95 border border-base-content/10 p-2.5 rounded-xl text-[9px] text-base-content shadow-2xl min-w-[125px] pointer-events-none backdrop-blur-md">
+                        <div className={cn(
+                          "hidden group-hover:block absolute z-50 bg-base-300/95 border border-base-content/10 p-2.5 rounded-xl text-[9px] text-base-content shadow-2xl min-w-[125px] pointer-events-none backdrop-blur-md",
+                          dayIdx < 3 ? "top-7" : "bottom-7",
+                          hourIdx < 4 
+                            ? "left-0 translate-x-0" 
+                            : hourIdx > 19 
+                              ? "left-auto right-0 translate-x-0" 
+                              : "left-1/2 -translate-x-1/2"
+                        )}>
                           <p className="font-bold text-secondary">{daysName[dayIdx]} lúc {hourIdx}:00</p>
                           <p className="text-base-content/60 font-semibold mt-0.5">{cell.count} bài viết đăng</p>
                           <p className="font-extrabold text-base-content font-mono mt-0.5">Views: {numberFormatter(cell.views)}</p>

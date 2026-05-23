@@ -91,6 +91,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
         queryClient.invalidateQueries({ queryKey: ['engagement-breakdown', selectedAccountId] });
         queryClient.invalidateQueries({ queryKey: ['post-frequency', selectedAccountId] });
         queryClient.invalidateQueries({ queryKey: ['top-content', selectedAccountId] });
+        queryClient.invalidateQueries({ queryKey: ['post-deep-analytics', selectedAccountId] });
       } else {
         console.error('Sync failed:', result.error);
         alert(`Sync failed: ${result.error}`);
@@ -113,6 +114,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
         queryClient.invalidateQueries({ queryKey: ['engagement-breakdown'] });
         queryClient.invalidateQueries({ queryKey: ['post-frequency'] });
         queryClient.invalidateQueries({ queryKey: ['top-content'] });
+        queryClient.invalidateQueries({ queryKey: ['post-deep-analytics'] });
         alert(`Đã đồng bộ thành công ${result.successful}/${result.processed} tài khoản.`);
       } else {
         console.error('Sync All failed:', result.error);

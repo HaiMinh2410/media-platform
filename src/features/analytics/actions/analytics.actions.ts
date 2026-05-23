@@ -309,7 +309,8 @@ export async function syncAnalyticsAction(accountId: string) {
       // Find all dynamic keys containing the accountId and delete them cleanly
       const freshKeys = await redisConnection.keys(`*live_analytics_fresh:${accountId}*`);
       const periodKeys = await redisConnection.keys(`*live_analytics_period_cache:${accountId}*`);
-      const allKeys = [...freshKeys, ...periodKeys];
+      const deepKeys = await redisConnection.keys(`*post_deep_analytics_cache*:${accountId}*`);
+      const allKeys = [...freshKeys, ...periodKeys, ...deepKeys];
       
       if (allKeys.length > 0) {
         await redisConnection.del(...allKeys);
@@ -320,6 +321,9 @@ export async function syncAnalyticsAction(accountId: string) {
       await redisConnection.del(`live_analytics_period_cache:${accountId}:7d`);
       await redisConnection.del(`live_analytics_period_cache:${accountId}:30d`);
       await redisConnection.del(`live_analytics_period_cache:${accountId}:90d`);
+      await redisConnection.del(`post_deep_analytics_cache_v2:${accountId}:7d`);
+      await redisConnection.del(`post_deep_analytics_cache_v2:${accountId}:30d`);
+      await redisConnection.del(`post_deep_analytics_cache_v2:${accountId}:90d`);
       
       console.log(`[syncAnalyticsAction] Invalidated all dynamic Redis caches for account: ${accountId}`);
     } catch (redisErr) {
@@ -743,7 +747,7 @@ export async function getPostDeepAnalyticsAction(
       ? `custom_${new Date(customStart).toISOString().split('T')[0]}_${new Date(customEnd).toISOString().split('T')[0]}`
       : range;
 
-    const cacheKey = `post_deep_analytics_cache:${accountId}:${rangeSuffix}`;
+    const cacheKey = `post_deep_analytics_cache_v2:${accountId}:${rangeSuffix}`;
     
     // 1. Check Redis deep cache first
     if (redisConnection) {
