@@ -3,9 +3,10 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SkeletonChart, CustomTooltip } from '@features/analytics/components/dashboard-states';
 import { ChartSelector, ChartType } from './charts/ChartSelector';
-import { ReachEngagementChart } from './charts/ReachEngagementChart';
-import { ViewsInteractionsChart } from './charts/ViewsInteractionsChart';
+import { PerformanceChart } from './charts/PerformanceChart';
 import { FollowersChart } from './charts/FollowersChart';
+import { PerformanceTab } from './post-charts/PerformanceTab';
+import type { PostDeepAnalyticsData } from '@features/analytics/services/post-analytics-engine';
 
 interface AnalyticsChartsSectionProps {
   isPending: boolean;
@@ -30,6 +31,8 @@ interface AnalyticsChartsSectionProps {
   avgInteractions: number;
   avgInteractionRate: number;
   interactionInsight: any;
+  deepAnalyticsData: PostDeepAnalyticsData | null;
+  isDeepAnalyticsLoading: boolean;
 }
 
 export function AnalyticsChartsSection({
@@ -54,7 +57,9 @@ export function AnalyticsChartsSection({
   avgViews,
   avgInteractions,
   avgInteractionRate,
-  interactionInsight
+  interactionInsight,
+  deepAnalyticsData,
+  isDeepAnalyticsLoading
 }: AnalyticsChartsSectionProps) {
   return (
     <div className={`bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 min-h-[450px] transition-all duration-300 ${isFetching && !isPending ? 'opacity-50' : ''}`}>
@@ -83,21 +88,14 @@ export function AnalyticsChartsSection({
             transition={{ duration: 0.2 }}
             className="w-full"
           >
-            {activeChart === 'reach-engagement' && (
-              <ReachEngagementChart
+            {activeChart === 'performance' && (
+              <PerformanceChart
                 chartData={chartData}
                 range={range}
                 avgReach={avgReach}
                 avgEngagement={avgEngagement}
                 avgEngagementRate={avgEngagementRate}
                 engagementInsight={engagementInsight}
-              />
-            )}
-
-            {activeChart === 'views-interactions' && (
-              <ViewsInteractionsChart
-                chartData={chartData}
-                range={range}
                 avgViews={avgViews}
                 avgInteractions={avgInteractions}
                 avgInteractionRate={avgInteractionRate}
@@ -117,6 +115,14 @@ export function AnalyticsChartsSection({
                 range={range}
                 CustomTooltip={CustomTooltip}
               />
+            )}
+
+            {activeChart === 'post-performance' && (
+              isDeepAnalyticsLoading || !deepAnalyticsData ? (
+                <SkeletonChart />
+              ) : (
+                <PerformanceTab data={deepAnalyticsData} />
+              )
             )}
           </motion.div>
         </AnimatePresence>

@@ -30,7 +30,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'general' | 'ai' | 'content' | 'audience'>('general');
-  const [activeChart, setActiveChart] = useState<'reach-engagement' | 'views-interactions' | 'followers'>('reach-engagement');
+  const [activeChart, setActiveChart] = useState<'performance' | 'followers' | 'post-performance'>('performance');
   const [isSyncing, setIsSyncing] = useState(false);
   const [selectedPostForDetail, setSelectedPostForDetail] = useState<any | null>(null);
   const queryClient = useQueryClient();

@@ -14,8 +14,6 @@ import { PostChartsDashboard } from '@features/analytics/components/post-charts-
 import { TopContentLeaderboard } from '@features/analytics/components/top-content-leaderboard';
 import { PostDetailModal } from '@features/analytics/components/post-detail-modal';
 import { FollowerDetailedSection } from '@features/analytics/components/follower-detailed-section';
-import { EngagementBreakdownChart } from '@features/analytics/components/engagement-breakdown-chart';
-import { PostFrequencyChart } from '@features/analytics/components/post-frequency-chart';
 import { ContentInsightsSection } from '@features/analytics/components/content-insights-section';
 import { 
   InsufficientDataState, ReauthNotice
@@ -224,6 +222,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               customEnd={cEnd}
               data={deepAnalyticsData}
               isLoading={isDeepAnalyticsLoading}
+              insufficientData={data?.data?.current[data?.data?.current?.length - 1]?.insufficientData ?? false}
             />
 
             <TopContentLeaderboard 
@@ -259,29 +258,13 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             avgInteractions={avgInteractions}
             avgInteractionRate={avgInteractionRate}
             interactionInsight={interactionInsight}
+            deepAnalyticsData={deepAnalyticsData}
+            isDeepAnalyticsLoading={isDeepAnalyticsLoading}
           />
 
 
           
-          {/* Insufficient Data Guard */}
-          {data?.data?.current[data.data.current.length - 1]?.insufficientData ? (
-            <InsufficientDataState />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <EngagementBreakdownChart 
-                accountId={selectedAccountId} 
-                range={range} 
-                customStart={cStart} 
-                customEnd={cEnd} 
-              />
-              <PostFrequencyChart 
-                accountId={selectedAccountId} 
-                range={range} 
-                customStart={cStart} 
-                customEnd={cEnd} 
-              />
-            </div>
-          )}
+
         </>
       )}
 

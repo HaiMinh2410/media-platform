@@ -7,33 +7,43 @@ import {
   PieChart as PieIcon, 
   Grid3X3, 
   Users, 
-  Sparkles
+  Sparkles,
+  Activity
 } from 'lucide-react';
 import { cn } from '@shared/lib/utils';
 import type { PostDeepAnalyticsData } from '@features/analytics/services/post-analytics-engine';
-import { PerformanceTab } from './post-charts/PerformanceTab';
+import type { AnalyticsRange } from '@features/analytics/types';
 import { ContentTab } from './post-charts/ContentTab';
 import { DistributionTab } from './post-charts/DistributionTab';
 import { FollowsTab } from './post-charts/FollowsTab';
 import { PostChartsSkeleton } from './post-charts/PostChartsSkeleton';
+import { EngagementBreakdownChart } from './engagement-breakdown-chart';
+import { PostFrequencyChart } from './post-frequency-chart';
+import { InsufficientDataState } from './dashboard-states';
 
 interface PostChartsDashboardProps {
   accountId: string;
-  range: string;
+  range: AnalyticsRange;
   customStart?: Date;
   customEnd?: Date;
   data: PostDeepAnalyticsData | null;
   isLoading?: boolean;
+  insufficientData?: boolean;
 }
 
-type TabType = 'performance' | 'content' | 'distribution' | 'follows';
+type TabType = 'content' | 'distribution' | 'follows' | 'engagement-frequency';
 
 export function PostChartsDashboard({
+  accountId,
+  range,
+  customStart,
+  customEnd,
   data,
-  isLoading = false
+  isLoading = false,
+  insufficientData = false
 }: PostChartsDashboardProps) {
   const [mounted, setMounted] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState<TabType>('performance');
+  const [activeTab, setActiveTab] = React.useState<TabType>('content');
 
   React.useEffect(() => {
     setMounted(true);
@@ -45,14 +55,31 @@ export function PostChartsDashboard({
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'performance':
-        return <PerformanceTab data={data} />;
       case 'content':
         return <ContentTab data={data} />;
       case 'distribution':
         return <DistributionTab data={data} />;
       case 'follows':
         return <FollowsTab data={data} />;
+      case 'engagement-frequency':
+        return insufficientData ? (
+          <InsufficientDataState />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <EngagementBreakdownChart 
+              accountId={accountId} 
+              range={range} 
+              customStart={customStart} 
+              customEnd={customEnd} 
+            />
+            <PostFrequencyChart 
+              accountId={accountId} 
+              range={range} 
+              customStart={customStart} 
+              customEnd={customEnd} 
+            />
+          </div>
+        );
       default:
         return null;
     }
@@ -74,10 +101,10 @@ export function PostChartsDashboard({
         <div className="flex flex-wrap bg-base-200/70 border border-base-content/5 rounded-2xl p-1 gap-1 self-start md:self-auto shadow-inner">
           {(
             [
-              { id: 'performance', label: 'Xu hướng & So sánh', icon: TrendingUp },
               { id: 'content', label: 'Loại nội dung', icon: PieIcon },
               { id: 'distribution', label: 'Thời điểm & Chuyển đổi', icon: Grid3X3 },
-              { id: 'follows', label: 'Tăng trưởng Follower', icon: Users }
+              { id: 'follows', label: 'Tăng trưởng Follower', icon: Users },
+              { id: 'engagement-frequency', label: 'Tương tác & Tần suất', icon: Activity }
             ] as const
           ).map(tab => {
             const Icon = tab.icon;
