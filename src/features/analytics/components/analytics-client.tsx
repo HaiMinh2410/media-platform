@@ -81,53 +81,73 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   } = dashboard;
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-[1200px] mx-auto">
-      {/* TABS SELECTOR */}
-      <div className="flex flex-wrap gap-1.5 bg-base-200/70 border border-base-content/5 rounded-2xl p-1.5 select-none w-fit shadow-inner mb-2 self-start">
-        <button
-          onClick={() => setActiveTab('general')}
-          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
-            activeTab === 'general'
-              ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
-              : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
-          }`}
-        >
-          <Icon lucide={BarChart3} size={14} className={activeTab === 'general' ? 'text-primary-content' : 'text-info'} />
-          <span>Tổng quan Kênh</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('content')}
-          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
-            activeTab === 'content'
-              ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
-              : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
-          }`}
-        >
-          <Icon lucide={Layers} size={14} className={activeTab === 'content' ? 'text-primary-content' : 'text-secondary'} />
-          <span>Bài viết</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('audience')}
-          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
-            activeTab === 'audience'
-              ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
-              : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
-          }`}
-        >
-          <Icon lucide={Users} size={14} className={activeTab === 'audience' ? 'text-primary-content' : 'text-success'} />
-          <span>Khán giả</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('ai')}
-          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
-            activeTab === 'ai'
-              ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
-              : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
-          }`}
-        >
-          <Icon lucide={Sparkles} size={14} className={activeTab === 'ai' ? 'text-primary-content animate-pulse' : 'text-accent'} />
-          <span>AI Insights</span>
-        </button>
+    <div className="flex flex-col gap-6 p-6 max-w-7xl mx-auto">
+      {/* GLOBAL HEADER BAR (TABS SELECTOR & CONTROLS TOOLBAR) */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-base-content/5">
+        {/* TABS SELECTOR */}
+        <div className="flex flex-wrap gap-1.5 bg-base-200/70 border border-base-content/5 rounded-2xl p-1.5 select-none w-fit shadow-inner">
+          <button
+            onClick={() => setActiveTab('general')}
+            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
+              activeTab === 'general'
+                ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
+                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
+            }`}
+          >
+            <Icon lucide={BarChart3} size={14} className={activeTab === 'general' ? 'text-primary-content' : 'text-info'} />
+            <span>Tổng quan Kênh</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('content')}
+            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
+              activeTab === 'content'
+                ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
+                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
+            }`}
+          >
+            <Icon lucide={Layers} size={14} className={activeTab === 'content' ? 'text-primary-content' : 'text-secondary'} />
+            <span>Bài viết</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('audience')}
+            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
+              activeTab === 'audience'
+                ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
+                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
+            }`}
+          >
+            <Icon lucide={Users} size={14} className={activeTab === 'audience' ? 'text-primary-content' : 'text-success'} />
+            <span>Khán giả</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('ai')}
+            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
+              activeTab === 'ai'
+                ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
+                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
+            }`}
+          >
+            <Icon lucide={Sparkles} size={14} className={activeTab === 'ai' ? 'text-primary-content animate-pulse' : 'text-accent'} />
+            <span>AI Insights</span>
+          </button>
+        </div>
+
+        {/* GLOBAL CONTROLS */}
+        <AnalyticsDashboardHeader
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          setSelectedAccountId={setSelectedAccountId}
+          range={range}
+          setRange={setRange}
+          customStart={customStart}
+          setCustomStart={setCustomStart}
+          customEnd={customEnd}
+          setCustomEnd={setCustomEnd}
+          isSyncing={isSyncing}
+          handleSync={handleSync}
+          handleSyncAll={handleSyncAll}
+          activeTab={activeTab}
+        />
       </div>
 
       {activeTab === 'ai' ? (
@@ -135,23 +155,14 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           <AIAnalyticsPage onBack={() => setActiveTab('general')} />
         </div>
       ) : activeTab === 'content' ? (
-        <ContentInsightsSection accountId={selectedAccountId} />
+        <ContentInsightsSection 
+          accountId={selectedAccountId} 
+          range={range}
+          customStart={customStart}
+          customEnd={customEnd}
+        />
       ) : activeTab === 'audience' ? (
         <div className="space-y-6">
-          <AnalyticsDashboardHeader
-            accounts={accounts}
-            selectedAccountId={selectedAccountId}
-            setSelectedAccountId={setSelectedAccountId}
-            range={range}
-            setRange={setRange}
-            customStart={customStart}
-            setCustomStart={setCustomStart}
-            customEnd={customEnd}
-            setCustomEnd={setCustomEnd}
-            isSyncing={isSyncing}
-            handleSync={handleSync}
-            handleSyncAll={handleSyncAll}
-          />
           
           {isInstagram ? (
             <FollowerDetailedSection
@@ -175,20 +186,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         </div>
       ) : (
         <>
-          <AnalyticsDashboardHeader
-            accounts={accounts}
-            selectedAccountId={selectedAccountId}
-            setSelectedAccountId={setSelectedAccountId}
-            range={range}
-            setRange={setRange}
-            customStart={customStart}
-            setCustomStart={setCustomStart}
-            customEnd={customEnd}
-            setCustomEnd={setCustomEnd}
-            isSyncing={isSyncing}
-            handleSync={handleSync}
-            handleSyncAll={handleSyncAll}
-          />
 
           <AnalyticsStatsGrid
             isPending={isPending}

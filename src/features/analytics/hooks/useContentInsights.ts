@@ -11,15 +11,15 @@ export const formatMetricValue = (val: number): string => {
 
 export interface UseContentInsightsProps {
   accountId: string;
+  rangeFilter: 'all' | '7d' | '14d' | '30d' | '90d' | 'custom';
+  customStart: string;
+  customEnd: string;
 }
 
-export function useContentInsights({ accountId }: UseContentInsightsProps) {
+export function useContentInsights({ accountId, rangeFilter, customStart, customEnd }: UseContentInsightsProps) {
   const [mediaFilter, setMediaFilter] = useState<'all' | 'image' | 'reels' | 'carousel'>('all');
   const [metricFilter, setMetricFilter] = useState<'views' | 'interactions' | 'reach' | 'likes' | 'shares' | 'profile_visits' | 'follows'>('views');
   const [orderFilter, setOrderFilter] = useState<'highest' | 'lowest' | 'newest'>('highest');
-  const [rangeFilter, setRangeFilter] = useState<'all' | '7d' | '14d' | '30d' | '90d' | 'custom'>('all');
-  const [customStart, setCustomStart] = useState<string>('');
-  const [customEnd, setCustomEnd] = useState<string>('');
   const [activeDropdown, setActiveDropdown] = useState<'media' | 'metric' | 'order' | 'range' | null>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
@@ -131,11 +131,8 @@ export function useContentInsights({ accountId }: UseContentInsightsProps) {
     orderFilter,
     setOrderFilter,
     rangeFilter,
-    setRangeFilter,
     customStart,
-    setCustomStart,
     customEnd,
-    setCustomEnd,
     activeDropdown,
     setActiveDropdown,
     selectedPost,

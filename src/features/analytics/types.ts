@@ -52,7 +52,7 @@ export type UpsertSnapshotInput = {
   insufficientData?: boolean;
 };
 
-export type AnalyticsRange = '7d' | '30d' | '90d' | 'custom';
+export type AnalyticsRange = '7d' | '30d' | '90d' | 'custom' | 'all';
 
 export type AnalyticsFilter = {
   accountId: string;

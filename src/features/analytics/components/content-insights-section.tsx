@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { useContentInsights } from '../hooks/useContentInsights';
-import { ContentInsightsFilters } from './ContentInsightsFilters';
-import { ContentPostGrid } from './ContentPostGrid';
-import { PostDetailModal } from './post-detail-modal';
+import React from "react";
+import { AnimatePresence } from "framer-motion";
+import { useContentInsights } from "../hooks/useContentInsights";
+import { ContentInsightsFilters } from "./ContentInsightsFilters";
+import { ContentPostGrid } from "./ContentPostGrid";
+import { PostDetailModal } from "./post-detail-modal";
 
 export function ContentInsightsSection({
-  accountId
+  accountId,
+  range,
+  customStart,
+  customEnd,
 }: {
   accountId: string;
+  range: "all" | "7d" | "14d" | "30d" | "90d" | "custom";
+  customStart: string;
+  customEnd: string;
 }) {
   const {
     mediaFilter,
@@ -20,11 +26,6 @@ export function ContentInsightsSection({
     orderFilter,
     setOrderFilter,
     rangeFilter,
-    setRangeFilter,
-    customStart,
-    setCustomStart,
-    customEnd,
-    setCustomEnd,
     activeDropdown,
     setActiveDropdown,
     selectedPost,
@@ -34,15 +35,19 @@ export function ContentInsightsSection({
     isPending,
     isError,
     dropdownRef,
-  } = useContentInsights({ accountId });
+  } = useContentInsights({
+    accountId,
+    rangeFilter: range as any,
+    customStart,
+    customEnd,
+  });
 
   return (
-    <div className="glass min-h-[600px] text-foreground p-6 font-sans rounded-3xl border border-foreground/10 shadow-2xl relative transition-all duration-300">
-      <div className="flex flex-col gap-6" ref={dropdownRef}>
+    <div className="p-6 min-h-[50%] transition-all duration-300 relative">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-base-content/5 mb-6" ref={dropdownRef}>
         {/* Title Row */}
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">Content insights</h2>
-          <p className="text-foreground/40 text-xs mt-1">Phân tích hiệu suất truyền thông bài viết trọn đời</p>
+        <div className="space-y-1">
+          <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-base-content font-brand">Content insights</h2>
         </div>
 
         {/* Dropdowns Filter Row */}
@@ -53,12 +58,6 @@ export function ContentInsightsSection({
           setMetricFilter={setMetricFilter}
           orderFilter={orderFilter}
           setOrderFilter={setOrderFilter}
-          rangeFilter={rangeFilter}
-          setRangeFilter={setRangeFilter}
-          customStart={customStart}
-          setCustomStart={setCustomStart}
-          customEnd={customEnd}
-          setCustomEnd={setCustomEnd}
           activeDropdown={activeDropdown}
           setActiveDropdown={setActiveDropdown}
         />

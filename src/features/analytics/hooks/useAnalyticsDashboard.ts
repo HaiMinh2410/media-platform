@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   getAnalyticsAction, syncAnalyticsAction, syncAllAccountsAction,
@@ -20,6 +20,7 @@ function getStaleTime(range: AnalyticsRange): number {
     case '30d': return 15 * 60 * 1000;  // 15 mins
     case '90d': return 30 * 60 * 1000;  // 30 mins
     case 'custom': return 30 * 60 * 1000; // 30 mins
+    case 'all': return 60 * 60 * 1000;   // 1 hour
     default: return 5 * 60 * 1000;
   }
 }
@@ -34,6 +35,12 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
   const [isSyncing, setIsSyncing] = useState(false);
   const [selectedPostForDetail, setSelectedPostForDetail] = useState<any | null>(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (activeTab !== 'content' && range === 'all') {
+      setRange('30d');
+    }
+  }, [activeTab, range]);
 
   const cStart = range === 'custom' && customStart ? new Date(customStart) : undefined;
   const cEnd = range === 'custom' && customEnd ? new Date(customEnd) : undefined;

@@ -22,7 +22,7 @@ export function ContentPostGrid({
     <>
       {/* Media Grid */}
       {isPending ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="aspect-square bg-foreground/5 rounded-3xl animate-pulse" />
           ))}
@@ -39,7 +39,7 @@ export function ContentPostGrid({
           Không tìm thấy bài viết nào phù hợp
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
           {processedPosts.map((post: any, index: number) => {
             const displayUrl = post.thumbnailUrl || post.mediaUrl;
             const value = getMetricValue(post);

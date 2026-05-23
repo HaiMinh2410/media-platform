@@ -48,11 +48,11 @@ export function AccountSelector({
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-4 py-2 bg-base-100 border border-base-content/5 shadow-sm rounded-xl hover:bg-base-200 hover:border-base-content/20 transition-all duration-300 min-w-[200px] justify-between group cursor-pointer"
+        className="flex items-center gap-3 px-4 py-2 bg-base-100 overflow-hidden border border-base-content/5 shadow-sm rounded-xl hover:bg-base-200 hover:border-base-content/20 transition-all duration-300 min-w-2xl max-w-[220px] justify-between group cursor-pointer"
       >
-        <div className="flex items-center gap-2">
+        <div className="truncate w-full flex items-center gap-2">
           {selected && getIcon(selected.platform)}
-          <span className="text-sm font-bold text-base-content/70 group-hover:text-base-content">
+          <span className="text-sm font-semibold text-base-content/70 group-hover:text-base-content">
             {selected?.name || 'Chọn tài khoản'}
           </span>
         </div>
