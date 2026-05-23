@@ -523,7 +523,9 @@ export const metaAnalyticsService = {
       );
 
       const demoBreakdowns = ['age', 'city', 'country', 'gender'];
-      const demoPromises = demoBreakdowns.map(b => 
+      
+      // Fetch follower demographics
+      const followerDemoPromises = demoBreakdowns.map(b => 
         client.request<any>(
           `${externalId}/insights`,
           accessToken,
@@ -537,14 +539,35 @@ export const metaAnalyticsService = {
           'GET',
           accountId
         ).catch(err => {
-          console.warn(`[MetaAnalyticsService] Failed to fetch demographics for ${b}:`, err);
+          console.warn(`[MetaAnalyticsService] Failed to fetch follower demographics for ${b}:`, err);
           return null;
         })
       );
 
-      const [followsResults, ...demoResults] = await Promise.all([
+      // Fetch engaged audience demographics
+      const engagedDemoPromises = demoBreakdowns.map(b => 
+        client.request<any>(
+          `${externalId}/insights`,
+          accessToken,
+          {
+            metric: 'engaged_audience_demographics',
+            metric_type: 'total_value',
+            breakdown: b,
+            period: 'lifetime',
+            timeframe: timeframe
+          },
+          'GET',
+          accountId
+        ).catch(err => {
+          console.warn(`[MetaAnalyticsService] Failed to fetch engaged audience demographics for ${b}:`, err);
+          return null;
+        })
+      );
+
+      const [followsResults, ...demoAllResults] = await Promise.all([
         Promise.all(followsPromises),
-        ...demoPromises
+        ...followerDemoPromises,
+        ...engagedDemoPromises
       ]);
 
       // Parse follows_and_unfollows
@@ -595,10 +618,30 @@ export const metaAnalyticsService = {
         city: Array<{ name: string; value: number }>;
         country: Array<{ name: string; value: number }>;
         gender: Array<{ name: string; value: number }>;
-      } = { age: [], city: [], country: [], gender: [] };
+        followers: {
+          age: Array<{ name: string; value: number }>;
+          city: Array<{ name: string; value: number }>;
+          country: Array<{ name: string; value: number }>;
+          gender: Array<{ name: string; value: number }>;
+        };
+        engaged: {
+          age: Array<{ name: string; value: number }>;
+          city: Array<{ name: string; value: number }>;
+          country: Array<{ name: string; value: number }>;
+          gender: Array<{ name: string; value: number }>;
+        };
+      } = {
+        age: [],
+        city: [],
+        country: [],
+        gender: [],
+        followers: { age: [], city: [], country: [], gender: [] },
+        engaged: { age: [], city: [], country: [], gender: [] }
+      };
 
+      // Parse follower demographics
       demoBreakdowns.forEach((b, idx) => {
-        const res = demoResults[idx];
+        const res = demoAllResults[idx];
         const resData = (res as any)?.data || (res as any)?.value?.data;
         if (resData && Array.isArray(resData.data)) {
           const item = resData.data.find((i: any) => i.name === 'follower_demographics');
@@ -629,10 +672,60 @@ export const metaAnalyticsService = {
             
             list.sort((a, b) => b.value - a.value);
             
-            if (b === 'age') demographics.age = list;
-            else if (b === 'city') demographics.city = list;
-            else if (b === 'country') demographics.country = list;
-            else if (b === 'gender') demographics.gender = list;
+            if (b === 'age') {
+              demographics.age = list;
+              demographics.followers.age = list;
+            } else if (b === 'city') {
+              demographics.city = list;
+              demographics.followers.city = list;
+            } else if (b === 'country') {
+              demographics.country = list;
+              demographics.followers.country = list;
+            } else if (b === 'gender') {
+              demographics.gender = list;
+              demographics.followers.gender = list;
+            }
+          }
+        }
+      });
+
+      // Parse engaged demographics
+      demoBreakdowns.forEach((b, idx) => {
+        const res = demoAllResults[demoBreakdowns.length + idx];
+        const resData = (res as any)?.data || (res as any)?.value?.data;
+        if (resData && Array.isArray(resData.data)) {
+          const item = resData.data.find((i: any) => i.name === 'engaged_audience_demographics');
+          if (item) {
+            const valueObj = item.total_value || (item.values && item.values[0]) || item;
+            const list: { name: string; value: number }[] = [];
+            
+            if (Array.isArray(valueObj.breakdowns)) {
+              for (const bk of valueObj.breakdowns) {
+                const keys = bk.dimension_keys || [];
+                const bIdx = keys.indexOf(b);
+                if (bIdx !== -1 && Array.isArray(bk.results)) {
+                  for (const r of bk.results) {
+                    const vals = r.dimension_values || [];
+                    const label = vals[bIdx] || 'Unknown';
+                    const val = r.value || 0;
+                    list.push({ name: label, value: val });
+                  }
+                }
+              }
+            } else if (valueObj.value && typeof valueObj.value === 'object') {
+              for (const [k, v] of Object.entries(valueObj.value)) {
+                if (typeof v === 'number') {
+                  list.push({ name: k, value: v });
+                }
+              }
+            }
+            
+            list.sort((a, b) => b.value - a.value);
+            
+            if (b === 'age') demographics.engaged.age = list;
+            else if (b === 'city') demographics.engaged.city = list;
+            else if (b === 'country') demographics.engaged.country = list;
+            else if (b === 'gender') demographics.engaged.gender = list;
           }
         }
       });

@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Award, Sparkles } from 'lucide-react';
+import React from "react";
+import { motion } from "framer-motion";
+import { Award, Sparkles } from "lucide-react";
 
 interface DemographicItem {
   name: string;
@@ -11,15 +11,14 @@ interface FollowerAgeCardProps {
   ageData: DemographicItem[];
 }
 
-export function FollowerAgeCard({
-  ageData = []
-}: FollowerAgeCardProps) {
+export function FollowerAgeCard({ ageData = [] }: FollowerAgeCardProps) {
   const topAge = ageData.slice(0, 5);
-  const maxAgeVal = topAge.length > 0 ? Math.max(...topAge.map((a) => a.value)) : 100;
+  const maxAgeVal =
+    topAge.length > 0 ? Math.max(...topAge.map((a) => a.value)) : 100;
   const totalAgeVal = ageData.reduce((sum, a) => sum + a.value, 0) || 1;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
@@ -28,12 +27,16 @@ export function FollowerAgeCard({
       <div>
         <div className="flex items-center gap-2 mb-6">
           <Award size={18} className="text-success animate-pulse" />
-          <h4 className="font-bold text-base-content tracking-tight font-brand">Nhóm tuổi phổ biến</h4>
+          <h4 className="font-bold text-base-content tracking-tight font-brand">
+            Nhóm tuổi phổ biến
+          </h4>
         </div>
 
         {topAge.length === 0 ? (
           <div className="h-[220px] flex items-center justify-center">
-            <span className="text-base-content/20 text-xs font-semibold">Không có dữ liệu độ tuổi</span>
+            <span className="text-base-content/20 text-xs font-semibold">
+              Không có dữ liệu độ tuổi
+            </span>
           </div>
         ) : (
           <div className="space-y-4">
@@ -43,10 +46,14 @@ export function FollowerAgeCard({
               return (
                 <div key={idx} className="space-y-1.5 group">
                   <div className="flex justify-between items-center text-xs font-semibold">
-                    <span className="text-base-content/70 group-hover:text-base-content transition-colors font-brand">{age.name}</span>
+                    <span className="text-base-content/70 group-hover:text-base-content transition-colors font-brand">
+                      {age.name}
+                    </span>
                     <span className="text-base-content font-bold font-mono">
-                      {age.value.toLocaleString()}{' '}
-                      <span className="text-base-content/40 text-[10px] font-normal font-mono">({percent}%)</span>
+                      {age.value.toLocaleString()}{" "}
+                      <span className="text-base-content/40 text-[10px] font-normal font-mono">
+                        ({percent}%)
+                      </span>
                     </span>
                   </div>
                   <div className="h-2 bg-base-200 rounded-full overflow-hidden flex">
@@ -64,17 +71,9 @@ export function FollowerAgeCard({
         )}
       </div>
 
-      {/* Key Insight Box */}
-      <div className="mt-5 p-3 bg-success/5 border-l-4 border-success rounded-r-xl text-[11px] text-base-content/85 font-medium leading-relaxed">
-        <span className="font-extrabold text-success flex items-center gap-1.5 mb-1 text-[10px] uppercase tracking-wider">
-          <Sparkles size={12} className="animate-pulse" /> Key Insight
-        </span>
-        63% khán giả nằm trong độ tuổi chín chắn, đã đi làm và có thu nhập ổn định. Thích hợp cho các nội dung mang tính chuyên sâu, chia sẻ giá trị thực tế hoặc các sản phẩm có phân khúc giá từ trung đến cao cấp.
-      </div>
-
       <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Sparkles size={14} className="text-success/50" />
-        <span>Độ tuổi tập trung lớn nhất: {topAge[0]?.name || 'N/A'}</span>
+        <span>Độ tuổi tập trung lớn nhất: {topAge[0]?.name || "N/A"}</span>
       </div>
     </motion.div>
   );

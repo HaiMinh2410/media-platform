@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { 
-  BarChart3, Layers, Sparkles
+  BarChart3, Layers, Sparkles, Users
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { Icon } from '@shared/ui/icon';
@@ -109,6 +109,17 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           <span>Bài viết</span>
         </button>
         <button
+          onClick={() => setActiveTab('audience')}
+          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
+            activeTab === 'audience'
+              ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
+              : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
+          }`}
+        >
+          <Icon lucide={Users} size={14} className={activeTab === 'audience' ? 'text-primary-content' : 'text-success'} />
+          <span>Khán giả</span>
+        </button>
+        <button
           onClick={() => setActiveTab('ai')}
           className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer font-brand ${
             activeTab === 'ai'
@@ -127,6 +138,43 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         </div>
       ) : activeTab === 'content' ? (
         <ContentInsightsSection accountId={selectedAccountId} />
+      ) : activeTab === 'audience' ? (
+        <div className="space-y-6">
+          <AnalyticsDashboardHeader
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            setSelectedAccountId={setSelectedAccountId}
+            range={range}
+            setRange={setRange}
+            customStart={customStart}
+            setCustomStart={setCustomStart}
+            customEnd={customEnd}
+            setCustomEnd={setCustomEnd}
+            isSyncing={isSyncing}
+            handleSync={handleSync}
+            handleSyncAll={handleSyncAll}
+          />
+          
+          {isInstagram ? (
+            <FollowerDetailedSection
+              accountId={selectedAccountId}
+              range={range}
+              customStart={cStart}
+              customEnd={cEnd}
+              activeTimes={latestWithActiveTimes?.activeTimes || null}
+            />
+          ) : (
+            <div className="w-full h-[400px] flex flex-col items-center justify-center bg-base-100 border border-base-content/5 shadow-xs rounded-3xl p-6 text-center font-sans">
+              <div className="p-4 bg-info/10 border border-info/20 rounded-full mb-4 text-info">
+                <Icon lucide={Users} size={28} />
+              </div>
+              <h3 className="text-base-content font-bold mb-2 text-lg font-brand">Phân tích Đối tượng chi tiết</h3>
+              <p className="text-base-content/50 text-sm max-w-sm font-medium">
+                Tính năng phân tích đối tượng chi tiết hiện tại chỉ được hỗ trợ dành cho tài khoản Instagram Connect. Vui lòng chuyển đổi sang tài khoản Instagram để xem thông tin chi tiết.
+              </p>
+            </div>
+          )}
+        </div>
       ) : (
         <>
           <AnalyticsDashboardHeader
@@ -213,18 +261,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             interactionInsight={interactionInsight}
           />
 
-          {/* Demographics details for Instagram */}
-          {isInstagram && (
-            <div className="mt-6">
-              <FollowerDetailedSection
-                accountId={selectedAccountId}
-                range={range}
-                customStart={cStart}
-                customEnd={cEnd}
-                activeTimes={latestWithActiveTimes?.activeTimes || null}
-              />
-            </div>
-          )}
+
           
           {/* Insufficient Data Guard */}
           {data?.data?.current[data.data.current.length - 1]?.insufficientData ? (

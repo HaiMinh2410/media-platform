@@ -144,14 +144,6 @@ export function FollowerLocationsCard({
           </div>
         )}
       </div>
-
-      {/* Key Insight Box */}
-      <div className="mt-5 p-3 bg-info/5 border-l-4 border-info rounded-r-xl text-[11px] text-base-content/85 font-medium leading-relaxed">
-        <span className="font-extrabold text-info flex items-center gap-1.5 mb-1 text-[10px] uppercase tracking-wider">
-          <Sparkles size={12} className="animate-pulse" /> Key Insight
-        </span>
-        Việt Nam là thị trường trọng điểm, nhưng khối ASEAN (ID, TH, MY) đang chiếm tới 30% tổng dung lượng. Cần có chiến lược nội dung song ngữ hoặc bản địa hóa để tối ưu hóa tệp khán giả Đông Nam Á này.
-      </div>
       
       <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Award size={14} className="text-info/50" />

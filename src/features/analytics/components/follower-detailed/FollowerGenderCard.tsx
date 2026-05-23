@@ -119,14 +119,6 @@ export function FollowerGenderCard({
         )}
       </div>
 
-      {/* Key Insight Box */}
-      <div className="mt-5 p-3 bg-secondary/5 border-l-4 border-secondary rounded-r-xl text-[11px] text-base-content/85 font-medium leading-relaxed">
-        <span className="font-extrabold text-secondary flex items-center gap-1.5 mb-1 text-[10px] uppercase tracking-wider">
-          <Sparkles size={12} className="animate-pulse" /> Key Insight
-        </span>
-        Cộng đồng mang tính nam cực kỳ cao. Mọi hoạt động truyền thông, từ ngữ, hình ảnh trực quan và chủ đề bài viết nên được thiết kế đánh trúng tâm lý, sở thích hoặc thói quen của nam giới.
-      </div>
-
       <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
         <Info size={14} className="text-secondary/50" />
         <span>Cân bằng giới tính: {genderData[0]?.name || 'N/A'} chiếm ưu thế</span>

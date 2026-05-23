@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Info } from 'lucide-react';
+import { Info, Sparkles } from 'lucide-react';
 import { getFollowerDetailedAnalyticsAction } from '@features/analytics/actions/analytics.actions';
 import { AnalyticsRange } from '@features/analytics/types';
 
@@ -30,6 +30,8 @@ export function FollowerDetailedSection({
   customEnd,
   activeTimes
 }: FollowerDetailedSectionProps) {
+  const [demoType, setDemoType] = useState<'followers' | 'engaged'>('followers');
+
   // Query follower details using TanStack Query
   const { data: result, isPending, isError } = useQuery({
     queryKey: ['follower-details', accountId, range, customStart, customEnd],
@@ -60,7 +62,24 @@ export function FollowerDetailedSection({
   const followersCount = details?.followersCount || 0;
   const username = details?.username || '';
   const insufficientData = details?.insufficientData ?? false;
-  const demographics = details?.demographics || { age: [], city: [], country: [], gender: [] };
+  
+  const rawDemographics = details?.demographics;
+  const demographics = {
+    followers: rawDemographics?.followers || {
+      age: rawDemographics?.age || [],
+      city: rawDemographics?.city || [],
+      country: rawDemographics?.country || [],
+      gender: rawDemographics?.gender || []
+    },
+    engaged: rawDemographics?.engaged || {
+      age: rawDemographics?.engaged?.age || [],
+      city: rawDemographics?.engaged?.city || [],
+      country: rawDemographics?.engaged?.country || [],
+      gender: rawDemographics?.engaged?.gender || []
+    }
+  };
+
+  const currentDemographics = demoType === 'followers' ? demographics.followers : demographics.engaged;
 
   // 1. Under 100 followers warning state
   if (insufficientData) {
@@ -74,12 +93,50 @@ export function FollowerDetailedSection({
 
   return (
     <div className="space-y-6 font-sans">
+      {/* HEADER SECTION WITH DEMOGRAPHIC FILTER */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-base-100 border border-base-content/5 rounded-3xl p-6 shadow-xs">
+        <div>
+          <h3 className="text-lg font-black text-base-content font-brand tracking-tight flex items-center gap-2">
+            <span>Nhân khẩu học khán giả</span>
+          </h3>
+          <p className="text-xs text-base-content/50 font-medium mt-1">
+            Phân tích chi tiết hành vi, vị trí địa lý, độ tuổi và giới tính của tệp khán giả.
+          </p>
+        </div>
+
+        {/* Premium Selector Switch using Pill styling */}
+        <div className="flex p-0.5 bg-base-200/80 border border-base-content/5 rounded-2xl select-none self-start sm:self-auto shadow-inner">
+          <button
+            onClick={() => setDemoType('followers')}
+            className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all duration-300 cursor-pointer font-brand ${
+              demoType === 'followers'
+                ? "bg-primary text-primary-content shadow-sm font-extrabold"
+                : "text-base-content/40 hover:text-base-content/75"
+            }`}
+          >
+            Người theo dõi
+          </button>
+          <button
+            onClick={() => setDemoType('engaged')}
+            className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all duration-300 cursor-pointer font-brand ${
+              demoType === 'engaged'
+                ? "bg-primary text-primary-content shadow-sm font-extrabold"
+                : "text-base-content/40 hover:text-base-content/75"
+            }`}
+          >
+            Đã tương tác
+          </button>
+        </div>
+      </div>
+
       {/* DEMOGRAPHICS GRID - PERFECT BENTO GRID LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
         
         {/* ROW 1: HERO - AUDIENCE PERSONA CARD (10 columns width) */}
         <FollowerPersonaCard 
           followersCount={followersCount}
+          demographics={currentDemographics}
+          activeTimes={activeTimes}
         />
 
         {/* ROW 2: ACTIVE TIMES (6 columns) & LOCATIONS (4 columns) */}
@@ -91,8 +148,8 @@ export function FollowerDetailedSection({
         
         <div className="lg:col-span-4 flex flex-col">
           <FollowerLocationsCard
-            countryData={demographics.country}
-            cityData={demographics.city}
+            countryData={currentDemographics.country}
+            cityData={currentDemographics.city}
             followersCount={followersCount}
           />
         </div>
@@ -100,13 +157,13 @@ export function FollowerDetailedSection({
         {/* ROW 3: AGE GROUPS (5 columns) & GENDER (5 columns) */}
         <div className="lg:col-span-5 flex flex-col">
           <FollowerAgeCard
-            ageData={demographics.age}
+            ageData={currentDemographics.age}
           />
         </div>
 
         <div className="lg:col-span-5 flex flex-col">
           <FollowerGenderCard
-            genderDataRaw={demographics.gender}
+            genderDataRaw={currentDemographics.gender}
           />
         </div>
 
