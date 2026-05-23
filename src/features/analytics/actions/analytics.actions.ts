@@ -68,7 +68,7 @@ export async function getAnalyticsAction(accountId: string, range: AnalyticsRang
       previousStart = subDays(currentStart, diff);
       previousStart.setUTCHours(0, 0, 0, 0);
     } else {
-      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
       currentStart.setUTCHours(0, 0, 0, 0);
       previousStart = subDays(currentStart, days);
@@ -415,7 +415,7 @@ function getEngagementBreakdownFromLive(
     currentEnd = new Date(customEnd);
     currentEnd.setUTCHours(23, 59, 59, 999);
   } else {
-    const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+    const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
     currentStart = subDays(currentEnd, days - 1);
     currentStart.setUTCHours(0, 0, 0, 0);
   }
@@ -455,7 +455,7 @@ function getPostFrequencyFromLive(
     currentEnd = new Date(customEnd);
     currentEnd.setUTCHours(23, 59, 59, 999);
   } else {
-    const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+    const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
     currentStart = subDays(currentEnd, days - 1);
     currentStart.setUTCHours(0, 0, 0, 0);
   }
@@ -672,13 +672,13 @@ export async function getFollowerDetailedAnalyticsAction(
       currentEnd = new Date(customEnd);
       currentEnd.setUTCHours(23, 59, 59, 999);
     } else {
-      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
       currentStart.setUTCHours(0, 0, 0, 0);
     }
 
     // Timeframe for demographics
-    const timeframe = range === '7d' ? 'this_week' : 'this_month';
+    const timeframe = range === '7d' || range === '14d' ? 'this_week' : 'this_month';
 
     // Redis Cache Key
     const rangeSuffix = range === 'custom' && customStart && customEnd 
@@ -806,7 +806,7 @@ export async function getPostDeepAnalyticsAction(
       previousEnd = subDays(currentStart, 1);
       previousEnd.setUTCHours(23, 59, 59, 999);
     } else {
-      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
       currentStart.setUTCHours(0, 0, 0, 0);
       previousStart = subDays(currentStart, days);

@@ -32,7 +32,7 @@ export function calculatePeriods(filter: AnalyticsFilter) {
     previousEnd = subDays(currentStart, 1);
     previousEnd.setUTCHours(23, 59, 59, 999);
   } else {
-    const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+    const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
     currentStart = subDays(currentEnd, days - 1);
     currentStart.setUTCHours(0, 0, 0, 0);
     previousStart = subDays(currentStart, days);

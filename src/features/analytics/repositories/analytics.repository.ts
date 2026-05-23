@@ -398,7 +398,7 @@ export async function getEngagementBreakdown(accountId: string, range: Analytics
       currentEnd = new Date(customEnd);
       currentEnd.setUTCHours(23, 59, 59, 999);
     } else {
-      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
       currentStart.setUTCHours(0, 0, 0, 0);
     }
@@ -446,7 +446,7 @@ export async function getPostFrequency(accountId: string, range: AnalyticsFilter
       currentEnd = new Date(customEnd);
       currentEnd.setUTCHours(23, 59, 59, 999);
     } else {
-      const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+      const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
       currentStart = subDays(currentEnd, days - 1);
       currentStart.setUTCHours(0, 0, 0, 0);
     }

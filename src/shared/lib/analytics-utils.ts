@@ -165,7 +165,7 @@ export function calcSummary(data: AnalyticsPeriodData): AnalyticsSummary {
 export function getXAxisFormatter(range: AnalyticsRange) {
   return (date: Date) => {
     const d = new Date(date);
-    if (range === '7d') return format(d, 'eee dd'); // Mon 16
+    if (range === '7d' || range === '14d') return format(d, 'eee dd'); // Mon 16
     if (range === '30d') return format(d, 'MMM dd'); // May 16
     if (range === '90d') return `W${getISOWeek(d)}`; // Week 20
     return format(d, 'MM/dd');

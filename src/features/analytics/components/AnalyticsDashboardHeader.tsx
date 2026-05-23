@@ -37,17 +37,18 @@ export function AnalyticsDashboardHeader({
   activeTab
 }: AnalyticsDashboardHeaderProps) {
   const rangeOptions = [
-    { id: '7d', label: '7 Ngày' },
-    { id: '30d', label: '30 Ngày' },
-    { id: '90d', label: '90 Ngày' },
-    ...(activeTab === 'content' ? [{ id: 'all', label: 'Tất cả thời gian' }] : []),
-    { id: 'custom', label: 'Tùy chỉnh' },
+    { id: '7d', label: 'Last 7 days' },
+    { id: '14d', label: 'Last 14 days' },
+    { id: '30d', label: 'Last 30 days' },
+    { id: '90d', label: 'Last 90 days' },
+    ...(activeTab === 'content' ? [{ id: 'all', label: 'All Time' }] : []),
+    { id: 'custom', label: 'Custom' },
   ];
 
   return (
     <div className="flex flex-wrap items-center gap-2 relative z-30">
       {/* FILTER GROUP */}
-      <div className="flex flex-wrap items-center gap-1.5 bg-base-200/40 dark:bg-base-300/30 p-1 border border-base-content/5 rounded-2xl shadow-inner backdrop-blur-md">
+      <div className="flex flex-wrap items-center gap-1.5 bg-base-200/40 dark:bg-base-300/30 p-1 border border-base-content/5 rounded-2xl shadow-inner">
         {/* RANGE SELECTOR DROPDOWN */}
         <RangeSelector 
           value={range}
