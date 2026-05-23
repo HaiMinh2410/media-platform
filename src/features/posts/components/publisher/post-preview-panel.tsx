@@ -162,7 +162,7 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
 
 function FacebookMock({ account, content, media }: { account: PlatformAccount; content: string; media: MediaFile[] }) {
   return (
-    <div className="bg-white text-[#1c1e21] font-sans">
+    <div className="bg-white text-[#1c1e21]">
       <div className="p-3 pb-2">
         {/* Header */}
         <div className="flex items-center gap-2 mb-3">
@@ -236,7 +236,7 @@ function InstagramMock({ account, content, media }: { account: PlatformAccount; 
   };
 
   return (
-    <div className="bg-white text-black font-sans pb-4">
+    <div className="bg-white text-black pb-4">
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center gap-2.5">

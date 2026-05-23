@@ -36,7 +36,7 @@ export default async function DashboardPage() {
     return (
       <div className="p-10 max-w-[1400px] mx-auto">
         <header className="mb-10">
-          <h1 className="text-4xl mb-1 font-brand font-bold text-gradient">Dashboard</h1>
+          <h1 className="text-4xl mb-1 font-bold text-gradient">Dashboard</h1>
         </header>
       <div className="bg-base-100 p-10 text-center rounded-2xl border border-base-content/5 shadow-sm">
           <p className="text-base-content/70 text-lg mb-6 font-medium">Bạn chưa có không gian làm việc. Vui lòng thiết lập tài khoản trong cài đặt.</p>

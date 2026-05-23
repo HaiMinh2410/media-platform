@@ -27,11 +27,11 @@ export function ContentTab({ data }: ContentTabProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-sans">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* 1. Media Type Donut Chart */}
       <div className="bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
         <div>
-          <h3 className="text-sm font-bold text-base-content mb-1 font-brand">Phân phối Loại Media</h3>
+          <h3 className="text-sm font-bold text-base-content mb-1">Phân phối Loại Media</h3>
           <p className="text-[11px] text-base-content/50 font-medium">Tỷ lệ đóng góp bài viết của các định dạng nội dung khác nhau</p>
         </div>
 
@@ -57,7 +57,7 @@ export function ContentTab({ data }: ContentTabProps) {
                     if (active && payload && payload.length) {
                       const item = payload[0];
                       return (
-                        <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[120px] font-sans">
+                        <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[120px]">
                           <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-1.5 font-mono">{item.name}</div>
                           <div className="flex items-center justify-between gap-4">
                             <span className="text-xs text-base-content/70 font-semibold">Số lượng:</span>
@@ -82,7 +82,7 @@ export function ContentTab({ data }: ContentTabProps) {
                 <div key={idx} className="flex items-center gap-3 bg-base-100 border border-base-content/5 rounded-xl px-3.5 py-1.5 min-w-[140px] justify-between shadow-xs">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                    <span className="text-[11px] font-bold text-base-content/70 font-brand">{item.name}</span>
+                    <span className="text-[11px] font-bold text-base-content/70">{item.name}</span>
                   </div>
                   <span className="text-[11px] font-extrabold text-base-content font-mono">{percentage}%</span>
                 </div>
@@ -99,7 +99,7 @@ export function ContentTab({ data }: ContentTabProps) {
       {/* 2. Location Type Performance Bar Chart */}
       <div className="bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
         <div>
-          <h3 className="text-sm font-bold text-base-content mb-1 font-brand">Hiệu quả theo Bối cảnh chụp (Shot Type)</h3>
+          <h3 className="text-sm font-bold text-base-content mb-1">Hiệu quả theo Bối cảnh chụp (Shot Type)</h3>
           <p className="text-[11px] text-base-content/50 font-medium">So sánh lượt xem và tương tác trung bình của từng phong cách</p>
         </div>
 
@@ -133,7 +133,7 @@ export function ContentTab({ data }: ContentTabProps) {
                 content={({ active, payload, label }: any) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[160px] space-y-1.5 font-sans">
+                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[160px] space-y-1.5">
                         <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-1 font-mono">{label}</div>
                         {payload.map((item: any, i: number) => (
                           <div key={i} className="flex items-center justify-between gap-4">
@@ -159,7 +159,7 @@ export function ContentTab({ data }: ContentTabProps) {
                 height={36} 
                 iconSize={8} 
                 iconType="circle"
-                formatter={(value) => <span className="text-xs text-base-content/70 font-semibold font-brand uppercase tracking-wider">{value === 'avgViews' ? 'Lượt xem TB' : 'Tương tác TB'}</span>}
+                formatter={(value) => <span className="text-xs text-base-content/70 font-semibold uppercase tracking-wider">{value === 'avgViews' ? 'Lượt xem TB' : 'Tương tác TB'}</span>}
               />
               <Bar dataKey="avgViews" fill="var(--color-info)" radius={[4, 4, 0, 0]} maxBarSize={24} />
               <Bar dataKey="avgInteractions" fill="var(--color-success)" radius={[4, 4, 0, 0]} maxBarSize={24} />

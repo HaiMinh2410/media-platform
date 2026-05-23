@@ -27,15 +27,15 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 1. Performance Line Chart (Col span 2) */}
       <div className="lg:col-span-2 bg-base-200/50 border border-base-content/5 rounded-2xl p-5 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h3 className="text-sm font-bold text-base-content font-brand">Xu hướng Hiệu suất theo thời gian</h3>
+            <h3 className="text-sm font-bold text-base-content">Xu hướng Hiệu suất theo thời gian</h3>
             <p className="text-[11px] text-base-content/50 font-medium">Biểu diễn lượt xem, lượt tiếp cận và tương tác tích lũy</p>
           </div>
-          <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold font-brand uppercase tracking-wider">
+          <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
             <span className="flex items-center gap-1.5 text-secondary">
               <span className="w-2.5 h-1.5 bg-secondary rounded-full" /> Views
             </span>
@@ -97,7 +97,7 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
                 content={({ active, payload, label }: any) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl space-y-1.5 min-w-[150px] font-sans">
+                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl space-y-1.5 min-w-[150px]">
                         <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-1 font-mono">{label}</div>
                         {payload.map((item: any, i: number) => (
                           <div key={i} className="flex items-center justify-between gap-4">
@@ -160,7 +160,7 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
           <div>
             <div className="flex items-center gap-1.5 text-secondary mb-2">
               <Activity className="w-4 h-4" />
-              <h3 className="text-xs font-bold text-base-content uppercase tracking-wider font-brand">So sánh chu kỳ trước (MoM)</h3>
+              <h3 className="text-xs font-bold text-base-content uppercase tracking-wider">So sánh chu kỳ trước (MoM)</h3>
             </div>
             <p className="text-[11px] text-base-content/50 font-medium">Phân tích mức độ tăng trưởng tương đối giữa 2 chu kỳ gần nhất</p>
           </div>
@@ -171,7 +171,7 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
               return (
                 <div key={idx} className="bg-base-100 border border-base-content/5 rounded-xl p-3 flex items-center justify-between shadow-sm">
                   <div>
-                    <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-wide font-brand">{m.metric}</span>
+                    <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-wide">{m.metric}</span>
                     <div className="flex items-baseline gap-2 mt-0.5">
                       <span className="text-sm font-extrabold text-base-content font-mono">{numberFormatter(m.current)}</span>
                       <span className="text-[9px] text-base-content/30 font-bold font-mono">vs {numberFormatter(m.previous)}</span>

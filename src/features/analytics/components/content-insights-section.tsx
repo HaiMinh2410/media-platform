@@ -47,7 +47,7 @@ export function ContentInsightsSection({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-base-content/5 mb-6" ref={dropdownRef}>
         {/* Title Row */}
         <div className="space-y-1">
-          <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-base-content font-brand">Content insights</h2>
+          <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-base-content">Content insights</h2>
         </div>
 
         {/* Dropdowns Filter Row */}

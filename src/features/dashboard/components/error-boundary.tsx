@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <AlertTriangle size={24} />
           </div>
           <div className="space-y-1">
-            <h3 className="font-brand font-bold text-lg">Hệ thống gặp sự cố</h3>
+            <h3 className="font-bold text-lg">Hệ thống gặp sự cố</h3>
             <p className="text-sm text-foreground-secondary max-w-xs mx-auto">
               Không thể tải dữ liệu {this.props.name || 'này'}. Vui lòng thử lại sau.
             </p>
@@ -65,7 +65,7 @@ export const SectionError: React.FC<{ title: string }> = ({ title }) => (
       <AlertTriangle size={20} />
     </div>
     <div className="space-y-1">
-      <h3 className="font-brand font-semibold text-base">{title}</h3>
+      <h3 className="font-semibold text-base">{title}</h3>
       <p className="text-xs text-foreground-tertiary">
         Dữ liệu tạm thời không khả dụng.
       </p>

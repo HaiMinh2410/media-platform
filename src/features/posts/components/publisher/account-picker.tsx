@@ -73,7 +73,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
   const igAccounts = filteredAccounts.filter(a => a.platform.toLowerCase() === 'instagram');
 
   return (
-    <div className="relative w-full font-sans" ref={containerRef}>
+    <div className="relative w-full" ref={containerRef}>
       {/* TRIGGER BAR */}
       <div 
         onClick={() => setIsOpen(!isOpen)}

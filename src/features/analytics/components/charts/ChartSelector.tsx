@@ -22,7 +22,7 @@ export function ChartSelector({
       <div className="flex flex-wrap p-1 bg-base-300/30 border border-base-content/5 rounded-xl select-none gap-1">
         <button
           onClick={() => setActiveChart('performance')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 font-brand ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
             activeChart === 'performance'
               ? 'bg-info text-info-content shadow-sm scale-[1.02]'
               : 'text-base-content/50 hover:text-base-content hover:bg-base-200/50'
@@ -33,7 +33,7 @@ export function ChartSelector({
         </button>
         <button
           onClick={() => setActiveChart('followers')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 font-brand ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
             activeChart === 'followers'
               ? 'bg-warning text-warning-content shadow-sm scale-[1.02]'
               : 'text-base-content/50 hover:text-base-content hover:bg-base-200/50'
@@ -44,7 +44,7 @@ export function ChartSelector({
         </button>
         <button
           onClick={() => setActiveChart('post-performance')}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 font-brand ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
             activeChart === 'post-performance'
               ? 'bg-accent text-accent-content shadow-sm scale-[1.02]'
               : 'text-base-content/50 hover:text-base-content hover:bg-base-200/50'
@@ -55,7 +55,7 @@ export function ChartSelector({
         </button>
       </div>
 
-      <div className="text-base-content/40 text-xs font-bold px-2 font-brand">
+      <div className="text-base-content/40 text-xs font-bold px-2">
         {activeChart === 'performance' && 'Phân tích tổng hợp tiếp cận, lượt xem và tương tác'}
         {activeChart === 'followers' &&
           (isInstagram && !isFollowerInsufficientData

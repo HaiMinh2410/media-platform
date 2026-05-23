@@ -75,7 +75,7 @@ export function AnalyticsChartsSection({
       {isPending ? (
         <SkeletonChart />
       ) : isError || !totals ? (
-        <div className="w-full h-[350px] flex items-center justify-center bg-base-200/30 rounded-xl border border-base-content/10 font-sans">
+        <div className="w-full h-[350px] flex items-center justify-center bg-base-200/30 rounded-xl border border-base-content/10">
           <span className="text-base-content/40 font-semibold">Chưa có dữ liệu thống kê biểu đồ</span>
         </div>
       ) : (

@@ -38,7 +38,7 @@ export default async function DevPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <header className="mb-6 flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-brand font-extrabold text-gradient mb-1">Developer API & Webhook Console</h1>
+          <h1 className="text-3xl font-extrabold text-gradient mb-1">Developer API & Webhook Console</h1>
           <p className="text-foreground-secondary text-sm">
             Công cụ phát triển: Giả lập webhook, gửi payloads, theo dõi luồng sự kiện realtime và debug cơ sở dữ liệu.
           </p>

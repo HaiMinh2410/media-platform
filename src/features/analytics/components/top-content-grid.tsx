@@ -206,7 +206,7 @@ export function TopContentGrid({
 
   if (isLoading) {
     return (
-      <div className="glass rounded-3xl p-6 font-sans shadow-2xl relative overflow-hidden">
+      <div className="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-[3px] bg-linear-to-r from-primary via-secondary to-accent opacity-20" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="space-y-2">
@@ -233,7 +233,7 @@ export function TopContentGrid({
 
   return (
     <div 
-      className="glass rounded-3xl p-6 text-foreground font-sans overflow-hidden shadow-2xl relative transition-all duration-300"
+      className="glass rounded-3xl p-6 text-foreground overflow-hidden shadow-2xl relative transition-all duration-300"
       style={{
         boxShadow: `var(--glass-shadow)`
       }}

@@ -32,16 +32,16 @@ export function DistributionTab({ data }: DistributionTabProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 1. Best Time to Post Heatmap (Col span 2) */}
       <div className="lg:col-span-2 bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-base-content font-brand">Khung Giờ Đăng Bài Tối Ưu</h3>
+              <h3 className="text-sm font-bold text-base-content">Khung Giờ Đăng Bài Tối Ưu</h3>
               <p className="text-[11px] text-base-content/50 font-medium">Ma trận Ngày × Giờ đăng bài, ô màu đậm = lượt xem cao</p>
             </div>
-            <div className="flex items-center gap-2 text-[9px] text-base-content/40 font-bold uppercase tracking-wider font-brand">
+            <div className="flex items-center gap-2 text-[9px] text-base-content/40 font-bold uppercase tracking-wider">
               <span>Ít view</span>
               <span className="w-8 h-2.5 rounded-[2px] bg-secondary/20" />
               <span className="w-8 h-2.5 rounded-[2px] bg-secondary/50" />
@@ -88,7 +88,7 @@ export function DistributionTab({ data }: DistributionTabProps) {
                       >
                         {/* Hover Tooltip HUD */}
                         <div className="hidden group-hover:block absolute bottom-7 left-1/2 -translate-x-1/2 z-50 bg-base-300/95 border border-base-content/10 p-2.5 rounded-xl text-[9px] text-base-content shadow-2xl min-w-[125px] pointer-events-none backdrop-blur-md">
-                          <p className="font-bold text-secondary font-brand">{daysName[dayIdx]} lúc {hourIdx}:00</p>
+                          <p className="font-bold text-secondary">{daysName[dayIdx]} lúc {hourIdx}:00</p>
                           <p className="text-base-content/60 font-semibold mt-0.5">{cell.count} bài viết đăng</p>
                           <p className="font-extrabold text-base-content font-mono mt-0.5">Views: {numberFormatter(cell.views)}</p>
                         </div>
@@ -110,7 +110,7 @@ export function DistributionTab({ data }: DistributionTabProps) {
       {/* 2. Engagement Rate per Post Scatter Plot */}
       <div className="bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
         <div>
-          <h3 className="text-sm font-bold text-base-content mb-1 font-brand">Độ lan truyền (Scatter Plot)</h3>
+          <h3 className="text-sm font-bold text-base-content mb-1">Độ lan truyền (Scatter Plot)</h3>
           <p className="text-[11px] text-base-content/50 font-medium">Trục X: Lượt xem, Trục Y: Lượt Tương tác bài đăng</p>
         </div>
 
@@ -150,7 +150,7 @@ export function DistributionTab({ data }: DistributionTabProps) {
                     const intVal = payload.find((p: any) => p.name === 'Interactions')?.value || 0;
                     const erVal = payload.find((p: any) => p.name === 'ER')?.value || 0;
                     return (
-                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[150px] space-y-1.5 font-sans">
+                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[150px] space-y-1.5">
                         <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-1 font-mono">Chi tiết bài viết</div>
                         <div className="flex items-center justify-between gap-4">
                           <span className="text-xs text-base-content/70 font-semibold">Lượt xem:</span>

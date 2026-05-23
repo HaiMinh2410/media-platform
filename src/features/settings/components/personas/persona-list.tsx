@@ -65,7 +65,7 @@ export function PersonaList({ accounts }: PersonaListProps) {
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full flex items-center justify-center shadow-sm">
                     {isInstagram ? (
                       <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-fuchsia-500 flex items-center justify-center">
-                        <span className="text-[8px] text-white font-bold font-sans tracking-tighter">ig</span>
+                        <span className="text-[8px] text-white font-bold tracking-tighter">ig</span>
                       </div>
                     ) : (
                       <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">

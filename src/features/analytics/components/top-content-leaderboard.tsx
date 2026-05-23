@@ -34,9 +34,9 @@ export function TopContentLeaderboard({
 
   if (data.length === 0) {
     return (
-      <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-8 text-center flex flex-col items-center justify-center min-h-[300px] font-sans">
+      <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-8 text-center flex flex-col items-center justify-center min-h-[300px]">
         <Sparkles className="w-8 h-8 text-base-content/40 mb-3 animate-pulse" />
-        <h3 className="text-sm font-bold text-base-content mb-1 font-brand">Chưa có dữ liệu bảng xếp hạng</h3>
+        <h3 className="text-sm font-bold text-base-content mb-1">Chưa có dữ liệu bảng xếp hạng</h3>
         <p className="text-xs text-base-content/70">Không tìm thấy bài viết nào trong khoảng thời gian được lọc.</p>
       </div>
     );
@@ -91,11 +91,11 @@ export function TopContentLeaderboard({
   };
 
   return (
-    <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md font-sans">
+    <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-bold text-base-content tracking-tight flex items-center gap-2 font-brand">
+          <h2 className="text-lg font-bold text-base-content tracking-tight flex items-center gap-2">
             <Award className="w-5 h-5 text-amber-500 animate-pulse" />
             Bảng Xếp Hạng Bài Viết Hiệu Quả
           </h2>
@@ -107,7 +107,7 @@ export function TopContentLeaderboard({
       <div className="overflow-x-auto w-full -mx-4 px-4 md:mx-0 md:px-0">
         <table className="w-full text-left border-collapse min-w-[900px]">
           <thead>
-            <tr className="border-b border-base-content/10 text-[10px] text-base-content/50 uppercase font-bold tracking-wider font-brand">
+            <tr className="border-b border-base-content/10 text-[10px] text-base-content/50 uppercase font-bold tracking-wider">
               <th className="pb-3 pl-2 w-12">Hạng</th>
               <th className="pb-3 w-48">Nội dung</th>
               <th className="pb-3 w-28 text-center">Bối cảnh</th>
@@ -153,7 +153,7 @@ export function TopContentLeaderboard({
 
                       {/* Text details */}
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-bold text-base-content truncate group-hover:text-primary transition-colors font-brand">
+                        <span className="text-xs font-bold text-base-content truncate group-hover:text-primary transition-colors">
                           {post.caption}
                         </span>
                         <span className="text-[10px] text-base-content/40 mt-1 font-mono">
@@ -166,7 +166,7 @@ export function TopContentLeaderboard({
                   {/* Shot Location Type */}
                   <td className="py-4 text-center">
                     <span className={cn(
-                      "px-2.5 py-0.5 rounded-full text-[10px] font-bold border font-brand",
+                      "px-2.5 py-0.5 rounded-full text-[10px] font-bold border",
                       post.locationType === 'Outdoor' 
                         ? "bg-info/10 border-info/20 text-info"
                         : post.locationType === 'Indoor'
@@ -288,7 +288,7 @@ function Sparkline({ points, type }: { points: number[]; type: 'warning' | 'prim
 // ==========================================
 function LeaderboardSkeleton() {
   return (
-    <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 space-y-4 font-sans">
+    <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 space-y-4">
       <div className="space-y-2">
         <div className="skeleton h-5 w-44 rounded-lg" />
         <div className="skeleton h-3.5 w-60 rounded-md" />

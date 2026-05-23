@@ -58,12 +58,12 @@ export function PerformanceChart({
   const isReachMode = viewMode === 'reach';
 
   return (
-    <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md font-sans">
+    <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md">
       
       {/* 1. HEADER SECTION (Tiêu đề & Bộ chuyển đổi Switcher) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-base-content/5">
         <div className="space-y-1">
-          <h3 className="text-lg font-bold text-base-content flex items-center gap-2 font-brand">
+          <h3 className="text-lg font-bold text-base-content flex items-center gap-2">
             <Icon 
               lucide={isReachMode ? Users : Eye} 
               size={18} 
@@ -79,7 +79,7 @@ export function PerformanceChart({
         </div>
 
         {/* VIEW SWITCHER (MINI SWITCHER) */}
-        <div className="flex bg-base-200/80 border border-base-content/5 p-1 rounded-xl relative font-brand self-start sm:self-center shrink-0">
+        <div className="flex bg-base-200/80 border border-base-content/5 p-1 rounded-xl relative self-start sm:self-center shrink-0">
           <button
             onClick={() => setViewMode('reach')}
             className={`px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all duration-200 cursor-pointer flex items-center gap-1.5 relative z-10 ${
@@ -139,7 +139,7 @@ export function PerformanceChart({
                         const dailyRate = reachVal > 0 ? ((engVal / reachVal) * 100).toFixed(2) : '0';
 
                         return (
-                          <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-4 rounded-xl shadow-2xl space-y-2 min-w-[200px] font-sans">
+                          <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-4 rounded-xl shadow-2xl space-y-2 min-w-[200px]">
                             <div className="text-xs font-bold text-base-content/40 border-b border-base-content/10 pb-1 mb-1 font-mono">
                               {data.date}
                             </div>
@@ -171,7 +171,7 @@ export function PerformanceChart({
                         const dailyRate = viewsVal > 0 ? ((engVal / viewsVal) * 100).toFixed(2) : '0';
 
                         return (
-                          <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-4 rounded-xl shadow-2xl space-y-2 min-w-[200px] font-sans">
+                          <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-4 rounded-xl shadow-2xl space-y-2 min-w-[200px]">
                             <div className="text-xs font-bold text-base-content/40 border-b border-base-content/10 pb-1 mb-1 font-mono">
                               {data.date}
                             </div>
@@ -271,15 +271,15 @@ export function PerformanceChart({
               {isReachMode ? (
                 <>
                   <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block font-brand">Reach TB/Ngày</span>
+                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Reach TB/Ngày</span>
                     <span className="text-base font-black text-info font-mono">{avgReach.toLocaleString()}</span>
                   </div>
                   <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block font-brand">Tương tác TB</span>
+                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Tương tác TB</span>
                     <span className="text-base font-black text-warning font-mono">{avgEngagement.toLocaleString()}</span>
                   </div>
                   <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block font-brand">Tỷ lệ tương tác</span>
+                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Tỷ lệ tương tác</span>
                     <span className={`text-base font-black font-mono ${getRateColorClass(avgEngagementRate, true)}`}>
                       {avgEngagementRate}%
                     </span>
@@ -288,15 +288,15 @@ export function PerformanceChart({
               ) : (
                 <>
                   <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block font-brand">Views TB/Ngày</span>
+                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Views TB/Ngày</span>
                     <span className="text-base font-black text-secondary font-mono">{avgViews.toLocaleString()}</span>
                   </div>
                   <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block font-brand">Tương tác TB</span>
+                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Tương tác TB</span>
                     <span className="text-base font-black text-success font-mono">{avgInteractions.toLocaleString()}</span>
                   </div>
                   <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block font-brand">Tỷ lệ tương tác</span>
+                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Tỷ lệ tương tác</span>
                     <span className={`text-base font-black font-mono ${getRateColorClass(avgInteractionRate, false)}`}>
                       {avgInteractionRate}%
                     </span>
@@ -322,7 +322,7 @@ export function PerformanceChart({
                     <div className="p-1 bg-base-content/5 rounded-lg flex items-center justify-center shrink-0">
                       <Icon lucide={activeInsight.icon} size={14} />
                     </div>
-                    <h4 className="text-xs font-black text-base-content flex items-center gap-1.5 uppercase tracking-wide font-brand">
+                    <h4 className="text-xs font-black text-base-content flex items-center gap-1.5 uppercase tracking-wide">
                       <Icon lucide={Sparkles} size={12} className="text-accent" />
                       Phân tích AI
                     </h4>

@@ -22,12 +22,12 @@ export function FollowerAgeCard({ ageData = [] }: FollowerAgeCardProps) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans min-h-[360px]"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between min-h-[360px]"
     >
       <div>
         <div className="flex items-center gap-2 mb-6">
           <Award size={18} className="text-success animate-pulse" />
-          <h4 className="font-bold text-base-content tracking-tight font-brand">
+          <h4 className="font-bold text-base-content tracking-tight">
             Nhóm tuổi phổ biến
           </h4>
         </div>
@@ -46,7 +46,7 @@ export function FollowerAgeCard({ ageData = [] }: FollowerAgeCardProps) {
               return (
                 <div key={idx} className="space-y-1.5 group">
                   <div className="flex justify-between items-center text-xs font-semibold">
-                    <span className="text-base-content/70 group-hover:text-base-content transition-colors font-brand">
+                    <span className="text-base-content/70 group-hover:text-base-content transition-colors">
                       {age.name}
                     </span>
                     <span className="text-base-content font-bold font-mono">

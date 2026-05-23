@@ -49,12 +49,12 @@ export function FollowerGenderCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans min-h-[360px]"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between min-h-[360px]"
     >
       <div>
         <div className="flex items-center gap-2 mb-6">
           <Users size={18} className="text-secondary animate-pulse" />
-          <h4 className="font-bold text-base-content tracking-tight font-brand">Tỷ lệ Giới tính</h4>
+          <h4 className="font-bold text-base-content tracking-tight">Tỷ lệ Giới tính</h4>
         </div>
 
         {genderData.length === 0 ? (
@@ -88,7 +88,7 @@ export function FollowerGenderCard({
               {/* Inside Center label */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">Giới tính</span>
-                <span className="text-sm font-black text-base-content font-brand">
+                <span className="text-sm font-black text-base-content">
                   {genderData[0]?.name || 'N/A'}
                 </span>
               </div>
@@ -106,7 +106,7 @@ export function FollowerGenderCard({
                         boxShadow: `0 0 8px color-mix(in srgb, ${gender.color} 25%, transparent)` 
                       }} 
                     />
-                    <span className="text-xs font-semibold text-base-content/70 group-hover:text-base-content transition-colors font-brand">{gender.name}</span>
+                    <span className="text-xs font-semibold text-base-content/70 group-hover:text-base-content transition-colors">{gender.name}</span>
                   </div>
                   <div className="text-right">
                     <span className="text-xs font-bold text-base-content font-mono">{gender.percentage}%</span>

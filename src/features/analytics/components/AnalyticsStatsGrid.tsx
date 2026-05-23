@@ -33,7 +33,7 @@ export function AnalyticsStatsGrid({
           <SkeletonStatsCard />
         </>
       ) : isError || !totals ? (
-        <div className="col-span-4 p-6 text-center text-base-content/70 bg-base-200/50 rounded-2xl border border-error/20 font-sans">
+        <div className="col-span-4 p-6 text-center text-base-content/70 bg-base-200/50 rounded-2xl border border-error/20">
           Không thể tải dữ liệu phân tích.
         </div>
       ) : (

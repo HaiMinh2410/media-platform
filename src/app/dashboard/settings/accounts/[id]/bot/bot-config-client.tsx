@@ -147,7 +147,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
 
           <textarea 
             disabled={!config.is_active}
-            className="w-full bg-background-tertiary border border-foreground/10 rounded-lg px-4 py-3 text-sm text-foreground font-sans outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/5 transition-all resize-vertical min-h-[100px]"
+            className="w-full bg-background-tertiary border border-foreground/10 rounded-lg px-4 py-3 text-sm text-foreground outline-none focus:border-primary/30 focus:ring-2 focus:ring-primary/5 transition-all resize-vertical min-h-[100px]"
             value={config.system_prompt || ''}
             onChange={(e) => setConfig({ ...config, system_prompt: e.target.value })}
             placeholder="You are a helpful customer support assistant for..."

@@ -84,7 +84,7 @@ export default function LeadsCenter() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight font-brand text-base-content">
+          <h1 className="text-3xl font-extrabold tracking-tight text-base-content">
             Trung tâm khách hàng tiềm năng
           </h1>
           <p className="text-xs text-base-content/60 font-medium mt-1">

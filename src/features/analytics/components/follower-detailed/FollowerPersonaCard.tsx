@@ -148,7 +148,7 @@ export function FollowerPersonaCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md font-sans lg:col-span-10 w-full"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md lg:col-span-10 w-full"
     >
       <div className="flex flex-col lg:flex-row items-center gap-8">
         
@@ -156,7 +156,7 @@ export function FollowerPersonaCard({
         <div className="w-full lg:w-[45%] flex flex-col items-center">
           <div className="flex items-center gap-2 mb-4 self-start">
             <Compass size={20} className="text-primary animate-spin-slow" />
-            <h4 className="font-extrabold text-base-content text-lg tracking-tight font-brand">
+            <h4 className="font-extrabold text-base-content text-lg tracking-tight">
               Điểm Hội Tụ Năng Lượng Khán Giả
             </h4>
           </div>
@@ -172,7 +172,7 @@ export function FollowerPersonaCard({
                     opacity: 0.8, 
                     fontSize: 9, 
                     fontWeight: 700,
-                    fontFamily: 'var(--font-brand, sans-serif)'
+                    fontFamily: 'var(--font-sans, sans-serif)'
                   }}
                 />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
@@ -207,7 +207,7 @@ export function FollowerPersonaCard({
               </span>
             </div>
             
-            <h3 className="text-xl lg:text-2xl font-black text-base-content tracking-tight font-brand mb-4 leading-tight">
+            <h3 className="text-xl lg:text-2xl font-black text-base-content tracking-tight mb-4 leading-tight">
               {personaHeadline}
             </h3>
             

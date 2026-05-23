@@ -19,7 +19,7 @@ export function InteractionsCard({
 }: InteractionsCardProps) {
   if (isLoading) {
     return (
-      <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 h-full min-h-[400px] flex flex-col gap-6 font-sans">
+      <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 h-full min-h-[400px] flex flex-col gap-6">
         <div className="flex items-center gap-2 mb-2">
           <Skeleton className="h-6 w-32" />
           <Skeleton className="h-4 w-4 rounded-full" />
@@ -50,10 +50,10 @@ export function InteractionsCard({
   const contentData = byContentInteractions || { posts: 0, reels: 0, stories: 0 };
 
   return (
-    <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 text-base-content font-sans h-full transition-all duration-300 hover:shadow-md">
+    <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 text-base-content h-full transition-all duration-300 hover:shadow-md">
       {/* Title */}
       <div className="flex items-center gap-2 mb-6">
-        <h3 className="text-lg font-bold text-base-content tracking-tight font-brand">Interactions</h3>
+        <h3 className="text-lg font-bold text-base-content tracking-tight">Interactions</h3>
         <Info className="w-4 h-4 text-base-content/30 cursor-help" />
       </div>
 

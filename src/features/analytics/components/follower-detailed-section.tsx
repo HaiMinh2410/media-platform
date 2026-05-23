@@ -46,11 +46,11 @@ export function FollowerDetailedSection({
 
   if (isError || !result || result.error) {
     return (
-      <div className="w-full h-[400px] flex flex-col items-center justify-center bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 text-center font-sans">
+      <div className="w-full h-[400px] flex flex-col items-center justify-center bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 text-center">
         <div className="p-4 bg-error/10 border border-error/20 rounded-full mb-4 text-error animate-pulse">
           <Info size={28} />
         </div>
-        <h3 className="text-base-content font-bold mb-2 text-lg font-brand">Không thể lấy dữ liệu người theo dõi</h3>
+        <h3 className="text-base-content font-bold mb-2 text-lg">Không thể lấy dữ liệu người theo dõi</h3>
         <p className="text-base-content/50 text-sm max-w-md font-medium">
           {result?.error || 'Vui lòng kiểm tra lại kết nối tài khoản hoặc thử lại sau.'}
         </p>
@@ -92,11 +92,11 @@ export function FollowerDetailedSection({
   }
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6">
       {/* HEADER SECTION WITH DEMOGRAPHIC FILTER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-base-100 border border-base-content/5 rounded-3xl p-6 shadow-xs">
         <div>
-          <h3 className="text-lg font-black text-base-content font-brand tracking-tight flex items-center gap-2">
+          <h3 className="text-lg font-black text-base-content tracking-tight flex items-center gap-2">
             <span>Nhân khẩu học khán giả</span>
           </h3>
           <p className="text-xs text-base-content/50 font-medium mt-1">
@@ -108,7 +108,7 @@ export function FollowerDetailedSection({
         <div className="flex p-0.5 bg-base-200/80 border border-base-content/5 rounded-2xl select-none self-start sm:self-auto shadow-inner">
           <button
             onClick={() => setDemoType('followers')}
-            className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all duration-300 cursor-pointer font-brand ${
+            className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all duration-300 cursor-pointer ${
               demoType === 'followers'
                 ? "bg-primary text-primary-content shadow-sm font-extrabold"
                 : "text-base-content/40 hover:text-base-content/75"
@@ -118,7 +118,7 @@ export function FollowerDetailedSection({
           </button>
           <button
             onClick={() => setDemoType('engaged')}
-            className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all duration-300 cursor-pointer font-brand ${
+            className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all duration-300 cursor-pointer ${
               demoType === 'engaged'
                 ? "bg-primary text-primary-content shadow-sm font-extrabold"
                 : "text-base-content/40 hover:text-base-content/75"

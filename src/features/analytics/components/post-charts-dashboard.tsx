@@ -86,13 +86,13 @@ export function PostChartsDashboard({
   };
 
   return (
-    <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md font-sans">
+    <div className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md">
       {/* Header and Switcher */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-accent animate-pulse" />
-            <h2 className="text-xl font-bold text-base-content tracking-tight font-brand">Thống kê Nội dung Nâng cao</h2>
+            <h2 className="text-xl font-bold text-base-content tracking-tight">Thống kê Nội dung Nâng cao</h2>
           </div>
           <p className="text-xs text-base-content/50 mt-1 font-medium">Phân tích sâu hiệu suất bài đăng, xu hướng tương tác và phễu chuyển đổi</p>
         </div>
@@ -114,7 +114,7 @@ export function PostChartsDashboard({
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-tight transition-all duration-300 select-none cursor-pointer font-brand",
+                  "relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-tight transition-all duration-300 select-none cursor-pointer",
                   isActive ? "text-primary-content" : "text-base-content/50 hover:text-base-content hover:bg-base-300/30"
                 )}
               >

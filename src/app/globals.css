@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
 @plugin "daisyui" {
   themes: all;
@@ -7,9 +6,9 @@
 
 @theme {
   /* Fonts */
-  --font-brand: "Syne", "sans-serif";
-  --font-sans: "DM Sans", "sans-serif";
-  --font-mono: "JetBrains Mono", "monospace";
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
 
   /* Font Sizes - Only define non-standard sizes if absolutely necessary */
   --font-size-2xs: 10px;
@@ -134,7 +133,7 @@
 
   body {
     @apply bg-base-100 text-base-content antialiased selection:bg-primary/30;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     max-width: 100vw;
     overflow-x: hidden;
     height: 100%;
@@ -146,7 +145,7 @@
   h4,
   h5,
   h6 {
-    @apply font-brand font-extrabold tracking-tight;
+    @apply font-sans font-extrabold tracking-tight;
   }
 
   /* Scrollbar Styling - Minimalist & Sleek */

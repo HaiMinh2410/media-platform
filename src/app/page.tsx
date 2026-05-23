@@ -3,7 +3,7 @@ import { Button } from "@shared/ui/button";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-base-100 font-sans relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-base-100 relative overflow-hidden">
       {/* Background radial gradient blob */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen h-screen bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.05),transparent_70%)] z-0 pointer-events-none" />
 

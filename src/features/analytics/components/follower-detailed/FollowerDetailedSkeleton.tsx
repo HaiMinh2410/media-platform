@@ -2,7 +2,7 @@ import React from 'react';
 
 export function FollowerDetailedSkeleton() {
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6">
       {/* Chart Skeleton */}
       <div className="w-full h-[360px] bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 flex flex-col justify-between">
         <div className="flex justify-between items-center mb-8">

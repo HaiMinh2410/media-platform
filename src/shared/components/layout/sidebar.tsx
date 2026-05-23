@@ -157,7 +157,7 @@ export function Sidebar() {
             className="w-full h-full object-contain transition-opacity duration-300" 
           />
         </div>
-        {!isCollapsed && <span className="font-brand text-xl font-bold tracking-tight whitespace-nowrap">{userData?.workspaceName || 'Media Platform'}</span>}
+        {!isCollapsed && <span className="text-xl font-bold tracking-tight whitespace-nowrap">{userData?.workspaceName || 'Media Platform'}</span>}
       </div>
 
       <nav className="flex-1 flex flex-col gap-2">

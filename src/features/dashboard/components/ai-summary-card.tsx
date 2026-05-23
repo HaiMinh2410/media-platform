@@ -98,7 +98,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
             🤖
           </div>
-          <h3 className="font-bold text-sm tracking-tight text-base-content font-brand">AI Activity Summary</h3>
+          <h3 className="font-bold text-sm tracking-tight text-base-content">AI Activity Summary</h3>
         </div>
         <span className="badge badge-xs badge-success badge-soft gap-1 py-1.5 px-2 font-semibold">
           <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse"></span>

@@ -173,7 +173,7 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
   const mediaIssues = issues.filter(i => i.message.includes('tệp đính kèm') || i.message.includes('Định dạng'));
 
   return (
-    <div className="bg-base-200 p-4 font-sans border-t border-foreground/10">
+    <div className="bg-base-200 p-4 border-t border-foreground/10">
       <div className="grid grid-cols-4 gap-3">
         <AnimatePresence>
           {files.map((file) => (

@@ -71,11 +71,11 @@ export function FollowsTab({ data }: FollowsTabProps) {
   }, [data.waterfall]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 1. Follower Growth Attribution (Waterfall Chart - Col span 2) */}
       <div className="lg:col-span-2 bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
         <div>
-          <h3 className="text-sm font-bold text-base-content font-brand">Đóng góp Lượt Theo Dõi mới</h3>
+          <h3 className="text-sm font-bold text-base-content">Đóng góp Lượt Theo Dõi mới</h3>
           <p className="text-[11px] text-base-content/50 font-medium">Biểu đồ thác nước (Waterfall) đóng góp Follows mới của từng bài viết dẫn đầu</p>
         </div>
 
@@ -115,7 +115,7 @@ export function FollowsTab({ data }: FollowsTabProps) {
                     const displayValText = item.isFinal ? `+${item.value} Follows` : `+${item.displayVal} Follows`;
                     
                     return (
-                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[140px] font-sans">
+                      <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[140px]">
                         <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-1.5 font-mono">{name}</div>
                         <div className="flex items-center justify-between gap-4">
                           <span className="text-xs text-base-content/70 font-semibold">{label}:</span>
@@ -150,7 +150,7 @@ export function FollowsTab({ data }: FollowsTabProps) {
       <div className="bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
         <div>
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-base-content font-brand">Phễu Chuyển Đổi Khán Giả</h3>
+            <h3 className="text-sm font-bold text-base-content">Phễu Chuyển Đổi Khán Giả</h3>
             <Layers className="w-4 h-4 text-accent" />
           </div>
           <p className="text-[11px] text-base-content/50 font-medium">Tỉ lệ rớt của hành động: Reach → Follower mới</p>
@@ -162,7 +162,7 @@ export function FollowsTab({ data }: FollowsTabProps) {
             const widthVal = `${f.percentage}%`;
             return (
               <div key={idx} className="relative">
-                <div className="flex items-center justify-between text-[10px] font-bold text-base-content/60 mb-1 px-1 relative z-10 font-brand">
+                <div className="flex items-center justify-between text-[10px] font-bold text-base-content/60 mb-1 px-1 relative z-10">
                   <span className="truncate max-w-[120px]">{f.stage}</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-base-content font-mono">{numberFormatter(f.value)}</span>

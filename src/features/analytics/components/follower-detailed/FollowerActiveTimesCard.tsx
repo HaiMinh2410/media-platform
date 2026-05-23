@@ -31,13 +31,13 @@ export function FollowerActiveTimesCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans min-h-[380px]"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between min-h-[380px]"
     >
       <div>
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <Clock size={18} className="text-secondary animate-pulse" />
-            <h4 className="font-bold text-base-content tracking-tight font-brand">Giờ hoạt động nhiều nhất</h4>
+            <h4 className="font-bold text-base-content tracking-tight">Giờ hoạt động nhiều nhất</h4>
           </div>
 
           {/* Day Selector Tabs */}
@@ -48,7 +48,7 @@ export function FollowerActiveTimesCard({
                   key={d}
                   onClick={() => setActiveDay(d)}
                   className={cn(
-                    "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all duration-200 cursor-pointer font-brand",
+                    "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all duration-200 cursor-pointer",
                     activeDay === d 
                       ? "bg-secondary text-secondary-content shadow-sm font-extrabold" 
                       : "text-base-content/40 hover:text-base-content/70"
@@ -68,7 +68,7 @@ export function FollowerActiveTimesCard({
           </div>
         ) : (
           <div className="space-y-3 flex-1 flex flex-col justify-between">
-            <div className="text-xs font-bold text-base-content/50 mb-2 uppercase tracking-wider font-brand">
+            <div className="text-xs font-bold text-base-content/50 mb-2 uppercase tracking-wider">
               Thời gian online nhiều nhất
             </div>
             
@@ -116,7 +116,7 @@ export function FollowerActiveTimesCard({
                               opacity: 0.5, 
                               fontSize: 9, 
                               fontWeight: 700, 
-                              fontFamily: 'var(--font-brand, sans-serif)' 
+                              fontFamily: 'var(--font-sans, sans-serif)' 
                             }}
                           />
                           <YAxis
@@ -134,7 +134,7 @@ export function FollowerActiveTimesCard({
                             content={({ active, payload }) => {
                               if (active && payload && payload.length) {
                                 return (
-                                  <div className="bg-base-100 border border-base-content/10 px-3 py-2 rounded-2xl shadow-xl font-sans">
+                                  <div className="bg-base-100 border border-base-content/10 px-3 py-2 rounded-2xl shadow-xl">
                                     <p className="text-[10px] text-base-content/50 font-bold uppercase tracking-wider font-mono">
                                       {payload[0].payload.time}
                                     </p>

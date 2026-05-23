@@ -176,7 +176,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
     .join(', ');
 
   return (
-    <div className="min-h-screen bg-base-100 text-foreground font-sans selection:bg-primary/30">
+    <div className="min-h-screen bg-base-100 text-foreground selection:bg-primary/30">
       {/* Top Navbar / Header */}
       <div className="h-14 bg-base-200 border-b border-foreground/10 flex items-center px-6 justify-between">
         <Link 

@@ -46,7 +46,7 @@ export function ContentEditor({
         value={content}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Nhập nội dung bài đăng..."
-        className="w-full min-h-[140px] bg-transparent border-0 p-4 text-sm text-foreground placeholder:text-foreground-tertiary focus:ring-0 focus:outline-none resize-none leading-relaxed font-sans"
+        className="w-full min-h-[140px] bg-transparent border-0 p-4 text-sm text-foreground placeholder:text-foreground-tertiary focus:ring-0 focus:outline-none resize-none leading-relaxed"
         style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
       />
       

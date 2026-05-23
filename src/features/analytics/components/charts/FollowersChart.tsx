@@ -38,10 +38,10 @@ export function FollowersChart({
 
   if (isInstagramDynamics) {
     return (
-      <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md font-sans">
+      <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h3 className="text-lg font-bold text-base-content flex items-center gap-2 font-brand">
+            <h3 className="text-lg font-bold text-base-content flex items-center gap-2">
               <Icon lucide={TrendingUp} size={18} className="text-warning" />
               Biến động Followers
             </h3>
@@ -117,7 +117,7 @@ export function FollowersChart({
                   content={({ active, payload, label }: any) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[140px] font-sans">
+                        <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[140px]">
                           <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-2 font-mono">{label}</div>
                           <div className="space-y-1.5">
                             {payload.map((item: any, i: number) => (
@@ -171,9 +171,9 @@ export function FollowersChart({
 
   // General Trend
   return (
-    <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md font-sans">
+    <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md">
       <div>
-        <h3 className="text-lg font-bold text-base-content flex items-center gap-2 font-brand">
+        <h3 className="text-lg font-bold text-base-content flex items-center gap-2">
           <Icon lucide={TrendingUp} size={18} className="text-warning" />
           Xu hướng Followers
         </h3>

@@ -76,13 +76,13 @@ export function FollowerLocationsCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between font-sans min-h-[380px]"
+      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between min-h-[380px]"
     >
       <div>
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <Globe size={18} className="text-info animate-pulse" />
-            <h4 className="font-bold text-base-content tracking-tight font-brand">Khu vực sinh sống</h4>
+            <h4 className="font-bold text-base-content tracking-tight">Khu vực sinh sống</h4>
           </div>
           
           {/* Country / City Selector Tabs */}
@@ -90,7 +90,7 @@ export function FollowerLocationsCard({
             <button
               onClick={() => setLocationTab('country')}
               className={cn(
-                "px-3 py-1 rounded-xl text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer font-brand",
+                "px-3 py-1 rounded-xl text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer",
                 locationTab === 'country' 
                   ? "bg-primary text-primary-content shadow-sm font-extrabold" 
                   : "text-base-content/40 hover:text-base-content/70"
@@ -101,7 +101,7 @@ export function FollowerLocationsCard({
             <button
               onClick={() => setLocationTab('city')}
               className={cn(
-                "px-3 py-1 rounded-xl text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer font-brand",
+                "px-3 py-1 rounded-xl text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer",
                 locationTab === 'city' 
                   ? "bg-primary text-primary-content shadow-sm font-extrabold" 
                   : "text-base-content/40 hover:text-base-content/70"
@@ -124,7 +124,7 @@ export function FollowerLocationsCard({
               return (
                 <div key={idx} className="space-y-1.5 group">
                   <div className="flex justify-between items-center text-xs font-semibold">
-                    <span className="text-base-content/70 group-hover:text-base-content transition-colors flex items-center gap-1.5 font-brand">
+                    <span className="text-base-content/70 group-hover:text-base-content transition-colors flex items-center gap-1.5">
                       <MapPin size={12} className="text-info/75" />
                       {displayName}
                     </span>
