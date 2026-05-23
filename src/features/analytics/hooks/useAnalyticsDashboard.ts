@@ -125,6 +125,42 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
     }
   }
 
+  // Reconstruct dynamic daily followers count backwards using followsAndUnfollows growth metrics
+  if (data?.data && isInstagram && followsAndUnfollows.length > 0) {
+    const sortedCurrent = data.data.current.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const lastSnap = sortedCurrent[sortedCurrent.length - 1];
+    const totalFollowersCount = lastSnap?.followers || 0;
+
+    if (totalFollowersCount > 0) {
+      // 1. Reconstruct current snapshots backward
+      let currentFollowerRun = totalFollowersCount;
+      for (let idx = sortedCurrent.length - 1; idx >= 0; idx--) {
+        const snap = sortedCurrent[idx];
+        snap.followers = currentFollowerRun;
+        
+        const snapDateStr = new Date(snap.date).toISOString().split('T')[0];
+        const growthRecord = followsAndUnfollows.find((f: any) => f.date === snapDateStr);
+        const netDailyGrowth = growthRecord ? (growthRecord.follows - growthRecord.unfollows) : 0;
+        
+        currentFollowerRun = Math.max(0, currentFollowerRun - netDailyGrowth);
+      }
+
+      // 2. Reconstruct previous snapshots backward starting from the start of current period
+      let previousFollowerRun = currentFollowerRun;
+      const sortedPrevious = data.data.previous.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      for (let idx = sortedPrevious.length - 1; idx >= 0; idx--) {
+        const snap = sortedPrevious[idx];
+        snap.followers = previousFollowerRun;
+        
+        const snapDateStr = new Date(snap.date).toISOString().split('T')[0];
+        const growthRecord = followsAndUnfollows.find((f: any) => f.date === snapDateStr);
+        const netDailyGrowth = growthRecord ? (growthRecord.follows - growthRecord.unfollows) : 0;
+        
+        previousFollowerRun = Math.max(0, previousFollowerRun - netDailyGrowth);
+      }
+    }
+  }
+
   const totals = data?.data ? calcSummary(data.data) : null;
   const xAxisFormatter = getXAxisFormatter(range);
   
@@ -133,12 +169,17 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
 
   const chartData = currentSnapshots.map((s, i) => {
     const prev = previousSnapshots[i];
+    const snapDateStr = new Date(s.date).toISOString().split('T')[0];
+    const growthRecord = followsAndUnfollows.find((f: any) => f.date === snapDateStr);
+    const followersNetGrowth = growthRecord ? (growthRecord.follows - growthRecord.unfollows) : 0;
+
     return {
       date: xAxisFormatter(s.date),
       reach: s.reach || 0,
       engagement: s.accountsEngaged ?? s.engagement ?? 0,
       views: s.impressions || 0,
       followers: s.followers || 0,
+      followersNetGrowth,
       profileVisits: s.profileVisits || 0,
       profileLinksTaps: s.profileLinksTaps || 0,
       prevReach: prev?.reach ?? 0,

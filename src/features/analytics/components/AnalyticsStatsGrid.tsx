@@ -13,6 +13,7 @@ interface AnalyticsStatsGridProps {
     profileVisits: number;
     profileLinksTaps: number;
     followers: number;
+    followersNetGrowth?: number;
   }>;
 }
 
@@ -72,7 +73,7 @@ export function AnalyticsStatsGrid({
             trend={totals.followers.trend.display} 
             isPositive={totals.followers.trend.isPositive}
             delta={totals.followers.delta}
-            sparklineData={chartData.map(d => d.followers || 0)}
+            sparklineData={chartData.map(d => d.followersNetGrowth || 0)}
             activeColor="var(--color-warning)"
           />
         </>

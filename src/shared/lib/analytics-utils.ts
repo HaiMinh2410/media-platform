@@ -108,14 +108,24 @@ export function calcSummary(data: AnalyticsPeriodData): AnalyticsSummary {
     arr.reduce((acc, curr) => acc + ((curr as any)[key] || 0), 0);
 
   const snapReach = sum(current, 'reach');
-  const curReach = uniqueReach ?? (snapReach > 0 ? snapReach : (currentPostTotals?.reach || 0));
+  const curReach = (uniqueReach && uniqueReach > snapReach * 0.05)
+    ? uniqueReach 
+    : (snapReach > 0 ? snapReach : (currentPostTotals?.reach || 0));
+    
   const snapPrevReach = sum(previous, 'reach');
-  const prevReach = prevUniqueReach ?? (snapPrevReach > 0 ? snapPrevReach : (previousPostTotals?.reach || 0));
+  const prevReach = (prevUniqueReach && prevUniqueReach > snapPrevReach * 0.05)
+    ? prevUniqueReach 
+    : (snapPrevReach > 0 ? snapPrevReach : (previousPostTotals?.reach || 0));
   
   const snapImp = sum(current, 'impressions');
-  const curImp = uniqueViews ?? (snapImp > 0 ? snapImp : (currentPostTotals?.reach || 0));
+  const curImp = (uniqueViews && uniqueViews > snapImp * 0.05)
+    ? uniqueViews 
+    : (snapImp > 0 ? snapImp : (currentPostTotals?.reach || 0));
+    
   const snapPrevImp = sum(previous, 'impressions');
-  const prevImp = prevUniqueViews ?? (snapPrevImp > 0 ? snapPrevImp : (previousPostTotals?.reach || 0));
+  const prevImp = (prevUniqueViews && prevUniqueViews > snapPrevImp * 0.05)
+    ? prevUniqueViews 
+    : (snapPrevImp > 0 ? snapPrevImp : (previousPostTotals?.reach || 0));
   
   const snapEng = sum(current, 'engagement');
   const curEng = snapEng > 0 ? snapEng : (currentPostTotals?.engagement || 0);
