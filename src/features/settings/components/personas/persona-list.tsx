@@ -27,7 +27,7 @@ interface PersonaListProps {
 export function PersonaList({ accounts }: PersonaListProps) {
   if (!accounts || accounts.length === 0) {
     return (
-      <div className="p-8 text-center bg-foreground/[0.02] border border-foreground/10 rounded-2xl">
+      <div className="p-8 text-center bg-foreground/2 border border-foreground/10 rounded-2xl">
         <p className="text-foreground-secondary">Chưa có tài khoản nào được kết nối.</p>
       </div>
     );
@@ -44,10 +44,10 @@ export function PersonaList({ accounts }: PersonaListProps) {
           <Link
             key={account.id}
             href={`/dashboard/settings/personas/${account.id}`}
-            className="group flex flex-col p-6 bg-foreground/[0.02] hover:bg-foreground/[0.04] border border-foreground/10 hover:border-primary/30 rounded-2xl transition-all duration-300 no-underline relative overflow-hidden backdrop-blur-xl"
+            className="group flex flex-col p-6 bg-foreground/2 hover:bg-foreground/4 border border-foreground/10 hover:border-primary/30 rounded-2xl transition-all duration-300 no-underline relative overflow-hidden backdrop-blur-xl"
           >
             {/* Glassmorphism shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
@@ -64,7 +64,7 @@ export function PersonaList({ accounts }: PersonaListProps) {
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full flex items-center justify-center shadow-sm">
                     {isInstagram ? (
-                      <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-fuchsia-500 flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full bg-linear-to-tr from-yellow-400 via-red-500 to-fuchsia-500 flex items-center justify-center">
                         <span className="text-[8px] text-white font-bold tracking-tighter">ig</span>
                       </div>
                     ) : (
