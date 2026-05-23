@@ -3,9 +3,10 @@
 
 import React from 'react';
 import { 
-  BarChart3, Layers, Sparkles, Users
+  BarChart3, Layers, Bot, Users
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
+import { SlidingTabs } from '@shared/ui/sliding-tabs';
 import { Icon } from '@shared/ui/icon';
 import { AnalyticsPeriodData } from '@features/analytics/types';
 import { ViewsCard } from '@features/analytics/components/views-card';
@@ -15,9 +16,7 @@ import { TopContentLeaderboard } from '@features/analytics/components/top-conten
 import { PostDetailModal } from '@features/analytics/components/post-detail-modal';
 import { FollowerDetailedSection } from '@features/analytics/components/follower-detailed-section';
 import { ContentInsightsSection } from '@features/analytics/components/content-insights-section';
-import { 
-  InsufficientDataState, ReauthNotice
-} from '@features/analytics/components/dashboard-states';
+import { ReauthNotice } from '@features/analytics/components/dashboard-states';
 import AIAnalyticsPage from '@/app/dashboard/ai-analytics/page';
 import { useAnalyticsDashboard } from '@features/analytics/hooks/useAnalyticsDashboard';
 import { AnalyticsDashboardHeader } from './AnalyticsDashboardHeader';
@@ -79,58 +78,33 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     handleSync,
     handleSyncAll
   } = dashboard;
+  const [deferredActiveTab, setDeferredActiveTab] = React.useState(activeTab);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDeferredActiveTab(activeTab);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
+
+  const tabItems = React.useMemo(() => [
+    { value: 'general', label: 'Account Insights', icon: BarChart3 },
+    { value: 'content', label: 'Content', icon: Layers },
+    { value: 'audience', label: 'Audience', icon: Users },
+    { value: 'ai', label: 'AI Insights', icon: Bot },
+  ] as const, []);
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-7xl mx-auto">
       {/* GLOBAL HEADER BAR (TABS SELECTOR & CONTROLS TOOLBAR) */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-base-content/5">
         {/* TABS SELECTOR */}
-        <div className="flex flex-wrap gap-1.5 bg-base-200/70 border border-base-content/5 rounded-2xl p-1.5 select-none w-fit shadow-inner">
-          <button
-            onClick={() => setActiveTab('general')}
-            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-              activeTab === 'general'
-                ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
-                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
-            }`}
-          >
-            <Icon lucide={BarChart3} size={14} className={activeTab === 'general' ? 'text-primary-content' : 'text-info'} />
-            <span>Tổng quan Kênh</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('content')}
-            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-              activeTab === 'content'
-                ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
-                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
-            }`}
-          >
-            <Icon lucide={Layers} size={14} className={activeTab === 'content' ? 'text-primary-content' : 'text-secondary'} />
-            <span>Bài viết</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('audience')}
-            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-              activeTab === 'audience'
-                ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
-                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
-            }`}
-          >
-            <Icon lucide={Users} size={14} className={activeTab === 'audience' ? 'text-primary-content' : 'text-success'} />
-            <span>Khán giả</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('ai')}
-            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-              activeTab === 'ai'
-                ? 'bg-primary text-primary-content shadow-md scale-[1.02]'
-                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/30'
-            }`}
-          >
-            <Icon lucide={Sparkles} size={14} className={activeTab === 'ai' ? 'text-primary-content animate-pulse' : 'text-accent'} />
-            <span>AI Insights</span>
-          </button>
-        </div>
+        <SlidingTabs
+          items={tabItems}
+          activeValue={activeTab}
+          onChange={setActiveTab}
+          size="md"
+        />
 
         {/* GLOBAL CONTROLS */}
         <AnalyticsDashboardHeader
@@ -150,18 +124,18 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         />
       </div>
 
-      {activeTab === 'ai' ? (
+      {deferredActiveTab === 'ai' ? (
         <div className="-mx-6 -my-4">
           <AIAnalyticsPage onBack={() => setActiveTab('general')} />
         </div>
-      ) : activeTab === 'content' ? (
+      ) : deferredActiveTab === 'content' ? (
         <ContentInsightsSection 
           accountId={selectedAccountId} 
           range={range}
           customStart={customStart}
           customEnd={customEnd}
         />
-      ) : activeTab === 'audience' ? (
+      ) : deferredActiveTab === 'audience' ? (
         <div className="space-y-6">
           
           {isInstagram ? (

@@ -10,6 +10,7 @@ import {
   Sparkles,
   Activity
 } from 'lucide-react';
+import { SlidingTabs } from '@shared/ui/sliding-tabs';
 import { cn } from '@shared/lib/utils';
 import type { PostDeepAnalyticsData } from '@features/analytics/services/post-analytics-engine';
 import type { AnalyticsRange } from '@features/analytics/types';
@@ -44,6 +45,13 @@ export function PostChartsDashboard({
 }: PostChartsDashboardProps) {
   const [mounted, setMounted] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<TabType>('content');
+
+  const tabItems = React.useMemo(() => [
+    { value: 'content', label: 'Loại nội dung', icon: PieIcon },
+    { value: 'distribution', label: 'Thời điểm & Chuyển đổi', icon: Grid3X3 },
+    { value: 'follows', label: 'Tăng trưởng Follower', icon: Users },
+    { value: 'engagement-frequency', label: 'Tương tác & Tần suất', icon: Activity }
+  ] as const, []);
 
   React.useEffect(() => {
     setMounted(true);
@@ -98,39 +106,14 @@ export function PostChartsDashboard({
         </div>
 
         {/* Bento Switcher Tabs */}
-        <div className="flex flex-wrap bg-base-200/70 border border-base-content/5 rounded-2xl p-1 gap-1 self-start md:self-auto shadow-inner">
-          {(
-            [
-              { id: 'content', label: 'Loại nội dung', icon: PieIcon },
-              { id: 'distribution', label: 'Thời điểm & Chuyển đổi', icon: Grid3X3 },
-              { id: 'follows', label: 'Tăng trưởng Follower', icon: Users },
-              { id: 'engagement-frequency', label: 'Tương tác & Tần suất', icon: Activity }
-            ] as const
-          ).map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold tracking-tight transition-all duration-300 select-none cursor-pointer",
-                  isActive ? "text-primary-content" : "text-base-content/50 hover:text-base-content hover:bg-base-300/30"
-                )}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activePostChartTab"
-                    className="absolute inset-0 bg-primary border border-primary/20 rounded-xl shadow-sm"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <Icon className={cn("w-3.5 h-3.5 relative z-10 transition-colors", isActive ? "text-primary-content" : "text-base-content/40")} />
-                <span className="relative z-10">{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <SlidingTabs
+          items={tabItems}
+          activeValue={activeTab}
+          onChange={setActiveTab}
+          size="sm"
+          layoutId="activePostChartTab"
+          className="self-start md:self-auto"
+        />
       </div>
 
       {/* Main Content Area with Transitions */}

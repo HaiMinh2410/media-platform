@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Info } from 'lucide-react';
+import { SlidingTabs } from '@shared/ui/sliding-tabs';
 import { cn, Skeleton, StatBlock } from './primitives';
 
 interface ViewsCardProps {
@@ -100,6 +101,12 @@ export function ViewsCard({
   isLoading = false,
 }: ViewsCardProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'followers' | 'nonfollowers'>('all');
+
+  const tabItems = React.useMemo(() => [
+    { value: 'all', label: 'All' },
+    { value: 'followers', label: 'Followers' },
+    { value: 'nonfollowers', label: 'Non-followers' },
+  ] as const, []);
 
   if (isLoading) {
     return (
@@ -206,22 +213,15 @@ export function ViewsCard({
           <div className="text-xs font-bold text-base-content/40 uppercase tracking-widest font-mono mb-4">By content type</div>
           
           {/* Tab Switcher */}
-          <div className="flex gap-1 bg-base-200/70 p-1 rounded-lg border border-base-content/5 mb-6">
-            {(['all', 'followers', 'nonfollowers'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={cn(
-                  "flex-1 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer",
-                  activeTab === tab 
-                    ? "bg-primary text-primary-content shadow-sm" 
-                    : "text-base-content/40 hover:text-base-content/70"
-                )}
-              >
-                {tab === 'all' ? 'All' : tab === 'followers' ? 'Followers' : 'Non-followers'}
-              </button>
-            ))}
-          </div>
+          <SlidingTabs
+            items={tabItems}
+            activeValue={activeTab}
+            onChange={setActiveTab}
+            size="sm"
+            fullWidth
+            layoutId="viewsCardTabIndicator"
+            className="mb-6"
+          />
 
           {/* Content Bars */}
           <div className="space-y-1">
