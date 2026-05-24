@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, BarChart3, Info, Sparkles } from 'lucide-react';
 import { cn } from '../primitives';
+import { SlidingTabs } from '@shared/ui/sliding-tabs';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -18,6 +19,13 @@ interface FollowerActiveTimesCardProps {
 
 const DAYS = ["M", "Tu", "W", "Th", "F", "Sa", "Su"] as const;
 const TIME_LABELS_FULL = ["12 AM", "3 AM", "6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM"];
+
+const TAB_ITEMS = DAYS.map(d => ({
+  value: d,
+  label: d,
+  activeBgClass: 'bg-secondary',
+  activeTextClass: 'text-secondary-content',
+}));
 
 export function FollowerActiveTimesCard({
   activeTimes
@@ -42,22 +50,13 @@ export function FollowerActiveTimesCard({
 
           {/* Day Selector Tabs */}
           {activeTimes && (
-            <div className="flex p-0.5 bg-base-200/70 border border-base-content/5 rounded-2xl select-none flex-wrap max-w-[200px] justify-end shadow-inner">
-              {DAYS.map((d) => (
-                <button
-                  key={d}
-                  onClick={() => setActiveDay(d)}
-                  className={cn(
-                    "px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all duration-200 cursor-pointer",
-                    activeDay === d 
-                      ? "bg-secondary text-secondary-content shadow-sm font-extrabold" 
-                      : "text-base-content/40 hover:text-base-content/70"
-                  )}
-                >
-                  {d}
-                </button>
-              ))}
-            </div>
+            <SlidingTabs
+              items={TAB_ITEMS}
+              activeValue={activeDay}
+              onChange={setActiveDay}
+              size="xs"
+              layoutId="followerActiveDayIndicator"
+            />
           )}
         </div>
 
@@ -171,11 +170,6 @@ export function FollowerActiveTimesCard({
             </div>
           </div>
         )}
-      </div>
-
-      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
-        <Info size={14} className="text-secondary/50" />
-        <span>Follower hoạt động sôi nổi nhất vào 9 PM</span>
       </div>
     </motion.div>
   );

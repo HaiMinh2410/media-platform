@@ -1,5 +1,5 @@
 import React from "react";
-import { Check } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
 import {
   translateCountry,
   topCountryLabelIsVN,
@@ -218,38 +218,68 @@ export function useFollowerPersonal({
 
   // 1. Audience Profiling Engine & Instagram Calibration
 
-  // A. Giới tính
-  let genderTag = "";
+  // A. Giới tính (Định nghĩa dưới dạng React.ReactNode để bôi đậm từ khóa)
+  let genderTag: React.ReactNode = "";
   if (malePct > 65) {
-    genderTag = "Cộng đồng Nam giới chiếm ưu thế tuyệt đối trên Instagram";
+    genderTag = (
+      <span>
+        cộng đồng <strong className="text-base-content font-black">nam giới chiếm ưu thế tuyệt đối</strong> trên Instagram
+      </span>
+    );
   } else if (malePct >= 50 && malePct <= 65) {
-    genderTag = "Cộng đồng thiên về Nam giới (tín hiệu nổi bật trên IG)";
+    genderTag = (
+      <span>
+        cộng đồng thiên về <strong className="text-base-content font-black">nam giới</strong> (tín hiệu nổi bật trên IG)
+      </span>
+    );
   } else if (femalePct > 65) {
-    genderTag = "Cộng đồng Nữ giới chiếm ưu thế tuyệt đối trên Instagram";
+    genderTag = (
+      <span>
+        cộng đồng <strong className="text-base-content font-black">nữ giới chiếm ưu thế tuyệt đối</strong> trên Instagram
+      </span>
+    );
   } else if (femalePct >= 50 && femalePct <= 65) {
-    genderTag = "Cộng đồng thiên về Nữ giới (bám sát baseline IG)";
+    genderTag = (
+      <span>
+        cộng đồng thiên về <strong className="text-base-content font-black">nữ giới</strong> (bám sát baseline IG)
+      </span>
+    );
   } else {
-    genderTag = "Khán giả phân bổ cân bằng giới tính trên Instagram";
+    genderTag = "khán giả phân bổ cân bằng giới tính trên Instagram";
   }
 
   // B. Xử lý ẩn danh / Khác (otherPct)
-  let otherTag = "";
+  let otherTag: React.ReactNode = "";
   let isGenderDataReliable = true;
   if (otherPct > 40) {
-    otherTag = `Cảnh báo: Dữ liệu giới tính bị loãng nghiêm trọng (tài khoản không khai báo giới tính chiếm tới ${otherPct}%).`;
+    otherTag = (
+      <span>
+        Cảnh báo: Dữ liệu giới tính bị loãng nghiêm trọng (tài khoản không khai báo giới tính chiếm tới <strong className="text-base-content font-black">{otherPct}%</strong>).
+      </span>
+    );
     isGenderDataReliable = false;
   } else if (otherPct > 20) {
-    otherTag = `Có sự hiện diện đáng kể của tài khoản Business hoặc người dùng quốc tế ẩn giới tính (${otherPct}%).`;
+    otherTag = (
+      <span>
+        Có sự hiện diện đáng kể của <strong className="text-base-content font-black">tài khoản Business</strong> hoặc người dùng quốc tế ẩn giới tính (<strong className="text-base-content font-black">{otherPct}%</strong>).
+      </span>
+    );
   }
 
   // C. Độ tuổi (Gen Z vs Adult và Fallback động)
-  let ageTag = "";
+  let ageTag: React.ReactNode = "";
   if (isGenZInstagram) {
-    ageTag =
-      "Tệp Gen Z thuần Instagram (nhóm 18-24 chiếm tỷ lệ cực kỳ lớn >40%)";
+    ageTag = (
+      <span>
+        tệp <strong className="text-base-content font-black">Gen Z thuần Instagram</strong> (nhóm <strong className="text-base-content font-black">18-24</strong> chiếm tỷ lệ cực kỳ lớn &gt;40%)
+      </span>
+    );
   } else if (isAdultAudience) {
-    ageTag =
-      "Tập khách hàng trưởng thành, đi làm, có thu nhập ổn định (25-44 tuổi)";
+    ageTag = (
+      <span>
+        tập khách hàng trưởng thành, đi làm, có thu nhập ổn định (<strong className="text-base-content font-black">25-44 tuổi</strong>)
+      </span>
+    );
   } else {
     // FALLBACK ĐỘNG: Lấy top 2 độ tuổi cao nhất
     const sortedAge = [...ageData].sort((a, b) => b.value - a.value);
@@ -257,22 +287,26 @@ export function useFollowerPersonal({
     const top2Age = sortedAge[1]?.name || "25-34";
 
     if (top1Age.includes("18-24") && top2Age.includes("25-34")) {
-      ageTag = "Tệp người trẻ và nhân viên văn phòng trẻ tuổi";
+      ageTag = "tệp người trẻ và nhân viên văn phòng trẻ tuổi";
     } else if (top1Age.includes("13-17") && top2Age.includes("18-24")) {
-      ageTag = "Tệp học sinh - sinh viên và người trẻ tuổi năng động";
+      ageTag = "tệp học sinh - sinh viên và người trẻ tuổi năng động";
     } else {
-      ageTag = `Tập trung vào phân khúc khán giả thuộc nhóm tuổi ${top1Age} & ${top2Age}`;
+      ageTag = (
+        <span>
+          tập trung vào phân khúc khán giả thuộc nhóm tuổi <strong className="text-base-content font-black">{top1Age} &amp; {top2Age}</strong>
+        </span>
+      );
     }
   }
 
-  // D. Kết luận Output Persona Headline
-  let personaHeadline = `${isGenZInstagram ? "Tệp Gen Z Instagram" : isAdultAudience ? "Khán giả Trưởng thành" : "Khán giả Trẻ tuổi"}`;
+  // D. Kết luận Output Persona Headline (Dạng Sentence Case chuẩn tiếng Việt)
+  let personaHeadline = `${isGenZInstagram ? "Tệp Gen Z Instagram" : isAdultAudience ? "Khán giả trưởng thành" : "Khán giả trẻ tuổi"}`;
   if (malePct > 65) {
-    personaHeadline += " Nam giới ưu thế";
+    personaHeadline += ", nam giới ưu thế";
   } else if (femalePct > 65) {
-    personaHeadline += " Nữ giới ưu thế";
+    personaHeadline += ", nữ giới ưu thế";
   } else {
-    personaHeadline += " Đa dạng giới tính";
+    personaHeadline += ", đa dạng giới tính";
   }
 
   if (isMultiNational) {
@@ -297,16 +331,26 @@ export function useFollowerPersonal({
     behaviorLabel = `Đỉnh online lúc ${peakHourLabel} hàng ngày`;
   }
 
-  // Tầng 2: Insight Text động
-  let insightText = `Kênh sở hữu tệp khán giả có chân dung sắc nét: ${genderTag}. Về độ tuổi, kênh tập trung chủ yếu vào ${ageTag}. `;
-  if (isMultiNational) {
-    insightText += `Địa lý thuộc nhóm ${geoClassification} khi quốc gia dẫn đầu chiếm dưới 60% và 4 quốc gia tiếp theo cộng lại đạt ${nextCountriesPct}%. `;
-  } else {
-    insightText += `Thị trường chủ đạo phân bổ tập trung cao ở thị trường nội địa (${countryLabel} chiếm ${topCountryPct}%). `;
-  }
-  if (otherTag) {
-    insightText += `Đặc biệt lưu ý: ${otherTag}`;
-  }
+  // Tầng 2: Insight Text động (Trả về ReactNode có các từ khóa bôi đậm)
+  const insightText = (
+    <span>
+      Kênh sở hữu tệp khán giả có chân dung sắc nét: {genderTag}. Về độ tuổi, kênh tập trung chủ yếu vào {ageTag}.{" "}
+      {isMultiNational ? (
+        <span>
+          Địa lý thuộc nhóm quốc tế phân tán (không có thị trường chủ đạo) khi quốc gia dẫn đầu chiếm dưới 60% và 4 quốc gia tiếp theo cộng lại đạt <strong className="text-base-content font-black">{nextCountriesPct}%</strong>.{" "}
+        </span>
+      ) : (
+        <span>
+          Thị trường chủ đạo phân bổ tập trung cao ở thị trường nội địa (<strong className="text-base-content font-black">{countryLabel}</strong> chiếm <strong className="text-base-content font-black">{topCountryPct}%</strong>).{" "}
+        </span>
+      )}
+      {otherTag && (
+        <span>
+          Đặc biệt lưu ý: {otherTag}
+        </span>
+      )}
+    </span>
+  );
 
   // ==========================================
   // III. CÁC ĐIỂM NÂNG CAO (CONFIDENCE & FALLBACK)
@@ -332,13 +376,13 @@ export function useFollowerPersonal({
   confidenceScore = Math.max(10, Math.min(98, confidenceScore));
 
   let confidenceLevel = "Rất Cao";
-  let confidenceColor = "bg-success/10 text-success border-success/20";
+  let confidenceColor = "text-success";
   if (confidenceScore < 60) {
     confidenceLevel = "Thấp";
-    confidenceColor = "bg-error/10 text-error border-error/20";
+    confidenceColor = "text-error";
   } else if (confidenceScore < 80) {
     confidenceLevel = "Trung bình";
-    confidenceColor = "bg-warning/10 text-warning border-warning/20";
+    confidenceColor = "text-warning";
   }
 
   // ==========================================
@@ -347,12 +391,12 @@ export function useFollowerPersonal({
 
   const actionItems: React.ReactNode[] = [];
 
-  // Rule 1: Nội dung (Content Strategy) - Khuyến nghị Format IG
+  // Rule 1: Nội dung (Content Strategy) - Khuyến nghị Format IG (Accent color: Indigo)
   const isMaleHigh = malePct > 65;
   if (isMaleHigh && isAdultAudience) {
     actionItems.push(
       <span key="content-rule">
-        <strong className="text-amber-500 dark:text-amber-400 font-black">
+        <strong className="text-accent font-semibold">
           Nội dung logic & Format IG chuyên sâu:
         </strong>{" "}
         Tập trung vào các chủ đề có tính logic, thực tế, kỹ thuật hoặc tài chính
@@ -367,7 +411,7 @@ export function useFollowerPersonal({
   } else if (isGenZInstagram) {
     actionItems.push(
       <span key="content-rule">
-        <strong className="text-amber-500 dark:text-amber-400 font-black">
+        <strong className="text-accent dark:text-indigo-400 font-black">
           Nội dung Gen Z & Visual-First:
         </strong>{" "}
         Tập trung tối đa vào các chủ đề phong cách sống, trải nghiệm sáng tạo,
@@ -381,7 +425,7 @@ export function useFollowerPersonal({
   } else {
     actionItems.push(
       <span key="content-rule">
-        <strong className="text-amber-500 dark:text-amber-400 font-black">
+        <strong className="text-accent dark:text-indigo-400 font-black">
           Nội dung đời sống & Giáo dục thực tế:
         </strong>{" "}
         Tập trung nội dung mang tính chia sẻ giá trị, cân bằng cuộc sống, tri
@@ -396,11 +440,11 @@ export function useFollowerPersonal({
     if (topCountryLabelIsVN(countryLabel)) {
       actionItems.push(
         <span key="lang-rule">
-          <strong className="text-emerald-500 dark:text-emerald-400 font-black">
+          <strong className="text-accent font-black">
             Caption song ngữ & Auto-Translate:
           </strong>{" "}
           Do tệp quốc tế phân tán chiếm tới{" "}
-          <strong className="text-emerald-500 dark:text-emerald-400 font-black">
+          <strong className="text-accent font-black">
             {100 - topCountryPct}%
           </strong>
           , hãy giữ ngôn ngữ chính là Tiếng Việt, đồng thời bổ sung thêm một
@@ -412,12 +456,12 @@ export function useFollowerPersonal({
     } else {
       actionItems.push(
         <span key="lang-rule">
-          <strong className="text-emerald-500 dark:text-emerald-400 font-black">
+          <strong className="text-accent font-black">
             Chiến lược đa ngôn ngữ toàn cầu:
           </strong>{" "}
           Cân nhắc sử dụng Tiếng Anh làm ngôn ngữ chính cho Caption và nội dung
           chữ trong ảnh, đi kèm phụ đề song ngữ cho Reels để khai thác triệt để{" "}
-          <strong className="text-emerald-500 dark:text-emerald-400 font-black">
+          <strong className="text-accent font-black">
             {100 - topCountryPct}%
           </strong>{" "}
           tệp khán giả ngoài thị trường nội địa.
@@ -427,7 +471,7 @@ export function useFollowerPersonal({
   } else {
     actionItems.push(
       <span key="lang-rule">
-        <strong className="text-emerald-500 dark:text-emerald-400 font-black">
+        <strong className="text-accent font-black">
           Bản địa hóa & Tương tác sâu sắc:
         </strong>{" "}
         Dành 100% tài nguyên tối ưu hoá tiếng Việt bản địa, lồng ghép các thuật
@@ -441,18 +485,18 @@ export function useFollowerPersonal({
   if (isNightOwl) {
     actionItems.push(
       <span key="time-rule">
-        <strong className="text-info font-black">
+        <strong className="text-accent font-black">
           Lịch đăng Cú Đêm (Phân tách theo định dạng IG):
         </strong>{" "}
         Khán giả hoạt động mạnh mẽ xuyên đêm (
         <strong className="text-secondary font-black">12 AM - 6 AM</strong>).
-        <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-xs text-base-content/80">
+        <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-sm text-base-content/80">
           <li>
             <strong className="text-info font-bold">
               Story (Xem Real-time):
             </strong>{" "}
             Đăng trực tiếp vào giờ đỉnh{" "}
-            <strong className="text-amber-500 dark:text-amber-400 font-semibold">
+            <strong className="text-primary dark:text-indigo-400 font-semibold">
               23:00 - 23:45
             </strong>
             .
@@ -462,7 +506,7 @@ export function useFollowerPersonal({
               Reels (Warm-up 60 phút):
             </strong>{" "}
             Đăng sớm lúc{" "}
-            <strong className="text-amber-500 dark:text-amber-400 font-semibold">
+            <strong className="text-primary dark:text-indigo-400 font-semibold">
               22:15 - 22:45
             </strong>{" "}
             để thuật toán kịp lập chỉ mục.
@@ -472,7 +516,7 @@ export function useFollowerPersonal({
               Feed Post (Ảnh/Carousel):
             </strong>{" "}
             Đăng lúc{" "}
-            <strong className="text-amber-500 dark:text-amber-400 font-semibold">
+            <strong className="text-primary dark:text-indigo-400 font-semibold">
               22:30 - 23:00
             </strong>{" "}
             (trước 30 phút).
@@ -489,19 +533,19 @@ export function useFollowerPersonal({
   } else if (isMultiPeak) {
     actionItems.push(
       <span key="time-rule">
-        <strong className="text-info font-black">
+        <strong className="text-accent font-black">
           Lịch đăng 2 pha (Tận dụng hai đỉnh sóng):
         </strong>{" "}
         Khán giả phân bố tương tác mạnh vào cả trưa và chiều tối.
-        <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-xs text-base-content/80">
+        <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-sm text-base-content/80">
           <li>
             <strong className="text-info font-bold">Story (Real-time):</strong>{" "}
             Chia làm 2 đợt đăng đúng giờ đỉnh lúc{" "}
-            <strong className="text-amber-500 dark:text-amber-400 font-semibold">
+            <strong className="text-primary dark:text-indigo-400 font-semibold">
               12:00
             </strong>{" "}
             trưa và{" "}
-            <strong className="text-amber-500 dark:text-amber-400 font-semibold">
+            <strong className="text-primary dark:text-indigo-400 font-semibold">
               21:00
             </strong>{" "}
             tối.
@@ -511,7 +555,7 @@ export function useFollowerPersonal({
               Reels / Feed Post (Tập trung tối):
             </strong>{" "}
             Đăng đợt chính lúc{" "}
-            <strong className="text-amber-500 dark:text-amber-400 font-semibold">
+            <strong className="text-primary dark:text-indigo-400 font-semibold">
               19:45 - 20:15
             </strong>{" "}
             để thuật toán kịp phân phối và đạt đỉnh tương tác vào buổi tối.
@@ -525,13 +569,13 @@ export function useFollowerPersonal({
         <strong className="text-info font-black">
           Lịch đăng Giờ Vàng (Phân tách theo định dạng IG):
         </strong>
-        <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-xs text-base-content/80">
+        <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-sm text-base-content/80">
           <li>
             <strong className="text-info font-bold">
               Story (Xem Real-time):
             </strong>{" "}
             Đăng đúng giờ đỉnh{" "}
-            <strong className="text-amber-500 dark:text-amber-400 font-semibold">
+            <strong className="text-primary dark:text-indigo-400 font-semibold">
               20:45 - 21:15
             </strong>
             .
@@ -541,7 +585,7 @@ export function useFollowerPersonal({
               Reels (Warm-up 60 phút):
             </strong>{" "}
             Đăng lúc{" "}
-            <strong className="text-amber-500 dark:text-amber-400 font-semibold">
+            <strong className="text-primary dark:text-indigo-400 font-semibold">
               19:45 - 20:15
             </strong>{" "}
             để kịp phân phối vào đỉnh vàng.
@@ -551,7 +595,7 @@ export function useFollowerPersonal({
               Feed Post (Ảnh/Carousel):
             </strong>{" "}
             Đăng lúc{" "}
-            <strong className="text-amber-500 dark:text-amber-400 font-semibold">
+            <strong className="text-primary dark:text-indigo-400 font-semibold">
               20:15 - 20:45
             </strong>
             .
@@ -565,8 +609,9 @@ export function useFollowerPersonal({
   if (isGenZInstagram || isNightOwl) {
     actionItems.push(
       <span key="format-rule">
-        <strong className="text-primary font-black">
-          ⚠️ Instagram Algorithm Priority:
+        <strong className="text-primary font-black flex items-center gap-1.5">
+          <AlertTriangle size={14} className="text-primary shrink-0 mt-0.5" />
+          Instagram Algorithm Priority:
         </strong>{" "}
         Do tệp khán giả của kênh mang đặc thù cực kỳ năng động (Gen Z hoặc Cú
         đêm hoạt động muộn),{" "}

@@ -29,7 +29,7 @@ interface SlidingTabsProps<T extends string> {
    * Layout size of the tabs selector
    * @default 'md'
    */
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   /**
    * Optional custom layout ID for Framer Motion to prevent conflicts if multiple sliding tabs are on the same page
    * @default 'slidingTabIndicator'
@@ -54,6 +54,11 @@ export function SlidingTabs<T extends string>({
 }: SlidingTabsProps<T>) {
   // Định nghĩa styles cho từng kích thước
   const sizeStyles = {
+    xs: {
+      container: 'p-0.5 rounded-xl gap-0.5',
+      button: 'px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase gap-1',
+      icon: 10,
+    },
     sm: {
       container: 'p-1 rounded-xl gap-1',
       button: 'px-3 py-1.5 rounded-lg text-xs font-bold gap-2',
