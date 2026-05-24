@@ -147,14 +147,16 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               activeTimes={latestWithActiveTimes?.activeTimes || null}
             />
           ) : (
-            <div className="w-full h-[400px] flex flex-col items-center justify-center bg-base-100 border border-base-content/5 shadow-xs rounded-3xl p-6 text-center">
-              <div className="p-4 bg-info/10 border border-info/20 rounded-full mb-4 text-info">
+            <div className="w-full h-[400px] flex flex-col items-center justify-center bg-base-100 border border-base-content/5 shadow-xs rounded-3xl p-6 text-center gap-4">
+              <div className="p-4 bg-info/10 border border-info/20 rounded-full text-info shrink-0">
                 <Icon lucide={Users} size={28} />
               </div>
-              <h3 className="text-base-content font-bold mb-2 text-lg">Phân tích Đối tượng chi tiết</h3>
-              <p className="text-base-content/50 text-sm max-w-sm font-medium">
-                Tính năng phân tích đối tượng chi tiết hiện tại chỉ được hỗ trợ dành cho tài khoản Instagram Connect. Vui lòng chuyển đổi sang tài khoản Instagram để xem thông tin chi tiết.
-              </p>
+              <div className="flex flex-col items-center gap-2 w-full">
+                <h3 className="text-base-content font-bold text-lg">Phân tích Đối tượng chi tiết</h3>
+                <p className="text-base-content/50 text-sm font-medium leading-relaxed">
+                  Tính năng phân tích đối tượng chi tiết hiện tại chỉ được hỗ trợ dành cho tài khoản Instagram Connect. Vui lòng chuyển đổi sang tài khoản Instagram để xem thông tin chi tiết.
+                </p>
+              </div>
             </div>
           )}
         </div>
