@@ -8,8 +8,8 @@ import { AnalyticsRange } from '@features/analytics/types';
 import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 const DEMO_TABS = [
-  { value: 'followers' as const, label: 'Người theo dõi', icon: Users },
-  { value: 'engaged' as const, label: 'Đã tương tác', icon: Heart },
+  { value: 'followers' as const, label: 'Followers', icon: Users },
+  { value: 'engaged' as const, label: 'Engaged', icon: Heart },
 ];
 
 // Sub-components import

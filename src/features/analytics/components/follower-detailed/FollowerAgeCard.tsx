@@ -71,7 +71,7 @@ export function FollowerAgeCard({ ageData = [] }: FollowerAgeCardProps) {
         )}
       </div>
 
-      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
+      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-xs text-base-content/40 font-semibold uppercase tracking-wider font-mono">
         <Sparkles size={14} className="text-success/50" />
         <span>Độ tuổi tập trung lớn nhất: {topAge[0]?.name || "N/A"}</span>
       </div>

@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Globe, MapPin, Award, Sparkles } from 'lucide-react';
 import { cn } from '../primitives';
 
+import { SlidingTabs } from '@shared/ui/sliding-tabs';
+
 interface DemographicItem {
   name: string;
   value: number;
@@ -36,23 +38,16 @@ function formatCountryName(code: string): string {
   const cleanCode = code.trim().toUpperCase();
   const country = COUNTRY_MAP[cleanCode];
   if (country) {
-    return `${country.flag} ${country.name}`;
-  }
-  
-  if (cleanCode.length === 2) {
-    try {
-      const codePoints = cleanCode
-        .split('')
-        .map(char => 127397 + char.charCodeAt(0));
-      const flag = String.fromCodePoint(...codePoints);
-      return `${flag} ${cleanCode}`;
-    } catch (e) {
-      return code;
-    }
+    return country.name;
   }
   
   return code;
 }
+
+const TAB_ITEMS = [
+  { value: 'country', label: 'Countries' },
+  { value: 'city', label: 'Cities' },
+] as const;
 
 interface FollowerLocationsCardProps {
   countryData: DemographicItem[];
@@ -86,30 +81,13 @@ export function FollowerLocationsCard({
           </div>
           
           {/* Country / City Selector Tabs */}
-          <div className="flex p-0.5 bg-base-200/70 border border-base-content/5 rounded-2xl select-none shadow-inner">
-            <button
-              onClick={() => setLocationTab('country')}
-              className={cn(
-                "px-3 py-1 rounded-xl text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer",
-                locationTab === 'country' 
-                  ? "bg-primary text-primary-content shadow-sm font-extrabold" 
-                  : "text-base-content/40 hover:text-base-content/70"
-              )}
-            >
-              Quốc gia
-            </button>
-            <button
-              onClick={() => setLocationTab('city')}
-              className={cn(
-                "px-3 py-1 rounded-xl text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer",
-                locationTab === 'city' 
-                  ? "bg-primary text-primary-content shadow-sm font-extrabold" 
-                  : "text-base-content/40 hover:text-base-content/70"
-              )}
-            >
-              Thành phố
-            </button>
-          </div>
+          <SlidingTabs
+            items={TAB_ITEMS}
+            activeValue={locationTab}
+            onChange={setLocationTab}
+            size="sm"
+            layoutId="followerLocationIndicator"
+          />
         </div>
 
         {topLocations.length === 0 ? (
@@ -145,7 +123,7 @@ export function FollowerLocationsCard({
         )}
       </div>
       
-      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
+      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-xs text-base-content/40 font-semibold uppercase tracking-wider font-mono">
         <Award size={14} className="text-info/50" />
         <span>Phân tích dựa trên {followersCount.toLocaleString()} followers</span>
       </div>

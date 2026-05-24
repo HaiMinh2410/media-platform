@@ -10,6 +10,26 @@ interface DemographicItem {
   value: number;
 }
 
+const INDEX_TO_TIME_STR: Record<number, string> = {
+  0: "12:00 (Nửa đêm)",
+  1: "03:00 (Rạng sáng)",
+  2: "06:00 (Sáng sớm)",
+  3: "09:00 (Sáng)",
+  4: "12:00 (Trưa)",
+  5: "03:00 (Chiều)",
+  6: "06:00 (Chiều tối)",
+  7: "09:00 (Tối)",
+};
+
+function getPostingTime45MinBefore(index: number): string {
+  const hour = index * 3;
+  let targetHour = hour - 1;
+  if (targetHour < 0) targetHour += 24;
+  const targetMin = 15;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(targetHour)}:${pad(targetMin)}`;
+}
+
 export interface useFollowerPersonalProps {
   followersCount: number;
   demographics: {
@@ -124,18 +144,18 @@ export function useFollowerPersonal({
   } else {
     geoClassification = "thị trường nội địa tập trung rất cao";
   }
-  const isMultiNational = topCountryPct < 60 && nextCountriesPct > 25;
+  const isMultiNational = topCountryPct < 55 && nextCountriesPct > 30;
 
   // 4. Phân tích Nhịp sinh học & Nhận diện Đỉnh kép (Multi-peak)
   const TIME_LABELS = [
-    "12 AM",
-    "3 AM",
-    "6 AM",
-    "9 AM",
-    "12 PM",
-    "3 PM",
-    "6 PM",
-    "9 PM",
+    "00:00",
+    "03:00",
+    "06:00",
+    "09:00",
+    "12:00",
+    "15:00",
+    "18:00",
+    "21:00",
   ];
   const hourlyTotals = [0, 0, 0, 0, 0, 0, 0, 0];
 
@@ -161,8 +181,8 @@ export function useFollowerPersonal({
   });
   const peakHourLabel = TIME_LABELS[peakIndex];
 
-  // Logic Cú đêm (isNightOwl) theo dải range: Đỉnh thuộc [22:00 - 5:00] (Tương ứng với 12 AM [00h] hoặc 3 AM [03h])
-  const isNightOwl = peakIndex === 0 || peakIndex === 1;
+  // Logic Cú đêm (isNightOwl) theo dải range: Đỉnh thuộc [21:00 - 5:00] (Tương ứng với 12 AM, 3 AM hoặc 9 PM)
+  const isNightOwl = peakIndex === 0 || peakIndex === 1 || peakIndex === 7;
 
   // Nhận diện Đỉnh kép (Multi-peak)
   const peakValue = hourlyTotals[peakIndex];
@@ -326,7 +346,7 @@ export function useFollowerPersonal({
   if (isMultiPeak) {
     behaviorLabel = `Khán giả 2 pha hoạt động (Khung giờ đỉnh: ${peakHourLabel} & ${secondPeakHourLabel})`;
   } else if (isNightOwl) {
-    behaviorLabel = "Hoạt động xuyên đêm (Đỉnh điểm từ 12 AM – 6 AM)";
+    behaviorLabel = "Hoạt động xuyên đêm (Đỉnh điểm từ 00:00 – 06:00)";
   } else {
     behaviorLabel = `Đỉnh online lúc ${peakHourLabel} hàng ngày`;
   }
@@ -337,11 +357,11 @@ export function useFollowerPersonal({
       Kênh sở hữu tệp khán giả có chân dung sắc nét: {genderTag}. Về độ tuổi, kênh tập trung chủ yếu vào {ageTag}.{" "}
       {isMultiNational ? (
         <span>
-          Địa lý thuộc nhóm quốc tế phân tán (không có thị trường chủ đạo) khi quốc gia dẫn đầu chiếm dưới 60% và 4 quốc gia tiếp theo cộng lại đạt <strong className="text-base-content font-black">{nextCountriesPct}%</strong>.{" "}
+          Địa lý thuộc nhóm <strong className="text-base-content font-black">{geoClassification}</strong> khi quốc gia dẫn đầu chiếm dưới 55% và 4 quốc gia tiếp theo cộng lại đạt <strong className="text-base-content font-black">{nextCountriesPct}%</strong>.{" "}
         </span>
       ) : (
         <span>
-          Thị trường chủ đạo phân bổ tập trung cao ở thị trường nội địa (<strong className="text-base-content font-black">{countryLabel}</strong> chiếm <strong className="text-base-content font-black">{topCountryPct}%</strong>).{" "}
+          Địa lý thuộc nhóm <strong className="text-base-content font-black">{geoClassification}</strong> (<strong className="text-base-content font-black">{countryLabel}</strong> chiếm <strong className="text-base-content font-black">{topCountryPct}%</strong>).{" "}
         </span>
       )}
       {otherTag && (
@@ -375,6 +395,11 @@ export function useFollowerPersonal({
   }
   confidenceScore = Math.max(10, Math.min(98, confidenceScore));
 
+  const hasSufficientData = totalGender > 50 && totalAge > 50 && totalCountry > 50;
+  if (!hasSufficientData) {
+    confidenceScore = Math.min(confidenceScore, 45);
+  }
+
   let confidenceLevel = "Rất Cao";
   let confidenceColor = "text-success";
   if (confidenceScore < 60) {
@@ -391,51 +416,7 @@ export function useFollowerPersonal({
 
   const actionItems: React.ReactNode[] = [];
 
-  // Rule 1: Nội dung (Content Strategy) - Khuyến nghị Format IG (Accent color: Indigo)
-  const isMaleHigh = malePct > 65;
-  if (isMaleHigh && isAdultAudience) {
-    actionItems.push(
-      <span key="content-rule">
-        <strong className="text-accent font-semibold">
-          Nội dung logic & Format IG chuyên sâu:
-        </strong>{" "}
-        Tập trung vào các chủ đề có tính logic, thực tế, kỹ thuật hoặc tài chính
-        (Kinh doanh, Công nghệ, Đầu tư, Nghề nghiệp). Hạn chế các nội dung quá
-        nặng về cảm xúc cá nhân hoặc bắt trend ngắn hạn. Ưu tiên định dạng{" "}
-        <strong className="text-primary font-bold">Carousel infographic</strong>{" "}
-        phân tích số liệu + video ngắn{" "}
-        <strong className="text-primary font-bold">Reels</strong> có hook
-        insight giật gân ngay 3 giây đầu để giữ chân người xem.
-      </span>,
-    );
-  } else if (isGenZInstagram) {
-    actionItems.push(
-      <span key="content-rule">
-        <strong className="text-accent dark:text-indigo-400 font-black">
-          Nội dung Gen Z & Visual-First:
-        </strong>{" "}
-        Tập trung tối đa vào các chủ đề phong cách sống, trải nghiệm sáng tạo,
-        làm đẹp hoặc các challenge năng động. Ưu tiên định dạng{" "}
-        <strong className="text-primary font-bold">Reels</strong> có âm nhạc
-        thịnh hành, nhịp dựng nhanh và{" "}
-        <strong className="text-primary font-bold">Story tương tác</strong>{" "}
-        (Sticker câu hỏi/bình chọn) để tối ưu hoá tương tác.
-      </span>,
-    );
-  } else {
-    actionItems.push(
-      <span key="content-rule">
-        <strong className="text-accent dark:text-indigo-400 font-black">
-          Nội dung đời sống & Giáo dục thực tế:
-        </strong>{" "}
-        Tập trung nội dung mang tính chia sẻ giá trị, cân bằng cuộc sống, tri
-        thức và phát triển cá nhân. Kết hợp hài hòa giữa Reels tạo độ phủ và
-        Carousel hình ảnh thẩm mỹ để xây dựng niềm tin dài hạn.
-      </span>,
-    );
-  }
-
-  // Rule 2: Ngôn ngữ (Language Strategy & Instagram Auto-Translation)
+  // Rule 1: Ngôn ngữ (Language Strategy & Instagram Auto-Translation)
   if (isMultiNational) {
     if (topCountryLabelIsVN(countryLabel)) {
       actionItems.push(
@@ -449,8 +430,7 @@ export function useFollowerPersonal({
           </strong>
           , hãy giữ ngôn ngữ chính là Tiếng Việt, đồng thời bổ sung thêm một
           đoạn tóm tắt bằng Tiếng Anh ngắn gọn trong phần đầu caption hoặc ghim
-          tại bình luận đầu tiên. Tận dụng các hình ảnh visual dạng sơ đồ/icon
-          không lời để tăng khả năng tiếp cận toàn cầu.
+          tại bình luận đầu tiên.
         </span>,
       );
     } else {
@@ -481,22 +461,64 @@ export function useFollowerPersonal({
     );
   }
 
-  // Rule 3: Khung giờ đăng phân tách cụ thể theo định dạng IG (Posting Schedule Optimization)
-  if (isNightOwl) {
+  // Rule 2: Khung giờ đăng phân tách cụ thể theo định dạng IG (Posting Schedule Optimization)
+  if (isMultiPeak) {
+    const peak1TimeStr = INDEX_TO_TIME_STR[peakIndex] || peakHourLabel;
+    const peak2TimeStr = INDEX_TO_TIME_STR[secondPeakIndex] || secondPeakHourLabel;
+    const postTime1 = getPostingTime45MinBefore(peakIndex);
+    const postTime2 = getPostingTime45MinBefore(secondPeakIndex);
+
+    actionItems.push(
+      <span key="time-rule">
+        <strong className="text-accent font-black">
+          Lịch đăng 2 pha (Tận dụng hai đỉnh sóng thực tế):
+        </strong>{" "}
+        Khán giả phân bố tương tác mạnh vào cả hai khung giờ đỉnh:{" "}
+        <strong className="font-bold">{peak1TimeStr}</strong> và{" "}
+        <strong className="font-bold">{peak2TimeStr}</strong>.
+        <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-sm text-base-content/80">
+          <li>
+            <strong className="text-info font-bold">Story (Real-time):</strong>{" "}
+            Chia làm 2 đợt đăng đúng giờ đỉnh lúc{" "}
+            <strong className="text-primary font-semibold">
+              {peakHourLabel} 
+            </strong>{" "}
+            và{" "}
+            <strong className="text-primary font-semibold">
+              {secondPeakHourLabel}
+            </strong>.
+          </li>
+          <li>
+            <strong className="text-info font-bold">
+              Reels / Feed Post (Tập trung đón đầu):
+            </strong>{" "}
+            Đăng trước mốc đỉnh 45 phút để thuật toán kịp phân phối: đợt 1 lúc{" "}
+            <strong className="text-primary font-semibold">
+              {postTime1}
+            </strong>{" "}
+            hoặc đợt 2 lúc{" "}
+            <strong className="text-primary font-semibold">
+              {postTime2}
+            </strong>.
+          </li>
+        </ul>
+      </span>,
+    );
+  } else if (isNightOwl) {
     actionItems.push(
       <span key="time-rule">
         <strong className="text-accent font-black">
           Lịch đăng Cú Đêm (Phân tách theo định dạng IG):
         </strong>{" "}
         Khán giả hoạt động mạnh mẽ xuyên đêm (
-        <strong className="text-secondary font-black">12 AM - 6 AM</strong>).
+        <strong className="text-secondary font-black">00:00 - 06:00</strong>).
         <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-sm text-base-content/80">
           <li>
             <strong className="text-info font-bold">
               Story (Xem Real-time):
             </strong>{" "}
             Đăng trực tiếp vào giờ đỉnh{" "}
-            <strong className="text-primary dark:text-indigo-400 font-semibold">
+            <strong className="text-primary font-semibold">
               23:00 - 23:45
             </strong>
             .
@@ -506,7 +528,7 @@ export function useFollowerPersonal({
               Reels (Warm-up 60 phút):
             </strong>{" "}
             Đăng sớm lúc{" "}
-            <strong className="text-primary dark:text-indigo-400 font-semibold">
+            <strong className="text-primary font-semibold">
               22:15 - 22:45
             </strong>{" "}
             để thuật toán kịp lập chỉ mục.
@@ -516,7 +538,7 @@ export function useFollowerPersonal({
               Feed Post (Ảnh/Carousel):
             </strong>{" "}
             Đăng lúc{" "}
-            <strong className="text-primary dark:text-indigo-400 font-semibold">
+            <strong className="text-primary font-semibold">
               22:30 - 23:00
             </strong>{" "}
             (trước 30 phút).
@@ -526,39 +548,6 @@ export function useFollowerPersonal({
             Hạn chế viết caption quá dài (&gt;150 ký tự) vào khung giờ muộn, tập
             trung vào hook thị giác Reels/Story để tối đa thời gian xem của "cú
             đêm".
-          </li>
-        </ul>
-      </span>,
-    );
-  } else if (isMultiPeak) {
-    actionItems.push(
-      <span key="time-rule">
-        <strong className="text-accent font-black">
-          Lịch đăng 2 pha (Tận dụng hai đỉnh sóng):
-        </strong>{" "}
-        Khán giả phân bố tương tác mạnh vào cả trưa và chiều tối.
-        <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-sm text-base-content/80">
-          <li>
-            <strong className="text-info font-bold">Story (Real-time):</strong>{" "}
-            Chia làm 2 đợt đăng đúng giờ đỉnh lúc{" "}
-            <strong className="text-primary dark:text-indigo-400 font-semibold">
-              12:00
-            </strong>{" "}
-            trưa và{" "}
-            <strong className="text-primary dark:text-indigo-400 font-semibold">
-              21:00
-            </strong>{" "}
-            tối.
-          </li>
-          <li>
-            <strong className="text-info font-bold">
-              Reels / Feed Post (Tập trung tối):
-            </strong>{" "}
-            Đăng đợt chính lúc{" "}
-            <strong className="text-primary dark:text-indigo-400 font-semibold">
-              19:45 - 20:15
-            </strong>{" "}
-            để thuật toán kịp phân phối và đạt đỉnh tương tác vào buổi tối.
           </li>
         </ul>
       </span>,
@@ -575,7 +564,7 @@ export function useFollowerPersonal({
               Story (Xem Real-time):
             </strong>{" "}
             Đăng đúng giờ đỉnh{" "}
-            <strong className="text-primary dark:text-indigo-400 font-semibold">
+            <strong className="text-primary font-semibold">
               20:45 - 21:15
             </strong>
             .
@@ -585,7 +574,7 @@ export function useFollowerPersonal({
               Reels (Warm-up 60 phút):
             </strong>{" "}
             Đăng lúc{" "}
-            <strong className="text-primary dark:text-indigo-400 font-semibold">
+            <strong className="text-primary font-semibold">
               19:45 - 20:15
             </strong>{" "}
             để kịp phân phối vào đỉnh vàng.
@@ -595,7 +584,7 @@ export function useFollowerPersonal({
               Feed Post (Ảnh/Carousel):
             </strong>{" "}
             Đăng lúc{" "}
-            <strong className="text-primary dark:text-indigo-400 font-semibold">
+            <strong className="text-primary font-semibold">
               20:15 - 20:45
             </strong>
             .
@@ -605,7 +594,7 @@ export function useFollowerPersonal({
     );
   }
 
-  // Rule 4: Instagram Algorithm Format-first Rule
+  // Rule 3: Instagram Algorithm Format-first Rule
   if (isGenZInstagram || isNightOwl) {
     actionItems.push(
       <span key="format-rule">
@@ -635,6 +624,7 @@ export function useFollowerPersonal({
     insightText,
     personaHeadline,
     personaData,
+    geoClassification,
     confidenceScore,
     confidenceLevel,
     confidenceColor,

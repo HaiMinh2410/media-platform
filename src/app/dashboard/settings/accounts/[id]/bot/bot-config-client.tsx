@@ -168,6 +168,7 @@ export function BotConfigClient({ accountId }: { accountId: string }) {
               <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B Versatile (Recommended)</option>
               <option value="llama-3.1-8b-instant">LLaMA 3.1 8B Instant (Fastest / Cheapest)</option>
               <option value="qwen-qwq-32b">Qwen3 32B (Multilingual · 32k Context)</option>
+              <option value="openai/gpt-oss-20b">GPT-OSS 20B (Balanced Quality / Speed)</option>
               <option value="openai/gpt-oss-120b">GPT-OSS 120B (Highest Quality / Reasoning)</option>
             </select>
           </div>

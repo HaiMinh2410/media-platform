@@ -200,7 +200,7 @@ export function FollowerPersonaCard({
             </span>
 
             {/* Insight Block */}
-            <div className="text-sm leading-relaxed text-base-content/85 font-semibold bg-base-200/40 px-3.5 py-2.5 rounded-lg border border-base-content/5 flex items-start gap-2.5">
+            <div className="text-sm leading-relaxed text-base-content/85 bg-base-200/40 px-3.5 py-2.5 rounded-lg border border-base-content/5 flex items-start gap-2.5">
               <Lightbulb size={15} className="text-accent shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold tracking-wider text-sm text-accent mr-1">

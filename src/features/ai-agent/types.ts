@@ -13,6 +13,7 @@ export type AIModel =
   | 'llama-3.1-8b-instant'
   | 'llama-3.3-70b-versatile'
   | 'qwen-qwq-32b'
+  | 'openai/gpt-oss-20b'
   | 'openai/gpt-oss-120b';
 
 export const AI_MODELS: Record<string, AIModel> = {
@@ -22,6 +23,8 @@ export const AI_MODELS: Record<string, AIModel> = {
   GENERATE: 'llama-3.3-70b-versatile',
   /** Context 32k, multilingual mạnh — dùng cho hội thoại dài */
   CONVERSATION: 'qwen-qwq-32b',
+  /** Reasoning nhanh, cân bằng hiệu năng và tốc độ */
+  REASONING_FAST: 'openai/gpt-oss-20b',
   /** Reasoning + long-context + coding — dùng cho tác vụ phức tạp */
   REASONING: 'openai/gpt-oss-120b',
 };

@@ -424,6 +424,7 @@ export const AI_AGENT_DEFAULTS = {
   // Model routing mặc định theo fan type
   MODEL_CLASSIFY: 'llama-3.1-8b-instant' as AIModel,
   MODEL_DEFAULT: 'llama-3.3-70b-versatile' as AIModel,
+  MODEL_FAST_REASONING: 'openai/gpt-oss-20b' as AIModel,
   MODEL_WHALE: 'openai/gpt-oss-120b' as AIModel,
   MODEL_LONG_CONTEXT: 'openai/gpt-oss-120b' as AIModel,
 } as const;
