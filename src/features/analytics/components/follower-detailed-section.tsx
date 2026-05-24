@@ -2,9 +2,15 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Info, Sparkles } from 'lucide-react';
+import { Info, Sparkles, Users, Heart } from 'lucide-react';
 import { getFollowerDetailedAnalyticsAction } from '@features/analytics/actions/analytics.actions';
 import { AnalyticsRange } from '@features/analytics/types';
+import { SlidingTabs } from '@shared/ui/sliding-tabs';
+
+const DEMO_TABS = [
+  { value: 'followers' as const, label: 'Người theo dõi', icon: Users },
+  { value: 'engaged' as const, label: 'Đã tương tác', icon: Heart },
+];
 
 // Sub-components import
 import { FollowerDetailedSkeleton } from './follower-detailed/FollowerDetailedSkeleton';
@@ -92,41 +98,24 @@ export function FollowerDetailedSection({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6">
       {/* HEADER SECTION WITH DEMOGRAPHIC FILTER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-base-100 border border-base-content/5 rounded-3xl p-6 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-base-content/5 mb-6">
         <div>
-          <h3 className="text-lg font-black text-base-content tracking-tight flex items-center gap-2">
-            <span>Nhân khẩu học khán giả</span>
-          </h3>
-          <p className="text-xs text-base-content/50 font-medium mt-1">
-            Phân tích chi tiết hành vi, vị trí địa lý, độ tuổi và giới tính của tệp khán giả.
-          </p>
+          <div className="space-y-1">
+            <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-base-content">Nhân khẩu học khán giả</h2>
+          </div>
         </div>
 
-        {/* Premium Selector Switch using Pill styling */}
-        <div className="flex p-0.5 bg-base-200/80 border border-base-content/5 rounded-2xl select-none self-start sm:self-auto shadow-inner">
-          <button
-            onClick={() => setDemoType('followers')}
-            className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all duration-300 cursor-pointer ${
-              demoType === 'followers'
-                ? "bg-primary text-primary-content shadow-sm font-extrabold"
-                : "text-base-content/40 hover:text-base-content/75"
-            }`}
-          >
-            Người theo dõi
-          </button>
-          <button
-            onClick={() => setDemoType('engaged')}
-            className={`px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all duration-300 cursor-pointer ${
-              demoType === 'engaged'
-                ? "bg-primary text-primary-content shadow-sm font-extrabold"
-                : "text-base-content/40 hover:text-base-content/75"
-            }`}
-          >
-            Đã tương tác
-          </button>
-        </div>
+        {/* Premium Selector Switch using SlidingTabs */}
+        <SlidingTabs
+          items={DEMO_TABS}
+          activeValue={demoType}
+          onChange={setDemoType}
+          size="sm"
+          layoutId="demoTypeTabs"
+          className="self-start sm:self-auto"
+        />
       </div>
 
       {/* DEMOGRAPHICS GRID - PERFECT BENTO GRID LAYOUT */}

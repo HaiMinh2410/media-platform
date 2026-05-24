@@ -43,7 +43,7 @@ export function ContentInsightsSection({
   });
 
   return (
-    <div className="p-6 min-h-[50%] transition-all duration-300 relative">
+    <div className="p-6 min-h-[50%]">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-base-content/5 mb-6" ref={dropdownRef}>
         {/* Title Row */}
         <div className="space-y-1">
