@@ -16,6 +16,7 @@ interface AnalyticsDashboardHeaderProps {
   customEnd: string;
   setCustomEnd: (val: string) => void;
   isSyncing: boolean;
+  syncType?: 'account' | 'all' | null;
   handleSync: () => Promise<void>;
   handleSyncAll: () => Promise<void>;
   activeTab?: string;
@@ -32,6 +33,7 @@ export function AnalyticsDashboardHeader({
   customEnd,
   setCustomEnd,
   isSyncing,
+  syncType,
   handleSync,
   handleSyncAll,
   activeTab
@@ -96,7 +98,11 @@ export function AnalyticsDashboardHeader({
           }`}
           title="Đồng bộ dữ liệu tài khoản này"
         >
-          <Icon lucide={RefreshCw} size={15} className={isSyncing ? 'animate-spin text-info' : ''} />
+          <Icon 
+            lucide={RefreshCw} 
+            size={15} 
+            className={syncType === 'account' ? 'animate-spin text-info' : ''} 
+          />
         </button>
         <div className="h-6 w-px bg-base-content/10 shrink-0" />
         <button
@@ -110,9 +116,9 @@ export function AnalyticsDashboardHeader({
           title="Đồng bộ tất cả tài khoản"
         >
           <Icon 
-            lucide={isSyncing ? RefreshCw : CloudDownload} 
+            lucide={syncType === 'all' ? RefreshCw : CloudDownload} 
             size={14} 
-            className={isSyncing ? 'animate-spin text-info' : 'text-base-content/70'} 
+            className={syncType === 'all' ? 'animate-spin text-info' : 'text-base-content/70'} 
           />
           <span className="hidden sm:inline text-xs">Sync All</span>
         </button>

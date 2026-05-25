@@ -47,6 +47,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     activeChart,
     setActiveChart,
     isSyncing,
+    syncType,
     selectedPostForDetail,
     setSelectedPostForDetail,
     isPending,
@@ -118,6 +119,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           customEnd={customEnd}
           setCustomEnd={setCustomEnd}
           isSyncing={isSyncing}
+          syncType={syncType}
           handleSync={handleSync}
           handleSyncAll={handleSyncAll}
           activeTab={activeTab}

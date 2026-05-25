@@ -32,7 +32,8 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
   const [customEnd, setCustomEnd] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'general' | 'ai' | 'content' | 'audience'>('general');
   const [activeChart, setActiveChart] = useState<'performance' | 'followers' | 'post-performance'>('performance');
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncType, setSyncType] = useState<'account' | 'all' | null>(null);
+  const isSyncing = !!syncType;
   const [selectedPostForDetail, setSelectedPostForDetail] = useState<any | null>(null);
   const queryClient = useQueryClient();
 
@@ -80,9 +81,9 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
   const deepAnalyticsData = deepAnalyticsResult?.data || null;
 
   async function handleSync() {
-    if (!selectedAccountId || isSyncing) return;
+    if (!selectedAccountId || syncType) return;
     
-    setIsSyncing(true);
+    setSyncType('account');
     try {
       const result = await syncAnalyticsAction(selectedAccountId);
       if (result.success) {
@@ -99,13 +100,13 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
     } catch (err) {
       console.error('Sync error:', err);
     } finally {
-      setIsSyncing(false);
+      setSyncType(null);
     }
   }
 
   async function handleSyncAll() {
-    if (isSyncing) return;
-    setIsSyncing(true);
+    if (syncType) return;
+    setSyncType('all');
     try {
       const result = await syncAllAccountsAction();
       if (result.success) {
@@ -123,7 +124,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
     } catch (err) {
       console.error('Sync All error:', err);
     } finally {
-      setIsSyncing(false);
+      setSyncType(null);
     }
   }
 
@@ -448,6 +449,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
     activeChart,
     setActiveChart,
     isSyncing,
+    syncType,
     selectedPostForDetail,
     setSelectedPostForDetail,
     isPending,
