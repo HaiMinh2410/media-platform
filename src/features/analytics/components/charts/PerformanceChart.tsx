@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Users, Eye, Sparkles, Star, Flame, AlertTriangle } from 'lucide-react';
+import { Users, Eye, Bot, Star, Flame, AlertTriangle, BarChart2, Search, Lightbulb, Target } from 'lucide-react';
 import { Icon } from '@shared/ui/icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidingTabs } from '@shared/ui/sliding-tabs';
@@ -23,6 +23,9 @@ const RATING_CONFIG = {
   average:   { label: 'Trung bình', color: 'text-warning border-warning/20 bg-warning/5', icon: AlertTriangle, iconClass: 'text-warning' },
   weak:      { label: 'Yếu',      color: 'text-error border-error/20 bg-error/5',     icon: AlertTriangle, iconClass: 'text-error' },
 } as const;
+
+// Client-side cache to prevent duplicate AI generation on tab switches
+const performanceInsightCache = new Map<string, PerformanceInsight | null>();
 
 interface PerformanceChartProps {
   chartData: any[];
@@ -70,6 +73,22 @@ export function PerformanceChart({
   useEffect(() => {
     let active = true;
     
+    const cacheKey = JSON.stringify({
+      platform,
+      viewMode,
+      avgReach,
+      avgEngagement,
+      avgEngagementRate,
+      avgViews,
+      avgInteractions,
+      avgInteractionRate,
+    });
+
+    if (performanceInsightCache.has(cacheKey)) {
+      setAiInsight(performanceInsightCache.get(cacheKey) || null);
+      return;
+    }
+    
     async function loadAIInsight() {
       setIsLoadingAI(true);
       try {
@@ -86,6 +105,7 @@ export function PerformanceChart({
         
         if (active) {
           if (res.content) {
+            performanceInsightCache.set(cacheKey, res.content);
             setAiInsight(res.content);
           } else {
             setAiInsight(null);
@@ -120,7 +140,7 @@ export function PerformanceChart({
   ]);
 
   return (
-    <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md">
+    <div className="w-full bg-base-100 border-t border-base-content/5 shadow-sm  pt-4 flex flex-col gap-6">
       
       {/* 1. HEADER SECTION (Tiêu đề & Bộ chuyển đổi Switcher) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-base-content/5">
@@ -150,10 +170,59 @@ export function PerformanceChart({
       </div>
 
       {/* 2. BODY CONTENT (Layout Grid 3 cột) */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* CỘT TRÁI (CHIẾM 2 PHẦN) - BIỂU ĐỒ */}
-        <div className="lg:col-span-3 flex flex-col justify-center">
+        <div className="lg:col-span-7 flex flex-col gap-5 justify-between">
+          
+          {/* STATS CARDS (Xếp ngang trên mọi màn hình) */}
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={viewMode}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.15 }}
+              className="grid grid-cols-3 divide-x divide-base-content/10 w-full"
+            >
+              {isReachMode ? (
+                <>
+                  <div className="flex flex-col pl-0 pr-4 py-1">
+                    <span className="text-xs text-base-content/40 font-medium">Reach TB/Ngày</span>
+                    <span className="text-lg font-black text-info font-mono">{avgReach.toLocaleString()}</span>
+                  </div>
+                  <div className="flex flex-col px-4 py-1">
+                    <span className="text-xs text-base-content/40 font-medium">Tương tác TB</span>
+                    <span className="text-lg font-black text-warning font-mono">{avgEngagement.toLocaleString()}</span>
+                  </div>
+                  <div className="flex flex-col pl-4 pr-0 py-1">
+                    <span className="text-xs text-base-content/40 font-medium">Tỷ lệ tương tác</span>
+                    <span className={`text-lg font-black font-mono ${getRateColorClass(avgEngagementRate, true)}`}>
+                      {avgEngagementRate}%
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-1 pl-0 pr-4 py-1">
+                    <span className="text-xs text-base-content/40 font-medium">Views TB/Ngày</span>
+                    <span className="text-lg font-black text-secondary font-mono">{avgViews.toLocaleString()}</span>
+                  </div>
+                  <div className="flex flex-col gap-1 px-4 py-1">
+                    <span className="text-xs text-base-content/40 font-medium">Tương tác TB</span>
+                    <span className="text-lg font-black text-success font-mono">{avgInteractions.toLocaleString()}</span>
+                  </div>
+                  <div className="flex flex-col gap-1 pl-4 pr-0 py-1">
+                    <span className="text-xs text-base-content/40 font-medium">Tỷ lệ tương tác</span>
+                    <span className={`text-lg font-black font-mono ${getRateColorClass(avgInteractionRate, false)}`}>
+                      {avgInteractionRate}%
+                    </span>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
           <div style={{ width: '100%', height: '370px' }} className="relative text-base-content/70">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
@@ -300,56 +369,8 @@ export function PerformanceChart({
         </div>
 
         {/* CỘT PHẢI (CHIẾM 1 PHẦN) - THÔNG TIN CHI TIẾT & INSIGHT */}
-        <div className="lg:col-span-1 flex flex-col gap-5 justify-between">
+        <div className="lg:col-span-5 flex flex-col justify-end">
           
-          {/* STATS CARDS (Xếp dọc trên desktop, xếp ngang trên mobile) */}
-          <AnimatePresence mode="wait">
-            <motion.div 
-              key={viewMode}
-              initial={{ opacity: 0, x: 15 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -15 }}
-              transition={{ duration: 0.15 }}
-              className="grid grid-cols-3 lg:grid-cols-1 gap-3 w-full"
-            >
-              {isReachMode ? (
-                <>
-                  <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Reach TB/Ngày</span>
-                    <span className="text-base font-black text-info font-mono">{avgReach.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Tương tác TB</span>
-                    <span className="text-base font-black text-warning font-mono">{avgEngagement.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Tỷ lệ tương tác</span>
-                    <span className={`text-base font-black font-mono ${getRateColorClass(avgEngagementRate, true)}`}>
-                      {avgEngagementRate}%
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Views TB/Ngày</span>
-                    <span className="text-base font-black text-secondary font-mono">{avgViews.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Tương tác TB</span>
-                    <span className="text-base font-black text-success font-mono">{avgInteractions.toLocaleString()}</span>
-                  </div>
-                  <div className="bg-base-200/40 border border-base-content/5 rounded-xl p-3 flex flex-col gap-1 shadow-xs">
-                    <span className="text-[9px] text-base-content/40 uppercase font-bold tracking-wider block">Tỷ lệ tương tác</span>
-                    <span className={`text-base font-black font-mono ${getRateColorClass(avgInteractionRate, false)}`}>
-                      {avgInteractionRate}%
-                    </span>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
           {/* AI INSIGHT BLOCK */}
           <div className="flex-1 flex flex-col justify-end">
             <AnimatePresence mode="wait">
@@ -358,14 +379,6 @@ export function PerformanceChart({
                 const insightColor = hasValidAiRating
                   ? RATING_CONFIG[aiInsight.rating].color
                   : (activeInsight?.color || 'text-warning border-warning/20 bg-warning/5');
-
-                const insightIcon = hasValidAiRating
-                  ? RATING_CONFIG[aiInsight.rating].icon
-                  : (activeInsight?.icon || Sparkles);
-
-                const insightIconClass = hasValidAiRating
-                  ? RATING_CONFIG[aiInsight.rating].iconClass
-                  : '';
 
                 const insightLabel = hasValidAiRating
                   ? RATING_CONFIG[aiInsight.rating].label
@@ -378,25 +391,18 @@ export function PerformanceChart({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
                     transition={{ duration: 0.2 }}
-                    className={`p-4 rounded-xl border flex flex-col gap-3 transition-all duration-300 w-full ${insightColor}`}
+                    className={`p-4 rounded-lg border flex flex-col gap-3 transition-all duration-300 w-full ${insightColor}`}
                   >
                     <div className="flex items-center justify-between pb-2 border-b border-base-content/5">
                       <div className="flex items-center gap-2">
-                        <div className="p-1 bg-base-content/5 rounded-lg flex items-center justify-center shrink-0">
-                          <Icon 
-                            lucide={insightIcon} 
-                            size={14} 
-                            className={insightIconClass}
-                          />
-                        </div>
                         <h4 className="text-xs font-black text-base-content flex items-center gap-1.5 uppercase tracking-wide">
-                          <Icon lucide={Sparkles} size={12} className="text-accent" />
+                          <Icon lucide={Bot} size={14} className={`${insightColor}`} />
                           Phân tích AI
                         </h4>
                       </div>
 
                       {hasValidAiRating && (
-                        <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${insightColor}`}>
+                        <span className="text-xs font-bold px-2 py-0.5">
                           {insightLabel}
                         </span>
                       )}
@@ -411,24 +417,30 @@ export function PerformanceChart({
                           <div className="h-2 bg-base-content/10 rounded-md w-3/4 pt-1" />
                         </div>
                       ) : aiInsight ? (
-                        <div className="flex flex-col gap-2.5 text-[11px] leading-relaxed">
-                          <div className="text-base-content font-semibold">
-                            📊 {aiInsight.evaluation}
+                        <div className="flex flex-col gap-3 text-xs leading-relaxed">
+                          <div className="p-2 rounded-lg bg-base-content/5 font-semibold text-base-content/90 flex items-start gap-2">
+                            <Icon lucide={BarChart2} size={14} className="text-info shrink-0 mt-0.5" />
+                            <span>{aiInsight.evaluation}</span>
                           </div>
-                          <div className="text-base-content/70 font-medium">
-                            🔍 {aiInsight.cause}
+                          <div className="bg-background/80 text-base-content/80 p-1.5 rounded-md font-medium flex items-start gap-2">
+                            <Icon lucide={Search} size={14} className="text-base-content/50 shrink-0 mt-0.5" />
+                            <span>{aiInsight.cause}</span>
                           </div>
-                          <div className="p-2 rounded-lg bg-base-content/5 border border-base-content/5 font-semibold text-base-content">
-                            💡 <span className="underline decoration-accent/40 decoration-2">Hành động:</span> {aiInsight.action}
+                          <div className="p-2 rounded-lg bg-base-content/5 font-semibold text-base-content/90 flex items-start gap-2">
+                            <Icon lucide={Lightbulb} size={14} className="text-warning shrink-0 mt-0.5" />
+                            <div>
+                              <span>Hành động:</span> {aiInsight.action}
+                            </div>
                           </div>
-                          <div className="text-base-content/50 italic font-medium">
-                            🎯 Kỳ vọng: {aiInsight.expectation}
+                          <div className="bg-background/80 p-1.5 rounded-md text-base-content/80 font-medium flex items-start gap-2">
+                            <Icon lucide={Target} size={14} className="text-success shrink-0 mt-0.5" />
+                            <span>Kỳ vọng: {aiInsight.expectation}</span>
                           </div>
                         </div>
                       ) : (
                         <div className="space-y-1">
                           <h5 className="text-xs font-bold text-base-content">{activeInsight.title}</h5>
-                          <p className="text-[11px] text-base-content/70 leading-relaxed font-medium">
+                          <p className="text-xs text-base-content/70 leading-relaxed font-medium">
                             {activeInsight.desc}
                           </p>
                         </div>

@@ -1,14 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, UserPlus, UserMinus } from 'lucide-react';
+import { TrendingUp, TrendingDown, UserPlus, UserMinus, Bot, Star, Flame, AlertTriangle, BarChart2, Search, Lightbulb, Target } from 'lucide-react';
 import { Icon } from '@shared/ui/icon';
+import { motion, AnimatePresence } from 'framer-motion';
+import { generateFollowersInsightAction } from '@features/analytics/actions/analytics.actions';
+import { PerformanceInsight } from '@features/analytics/types/performanceInsight';
 
 // --- CONSTANTS (Clean Code: Tránh Magic Numbers) ---
 const COLOR_FOLLOW = 'var(--color-success)';
 const COLOR_UNFOLLOW = 'var(--color-error)';
 const COLOR_TREND = 'var(--color-warning)';
 const COLOR_BACKGROUND_VAR = 'var(--color-base-100)';
+
+const RATING_CONFIG = {
+  excellent: { label: 'Xuất sắc', color: 'text-success border-success/20 bg-success/5', icon: Flame, iconClass: 'text-success' },
+  good:      { label: 'Tốt',      color: 'text-info border-info/20 bg-info/5',    icon: Star, iconClass: 'text-info' },
+  average:   { label: 'Trung bình', color: 'text-warning border-warning/20 bg-warning/5', icon: AlertTriangle, iconClass: 'text-warning' },
+  weak:      { label: 'Yếu',      color: 'text-error border-error/20 bg-error/5',     icon: AlertTriangle, iconClass: 'text-error' },
+} as const;
+
+// Client-side cache to prevent duplicate AI generation on tab switches
+const followersInsightCache = new Map<string, PerformanceInsight | null>();
 
 interface FollowersChartProps {
   isInstagram: boolean;
@@ -34,137 +47,291 @@ export function FollowersChart({
   CustomTooltip,
 }: FollowersChartProps) {
   
+  const [aiInsight, setAiInsight] = useState<PerformanceInsight | null>(null);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+
   const isInstagramDynamics = isInstagram && !isFollowerInsufficientData;
+  const ratio = totalFollows / (totalUnfollows || 1);
+
+  useEffect(() => {
+    if (!isInstagramDynamics) return;
+
+    let active = true;
+    
+    const cacheKey = JSON.stringify({
+      platform: 'instagram',
+      totalFollows,
+      totalUnfollows,
+      netGrowth,
+      range
+    });
+
+    if (followersInsightCache.has(cacheKey)) {
+      setAiInsight(followersInsightCache.get(cacheKey) || null);
+      return;
+    }
+
+    async function loadAIInsight() {
+      setIsLoadingAI(true);
+      try {
+        const res = await generateFollowersInsightAction({
+          platform: 'instagram',
+          totalFollows,
+          totalUnfollows,
+          netGrowth,
+          range
+        });
+        
+        if (active) {
+          if (res.content) {
+            followersInsightCache.set(cacheKey, res.content);
+            setAiInsight(res.content);
+          } else {
+            setAiInsight(null);
+          }
+        }
+      } catch (err) {
+        if (active) {
+          setAiInsight(null);
+        }
+      } finally {
+        if (active) {
+          setIsLoadingAI(false);
+        }
+      }
+    }
+
+    loadAIInsight();
+
+    return () => {
+      active = false;
+    };
+  }, [isInstagramDynamics, totalFollows, totalUnfollows, netGrowth, range]);
 
   if (isInstagramDynamics) {
+    const hasValidAiRating = aiInsight && aiInsight.rating && RATING_CONFIG[aiInsight.rating];
+    const insightColor = hasValidAiRating
+      ? RATING_CONFIG[aiInsight.rating].color
+      : 'text-warning border-warning/20 bg-warning/5';
+
+    const insightLabel = hasValidAiRating
+      ? RATING_CONFIG[aiInsight.rating].label
+      : '';
+
     return (
       <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
+        
+        {/* HEADER SECTION */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-base-content/5">
+          <div className="space-y-1">
             <h3 className="text-lg font-bold text-base-content flex items-center gap-2">
               <Icon lucide={TrendingUp} size={18} className="text-warning" />
               Biến động Followers
             </h3>
             <p className="text-base-content/40 text-xs mt-1 font-medium">Số lượng tài khoản bấm theo dõi và bỏ theo dõi hàng ngày</p>
           </div>
+        </div>
 
-          <div className="flex items-center gap-6 bg-base-200/50 border border-base-content/5 rounded-2xl p-4 self-start md:self-auto">
-            <div className="pr-6 border-r border-base-content/10">
-              <div className="flex items-center gap-2 text-success mb-1">
-                <Icon lucide={UserPlus} size={14} />
-                <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider">Follows</span>
+        {/* BODY CONTENT - GRID Layout 12 cột */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* CỘT TRÁI (CHIẾM 7 PHẦN) - BIỂU ĐỒ & THỐNG KÊ */}
+          <div className="lg:col-span-7 flex flex-col gap-5 justify-between">
+            
+            {/* STATS CARDS (Xếp ngang trên một dòng) */}
+            <div className="grid grid-cols-3 divide-x divide-base-content/10 w-full">
+              <div className="flex flex-col pl-0 pr-4 py-1">
+                <span className="text-xs text-base-content/40 font-medium">Follows mới</span>
+                <span className="text-lg font-black text-success font-mono">{totalFollows.toLocaleString()}</span>
               </div>
-              <span className="text-xl font-black font-mono text-base-content">{totalFollows.toLocaleString()}</span>
+              <div className="flex flex-col px-4 py-1">
+                <span className="text-xs text-base-content/40 font-medium">Unfollows</span>
+                <span className="text-lg font-black text-error font-mono">{totalUnfollows.toLocaleString()}</span>
+              </div>
+              <div className="flex flex-col pl-4 pr-0 py-1">
+                <span className="text-xs text-base-content/40 font-medium">Tăng trưởng ròng</span>
+                <span className={`text-lg font-black font-mono ${netGrowth >= 0 ? 'text-success' : 'text-error'}`}>
+                  {netGrowth >= 0 ? `+${netGrowth.toLocaleString()}` : netGrowth.toLocaleString()}
+                </span>
+              </div>
             </div>
 
-            <div className="pr-6 border-r border-base-content/10">
-              <div className="flex items-center gap-2 text-error mb-1">
-                <Icon lucide={UserMinus} size={14} />
-                <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider">Unfollows</span>
-              </div>
-              <span className="text-xl font-black font-mono text-base-content">{totalUnfollows.toLocaleString()}</span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                {netGrowth >= 0 ? (
-                  <Icon lucide={TrendingUp} size={14} className="text-success animate-bounce" />
-                ) : (
-                  <Icon lucide={TrendingDown} size={14} className="text-error animate-bounce" />
-                )}
-                <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider">Tăng trưởng ròng</span>
-              </div>
-              <span className={`text-xl font-black font-mono ${netGrowth >= 0 ? 'text-success' : 'text-error'}`}>
-                {netGrowth >= 0 ? `+${netGrowth.toLocaleString()}` : netGrowth.toLocaleString()}
-              </span>
+            {/* AREA CHART */}
+            <div style={{ width: '100%', height: '370px' }} className="relative text-base-content/70">
+              {followsAndUnfollows.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-base-content/20 text-sm font-medium">Chưa có dữ liệu biến động cho khoảng thời gian này</span>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={followsAndUnfollows} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorFollow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={COLOR_FOLLOW} stopOpacity={0.25}/>
+                        <stop offset="95%" stopColor={COLOR_FOLLOW} stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorUnfollow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={COLOR_UNFOLLOW} stopOpacity={0.25}/>
+                        <stop offset="95%" stopColor={COLOR_UNFOLLOW} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.06} vertical={false} />
+                    <XAxis 
+                      dataKey="date" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 10, fontFamily: 'var(--font-mono)' }}
+                      dy={10}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 10, fontFamily: 'var(--font-mono)' }}
+                      allowDecimals={false}
+                    />
+                    <Tooltip 
+                      content={({ active, payload, label }: any) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[140px]">
+                              <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-2 font-mono">{label}</div>
+                              <div className="space-y-1.5">
+                                {payload.map((item: any, i: number) => (
+                                  <div key={i} className="flex items-center justify-between gap-6">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                                      <span className="text-xs font-semibold text-base-content/70">{item.name}</span>
+                                    </div>
+                                    <span className="text-xs font-black font-mono" style={{ color: item.color }}>
+                                      +{item.value.toLocaleString()}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                      cursor={{ stroke: 'currentColor', strokeOpacity: 0.1, strokeWidth: 1.5 }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="follows" 
+                      name="Follows"
+                      stroke={COLOR_FOLLOW} 
+                      strokeWidth={2.5}
+                      fillOpacity={1} 
+                      fill="url(#colorFollow)" 
+                      dot={{ r: 0 }}
+                      activeDot={{ r: 6, stroke: COLOR_FOLLOW, strokeWidth: 2, fill: COLOR_BACKGROUND_VAR }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="unfollows" 
+                      name="Unfollows"
+                      stroke={COLOR_UNFOLLOW} 
+                      strokeWidth={2.5}
+                      fillOpacity={1} 
+                      fill="url(#colorUnfollow)" 
+                      dot={{ r: 0 }}
+                      activeDot={{ r: 6, stroke: COLOR_UNFOLLOW, strokeWidth: 2, fill: COLOR_BACKGROUND_VAR }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
-        </div>
 
-        <div className="w-full h-[350px] mt-2 relative text-base-content/70">
-          {followsAndUnfollows.length === 0 ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-base-content/20 text-sm font-medium">Chưa có dữ liệu biến động cho khoảng thời gian này</span>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={followsAndUnfollows} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorFollow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLOR_FOLLOW} stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor={COLOR_FOLLOW} stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorUnfollow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLOR_UNFOLLOW} stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor={COLOR_UNFOLLOW} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.06} vertical={false} />
-                <XAxis 
-                  dataKey="date" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 10, fontFamily: 'var(--font-mono)' }}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 10, fontFamily: 'var(--font-mono)' }}
-                  allowDecimals={false}
-                />
-                <Tooltip 
-                  content={({ active, payload, label }: any) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl min-w-[140px]">
-                          <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-2 font-mono">{label}</div>
-                          <div className="space-y-1.5">
-                            {payload.map((item: any, i: number) => (
-                              <div key={i} className="flex items-center justify-between gap-6">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                                  <span className="text-xs font-semibold text-base-content/70">{item.name}</span>
-                                </div>
-                                <span className="text-xs font-black font-mono" style={{ color: item.color }}>
-                                  +{item.value.toLocaleString()}
-                                </span>
-                              </div>
-                            ))}
+          {/* CỘT PHẢI (CHIẾM 5 PHẦN) - PHÂN TÍCH AI */}
+          <div className="lg:col-span-5 flex flex-col justify-end">
+            <div className="flex-1 flex flex-col justify-end">
+              <AnimatePresence mode="wait">
+                {(isLoadingAI || aiInsight) ? (
+                  <motion.div 
+                    key="followersInsight"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.2 }}
+                    className={`p-4 rounded-lg border flex flex-col gap-3 transition-all duration-300 w-full ${insightColor}`}
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-base-content/5">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-black text-base-content flex items-center gap-1.5 uppercase tracking-wide">
+                          <Icon lucide={Bot} size={14} className={`${insightColor}`} />
+                          Phân tích AI
+                        </h4>
+                      </div>
+
+                      {hasValidAiRating && (
+                        <span className="text-xs font-bold px-2 py-0.5">
+                          {insightLabel}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      {isLoadingAI ? (
+                        <div className="space-y-2 py-1 animate-pulse">
+                          <div className="h-2 bg-base-content/20 rounded-md w-full" />
+                          <div className="h-2 bg-base-content/20 rounded-md w-11/12" />
+                          <div className="h-2 bg-base-content/20 rounded-md w-4/5" />
+                          <div className="h-2 bg-base-content/10 rounded-md w-3/4 pt-1" />
+                        </div>
+                      ) : aiInsight ? (
+                        <div className="flex flex-col gap-3 text-xs leading-relaxed">
+                          <div className="p-2 rounded-lg bg-base-content/5 font-semibold text-base-content/90 flex items-start gap-2">
+                            <Icon lucide={BarChart2} size={14} className="text-info shrink-0 mt-0.5" />
+                            <span>{aiInsight.evaluation}</span>
+                          </div>
+                          <div className="bg-background/80 p-1.5 rounded-md text-base-content/80 font-medium flex items-start gap-2">
+                            <Icon lucide={Target} size={14} className="text-success shrink-0 mt-0.5" />
+                            <span>Kỳ vọng: {aiInsight.expectation}</span>
                           </div>
                         </div>
-                      );
-                    }
-                    return null;
-                  }}
-                  cursor={{ stroke: 'currentColor', strokeOpacity: 0.1, strokeWidth: 1.5 }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="follows" 
-                  name="Follows"
-                  stroke={COLOR_FOLLOW} 
-                  strokeWidth={2.5}
-                  fillOpacity={1} 
-                  fill="url(#colorFollow)" 
-                  dot={{ r: 0 }}
-                  activeDot={{ r: 6, stroke: COLOR_FOLLOW, strokeWidth: 2, fill: COLOR_BACKGROUND_VAR }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="unfollows" 
-                  name="Unfollows"
-                  stroke={COLOR_UNFOLLOW} 
-                  strokeWidth={2.5}
-                  fillOpacity={1} 
-                  fill="url(#colorUnfollow)" 
-                  dot={{ r: 0 }}
-                  activeDot={{ r: 6, stroke: COLOR_UNFOLLOW, strokeWidth: 2, fill: COLOR_BACKGROUND_VAR }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
+                      ) : null}
+                    </div>
+                  </motion.div>
+                ) : (
+                  // Fallback fallbackInsight UI if AI fails or no data
+                  <motion.div 
+                    key="followersInsightFallback"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-4 rounded-lg border flex flex-col gap-3 transition-all duration-300 w-full text-warning border-warning/20 bg-warning/5`}
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-base-content/5">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-black text-base-content flex items-center gap-1.5 uppercase tracking-wide">
+                          <Icon lucide={Bot} size={14} className="text-warning" />
+                          Phân tích AI
+                        </h4>
+                      </div>
+                      <span className="text-xs font-bold px-2 py-0.5">
+                        {netGrowth >= 0 ? 'Tốt' : 'Yếu'}
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex flex-col gap-3 text-xs leading-relaxed">
+                        <div className="p-2 rounded-lg bg-base-content/5 font-semibold text-base-content/90 flex items-start gap-2">
+                          <Icon lucide={BarChart2} size={14} className="text-info shrink-0 mt-0.5" />
+                          <span>Tài khoản ghi nhận {totalFollows.toLocaleString()} lượt theo dõi mới và {totalUnfollows.toLocaleString()} lượt bỏ theo dõi, đem lại tăng trưởng ròng là {netGrowth >= 0 ? '+' : ''}{netGrowth.toLocaleString()} (tỷ lệ {ratio.toFixed(2)}x) trong {range}.</span>
+                        </div>
+                        <div className="bg-background/80 p-1.5 rounded-md text-base-content/80 font-medium flex items-start gap-2">
+                          <Icon lucide={Target} size={14} className="text-success shrink-0 mt-0.5" />
+                          <span>Kỳ vọng: Duy trì tăng trưởng dương ổn định, tăng thêm 500-1000 followers trong 30 ngày tới.</span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
         </div>
+
       </div>
     );
   }

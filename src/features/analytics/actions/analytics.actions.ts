@@ -1033,20 +1033,47 @@ Phân tích:
 - Views: ${avgViews || 0}/ngày | Interactions: ${avgInteractions || 0}/ngày | Rate: ${avgInteractionRate || 0}% → ${ratingLabel}`;
 
   try {
-    const { data, error } = await groqClient.complete(
-      [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      {
-        model: AI_AGENT_DEFAULTS.MODEL_DEFAULT,
-        temperature: 0.3,
-        maxTokens: 500,
-      }
-    );
+    let data: any = null;
+    let error: any = null;
 
-    if (error || !data) {
-      throw new Error(error || 'Empty response');
+    try {
+      console.log('[generatePerformanceInsightAction] Attempting with MODEL_FAST_REASONING:', AI_AGENT_DEFAULTS.MODEL_FAST_REASONING);
+      const res = await groqClient.complete(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        {
+          model: AI_AGENT_DEFAULTS.MODEL_FAST_REASONING,
+          temperature: 0.3,
+          maxTokens: 500,
+        }
+      );
+      data = res.data;
+      error = res.error;
+
+      if (error || !data) {
+        throw new Error(error || 'Empty response from fast reasoning model');
+      }
+    } catch (fastErr) {
+      console.warn('[generatePerformanceInsightAction] Fast reasoning model failed, falling back to MODEL_DEFAULT:', fastErr);
+      const res = await groqClient.complete(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        {
+          model: AI_AGENT_DEFAULTS.MODEL_DEFAULT,
+          temperature: 0.3,
+          maxTokens: 500,
+        }
+      );
+      data = res.data;
+      error = res.error;
+
+      if (error || !data) {
+        throw new Error(error || 'Empty response from default model');
+      }
     }
 
     // Parse JSON siêu an toàn (Robust JSON Parser)
@@ -1091,4 +1118,148 @@ Phân tích:
     return { content: null, error: err.message || 'FAILED_TO_GENERATE_AI_INSIGHT' };
   }
 }
+
+export async function generateFollowersInsightAction(
+  params: {
+    platform: Platform;
+    totalFollows: number;
+    totalUnfollows: number;
+    netGrowth: number;
+    range: string;
+  }
+): Promise<{ content: PerformanceInsight | null; error: string | null }> {
+  const { platform, totalFollows, totalUnfollows, netGrowth, range } = params;
+
+  if (totalFollows === 0 && totalUnfollows === 0) {
+    return { content: null, error: 'INSUFFICIENT_DATA' };
+  }
+
+  let ratingKey: 'excellent' | 'good' | 'average' | 'weak' = 'average';
+  const ratio = totalFollows / (totalUnfollows || 1);
+  if (netGrowth < 0) {
+    ratingKey = 'weak';
+  } else if (netGrowth === 0) {
+    ratingKey = 'average';
+  } else {
+    if (ratio >= 3) {
+      ratingKey = 'excellent';
+    } else if (ratio >= 1.5) {
+      ratingKey = 'good';
+    } else {
+      ratingKey = 'average';
+    }
+  }
+
+  const ratingLabel = 
+    ratingKey === 'excellent' ? 'Xuất sắc (Tỷ lệ follow/unfollow rất cao, tăng trưởng ròng mạnh mẽ)' :
+    ratingKey === 'good' ? 'Tốt (Tăng trưởng ổn định, số lượng unfollow ở mức thấp)' :
+    ratingKey === 'average' ? 'Trung bình (Follow và unfollow bám sát nhau, tăng trưởng chậm)' :
+    'Yếu (Bị bỏ theo dõi nhiều hơn theo dõi mới, tăng trưởng âm)';
+
+  const platformCtx = PLATFORM_CONTEXT[platform] || platform;
+
+  const systemPrompt = [
+    `Bạn là AI Analyst chuyên phân tích biến động followers trên ${platformCtx}.`,
+    'Trả về CHỈ JSON hợp lệ, không markdown, không text ngoài JSON.',
+    'Schema: {"rating":"excellent|good|average|weak","evaluation":"...","expectation":"..."}',
+    `"evaluation": 3 câu. Câu 1: nêu đủ 4 số thực tế — follows (${totalFollows}), unfollows (${totalUnfollows}), tăng trưởng ròng (${netGrowth}), tỷ lệ follow/unfollow (${ratio.toFixed(2)}x) trong ${range}. Câu 2: nhận định chất lượng tăng trưởng — tỷ lệ và xu hướng nói lên điều gì về sức hút của tài khoản. Câu 3: so sánh hoặc bối cảnh — tỷ lệ này ở mức nào so với chuẩn của ${platformCtx}, hoặc điểm đáng chú ý nhất trong dữ liệu. KHÔNG giải thích nguyên nhân, KHÔNG đề xuất hành động.`,
+    `"expectation": 1 câu, kỳ vọng kết quả đo được cụ thể trong 30 ngày tới với con số rõ ràng.`,
+    'Mọi string trên 1 dòng duy nhất. Dùng single quote bên trong text.',
+    'KHÔNG dùng: "đi đúng hướng", "sức hút nhất định", "tiếp tục phát huy", "Nhìn vào số liệu", "Có thể thấy rằng", "nên tiếp tục".',
+  ].join(' ');
+
+  const userPrompt = `
+Phân tích biến động Followers của tài khoản trên ${platform}:
+- Thời gian: ${range}
+- Tổng Follows mới: ${totalFollows}
+- Tổng Unfollows: ${totalUnfollows}
+- Tăng trưởng ròng: ${netGrowth}
+- Tỷ lệ Follow/Unfollow: ${ratio.toFixed(2)}x
+- Đánh giá sơ bộ: ${ratingLabel}
+`;
+
+  try {
+    let data: any = null;
+    let error: any = null;
+
+    try {
+      console.log('[generateFollowersInsightAction] Attempting with MODEL_FAST_REASONING:', AI_AGENT_DEFAULTS.MODEL_FAST_REASONING);
+      const res = await groqClient.complete(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        {
+          model: AI_AGENT_DEFAULTS.MODEL_FAST_REASONING,
+          temperature: 0.3,
+          maxTokens: 500,
+        }
+      );
+      data = res.data;
+      error = res.error;
+
+      if (error || !data) {
+        throw new Error(error || 'Empty response from fast reasoning model');
+      }
+    } catch (fastErr) {
+      console.warn('[generateFollowersInsightAction] Fast reasoning model failed, falling back to MODEL_DEFAULT:', fastErr);
+      const res = await groqClient.complete(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        {
+          model: AI_AGENT_DEFAULTS.MODEL_DEFAULT,
+          temperature: 0.3,
+          maxTokens: 500,
+        }
+      );
+      data = res.data;
+      error = res.error;
+
+      if (error || !data) {
+        throw new Error(error || 'Empty response from default model');
+      }
+    }
+
+    const rawContent = data.content.replace(/```json|```/g, '').trim();
+    
+    // Parse JSON an toàn
+    let inString = false;
+    let escaped = false;
+    let cleanRaw = '';
+    
+    for (let i = 0; i < rawContent.length; i++) {
+      const char = rawContent[i];
+      if (char === '"' && !escaped) {
+        inString = !inString;
+      }
+      if (inString) {
+        if (char === '\n') {
+          cleanRaw += '\\n';
+        } else if (char === '\r') {
+          cleanRaw += '\\r';
+        } else {
+          cleanRaw += char;
+        }
+      } else {
+        cleanRaw += char;
+      }
+      if (char === '\\' && !escaped) {
+        escaped = true;
+      } else {
+        escaped = false;
+      }
+    }
+    
+    const parsed: PerformanceInsight = JSON.parse(cleanRaw);
+    parsed.rating = ratingKey;
+
+    return { content: parsed, error: null };
+  } catch (err: any) {
+    console.error('[generateFollowersInsightAction] Error:', err);
+    return { content: null, error: err.message || 'FAILED_TO_GENERATE_AI_INSIGHT' };
+  }
+}
+
 
