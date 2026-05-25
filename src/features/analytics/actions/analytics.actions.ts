@@ -18,6 +18,10 @@ import { AnalyticsFilter, AnalyticsRange } from '@features/analytics/types';
 import { subDays, differenceInDays } from 'date-fns';
 import { db } from '@shared/lib/db';
 import { buildDeepAnalytics } from '@features/analytics/services/post-analytics-engine';
+import { groqClient } from '@features/ai-agent/services/groq-client';
+import { AI_AGENT_DEFAULTS } from '@features/ai-agent/types-agent';
+import { Platform, ViewMode, getRatingLabel, getRatingKey, PLATFORM_CONTEXT, PLATFORM_BENCHMARKS } from '@features/analytics/constants/platformBenchmarks';
+import { PerformanceInsight } from '@features/analytics/types/performanceInsight';
 
 
 /**
@@ -947,6 +951,144 @@ export async function getPostDeepAnalyticsAction(
   } catch (err: any) {
     console.error('[getPostDeepAnalyticsAction] Critical error in Server Action:', err);
     return { data: null, error: err.message || 'FAILED_TO_GET_POST_DEEP_ANALYTICS' };
+  }
+}
+
+export async function generatePerformanceInsightAction(
+  params: {
+    platform: Platform;
+    viewMode: ViewMode;
+    // reach mode
+    avgReach?: number;
+    avgEngagement?: number;
+    avgEngagementRate?: number;
+    // views mode
+    avgViews?: number;
+    avgInteractions?: number;
+    avgInteractionRate?: number;
+  }
+): Promise<{ content: PerformanceInsight | null; error: string | null }> {
+  const {
+    platform,
+    viewMode,
+    avgReach,
+    avgEngagement,
+    avgEngagementRate,
+    avgViews,
+    avgInteractions,
+    avgInteractionRate,
+  } = params;
+
+  const isReachMode = viewMode === 'reach';
+  
+  // Validate trước — không gọi AI nếu data rỗng hoặc bằng 0
+  const rate = isReachMode ? (avgEngagementRate ?? 0) : (avgInteractionRate ?? 0);
+  if (!rate) {
+    return { content: null, error: 'INSUFFICIENT_DATA' };
+  }
+
+  const ratingLabel = getRatingLabel(rate, platform, isReachMode ? 'reach' : 'views');
+  const ratingKey = getRatingKey(rate, platform, isReachMode ? 'reach' : 'views');
+  const platformCtx = PLATFORM_CONTEXT[platform] || platform;
+
+  // Few-shot: skeleton nhỏ gọn có nội dung sâu sắc, inject platform động
+  const fewShotExample = isReachMode
+    ? `Ví dụ (${platform}):
+Input: Reach 4500/ngày, Engagement 180/ngày, Rate 4.0% → tốt (>${PLATFORM_BENCHMARKS[platform]?.reach.good || 0}%)
+Output: {
+  "rating": "good",
+  "evaluation": "Engagement rate 4.0% vượt chuẩn ${platform} (${PLATFORM_BENCHMARKS[platform]?.reach.good || 0}%), cho thấy nội dung đang đi đúng hướng nhưng vẫn còn khoảng cách để đạt top tier (>${PLATFORM_BENCHMARKS[platform]?.reach.excellent || 0}%).",
+  "cause": "Trên ${platform}, sự kết hợp giữa thuật toán ưu tiên nội dung giữ chân tốt và hành vi người dùng tương tác sâu giúp tăng tỷ lệ chuyển đổi tự nhiên.",
+  "action": "Thử nghiệm thêm 1 câu hỏi tương tác hoặc CTA mạnh mẽ vào bài đăng tiếp theo, đo lường sự thay đổi của engagement rate sau 7 ngày.",
+  "expectation": "Kỳ vọng tỷ lệ tương tác tăng thêm 1-2%, đưa kênh tiệm cận nhóm hiệu suất xuất sắc."
+}`
+    : `Ví dụ (${platform}):
+Input: Views 12000/ngày, Interactions 480/ngày, Rate 4.0% → tốt (>${PLATFORM_BENCHMARKS[platform]?.views.good || 0}%)
+Output: {
+  "rating": "good",
+  "evaluation": "Interaction rate 4.0% vượt chuẩn ${platform} (${PLATFORM_BENCHMARKS[platform]?.views.good || 0}%), tuy nhiên với lượng hiển thị lớn, số lượng tương tác tuyệt đối cho thấy người dùng vẫn lướt qua khá nhiều.",
+  "cause": "Thuật toán ${platform} ưu tiên thời gian xem hết; nếu video thiếu hook giữ chân hoặc CTA thúc đẩy hành động ở 3 giây cuối, tỷ lệ chuyển đổi sẽ bị giới hạn.",
+  "action": "Thiết kế lại 3 giây đầu video với tiêu đề nổi bật và chèn CTA 'Lưu lại để áp dụng ngay', đo lường interaction rate sau 5 video tiếp theo.",
+  "expectation": "Tỷ lệ tương tác kỳ vọng tăng lên 5-6% trong vòng 2 tuần nhờ tối ưu hóa chuyển đổi từ lượt xem."
+}`;
+
+  const systemPrompt = [
+    `Bạn là AI Analyst chuyên social media, đặc biệt ${platformCtx}.`,
+    'Trả về CHỈ JSON hợp lệ, không markdown, không text ngoài JSON.',
+    'Schema: {"rating":"excellent|good|average|weak","evaluation":"...","cause":"...","action":"...","expectation":"..."}',
+    'Mỗi field viết đầy đủ 1–2 câu phân tích cực kỳ sắc bén, giàu chuyên môn và đi thẳng vào số liệu thực tế, không viết chung chung sơ sài.',
+    'BẮT BUỘC: "evaluation" dùng số % thực + so ngưỡng chuẩn. "cause" nêu cơ chế thuật toán/hành vi đặc thù platform. "action" có động từ hành động cụ thể + cách đo kết quả rõ ràng. "expectation" nêu kỳ vọng kết quả đo lường được.',
+    'Mọi string trên 1 dòng duy nhất. Dùng single quote bên trong text thay vì double quote.',
+    'KHÔNG dùng: "đi đúng hướng", "sức hút nhất định", "tiếp tục phát huy", "Nhìn vào số liệu", "Có thể thấy rằng".',
+  ].join(' ');
+
+  const userPrompt = isReachMode
+    ? `${fewShotExample}
+---
+Phân tích:
+- Reach: ${avgReach || 0}/ngày | Engagement: ${avgEngagement || 0}/ngày | Rate: ${avgEngagementRate || 0}% → ${ratingLabel}`
+    : `${fewShotExample}
+---
+Phân tích:
+- Views: ${avgViews || 0}/ngày | Interactions: ${avgInteractions || 0}/ngày | Rate: ${avgInteractionRate || 0}% → ${ratingLabel}`;
+
+  try {
+    const { data, error } = await groqClient.complete(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      {
+        model: AI_AGENT_DEFAULTS.MODEL_DEFAULT,
+        temperature: 0.3,
+        maxTokens: 500,
+      }
+    );
+
+    if (error || !data) {
+      throw new Error(error || 'Empty response');
+    }
+
+    // Parse JSON siêu an toàn (Robust JSON Parser)
+    const rawContent = data.content.replace(/```json|```/g, '').trim();
+    
+    // Tự động thay thế các ký tự xuống dòng thực tế bên trong chuỗi JSON bằng \n
+    let inString = false;
+    let escaped = false;
+    let cleanRaw = '';
+    
+    for (let i = 0; i < rawContent.length; i++) {
+      const char = rawContent[i];
+      if (char === '"' && !escaped) {
+        inString = !inString;
+      }
+      if (inString) {
+        if (char === '\n') {
+          cleanRaw += '\\n';
+        } else if (char === '\r') {
+          cleanRaw += '\\r';
+        } else {
+          cleanRaw += char;
+        }
+      } else {
+        cleanRaw += char;
+      }
+      if (char === '\\' && !escaped) {
+        escaped = true;
+      } else {
+        escaped = false;
+      }
+    }
+    
+    const parsed: PerformanceInsight = JSON.parse(cleanRaw);
+
+    // Fallback rating từ benchmark phòng model trả sai
+    parsed.rating = ratingKey;
+
+    return { content: parsed, error: null };
+  } catch (err: any) {
+    console.error('[generatePerformanceInsightAction] Error:', err);
+    return { content: null, error: err.message || 'FAILED_TO_GENERATE_AI_INSIGHT' };
   }
 }
 

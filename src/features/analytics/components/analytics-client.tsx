@@ -34,6 +34,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const {
     selectedAccountId,
     setSelectedAccountId,
+    platform,
     range,
     setRange,
     customStart,
@@ -220,6 +221,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             isFetching={isFetching}
             totals={totals}
             range={range}
+            platform={platform}
             isInstagram={isInstagram}
             isFollowerInsufficientData={isFollowerInsufficientData}
             followsAndUnfollows={followsAndUnfollows}

@@ -55,7 +55,8 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
     staleTime: getStaleTime(range),
   });
 
-  const isInstagram = accounts.find(a => a.id === selectedAccountId)?.platform === 'instagram';
+  const platform = (accounts.find(a => a.id === selectedAccountId)?.platform as 'facebook' | 'instagram' | 'tiktok') || 'facebook';
+  const isInstagram = platform === 'instagram';
 
   const { data: followerDetailsResult } = useQuery({
     queryKey: ['follower-details', selectedAccountId, range, cStart, cEnd],
@@ -443,6 +444,7 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
   return {
     selectedAccountId,
     setSelectedAccountId,
+    platform,
     range,
     setRange,
     customStart,

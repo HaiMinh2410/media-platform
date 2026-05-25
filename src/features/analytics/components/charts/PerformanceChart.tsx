@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Users, Eye, Sparkles, TrendingUp } from 'lucide-react';
+import { Users, Eye, Sparkles, Star, Flame, AlertTriangle } from 'lucide-react';
 import { Icon } from '@shared/ui/icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidingTabs } from '@shared/ui/sliding-tabs';
+import { generatePerformanceInsightAction } from '@features/analytics/actions/analytics.actions';
+import { PLATFORM_BENCHMARKS, Platform } from '@features/analytics/constants/platformBenchmarks';
+import { PerformanceInsight } from '@features/analytics/types/performanceInsight';
 
 // --- CONSTANTS ---
 const COLOR_REACH = 'var(--color-info)';
@@ -13,15 +16,18 @@ const COLOR_ENGAGEMENT = 'var(--color-warning)';
 const COLOR_INTERACTIONS = 'var(--color-success)';
 const COLOR_BACKGROUND_VAR = 'var(--color-base-100)';
 
-const RATE_EXCELLENT_REACH = 15;
-const RATE_GOOD_REACH = 5;
 
-const RATE_EXCELLENT_VIEWS = 6;
-const RATE_GOOD_VIEWS = 2;
+const RATING_CONFIG = {
+  excellent: { label: 'Xuất sắc', color: 'text-success border-success/20 bg-success/5', icon: Flame, iconClass: 'text-success' },
+  good:      { label: 'Tốt',      color: 'text-info border-info/20 bg-info/5',    icon: Star, iconClass: 'text-info' },
+  average:   { label: 'Trung bình', color: 'text-warning border-warning/20 bg-warning/5', icon: AlertTriangle, iconClass: 'text-warning' },
+  weak:      { label: 'Yếu',      color: 'text-error border-error/20 bg-error/5',     icon: AlertTriangle, iconClass: 'text-error' },
+} as const;
 
 interface PerformanceChartProps {
   chartData: any[];
   range: string;
+  platform: Platform;
   avgReach: number;
   avgEngagement: number;
   avgEngagementRate: number;
@@ -35,6 +41,7 @@ interface PerformanceChartProps {
 export function PerformanceChart({
   chartData,
   range,
+  platform,
   avgReach,
   avgEngagement,
   avgEngagementRate,
@@ -45,18 +52,72 @@ export function PerformanceChart({
   interactionInsight,
 }: PerformanceChartProps) {
   const [viewMode, setViewMode] = useState<'reach' | 'views'>('reach');
+  const [aiInsight, setAiInsight] = useState<PerformanceInsight | null>(null);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
 
   const getRateColorClass = (rate: number, isReachMode: boolean) => {
-    const excellent = isReachMode ? RATE_EXCELLENT_REACH : RATE_EXCELLENT_VIEWS;
-    const good = isReachMode ? RATE_GOOD_REACH : RATE_GOOD_VIEWS;
+    const b = PLATFORM_BENCHMARKS[platform]?.[isReachMode ? 'reach' : 'views'];
+    if (!b) return 'text-warning';
 
-    if (rate >= excellent) return 'text-success';
-    if (rate >= good) return 'text-info';
+    if (rate >= b.excellent) return 'text-success';
+    if (rate >= b.good) return 'text-info';
     return 'text-warning';
   };
 
   const activeInsight = viewMode === 'reach' ? engagementInsight : interactionInsight;
   const isReachMode = viewMode === 'reach';
+
+  useEffect(() => {
+    let active = true;
+    
+    async function loadAIInsight() {
+      setIsLoadingAI(true);
+      try {
+        const res = await generatePerformanceInsightAction({
+          platform,
+          viewMode,
+          avgReach,
+          avgEngagement,
+          avgEngagementRate,
+          avgViews,
+          avgInteractions,
+          avgInteractionRate,
+        });
+        
+        if (active) {
+          if (res.content) {
+            setAiInsight(res.content);
+          } else {
+            setAiInsight(null);
+          }
+        }
+      } catch (err) {
+        if (active) {
+          setAiInsight(null);
+        }
+      } finally {
+        if (active) {
+          setIsLoadingAI(false);
+        }
+      }
+    }
+
+    loadAIInsight();
+
+    return () => {
+      active = false;
+    };
+  }, [
+    viewMode, 
+    platform,
+    avgReach, 
+    avgEngagement, 
+    avgEngagementRate, 
+    avgViews, 
+    avgInteractions, 
+    avgInteractionRate,
+    activeInsight?.desc
+  ]);
 
   return (
     <div className="w-full bg-base-100 border border-base-content/5 shadow-sm rounded-2xl p-6 flex flex-col gap-6 transition-all duration-300 hover:shadow-md">
@@ -292,32 +353,90 @@ export function PerformanceChart({
           {/* AI INSIGHT BLOCK */}
           <div className="flex-1 flex flex-col justify-end">
             <AnimatePresence mode="wait">
-              {activeInsight && (
-                <motion.div 
-                  key={viewMode}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.2 }}
-                  className={`p-4 rounded-xl border flex flex-col gap-2 transition-all duration-300 w-full ${activeInsight.color}`}
-                >
-                  <div className="flex items-center gap-2 pb-2 border-b border-base-content/5">
-                    <div className="p-1 bg-base-content/5 rounded-lg flex items-center justify-center shrink-0">
-                      <Icon lucide={activeInsight.icon} size={14} />
+              {activeInsight && (() => {
+                const hasValidAiRating = aiInsight && aiInsight.rating && RATING_CONFIG[aiInsight.rating];
+                const insightColor = hasValidAiRating
+                  ? RATING_CONFIG[aiInsight.rating].color
+                  : (activeInsight?.color || 'text-warning border-warning/20 bg-warning/5');
+
+                const insightIcon = hasValidAiRating
+                  ? RATING_CONFIG[aiInsight.rating].icon
+                  : (activeInsight?.icon || Sparkles);
+
+                const insightIconClass = hasValidAiRating
+                  ? RATING_CONFIG[aiInsight.rating].iconClass
+                  : '';
+
+                const insightLabel = hasValidAiRating
+                  ? RATING_CONFIG[aiInsight.rating].label
+                  : '';
+
+                return (
+                  <motion.div 
+                    key={viewMode}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    transition={{ duration: 0.2 }}
+                    className={`p-4 rounded-xl border flex flex-col gap-3 transition-all duration-300 w-full ${insightColor}`}
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-base-content/5">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1 bg-base-content/5 rounded-lg flex items-center justify-center shrink-0">
+                          <Icon 
+                            lucide={insightIcon} 
+                            size={14} 
+                            className={insightIconClass}
+                          />
+                        </div>
+                        <h4 className="text-xs font-black text-base-content flex items-center gap-1.5 uppercase tracking-wide">
+                          <Icon lucide={Sparkles} size={12} className="text-accent" />
+                          Phân tích AI
+                        </h4>
+                      </div>
+
+                      {hasValidAiRating && (
+                        <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${insightColor}`}>
+                          {insightLabel}
+                        </span>
+                      )}
                     </div>
-                    <h4 className="text-xs font-black text-base-content flex items-center gap-1.5 uppercase tracking-wide">
-                      <Icon lucide={Sparkles} size={12} className="text-accent" />
-                      Phân tích AI
-                    </h4>
-                  </div>
-                  <div className="space-y-1">
-                    <h5 className="text-xs font-bold text-base-content">{activeInsight.title}</h5>
-                    <p className="text-[11px] text-base-content/70 leading-relaxed font-medium">
-                      {activeInsight.desc}
-                    </p>
-                  </div>
-                </motion.div>
-              )}
+
+                    <div className="space-y-3">
+                      {isLoadingAI ? (
+                        <div className="space-y-2 py-1 animate-pulse">
+                          <div className="h-2 bg-base-content/20 rounded-md w-full" />
+                          <div className="h-2 bg-base-content/20 rounded-md w-11/12" />
+                          <div className="h-2 bg-base-content/20 rounded-md w-4/5" />
+                          <div className="h-2 bg-base-content/10 rounded-md w-3/4 pt-1" />
+                        </div>
+                      ) : aiInsight ? (
+                        <div className="flex flex-col gap-2.5 text-[11px] leading-relaxed">
+                          <div className="text-base-content font-semibold">
+                            📊 {aiInsight.evaluation}
+                          </div>
+                          <div className="text-base-content/70 font-medium">
+                            🔍 {aiInsight.cause}
+                          </div>
+                          <div className="p-2 rounded-lg bg-base-content/5 border border-base-content/5 font-semibold text-base-content">
+                            💡 <span className="underline decoration-accent/40 decoration-2">Hành động:</span> {aiInsight.action}
+                          </div>
+                          <div className="text-base-content/50 italic font-medium">
+                            🎯 Kỳ vọng: {aiInsight.expectation}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <h5 className="text-xs font-bold text-base-content">{activeInsight.title}</h5>
+                          <p className="text-[11px] text-base-content/70 leading-relaxed font-medium">
+                            {activeInsight.desc}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })()}
             </AnimatePresence>
           </div>
 

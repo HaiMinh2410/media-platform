@@ -14,6 +14,7 @@ interface AnalyticsChartsSectionProps {
   isFetching: boolean;
   totals: any;
   range: string;
+  platform: 'facebook' | 'instagram' | 'tiktok';
   isInstagram: boolean;
   isFollowerInsufficientData: boolean;
   followsAndUnfollows: any[];
@@ -41,6 +42,7 @@ export function AnalyticsChartsSection({
   isFetching,
   totals,
   range,
+  platform,
   isInstagram,
   isFollowerInsufficientData,
   followsAndUnfollows,
@@ -92,6 +94,7 @@ export function AnalyticsChartsSection({
               <PerformanceChart
                 chartData={chartData}
                 range={range}
+                platform={platform}
                 avgReach={avgReach}
                 avgEngagement={avgEngagement}
                 avgEngagementRate={avgEngagementRate}
