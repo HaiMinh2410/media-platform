@@ -32,9 +32,9 @@ export function DistributionTab({ data }: DistributionTabProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* 1. Best Time to Post Heatmap (Col span 2) */}
-      <div className="lg:col-span-2 bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
+      <div className="lg:col-span-8 bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -121,7 +121,7 @@ export function DistributionTab({ data }: DistributionTabProps) {
       </div>
 
       {/* 2. Engagement Rate per Post Scatter Plot */}
-      <div className="bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
+      <div className="lg:col-span-4 bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
         <div>
           <h3 className="text-sm font-bold text-base-content mb-1">Độ lan truyền (Scatter Plot)</h3>
           <p className="text-[11px] text-base-content/50 font-medium">Trục X: Lượt xem, Trục Y: Lượt Tương tác bài đăng</p>

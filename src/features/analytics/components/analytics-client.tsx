@@ -1,27 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-'use client';
+"use client";
 
-import React from 'react';
-import { 
-  BarChart3, Layers, Bot, Users, Calendar, Globe
-} from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
-import { Icon } from '@shared/ui/icon';
-import { AnalyticsPeriodData } from '@features/analytics/types';
-import { ViewsCard } from '@features/analytics/components/views-card';
-import { InteractionsCard } from '@features/analytics/components/interactions-card';
-import { PostChartsDashboard } from '@features/analytics/components/post-charts-dashboard';
-import { TopContentLeaderboard } from '@features/analytics/components/top-content-leaderboard';
-import { PostDetailModal } from '@features/analytics/components/post-detail-modal';
-import { FollowerDetailedSection } from '@features/analytics/components/follower-detailed-section';
-import { ContentInsightsSection } from '@features/analytics/components/content-insights-section';
-import { ReauthNotice } from '@features/analytics/components/dashboard-states';
-import AIAnalyticsPage from '@/app/dashboard/ai-analytics/page';
-import { useAnalyticsDashboard } from '@features/analytics/hooks/useAnalyticsDashboard';
-import { AnalyticsDashboardHeader } from './AnalyticsDashboardHeader';
-import { AnalyticsStatsGrid } from './AnalyticsStatsGrid';
-import { AnalyticsChartsSection } from './AnalyticsChartsSection';
+import React from "react";
+import { BarChart3, Layers, Bot, Users, Calendar, Globe } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { SlidingTabs } from "@shared/ui/sliding-tabs";
+import { Icon } from "@shared/ui/icon";
+import { AnalyticsPeriodData } from "@features/analytics/types";
+import { ViewsCard } from "@features/analytics/components/views-card";
+import { InteractionsCard } from "@features/analytics/components/interactions-card";
+import { PostChartsDashboard } from "@features/analytics/components/post-charts-dashboard";
+import { TopContentLeaderboard } from "@features/analytics/components/top-content-leaderboard";
+import { PostDetailModal } from "@features/analytics/components/post-detail-modal";
+import { FollowerDetailedSection } from "@features/analytics/components/follower-detailed-section";
+import { ContentInsightsSection } from "@features/analytics/components/content-insights-section";
+import { ReauthNotice } from "@features/analytics/components/dashboard-states";
+import AIAnalyticsPage from "@/app/dashboard/ai-analytics/page";
+import { useAnalyticsDashboard } from "@features/analytics/hooks/useAnalyticsDashboard";
+import { AnalyticsDashboardHeader } from "./AnalyticsDashboardHeader";
+import { AnalyticsStatsGrid } from "./AnalyticsStatsGrid";
+import { AnalyticsChartsSection } from "./AnalyticsChartsSection";
 
 type Props = {
   initialData?: AnalyticsPeriodData;
@@ -30,7 +28,7 @@ type Props = {
 
 export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   const dashboard = useAnalyticsDashboard({ initialData, accounts });
-  
+
   const {
     selectedAccountId,
     setSelectedAccountId,
@@ -80,7 +78,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     needsReauth,
     data,
     handleSync,
-    handleSyncAll
+    handleSyncAll,
   } = dashboard;
   const [deferredActiveTab, setDeferredActiveTab] = React.useState(activeTab);
 
@@ -91,12 +89,16 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     return () => clearTimeout(timer);
   }, [activeTab]);
 
-  const tabItems = React.useMemo(() => [
-    { value: 'general', label: 'Account Insights', icon: BarChart3 },
-    { value: 'content', label: 'Content', icon: Layers },
-    { value: 'audience', label: 'Audience', icon: Users },
-    { value: 'ai', label: 'AI Insights', icon: Bot },
-  ] as const, []);
+  const tabItems = React.useMemo(
+    () =>
+      [
+        { value: "general", label: "Account Insights", icon: BarChart3 },
+        { value: "content", label: "Content", icon: Layers },
+        { value: "audience", label: "Audience", icon: Users },
+        { value: "ai", label: "AI Insights", icon: Bot },
+      ] as const,
+    [],
+  );
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-7xl mx-auto">
@@ -129,20 +131,19 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         />
       </div>
 
-      {deferredActiveTab === 'ai' ? (
+      {deferredActiveTab === "ai" ? (
         <div className="-mx-6 -my-4">
-          <AIAnalyticsPage onBack={() => setActiveTab('general')} />
+          <AIAnalyticsPage onBack={() => setActiveTab("general")} />
         </div>
-      ) : deferredActiveTab === 'content' ? (
-        <ContentInsightsSection 
-          accountId={selectedAccountId} 
+      ) : deferredActiveTab === "content" ? (
+        <ContentInsightsSection
+          accountId={selectedAccountId}
           range={range}
           customStart={customStart}
           customEnd={customEnd}
         />
-      ) : deferredActiveTab === 'audience' ? (
+      ) : deferredActiveTab === "audience" ? (
         <div className="space-y-6">
-          
           {isInstagram ? (
             <FollowerDetailedSection
               accountId={selectedAccountId}
@@ -157,9 +158,13 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                 <Icon lucide={Users} size={28} />
               </div>
               <div className="flex flex-col items-center gap-2 w-full">
-                <h3 className="text-base-content font-bold text-lg">Phân tích Đối tượng chi tiết</h3>
+                <h3 className="text-base-content font-bold text-lg">
+                  Phân tích Đối tượng chi tiết
+                </h3>
                 <p className="text-base-content/50 text-sm font-medium leading-relaxed">
-                  Tính năng phân tích đối tượng chi tiết hiện tại chỉ được hỗ trợ dành cho tài khoản Instagram Connect. Vui lòng chuyển đổi sang tài khoản Instagram để xem thông tin chi tiết.
+                  Tính năng phân tích đối tượng chi tiết hiện tại chỉ được hỗ
+                  trợ dành cho tài khoản Instagram Connect. Vui lòng chuyển đổi
+                  sang tài khoản Instagram để xem thông tin chi tiết.
                 </p>
               </div>
             </div>
@@ -167,7 +172,6 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
         </div>
       ) : (
         <>
-
           <AnalyticsStatsGrid
             isPending={isPending}
             isError={isError}
@@ -177,42 +181,11 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           />
 
           {/* Reauth Notice */}
-          {needsReauth && (
-            <ReauthNotice />
-          )}
+          {needsReauth && <ReauthNotice />}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 mb-6">
-            <ViewsCard 
-              {...viewsData}
-              isLoading={isPending}
-            />
-            <InteractionsCard
-              {...interactionsData}
-              isLoading={isPending}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 mb-6">
-            <PostChartsDashboard 
-              accountId={selectedAccountId}
-              range={isPostAllTime ? 'all' : range}
-              customStart={isPostAllTime ? undefined : cStart}
-              customEnd={isPostAllTime ? undefined : cEnd}
-              data={deepAnalyticsData}
-              isLoading={isDeepAnalyticsLoading}
-              insufficientData={data?.data?.current[data?.data?.current?.length - 1]?.insufficientData ?? false}
-              isPostAllTime={isPostAllTime}
-              setIsPostAllTime={setIsPostAllTime}
-            />
-
-            <TopContentLeaderboard 
-              data={deepAnalyticsData?.leaderboard ?? null}
-              isLoading={isDeepAnalyticsLoading}
-              onOpenPostDetail={(postId) => {
-                const found = deepAnalyticsData?.leaderboard.find((p: any) => p.postId === postId);
-                if (found) setSelectedPostForDetail(found);
-              }}
-            />
+            <ViewsCard {...viewsData} isLoading={isPending} />
+            <InteractionsCard {...interactionsData} isLoading={isPending} />
           </div>
 
           <AnalyticsChartsSection
@@ -243,9 +216,33 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
             isDeepAnalyticsLoading={isDeepAnalyticsLoading}
           />
 
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            <PostChartsDashboard
+              accountId={selectedAccountId}
+              range={isPostAllTime ? "all" : range}
+              customStart={isPostAllTime ? undefined : cStart}
+              customEnd={isPostAllTime ? undefined : cEnd}
+              data={deepAnalyticsData}
+              isLoading={isDeepAnalyticsLoading}
+              insufficientData={
+                data?.data?.current[data?.data?.current?.length - 1]
+                  ?.insufficientData ?? false
+              }
+              isPostAllTime={isPostAllTime}
+              setIsPostAllTime={setIsPostAllTime}
+            />
 
-          
-
+            <TopContentLeaderboard
+              data={deepAnalyticsData?.leaderboard ?? null}
+              isLoading={isDeepAnalyticsLoading}
+              onOpenPostDetail={(postId) => {
+                const found = deepAnalyticsData?.leaderboard.find(
+                  (p: any) => p.postId === postId,
+                );
+                if (found) setSelectedPostForDetail(found);
+              }}
+            />
+          </div>
         </>
       )}
 

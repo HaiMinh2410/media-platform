@@ -967,7 +967,7 @@ export async function generatePerformanceInsightAction(
     avgInteractions?: number;
     avgInteractionRate?: number;
   }
-): Promise<{ content: PerformanceInsight | null; error: string | null }> {
+): Promise<{ content: PerformanceInsight | null; modelUsed?: string; error: string | null }> {
   const {
     platform,
     viewMode,
@@ -998,26 +998,26 @@ Input: Reach 4500/ngày, Engagement 180/ngày, Rate 4.0% → tốt (>${PLATFORM_
 Output: {
   "rating": "good",
   "evaluation": "Engagement rate 4.0% vượt chuẩn ${platform} (${PLATFORM_BENCHMARKS[platform]?.reach.good || 0}%), cho thấy nội dung đang đi đúng hướng nhưng vẫn còn khoảng cách để đạt top tier (>${PLATFORM_BENCHMARKS[platform]?.reach.excellent || 0}%).",
-  "cause": "Trên ${platform}, sự kết hợp giữa thuật toán ưu tiên nội dung giữ chân tốt và hành vi người dùng tương tác sâu giúp tăng tỷ lệ chuyển đổi tự nhiên.",
-  "action": "Thử nghiệm thêm 1 câu hỏi tương tác hoặc CTA mạnh mẽ vào bài đăng tiếp theo, đo lường sự thay đổi của engagement rate sau 7 ngày.",
-  "expectation": "Kỳ vọng tỷ lệ tương tác tăng thêm 1-2%, đưa kênh tiệm cận nhóm hiệu suất xuất sắc."
+  "cause": "Trên ${platform}, thuật toán phân phối ưu tiên giữ chân người dùng lâu kết hợp với hành động thả tim và bình luận tự nhiên giải thích trực tiếp cho mức rate 4.0% này.",
+  "expectation": "Với rate hiện tại 4.0% so với chuẩn của ${platform}, kỳ vọng rate tăng lên 4.5% trong 2 tuần tới nếu tiếp tục duy trì đà tối ưu chất lượng tương tác."
 }`
     : `Ví dụ (${platform}):
 Input: Views 12000/ngày, Interactions 480/ngày, Rate 4.0% → tốt (>${PLATFORM_BENCHMARKS[platform]?.views.good || 0}%)
 Output: {
   "rating": "good",
   "evaluation": "Interaction rate 4.0% vượt chuẩn ${platform} (${PLATFORM_BENCHMARKS[platform]?.views.good || 0}%), tuy nhiên với lượng hiển thị lớn, số lượng tương tác tuyệt đối cho thấy người dùng vẫn lướt qua khá nhiều.",
-  "cause": "Thuật toán ${platform} ưu tiên thời gian xem hết; nếu video thiếu hook giữ chân hoặc CTA thúc đẩy hành động ở 3 giây cuối, tỷ lệ chuyển đổi sẽ bị giới hạn.",
-  "action": "Thiết kế lại 3 giây đầu video với tiêu đề nổi bật và chèn CTA 'Lưu lại để áp dụng ngay', đo lường interaction rate sau 5 video tiếp theo.",
-  "expectation": "Tỷ lệ tương tác kỳ vọng tăng lên 5-6% trong vòng 2 tuần nhờ tối ưu hóa chuyển đổi từ lượt xem."
+  "cause": "Thuật toán ${platform} phân phối đề xuất mạnh dựa trên lượt xem hết 3 giây đầu khiến lượng view tăng vọt nhưng thiếu CTA giữ chân trực tiếp ở cuối giải thích tại sao tỷ lệ tương tác chỉ ở mức 4.0%.",
+  "expectation": "Dựa trên rate hiện tại 4.0% và ngưỡng chuẩn, dự phóng tỷ lệ tương tác kỳ vọng đạt 5.5% trong 2 tuần tới nếu giữ đà giữ chân người xem ở 3 giây cuối."
 }`;
 
   const systemPrompt = [
     `Bạn là AI Analyst chuyên social media, đặc biệt ${platformCtx}.`,
     'Trả về CHỈ JSON hợp lệ, không markdown, không text ngoài JSON.',
-    'Schema: {"rating":"excellent|good|average|weak","evaluation":"...","cause":"...","action":"...","expectation":"..."}',
-    'Mỗi field viết đầy đủ 1–2 câu phân tích cực kỳ sắc bén, giàu chuyên môn và đi thẳng vào số liệu thực tế, không viết chung chung sơ sài.',
-    'BẮT BUỘC: "evaluation" dùng số % thực + so ngưỡng chuẩn. "cause" nêu cơ chế thuật toán/hành vi đặc thù platform. "action" có động từ hành động cụ thể + cách đo kết quả rõ ràng. "expectation" nêu kỳ vọng kết quả đo lường được.',
+    'Schema: {"rating":"excellent|good|average|weak","evaluation":"...","cause":"...","expectation":"..."}',
+    'Mỗi field viết phân tích cực kỳ sắc bén, giàu chuyên môn và đi thẳng vào số liệu thực tế, không viết chung chung sơ sài.',
+    '"evaluation": 1-2 câu, dùng số % thực + so ngưỡng chuẩn.',
+    '"cause": 1 câu, nêu đúng 1 cơ chế thuật toán hoặc hành vi người dùng đặc thù của ' + platformCtx + ' giải thích trực tiếp tại sao rate đạt mức ' + rate + '% — phải gắn với con số thực tế, KHÔNG nêu giải pháp.',
+    '"expectation": 1 câu, dựa trên rate hiện tại ' + rate + '% và ngưỡng chuẩn của ' + platformCtx + ', dự phóng rate kỳ vọng đạt được trong 2 tuần tới nếu duy trì đà — nêu con số % cụ thể.',
     'Mọi string trên 1 dòng duy nhất. Dùng single quote bên trong text thay vì double quote.',
     'KHÔNG dùng: "đi đúng hướng", "sức hút nhất định", "tiếp tục phát huy", "Nhìn vào số liệu", "Có thể thấy rằng".',
   ].join(' ');
@@ -1035,29 +1035,26 @@ Phân tích:
   try {
     let data: any = null;
     let error: any = null;
+    let modelUsed: string = AI_AGENT_DEFAULTS.MODEL_FAST_REASONING;
 
-    try {
-      console.log('[generatePerformanceInsightAction] Attempting with MODEL_FAST_REASONING:', AI_AGENT_DEFAULTS.MODEL_FAST_REASONING);
-      const res = await groqClient.complete(
-        [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        {
-          model: AI_AGENT_DEFAULTS.MODEL_FAST_REASONING,
-          temperature: 0.3,
-          maxTokens: 500,
-        }
-      );
-      data = res.data;
-      error = res.error;
-
-      if (error || !data) {
-        throw new Error(error || 'Empty response from fast reasoning model');
+    console.log('[generatePerformanceInsightAction] Attempting with MODEL_FAST_REASONING:', AI_AGENT_DEFAULTS.MODEL_FAST_REASONING);
+    const res = await groqClient.complete(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      {
+        model: AI_AGENT_DEFAULTS.MODEL_FAST_REASONING,
+        temperature: 0.3,
+        maxTokens: 500,
       }
-    } catch (fastErr) {
-      console.warn('[generatePerformanceInsightAction] Fast reasoning model failed, falling back to MODEL_DEFAULT:', fastErr);
-      const res = await groqClient.complete(
+    );
+    data = res.data;
+    error = res.error;
+
+    if (error || !data) {
+      console.warn('[generatePerformanceInsightAction] Fast reasoning model failed, falling back to MODEL_DEFAULT:', error || 'No data from fast model');
+      const fallbackRes = await groqClient.complete(
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -1068,11 +1065,13 @@ Phân tích:
           maxTokens: 500,
         }
       );
-      data = res.data;
-      error = res.error;
+      modelUsed = AI_AGENT_DEFAULTS.MODEL_DEFAULT;
+      data = fallbackRes.data;
+      error = fallbackRes.error;
 
       if (error || !data) {
-        throw new Error(error || 'Empty response from default model');
+        console.error('[generatePerformanceInsightAction] Both models failed. Error:', error || 'Empty response from default model');
+        return { content: null, error: error || 'Empty response from AI models' };
       }
     }
 
@@ -1112,7 +1111,7 @@ Phân tích:
     // Fallback rating từ benchmark phòng model trả sai
     parsed.rating = ratingKey;
 
-    return { content: parsed, error: null };
+    return { content: parsed, modelUsed, error: null };
   } catch (err: any) {
     console.error('[generatePerformanceInsightAction] Error:', err);
     return { content: null, error: err.message || 'FAILED_TO_GENERATE_AI_INSIGHT' };
@@ -1127,7 +1126,7 @@ export async function generateFollowersInsightAction(
     netGrowth: number;
     range: string;
   }
-): Promise<{ content: PerformanceInsight | null; error: string | null }> {
+): Promise<{ content: PerformanceInsight | null; modelUsed?: string; error: string | null }> {
   const { platform, totalFollows, totalUnfollows, netGrowth, range } = params;
 
   if (totalFollows === 0 && totalUnfollows === 0) {
@@ -1157,13 +1156,15 @@ export async function generateFollowersInsightAction(
     'Yếu (Bị bỏ theo dõi nhiều hơn theo dõi mới, tăng trưởng âm)';
 
   const platformCtx = PLATFORM_CONTEXT[platform] || platform;
+  const rangeInDays = isNaN(parseInt(range)) ? 30 : (parseInt(range) || 30);
+  const dailyGrowth = (netGrowth / rangeInDays).toFixed(1);
 
   const systemPrompt = [
     `Bạn là AI Analyst chuyên phân tích biến động followers trên ${platformCtx}.`,
     'Trả về CHỈ JSON hợp lệ, không markdown, không text ngoài JSON.',
     'Schema: {"rating":"excellent|good|average|weak","evaluation":"...","expectation":"..."}',
-    `"evaluation": 3 câu. Câu 1: nêu đủ 4 số thực tế — follows (${totalFollows}), unfollows (${totalUnfollows}), tăng trưởng ròng (${netGrowth}), tỷ lệ follow/unfollow (${ratio.toFixed(2)}x) trong ${range}. Câu 2: nhận định chất lượng tăng trưởng — tỷ lệ và xu hướng nói lên điều gì về sức hút của tài khoản. Câu 3: so sánh hoặc bối cảnh — tỷ lệ này ở mức nào so với chuẩn của ${platformCtx}, hoặc điểm đáng chú ý nhất trong dữ liệu. KHÔNG giải thích nguyên nhân, KHÔNG đề xuất hành động.`,
-    `"expectation": 1 câu, kỳ vọng kết quả đo được cụ thể trong 30 ngày tới với con số rõ ràng.`,
+    `"evaluation": 2 câu. Câu 1: nhận định chất lượng tăng trưởng — tỷ lệ ${ratio.toFixed(2)}x và tăng trưởng ròng ${netGrowth} nói lên điều gì cụ thể về sức hút của tài khoản, dùng tính từ mức độ rõ ràng (mạnh/ổn định/yếu). Câu 2: tốc độ tăng trưởng ròng trung bình là ${dailyGrowth} followers/ngày — nhận định tốc độ tăng trưởng ròng đang ở mức nào, kết hợp với tỷ lệ rời bỏ ${totalFollows > 0 ? ((totalUnfollows / totalFollows) * 100).toFixed(1) : '0.0'}% phản ánh độ bền tăng trưởng; nếu có giai đoạn đột biến follows hoặc unfollows vượt đáng kể so với mức trung bình ngày thì chỉ ra biên độ cụ thể.`,
+    `"expectation": 1 câu, dựa trên tốc độ tăng trưởng ròng hiện tại ${dailyGrowth} followers/ngày và tỷ lệ follow/unfollow ${ratio.toFixed(2)}x, dự phóng tăng trưởng ròng kỳ vọng trong 30 ngày tới nếu duy trì đà hiện tại — nêu con số cụ thể và điều kiện để đạt được mức cao hơn.`,
     'Mọi string trên 1 dòng duy nhất. Dùng single quote bên trong text.',
     'KHÔNG dùng: "đi đúng hướng", "sức hút nhất định", "tiếp tục phát huy", "Nhìn vào số liệu", "Có thể thấy rằng", "nên tiếp tục".',
   ].join(' ');
@@ -1181,29 +1182,26 @@ Phân tích biến động Followers của tài khoản trên ${platform}:
   try {
     let data: any = null;
     let error: any = null;
+    let modelUsed: string = AI_AGENT_DEFAULTS.MODEL_FAST_REASONING;
 
-    try {
-      console.log('[generateFollowersInsightAction] Attempting with MODEL_FAST_REASONING:', AI_AGENT_DEFAULTS.MODEL_FAST_REASONING);
-      const res = await groqClient.complete(
-        [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        {
-          model: AI_AGENT_DEFAULTS.MODEL_FAST_REASONING,
-          temperature: 0.3,
-          maxTokens: 500,
-        }
-      );
-      data = res.data;
-      error = res.error;
-
-      if (error || !data) {
-        throw new Error(error || 'Empty response from fast reasoning model');
+    console.log('[generateFollowersInsightAction] Attempting with MODEL_FAST_REASONING:', AI_AGENT_DEFAULTS.MODEL_FAST_REASONING);
+    const res = await groqClient.complete(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      {
+        model: AI_AGENT_DEFAULTS.MODEL_FAST_REASONING,
+        temperature: 0.3,
+        maxTokens: 500,
       }
-    } catch (fastErr) {
-      console.warn('[generateFollowersInsightAction] Fast reasoning model failed, falling back to MODEL_DEFAULT:', fastErr);
-      const res = await groqClient.complete(
+    );
+    data = res.data;
+    error = res.error;
+
+    if (error || !data) {
+      console.warn('[generateFollowersInsightAction] Fast reasoning model failed, falling back to MODEL_DEFAULT:', error || 'No data from fast model');
+      const fallbackRes = await groqClient.complete(
         [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -1214,11 +1212,13 @@ Phân tích biến động Followers của tài khoản trên ${platform}:
           maxTokens: 500,
         }
       );
-      data = res.data;
-      error = res.error;
+      modelUsed = AI_AGENT_DEFAULTS.MODEL_DEFAULT;
+      data = fallbackRes.data;
+      error = fallbackRes.error;
 
       if (error || !data) {
-        throw new Error(error || 'Empty response from default model');
+        console.error('[generateFollowersInsightAction] Both models failed. Error:', error || 'Empty response from default model');
+        return { content: null, error: error || 'Empty response from AI models' };
       }
     }
 
@@ -1255,7 +1255,7 @@ Phân tích biến động Followers của tài khoản trên ${platform}:
     const parsed: PerformanceInsight = JSON.parse(cleanRaw);
     parsed.rating = ratingKey;
 
-    return { content: parsed, error: null };
+    return { content: parsed, modelUsed, error: null };
   } catch (err: any) {
     console.error('[generateFollowersInsightAction] Error:', err);
     return { content: null, error: err.message || 'FAILED_TO_GENERATE_AI_INSIGHT' };
