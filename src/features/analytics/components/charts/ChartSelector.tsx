@@ -43,7 +43,7 @@ export function ChartSelector({
   ], [isInstagram, isFollowerInsufficientData]);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-base-200/50 border border-base-content/5 p-2 rounded-2xl">
+    <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
       <SlidingTabs
         items={tabItems}
         activeValue={activeChart}

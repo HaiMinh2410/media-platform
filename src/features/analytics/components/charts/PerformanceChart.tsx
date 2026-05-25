@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Users, Eye, Sparkles, TrendingUp } from 'lucide-react';
 import { Icon } from '@shared/ui/icon';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 // --- CONSTANTS ---
 const COLOR_REACH = 'var(--color-info)';
@@ -71,38 +72,20 @@ export function PerformanceChart({
             />
             {isReachMode ? 'So sánh Tiếp cận & Tương tác' : 'So sánh Lượt hiển thị & Tương tác'}
           </h3>
-          <p className="text-base-content/40 text-xs font-medium">
-            {isReachMode 
-              ? 'Xem mối tương quan giữa số người tiếp cận (Reach) và người tương tác thực tế (Engagement)'
-              : 'Theo dõi mối quan hệ giữa tổng lượt hiển thị (Views) và tổng lượt tương tác nhận được (Interactions)'}
-          </p>
         </div>
 
         {/* VIEW SWITCHER (MINI SWITCHER) */}
-        <div className="flex bg-base-200/80 border border-base-content/5 p-1 rounded-xl relative self-start sm:self-center shrink-0">
-          <button
-            onClick={() => setViewMode('reach')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all duration-200 cursor-pointer flex items-center gap-1.5 relative z-10 ${
-              isReachMode 
-                ? 'bg-info text-info-content shadow-xs scale-[1.02]' 
-                : 'text-base-content/50 hover:text-base-content'
-            }`}
-          >
-            <Icon lucide={Users} size={12} className={isReachMode ? 'text-info-content' : 'text-info'} />
-            Theo Reach
-          </button>
-          <button
-            onClick={() => setViewMode('views')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all duration-200 cursor-pointer flex items-center gap-1.5 relative z-10 ${
-              !isReachMode 
-                ? 'bg-secondary text-secondary-content shadow-xs scale-[1.02]' 
-                : 'text-base-content/50 hover:text-base-content'
-            }`}
-          >
-            <Icon lucide={Eye} size={12} className={!isReachMode ? 'text-secondary-content' : 'text-secondary'} />
-            Theo Views
-          </button>
-        </div>
+        <SlidingTabs
+          items={[
+            { value: 'reach', label: 'Theo Reach', icon: Users, activeBgClass: 'bg-info', activeTextClass: 'text-info-content' },
+            { value: 'views', label: 'Theo Views', icon: Eye, activeBgClass: 'bg-secondary', activeTextClass: 'text-secondary-content' }
+          ]}
+          activeValue={viewMode}
+          onChange={setViewMode}
+          size="sm"
+          layoutId="performanceViewModeTab"
+          className="self-start sm:self-center shrink-0"
+        />
       </div>
 
       {/* 2. BODY CONTENT (Layout Grid 3 cột) */}

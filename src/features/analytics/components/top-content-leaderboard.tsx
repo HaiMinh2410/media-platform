@@ -110,7 +110,6 @@ export function TopContentLeaderboard({
             <tr className="border-b border-base-content/10 text-[10px] text-base-content/50 uppercase font-bold tracking-wider">
               <th className="pb-3 pl-2 w-12">Hạng</th>
               <th className="pb-3 w-48">Nội dung</th>
-              <th className="pb-3 w-28 text-center">Bối cảnh</th>
               <th className="pb-3 w-28 text-right">Lượt xem</th>
               <th className="pb-3 w-28 text-right">Tương tác</th>
               <th className="pb-3 w-24 text-right">ER%</th>
@@ -161,20 +160,6 @@ export function TopContentLeaderboard({
                         </span>
                       </div>
                     </div>
-                  </td>
-
-                  {/* Shot Location Type */}
-                  <td className="py-4 text-center">
-                    <span className={cn(
-                      "px-2.5 py-0.5 rounded-full text-[10px] font-bold border",
-                      post.locationType === 'Outdoor' 
-                        ? "bg-info/10 border-info/20 text-info"
-                        : post.locationType === 'Indoor'
-                          ? "bg-success/10 border-success/20 text-success"
-                          : "bg-warning/10 border-warning/20 text-warning"
-                    )}>
-                      {post.locationType}
-                    </span>
                   </td>
 
                   {/* Views */}

@@ -762,6 +762,43 @@ export async function getPostDeepAnalyticsAction(
       }
     }
 
+    const now = new Date();
+    const localTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+    let currentEnd = new Date(Date.UTC(
+      localTime.getUTCFullYear(),
+      localTime.getUTCMonth(),
+      localTime.getUTCDate(),
+      23, 59, 59, 999
+    ));
+    let currentStart: Date;
+    let previousStart: Date;
+    let previousEnd: Date;
+    const isAllTime = range === 'all';
+
+    if (range === 'custom' && customStart && customEnd) {
+      currentStart = new Date(customStart);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      currentEnd = new Date(customEnd);
+      currentEnd.setUTCHours(23, 59, 59, 999);
+      const diff = differenceInDays(currentEnd, currentStart) + 1;
+      previousStart = subDays(currentStart, diff);
+      previousStart.setUTCHours(0, 0, 0, 0);
+      previousEnd = subDays(currentStart, 1);
+      previousEnd.setUTCHours(23, 59, 59, 999);
+    } else if (isAllTime) {
+      currentStart = new Date(0); // Epoch start to fetch all
+      previousStart = new Date(0);
+      previousEnd = new Date(0);
+    } else {
+      const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
+      currentStart = subDays(currentEnd, days - 1);
+      currentStart.setUTCHours(0, 0, 0, 0);
+      previousStart = subDays(currentStart, days);
+      previousStart.setUTCHours(0, 0, 0, 0);
+      previousEnd = subDays(currentStart, 1);
+      previousEnd.setUTCHours(23, 59, 59, 999);
+    }
+
     // 2. Fallback to Live Redis cache if available
     let postsRaw: any[] = [];
     let snapshotsRaw: any[] = [];
@@ -787,45 +824,13 @@ export async function getPostDeepAnalyticsAction(
       }
     }
 
-    const now = new Date();
-    const localTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
-    let currentEnd = new Date(Date.UTC(
-      localTime.getUTCFullYear(),
-      localTime.getUTCMonth(),
-      localTime.getUTCDate(),
-      23, 59, 59, 999
-    ));
-    let currentStart: Date;
-    let previousStart: Date;
-    let previousEnd: Date;
-
-    if (range === 'custom' && customStart && customEnd) {
-      currentStart = new Date(customStart);
-      currentStart.setUTCHours(0, 0, 0, 0);
-      currentEnd = new Date(customEnd);
-      currentEnd.setUTCHours(23, 59, 59, 999);
-      const diff = differenceInDays(currentEnd, currentStart) + 1;
-      previousStart = subDays(currentStart, diff);
-      previousStart.setUTCHours(0, 0, 0, 0);
-      previousEnd = subDays(currentStart, 1);
-      previousEnd.setUTCHours(23, 59, 59, 999);
-    } else {
-      const days = range === '7d' ? 7 : range === '14d' ? 14 : range === '30d' ? 30 : 90;
-      currentStart = subDays(currentEnd, days - 1);
-      currentStart.setUTCHours(0, 0, 0, 0);
-      previousStart = subDays(currentStart, days);
-      previousStart.setUTCHours(0, 0, 0, 0);
-      previousEnd = subDays(currentStart, 1);
-      previousEnd.setUTCHours(23, 59, 59, 999);
-    }
-
     // 3. Fallback/Query Database
     if (!hasLiveData) {
       // Query post_analytics (filtered to posts that were posted within the current period)
       const dbPosts = await db.post_analytics.findMany({
         where: {
           account_id: accountId,
-          posted_at: { gte: currentStart, lte: currentEnd }
+          ...(isAllTime ? {} : { posted_at: { gte: currentStart, lte: currentEnd } })
         },
         orderBy: { total_interactions: 'desc' }
       });
@@ -859,7 +864,7 @@ export async function getPostDeepAnalyticsAction(
       const dbCurrentSnapshots = await db.analytics_snapshots.findMany({
         where: {
           account_id: accountId,
-          date: { gte: currentStart, lte: currentEnd }
+          ...(isAllTime ? {} : { date: { gte: currentStart, lte: currentEnd } })
         },
         orderBy: { date: 'asc' }
       });
@@ -885,8 +890,14 @@ export async function getPostDeepAnalyticsAction(
         createdAt: s.created_at
       }));
     } else {
-      // In-memory filter snapshots for current range if loaded from live cache
-      snapshotsRaw = snapshotsRaw.filter(s => s.date >= currentStart && s.date <= currentEnd);
+      // In-memory filter snapshots and posts for current range if loaded from live cache
+      if (!isAllTime) {
+        snapshotsRaw = snapshotsRaw.filter(s => s.date >= currentStart && s.date <= currentEnd);
+        postsRaw = postsRaw.filter(p => {
+          const pDate = new Date(p.postedAt);
+          return pDate >= currentStart && pDate <= currentEnd;
+        });
+      }
     }
 
     // Always query database for previous period snapshots to guarantee PoP calculations

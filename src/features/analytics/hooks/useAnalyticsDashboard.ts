@@ -71,9 +71,16 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
   const totalUnfollows = followsAndUnfollows.reduce((sum: number, d: any) => sum + (d.unfollows || 0), 0);
   const netGrowth = totalFollows - totalUnfollows;
 
+  const [isPostAllTime, setIsPostAllTime] = useState(false);
+
   const { data: deepAnalyticsResult, isPending: isDeepAnalyticsLoading } = useQuery({
-    queryKey: ['post-deep-analytics', selectedAccountId, range, customStart, customEnd],
-    queryFn: () => getPostDeepAnalyticsAction(selectedAccountId, range, cStart, cEnd),
+    queryKey: ['post-deep-analytics', selectedAccountId, isPostAllTime ? 'all' : range, isPostAllTime ? undefined : customStart, isPostAllTime ? undefined : customEnd],
+    queryFn: () => getPostDeepAnalyticsAction(
+      selectedAccountId, 
+      isPostAllTime ? 'all' : range, 
+      isPostAllTime ? undefined : cStart, 
+      isPostAllTime ? undefined : cEnd
+    ),
     staleTime: 5 * 60 * 1000,
     enabled: !!selectedAccountId,
   });
@@ -450,6 +457,8 @@ export function useAnalyticsDashboard({ initialData, accounts }: UseAnalyticsDas
     setActiveChart,
     isSyncing,
     syncType,
+    isPostAllTime,
+    setIsPostAllTime,
     selectedPostForDetail,
     setSelectedPostForDetail,
     isPending,

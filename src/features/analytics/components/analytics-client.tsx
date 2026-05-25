@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { 
-  BarChart3, Layers, Bot, Users
+  BarChart3, Layers, Bot, Users, Calendar, Globe
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { SlidingTabs } from '@shared/ui/sliding-tabs';
@@ -48,6 +48,8 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
     setActiveChart,
     isSyncing,
     syncType,
+    isPostAllTime,
+    setIsPostAllTime,
     selectedPostForDetail,
     setSelectedPostForDetail,
     isPending,
@@ -192,12 +194,14 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
           <div className="grid grid-cols-1 gap-6 mb-6">
             <PostChartsDashboard 
               accountId={selectedAccountId}
-              range={range}
-              customStart={cStart}
-              customEnd={cEnd}
+              range={isPostAllTime ? 'all' : range}
+              customStart={isPostAllTime ? undefined : cStart}
+              customEnd={isPostAllTime ? undefined : cEnd}
               data={deepAnalyticsData}
               isLoading={isDeepAnalyticsLoading}
               insufficientData={data?.data?.current[data?.data?.current?.length - 1]?.insufficientData ?? false}
+              isPostAllTime={isPostAllTime}
+              setIsPostAllTime={setIsPostAllTime}
             />
 
             <TopContentLeaderboard 

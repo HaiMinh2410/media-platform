@@ -20,12 +20,6 @@ export interface MediaDistributionItem {
   value: number;
 }
 
-export interface LocationPerformanceItem {
-  name: string;
-  avgViews: number;
-  avgInteractions: number;
-}
-
 export interface HeatmapItem {
   day: number;
   hour: number;
@@ -76,7 +70,6 @@ export interface LeaderboardPostItem {
   follows: number;
   postedAt: string;
   er: number;
-  locationType: 'Outdoor' | 'Indoor' | 'Studio Shot';
   sparkline: number[];
 }
 
@@ -85,7 +78,6 @@ export interface PostDeepAnalyticsData {
   mom: MoMMetric[];
   contentType: {
     mediaDistribution: MediaDistributionItem[];
-    locationTypePerformance: LocationPerformanceItem[];
   };
   bestTime: HeatmapItem[];
   scatter: ScatterPoint[];
@@ -94,48 +86,7 @@ export interface PostDeepAnalyticsData {
   leaderboard: LeaderboardPostItem[];
 }
 
-/**
- * Classifies post shot type based on caption keywords with a deterministic fallback hash.
- */
-export function classifyPostShotType(caption: string | null, postId: string): 'Outdoor' | 'Indoor' | 'Studio Shot' {
-  if (!caption) {
-    return fallbackHash(postId);
-  }
-  
-  const cap = caption.toLowerCase();
-  
-  const outdoorKeywords = [
-    'outdoor', 'dã ngoại', 'ngoài trời', 'nature', 'phượt', 'travel', 
-    'du lịch', 'biển', 'núi', 'streetwear', 'streetstyle', 'công viên', 'phố', 'đường'
-  ];
-  
-  const indoorKeywords = [
-    'indoor', 'trong nhà', 'home', 'cozy', 'nhà riêng', 'phòng ngủ', 
-    'living room', 'bếp', 'kitchen', 'cà phê', 'cafe', 'quán', 'phòng khách'
-  ];
-  
-  const studioKeywords = [
-    'studio', 'phòng chụp', 'photoshoot', 'concept', 'phông nền', 
-    'set quay', 'background', 'chụp ảnh', 'nghệ thuật', 'lighting', 'flash'
-  ];
-
-  if (outdoorKeywords.some(keyword => cap.includes(keyword))) return 'Outdoor';
-  if (indoorKeywords.some(keyword => cap.includes(keyword))) return 'Indoor';
-  if (studioKeywords.some(keyword => cap.includes(keyword))) return 'Studio Shot';
-
-  return fallbackHash(postId);
-}
-
-function fallbackHash(postId: string): 'Outdoor' | 'Indoor' | 'Studio Shot' {
-  let hash = 0;
-  for (let i = 0; i < postId.length; i++) {
-    hash = postId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % 10;
-  if (index < 3.5) return 'Outdoor';
-  if (index < 7) return 'Indoor';
-  return 'Studio Shot';
-}
+// Location classification logic has been removed.
 
 /**
  * Generates a stable, natural 7-day cumulative interaction sparkline curve.
@@ -206,13 +157,8 @@ export function buildDeepAnalytics(
     { metric: 'Followers Growth', current: currentFollows || currentFollowersGrowth, previous: prevFollows || prevFollowersGrowth, growth: calcGrowth(currentFollows || currentFollowersGrowth, prevFollows || prevFollowersGrowth) }
   ];
 
-  // 3. Content Type & Location Breakdown
+  // 3. Content Type Breakdown
   const mediaCount: Record<string, number> = { IMAGE: 0, CAROUSEL_ALBUM: 0, VIDEO: 0, REELS: 0 };
-  const locationStats: Record<'Outdoor' | 'Indoor' | 'Studio Shot', { count: number; views: number; interactions: number }> = {
-    'Outdoor': { count: 0, views: 0, interactions: 0 },
-    'Indoor': { count: 0, views: 0, interactions: 0 },
-    'Studio Shot': { count: 0, views: 0, interactions: 0 }
-  };
 
   posts.forEach(p => {
     const type = p.mediaType?.toUpperCase() || 'IMAGE';
@@ -223,11 +169,6 @@ export function buildDeepAnalytics(
     } else {
       mediaCount['IMAGE']++;
     }
-
-    const locType = classifyPostShotType(p.caption, p.postId);
-    locationStats[locType].count++;
-    locationStats[locType].views += (p.views || p.reach || 0);
-    locationStats[locType].interactions += (p.totalInteractions || 0);
   });
 
   const mediaDistribution: MediaDistributionItem[] = Object.entries(mediaCount).map(([name, value]) => ({
@@ -239,12 +180,6 @@ export function buildDeepAnalytics(
   if (mediaDistribution.length === 0) {
     mediaDistribution.push({ name: 'Single Image', value: 0 });
   }
-
-  const locationTypePerformance: LocationPerformanceItem[] = Object.entries(locationStats).map(([name, stats]) => ({
-    name,
-    avgViews: stats.count > 0 ? Math.round(stats.views / stats.count) : 0,
-    avgInteractions: stats.count > 0 ? Math.round(stats.interactions / stats.count) : 0
-  }));
 
   // 4. Best Time to Post Heatmap Matrix
   const heatmapMap = new Map<string, HeatmapItem>();
@@ -347,12 +282,11 @@ export function buildDeepAnalytics(
     total: totalFollowsNew
   });
 
-  // 8. Leaderboard mapping (Top 10 sorted by interactions, complete with locations & sparklines)
+  // 8. Leaderboard mapping (Top 10 sorted by interactions, complete with sparklines)
   const sortedByInteractions = [...posts].sort((a, b) => b.totalInteractions - a.totalInteractions);
   const leaderboard: LeaderboardPostItem[] = sortedByInteractions.slice(0, 10).map(p => {
     const reachVal = p.reach || 1;
     const er = Number(((p.totalInteractions / reachVal) * 100).toFixed(2));
-    const locationType = classifyPostShotType(p.caption, p.postId);
     const sparkline = generateSparkline(p.totalInteractions, p.postedAt, p.postId);
 
     return {
@@ -373,7 +307,6 @@ export function buildDeepAnalytics(
       follows: p.follows || 0,
       postedAt: p.postedAt ? (p.postedAt instanceof Date ? p.postedAt.toISOString() : new Date(p.postedAt).toISOString()) : new Date().toISOString(),
       er,
-      locationType,
       sparkline
     };
   });
@@ -382,8 +315,7 @@ export function buildDeepAnalytics(
     performance,
     mom,
     contentType: {
-      mediaDistribution,
-      locationTypePerformance
+      mediaDistribution
     },
     bestTime,
     scatter,

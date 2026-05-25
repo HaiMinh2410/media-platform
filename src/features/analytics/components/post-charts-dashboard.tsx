@@ -29,6 +29,8 @@ interface PostChartsDashboardProps {
   data: PostDeepAnalyticsData | null;
   isLoading?: boolean;
   insufficientData?: boolean;
+  isPostAllTime: boolean;
+  setIsPostAllTime: (val: boolean) => void;
 }
 
 type TabType = 'distribution' | 'follows' | 'engagement-frequency';
@@ -40,7 +42,9 @@ export function PostChartsDashboard({
   customEnd,
   data,
   isLoading = false,
-  insufficientData = false
+  insufficientData = false,
+  isPostAllTime,
+  setIsPostAllTime
 }: PostChartsDashboardProps) {
   const [mounted, setMounted] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<TabType>('distribution');
@@ -94,11 +98,22 @@ export function PostChartsDashboard({
       {/* Header and Switcher */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-accent animate-pulse" />
-            <h2 className="text-xl font-bold text-base-content tracking-tight">Thống kê Nội dung Nâng cao</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-base-content tracking-tight">Thống kê Nội dung Nâng cao</h2>
+            </div>
+            
+            {/* Minimal Checkbox Selector */}
+            <label className="flex items-end gap-1.5 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                checked={isPostAllTime}
+                onChange={(e) => setIsPostAllTime(e.target.checked)}
+                className="checkbox checkbox-sm rounded-sm border-primary/80 bg-primary/30 checked:border-success checked:bg-success checked:text-forground"
+              />
+              <span className="text-sm font-semibold text-base-content/50 tracking-wider">All time</span>
+            </label>
           </div>
-          <p className="text-xs text-base-content/50 mt-1 font-medium">Phân tích sâu hiệu suất bài đăng, xu hướng tương tác và phễu chuyển đổi</p>
         </div>
 
         {/* Bento Switcher Tabs */}
