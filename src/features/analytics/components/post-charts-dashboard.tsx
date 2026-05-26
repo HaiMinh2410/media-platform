@@ -17,8 +17,7 @@ import type { AnalyticsRange } from '@features/analytics/types';
 import { DistributionTab } from './post-charts/DistributionTab';
 import { FollowsTab } from './post-charts/FollowsTab';
 import { PostChartsSkeleton } from './post-charts/PostChartsSkeleton';
-import { EngagementBreakdownChart } from './engagement-breakdown-chart';
-import { PostFrequencyChart } from './post-frequency-chart';
+import { EngagementFrequencyTab } from './post-charts/EngagementFrequencyTab';
 import { InsufficientDataState } from './dashboard-states';
 
 interface PostChartsDashboardProps {
@@ -73,20 +72,7 @@ export function PostChartsDashboard({
         return insufficientData ? (
           <InsufficientDataState />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <EngagementBreakdownChart 
-              accountId={accountId} 
-              range={range} 
-              customStart={customStart} 
-              customEnd={customEnd} 
-            />
-            <PostFrequencyChart 
-              accountId={accountId} 
-              range={range} 
-              customStart={customStart} 
-              customEnd={customEnd} 
-            />
-          </div>
+          <EngagementFrequencyTab data={data} />
         );
       default:
         return null;
@@ -128,7 +114,7 @@ export function PostChartsDashboard({
       </div>
 
       {/* Main Content Area with Transitions */}
-      <div className="min-h-[480px] transition-all duration-300">
+      <div>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

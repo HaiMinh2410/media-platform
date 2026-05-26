@@ -24,6 +24,7 @@ const COLORS = ['var(--color-info)', 'var(--color-secondary)', 'var(--color-acce
 
 export function FollowsTab({ data }: FollowsTabProps) {
   const numberFormatter = (val: number) => {
+    if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M`;
     if (val >= 1000) return `${(val / 1000).toFixed(1)}K`;
     return val.toString();
   };
@@ -75,15 +76,15 @@ export function FollowsTab({ data }: FollowsTabProps) {
   }, [data.waterfall]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 divide-x divide-base-content/5 border-t border-base-content/5 p-5">
       {/* 1. Follower Growth Attribution (Waterfall Chart - Col span 2) */}
-      <div className="lg:col-span-2 bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
+      <div className="lg:col-span-8 pr-5 flex flex-col justify-between">
         <div>
-          <h3 className="text-sm font-bold text-base-content">Đóng góp Lượt Theo Dõi mới</h3>
-          <p className="text-[11px] text-base-content/50 font-medium">Biểu đồ thác nước (Waterfall) đóng góp Follows mới của từng bài viết dẫn đầu</p>
+          <h3 className="font-bold text-base-content">Đóng góp Lượt Theo Dõi mới</h3>
+          <p className="text-xs text-base-content/50 font-medium mt-0.5">Biểu đồ thác nước (Waterfall) đóng góp Follows mới của từng bài viết dẫn đầu</p>
         </div>
 
-        <div className="h-[280px] w-full mt-6 text-base-content/70">
+        <div className="h-[300px] w-full mt-6 text-base-content/70">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={waterfallData}
@@ -109,6 +110,12 @@ export function FollowsTab({ data }: FollowsTabProps) {
                 tickFormatter={numberFormatter}
               />
               <SafeTooltip
+                cursor={{ 
+                  fill: 'transparent', 
+                  stroke: 'var(--color-primary)', 
+                  strokeWidth: 1.5, 
+                  strokeOpacity: 0.25
+                }}
                 content={({ active, payload }: any) => {
                   if (active && payload && payload.length) {
                     const name = payload[0].payload.name;
@@ -137,7 +144,7 @@ export function FollowsTab({ data }: FollowsTabProps) {
                                 {item.caption || name}
                               </div>
                               <div className="flex items-center gap-1.5 mt-1.5">
-                                <span className="text-[10px] text-base-content/50 font-bold uppercase tracking-wider font-mono">
+                                <span className="text-xs text-base-content/50 font-bold uppercase tracking-wider font-mono">
                                   {label}
                                 </span>
                                 <span className="text-xs font-black font-mono text-accent">
@@ -153,7 +160,7 @@ export function FollowsTab({ data }: FollowsTabProps) {
                                 {name}
                               </span>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] text-base-content/50 font-bold uppercase tracking-wider font-mono">
+                                <span className="text-2xs text-base-content/50 font-bold uppercase tracking-wider font-mono">
                                   {label}
                                 </span>
                                 <span className={cn(
@@ -186,32 +193,45 @@ export function FollowsTab({ data }: FollowsTabProps) {
           </ResponsiveContainer>
         </div>
 
-        <div className="text-[10px] text-base-content/70 border border-base-content/5 bg-base-100 rounded-xl p-2.5 text-center font-medium shadow-xs">
+        <div className="text-xs text-base-content/70 text-center font-medium mt-3">
           Tổng số lượng follower mang lại từ bài viết trong kỳ: <span className="font-bold text-base-content font-mono">+{data.waterfall[data.waterfall.length - 1]?.total} Follows</span>
         </div>
       </div>
 
       {/* 2. Audience Retention Conversion Funnel */}
-      <div className="bg-base-200/50 border border-base-content/5 rounded-2xl p-5 flex flex-col justify-between shadow-sm">
+      <div className="lg:col-span-4 pl-5 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-base-content">Phễu Chuyển Đổi Khán Giả</h3>
-            <Layers className="w-4 h-4 text-accent" />
+            <h3 className="font-bold text-base-content">Phễu Chuyển Đổi Khán Giả</h3>
+            <div className="relative group/funnel-info">
+              <Layers className="w-4 h-4 text-accent cursor-help hover:scale-110 transition-transform duration-200" />
+              {/* Custom Tooltip HUD */}
+              <div className="absolute right-0 top-6 hidden group-hover/funnel-info:block z-50 bg-base-100/95 border border-base-content/10 p-3 rounded-xl text-xs text-base-content shadow-2xl w-[300px] pointer-events-none backdrop-blur-md transition-all duration-200 animate-in fade-in slide-in-from-top-1">
+                <p className="font-extrabold text-accent uppercase tracking-wider mb-1.5 font-mono">Cách phễu hoạt động</p>
+                <p className="leading-relaxed font-semibold text-base-content/80">
+                  Phễu theo dõi hành trình khán giả từ lúc <span className="font-bold text-primary">Tiếp cận</span> → xem nội dung nhiều lần → <span className="font-bold text-primary">Tương tác</span> → ghé thăm trang cá nhân → nhấn <span className="font-bold text-success">Theo dõi</span>.
+                </p>
+                <div className="border-t border-base-content/5 mt-2 pt-2 space-y-1 text-base-content/60 font-bold leading-relaxed">
+                  <p>• <span className="text-accent font-extrabold font-mono">Tần suất xem (Ví dụ: 2.75x)</span>: Số lượt xem trung bình của mỗi người tiếp cận.</p>
+                  <p>• <span className="text-accent font-extrabold font-mono">Tỉ lệ chuyển đổi (Ví dụ: 20.4%)</span>: Tỉ lệ người quyết định bấm Theo dõi sau khi ghé thăm trang cá nhân.</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="text-[11px] text-base-content/50 font-medium">Tỉ lệ rớt của hành động: Reach → Follower mới</p>
+          <p className="text-xs text-base-content/50 font-medium mt-0.5">Tỉ lệ rớt của hành động: Reach → Follower mới</p>
         </div>
 
         {/* Funnel list layout */}
         <div className="space-y-3.5 my-4 flex-1 flex flex-col justify-center">
           {data.funnel.map((f, idx) => {
-            const widthVal = `${f.percentage}%`;
+            const widthVal = `${f.barWidth}%`;
             return (
               <div key={idx} className="relative">
-                <div className="flex items-center justify-between text-[10px] font-bold text-base-content/60 mb-1 px-1 relative z-10">
+                <div className="flex items-center justify-between text-xs font-semibold text-base-content/60 mb-1 px-1 relative z-10">
                   <span className="truncate max-w-[120px]">{f.stage}</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-base-content font-mono">{numberFormatter(f.value)}</span>
-                    <span className="text-accent font-mono font-extrabold">({f.percentage}%)</span>
+                    <span className="text-accent font-mono font-bold">({f.percentage})</span>
                   </div>
                 </div>
 
@@ -225,7 +245,7 @@ export function FollowsTab({ data }: FollowsTabProps) {
                       "h-full rounded-full shadow-md",
                       idx === 0 
                         ? "bg-linear-to-r from-info to-primary" 
-                        : idx === 5 
+                        : idx === data.funnel.length - 1 
                           ? "bg-linear-to-r from-success to-teal-500" 
                           : "bg-linear-to-r from-secondary to-accent"
                     )}
@@ -234,11 +254,6 @@ export function FollowsTab({ data }: FollowsTabProps) {
               </div>
             );
           })}
-        </div>
-
-        <div className="text-[10px] text-base-content/70 border border-base-content/5 bg-base-100 rounded-xl p-2.5 flex items-start gap-2 shadow-xs">
-          <Sparkles className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
-          <span className="font-semibold leading-relaxed">Tỷ lệ New Followers / Reach thể hiện sức hút giữ chân khán giả trung thực của kênh.</span>
         </div>
       </div>
     </div>

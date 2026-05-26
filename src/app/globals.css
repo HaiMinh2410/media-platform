@@ -11,7 +11,8 @@
   --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
 
   /* Font Sizes - Only define non-standard sizes if absolutely necessary */
-  --font-size-2xs: 9px;
+  --text-2xs: 10px;
+  --text-3xs: 9px;
   /* Use standard tailwind sizes: xs(12), sm(14), base(16), lg(18), xl(20), 2xl(24), 3xl(30), 4xl(36) */
 
   /* Colors - Map to daisyUI variables */

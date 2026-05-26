@@ -751,7 +751,7 @@ export async function getPostDeepAnalyticsAction(
       ? `custom_${new Date(customStart).toISOString().split('T')[0]}_${new Date(customEnd).toISOString().split('T')[0]}`
       : range;
 
-    const cacheKey = `post_deep_analytics_cache_v2:${accountId}:${rangeSuffix}`;
+    const cacheKey = `post_deep_analytics_cache_v4:${accountId}:${rangeSuffix}`;
     
     // 1. Check Redis deep cache first
     if (redisConnection) {
