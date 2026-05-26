@@ -132,7 +132,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       </div>
 
       {deferredActiveTab === "ai" ? (
-        <AIInsightsSection />
+        <AIInsightsSection range={range} />
       ) : deferredActiveTab === "content" ? (
         <ContentInsightsSection
           accountId={selectedAccountId}

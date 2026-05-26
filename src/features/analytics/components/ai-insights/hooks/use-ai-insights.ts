@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 
-export function useAIInsights() {
+export function useAIInsights(range?: string) {
   const [mounted, setMounted] = useState(false);
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('7d');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFanType, setSelectedFanType] = useState<string>('All');
   
@@ -14,7 +13,9 @@ export function useAIInsights() {
   const fetchMetrics = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/ai-agent/metrics');
+      // Truyền range làm query parameter để API có thể hỗ trợ lọc trong tương lai
+      const url = range ? `/api/ai-agent/metrics?range=${range}` : '/api/ai-agent/metrics';
+      const res = await fetch(url);
       if (!res.ok) {
         console.error(`❌ AI Metrics API returned ${res.status}`);
         return;
@@ -30,10 +31,17 @@ export function useAIInsights() {
     }
   };
 
+  // Mount component lần đầu
   useEffect(() => {
     setMounted(true);
-    fetchMetrics();
   }, []);
+
+  // Fetch dữ liệu mỗi khi component đã mounted hoặc range thay đổi từ Header global
+  useEffect(() => {
+    if (mounted) {
+      fetchMetrics();
+    }
+  }, [mounted, range]);
 
   // Lọc kịch bản
   const filteredScripts = data?.topScripts 
@@ -46,8 +54,6 @@ export function useAIInsights() {
 
   return {
     mounted,
-    timeRange,
-    setTimeRange,
     searchQuery,
     setSearchQuery,
     selectedFanType,

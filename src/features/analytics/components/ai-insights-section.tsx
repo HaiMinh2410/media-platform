@@ -5,7 +5,6 @@ import React from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useAIInsights } from './ai-insights/hooks/use-ai-insights';
 import { AIInsightsSkeleton } from './ai-insights/components/ai-insights-skeleton';
-import { AIInsightsHeader } from './ai-insights/components/ai-insights-header';
 import { AIInsightsWidgets } from './ai-insights/components/ai-insights-widgets';
 import { FanDistributionChart } from './ai-insights/components/fan-distribution-chart';
 import { ConversionTrendChart } from './ai-insights/components/conversion-trend-chart';
@@ -13,20 +12,21 @@ import { ABTestingPerformance } from './ai-insights/components/ab-testing-perfor
 import { EngagementFunnel } from './ai-insights/components/engagement-funnel';
 import { ScriptsPerformanceTable } from './ai-insights/components/scripts-performance-table';
 
-export function AIInsightsSection() {
+interface AIInsightsSectionProps {
+  range?: string;
+}
+
+export function AIInsightsSection({ range }: AIInsightsSectionProps) {
   const {
     mounted,
-    timeRange,
-    setTimeRange,
     searchQuery,
     setSearchQuery,
     selectedFanType,
     setSelectedFanType,
     data,
     loading,
-    fetchMetrics,
     filteredScripts
-  } = useAIInsights();
+  } = useAIInsights(range);
 
   if (!mounted) {
     return (
@@ -44,14 +44,8 @@ export function AIInsightsSection() {
   const { widgets, distribution, history, abTest } = data;
 
   return (
-    <div className="space-y-6 select-none">
-      {/* HEADER SECTION */}
-      <AIInsightsHeader
-        timeRange={timeRange}
-        setTimeRange={setTimeRange}
-        fetchMetrics={fetchMetrics}
-      />
-
+    <div className="space-y-6 select-none animate-in fade-in duration-500">
+      
       {/* QUICK STATUS WIDGETS GRID */}
       <AIInsightsWidgets widgets={widgets} />
 
