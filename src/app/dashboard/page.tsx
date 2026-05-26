@@ -10,7 +10,6 @@ import {
   getInboxMetrics, 
   getAISummary 
 } from '@features/dashboard/actions/dashboard.actions';
-import { StatsStrip } from '@features/dashboard/components/stats-strip';
 import { AccountHealthGrid } from '@features/dashboard/components/account-health-grid';
 import { SectionTitle } from '@features/dashboard/components/section-title';
 import { InboxMetricsCard } from '@features/dashboard/components/inbox-metrics-card';
@@ -68,18 +67,12 @@ async function DashboardContent({ workspaceId, workspaceName }: { workspaceId: s
   return (
     <div className="min-h-screen bg-base-200 flex flex-col">
       {/* 4.5 — Stats Strip (Outside padding container) */}
-      <ErrorBoundary name="Stats Strip">
-        <StatsStrip stats={stats} />
-      </ErrorBoundary>
+
 
       <div className="p-6 xl:p-7 pb-12 xl:pb-16 space-y-8 max-w-[1600px] mx-auto w-full">
 
-        {/* Section 1: Account Health Command Center */}
-        <section className="space-y-4">
-          <ErrorBoundary fallback={<SectionError title="Account Health" />}>
-            <AccountHealthGrid accounts={healthData} />
-          </ErrorBoundary>
-        </section>
+        {/* Section 1: Stats & Account Health Command Center (Bento Grid 4-8) */}
+        <AccountHealthGrid accounts={healthData} stats={stats} />
 
         {/* Section 2 + 3: Two-column layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

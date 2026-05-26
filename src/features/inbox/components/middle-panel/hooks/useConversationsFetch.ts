@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { ConversationWithLastMessage } from '@features/inbox/types';
 import { useInboxStore } from '../../../store/inbox.store';
@@ -33,6 +33,8 @@ export function useConversationsFetch({ workspaceId }: UseConversationsFetchProp
 
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const accountId = searchParams ? searchParams.get('account') || undefined : undefined;
   const activeIdRef = useRef(params?.id as string | undefined);
 
   const {
@@ -93,6 +95,7 @@ export function useConversationsFetch({ workspaceId }: UseConversationsFetchProp
 
       if (selectedGroupId) url.searchParams.set('groupId', selectedGroupId);
       if (platform !== 'all') url.searchParams.set('platform', platform);
+      if (accountId) url.searchParams.set('accountId', accountId);
 
       if (filterBy === 'unread') {
         url.searchParams.set('unread', 'true');
@@ -117,7 +120,7 @@ export function useConversationsFetch({ workspaceId }: UseConversationsFetchProp
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, searchQuery, filterBy, sortField, sortOrder, platform, segmentFilter, selectedGroupId]);
+  }, [workspaceId, searchQuery, filterBy, sortField, sortOrder, platform, segmentFilter, selectedGroupId, accountId]);
 
   useEffect(() => {
     fetchRef.current = () => fetchConversations(null, true);

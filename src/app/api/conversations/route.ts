@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
     const unread = searchParams.get('unread') === 'true';
     const groupId = searchParams.get('groupId') || undefined;
     const tag = searchParams.get('tag') || undefined;
+    const accountId = searchParams.get('accountId') || undefined;
     const cursor = searchParams.get('cursor') || undefined;
 
     const limit = parseInt(searchParams.get('limit') || '20', 10);
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
       search,
       unread: unread ? true : undefined,
       tag,
+      accountId,
     };
 
     const pagination: PaginationParams = {

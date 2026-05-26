@@ -1,7 +1,7 @@
-'use server'
+"use server";
 
-import { db } from '@shared/lib/db';
-import { getPlatformAccountRepository } from '@features/settings/server';
+import { db } from "@shared/lib/db";
+import { getPlatformAccountRepository } from "@features/settings/server";
 
 /**
  * Fetches overview stats for the dashboard strip.
@@ -10,16 +10,16 @@ export async function getDashboardStats(workspaceId: string) {
   const now = new Date();
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);
-  
+
   const startOfYesterday = new Date(startOfToday);
   startOfYesterday.setDate(startOfToday.getDate() - 1);
-  
+
   const endOfYesterday = new Date(startOfToday);
 
   // Get active platform user IDs for this workspace to filter webhooks
   const activeAccounts = await db.platformAccount.findMany({
     where: { workspaceId, disconnected_at: null },
-    select: { platform_user_id: true }
+    select: { platform_user_id: true },
   });
   const platformUserIds = activeAccounts.map((a: any) => a.platform_user_id);
 
@@ -31,61 +31,61 @@ export async function getDashboardStats(workspaceId: string) {
     convosYesterday,
     webhooksToday,
     webhooksYesterday,
-    newAccountsThisWeek
+    newAccountsThisWeek,
   ] = await Promise.all([
     // Connected Accounts (Current)
     db.platformAccount.count({
-      where: { workspaceId, disconnected_at: null }
+      where: { workspaceId, disconnected_at: null },
     }),
     // Total Messages Today
     db.message.count({
-      where: { 
+      where: {
         conversation: { platform_accounts: { workspaceId } },
-        createdAt: { gte: startOfToday }
-      }
+        createdAt: { gte: startOfToday },
+      },
     }),
     // Total Messages Yesterday
     db.message.count({
-      where: { 
+      where: {
         conversation: { platform_accounts: { workspaceId } },
-        createdAt: { gte: startOfYesterday, lt: endOfYesterday }
-      }
+        createdAt: { gte: startOfYesterday, lt: endOfYesterday },
+      },
     }),
     // Conversations Today (Active)
     db.conversation.count({
       where: {
         platform_accounts: { workspaceId },
-        lastMessageAt: { gte: startOfToday }
-      }
+        lastMessageAt: { gte: startOfToday },
+      },
     }),
     // Conversations Yesterday
     db.conversation.count({
       where: {
         platform_accounts: { workspaceId },
-        lastMessageAt: { gte: startOfYesterday, lt: endOfYesterday }
-      }
+        lastMessageAt: { gte: startOfYesterday, lt: endOfYesterday },
+      },
     }),
     // Webhook Events Today
     db.webhookEvent.count({
-      where: { 
+      where: {
         receivedAt: { gte: startOfToday },
-        externalPageId: { in: platformUserIds }
-      }
+        externalPageId: { in: platformUserIds },
+      },
     }),
     // Webhook Events Yesterday
     db.webhookEvent.count({
-      where: { 
+      where: {
         receivedAt: { gte: startOfYesterday, lt: endOfYesterday },
-        externalPageId: { in: platformUserIds }
-      }
+        externalPageId: { in: platformUserIds },
+      },
     }),
     // New Accounts This Week
     db.platformAccount.count({
       where: {
         workspaceId,
-        created_at: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-      }
-    })
+        created_at: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+      },
+    }),
   ]);
 
   const calculateTrend = (today: number, yesterday: number) => {
@@ -98,32 +98,49 @@ export async function getDashboardStats(workspaceId: string) {
   return {
     connected: {
       value: connectedTotal,
-      trend: `↑ ${newAccountsThisWeek} new this week`,
-      isPositive: true
+      trend: "",
+      isPositive: true,
+    },
+    conversations: {
+      value: convosToday,
+      trend: "",
+      isPositive: true,
     },
     messages: {
       value: messagesToday,
       trend: `${calculateTrend(messagesToday, messagesYesterday)}% vs yesterday`,
-      isPositive: messagesToday >= messagesYesterday
+      isPositive: messagesToday >= messagesYesterday,
     },
-    conversations: {
-      value: convosToday,
-      trend: `↑ ${convosToday} active now`,
-      isPositive: true
-    },
+
     webhooks: {
       value: webhooksToday,
       trend: `${calculateTrend(webhooksToday, webhooksYesterday)}% vs yesterday`,
-      isPositive: webhooksToday >= webhooksYesterday
-    }
+      isPositive: webhooksToday >= webhooksYesterday,
+    },
   };
 }
 
 export interface AISummary {
-  timeSaved: { value: string; trend: string; trendDirection: 'up' | 'stable' | 'down' };
-  satisfaction: { value: string; trend: string; trendDirection: 'up' | 'stable' | 'down' };
-  messagesProcessed: { value: number; trend: string; trendDirection: 'up' | 'stable' | 'down' };
-  avgResponseTime: { value: string; trend: string; trendDirection: 'up' | 'stable' | 'down' };
+  timeSaved: {
+    value: string;
+    trend: string;
+    trendDirection: "up" | "stable" | "down";
+  };
+  satisfaction: {
+    value: string;
+    trend: string;
+    trendDirection: "up" | "stable" | "down";
+  };
+  messagesProcessed: {
+    value: number;
+    trend: string;
+    trendDirection: "up" | "stable" | "down";
+  };
+  avgResponseTime: {
+    value: string;
+    trend: string;
+    trendDirection: "up" | "stable" | "down";
+  };
 }
 
 /**
@@ -133,10 +150,10 @@ export async function getAISummary(workspaceId: string): Promise<AISummary> {
   const now = new Date();
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);
-  
+
   const startOfYesterday = new Date(startOfToday);
   startOfYesterday.setDate(startOfToday.getDate() - 1);
-  
+
   const endOfYesterday = new Date(startOfToday);
 
   // 1. AI Handled Messages (Processed)
@@ -144,15 +161,15 @@ export async function getAISummary(workspaceId: string): Promise<AISummary> {
     db.aIReplyLog.count({
       where: {
         message: { conversation: { platform_accounts: { workspaceId } } },
-        created_at: { gte: startOfToday }
-      }
+        created_at: { gte: startOfToday },
+      },
     }),
     db.aIReplyLog.count({
       where: {
         message: { conversation: { platform_accounts: { workspaceId } } },
-        created_at: { gte: startOfYesterday, lt: endOfYesterday }
-      }
-    })
+        created_at: { gte: startOfYesterday, lt: endOfYesterday },
+      },
+    }),
   ]);
 
   // 2. Avg Response Time (Latency)
@@ -161,18 +178,18 @@ export async function getAISummary(workspaceId: string): Promise<AISummary> {
       where: {
         message: { conversation: { platform_accounts: { workspaceId } } },
         created_at: { gte: startOfToday },
-        latencyMs: { not: null }
+        latencyMs: { not: null },
       },
-      _avg: { latencyMs: true }
+      _avg: { latencyMs: true },
     }),
     db.aIReplyLog.aggregate({
       where: {
         message: { conversation: { platform_accounts: { workspaceId } } },
         created_at: { gte: startOfYesterday, lt: endOfYesterday },
-        latencyMs: { not: null }
+        latencyMs: { not: null },
       },
-      _avg: { latencyMs: true }
-    })
+      _avg: { latencyMs: true },
+    }),
   ]);
 
   // Calculations
@@ -182,45 +199,57 @@ export async function getAISummary(workspaceId: string): Promise<AISummary> {
 
   const avgLatencyToday = (latencyToday._avg.latencyMs || 0) / 1000; // seconds
   const avgLatencyYesterday = (latencyYesterday._avg.latencyMs || 0) / 1000;
-  
-  const messagesTrend = aiYesterday === 0 ? (aiToday > 0 ? 100 : 0) : Math.round(((aiToday - aiYesterday) / aiYesterday) * 100);
+
+  const messagesTrend =
+    aiYesterday === 0
+      ? aiToday > 0
+        ? 100
+        : 0
+      : Math.round(((aiToday - aiYesterday) / aiYesterday) * 100);
 
   return {
     timeSaved: {
       value: `${timeSavedVal.toFixed(1)}h`,
-      trend: `${timeSavedDiff >= 0 ? '↑' : '↓'} ${Math.abs(timeSavedDiff).toFixed(1)}h`,
-      trendDirection: timeSavedDiff > 0 ? 'up' : timeSavedDiff < 0 ? 'down' : 'stable'
+      trend: `${timeSavedDiff >= 0 ? "↑" : "↓"} ${Math.abs(timeSavedDiff).toFixed(1)}h`,
+      trendDirection:
+        timeSavedDiff > 0 ? "up" : timeSavedDiff < 0 ? "down" : "stable",
     },
     satisfaction: {
-      value: '85%', // Derived from AIAgentMetric.satisfaction_score if available, else placeholder
-      trend: '→ ổn định',
-      trendDirection: 'stable'
+      value: "85%", // Derived from AIAgentMetric.satisfaction_score if available, else placeholder
+      trend: "→ ổn định",
+      trendDirection: "stable",
     },
     messagesProcessed: {
       value: aiToday,
-      trend: `${messagesTrend >= 0 ? '↑' : '↓'} ${Math.abs(messagesTrend)}%`,
-      trendDirection: messagesTrend > 0 ? 'up' : messagesTrend < 0 ? 'down' : 'stable'
+      trend: `${messagesTrend >= 0 ? "↑" : "↓"} ${Math.abs(messagesTrend)}%`,
+      trendDirection:
+        messagesTrend > 0 ? "up" : messagesTrend < 0 ? "down" : "stable",
     },
     avgResponseTime: {
       value: `${avgLatencyToday.toFixed(1)}s`,
-      trend: avgLatencyToday < avgLatencyYesterday && avgLatencyToday > 0 ? '↑ Excellent' : '→ Stable',
-      trendDirection: avgLatencyToday < avgLatencyYesterday && avgLatencyToday > 0 ? 'up' : 'stable'
-    }
+      trend:
+        avgLatencyToday < avgLatencyYesterday && avgLatencyToday > 0
+          ? "↑ Excellent"
+          : "→ Stable",
+      trendDirection:
+        avgLatencyToday < avgLatencyYesterday && avgLatencyToday > 0
+          ? "up"
+          : "stable",
+    },
   };
 }
 
-
 export interface InboxMetrics {
   totalMessages: number;
-  aiHandled: number;      // messages with AIReplyLog entry
-  humanNeeded: number;    // totalMessages - aiHandled
-  aiHandledPct: number;   // rounded %
+  aiHandled: number; // messages with AIReplyLog entry
+  humanNeeded: number; // totalMessages - aiHandled
+  aiHandledPct: number; // rounded %
   humanNeededPct: number;
   leadDistribution: {
-    hot: number;   // FanProfile.tag = 'hot'
-    warm: number;  // FanProfile.tag = 'warm'
-    cold: number;  // FanProfile.tag = 'cold'
-  }
+    hot: number; // FanProfile.tag = 'hot'
+    warm: number; // FanProfile.tag = 'warm'
+    cold: number; // FanProfile.tag = 'cold'
+  };
 }
 
 /**
@@ -228,35 +257,37 @@ export interface InboxMetrics {
  */
 export async function getInboxMetrics(
   workspaceId: string,
-  accountId?: string,     // null = all accounts
-  period: '24h' | '7d' | '14d' | '30d' | 'custom' = '24h',
+  accountId?: string, // null = all accounts
+  period: "24h" | "7d" | "14d" | "30d" | "custom" = "24h",
   customStartDate?: Date,
-  customEndDate?: Date
+  customEndDate?: Date,
 ): Promise<InboxMetrics> {
   const now = new Date();
   let startDate = new Date();
-  
-  if (period === '24h') {
+
+  if (period === "24h") {
     startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  } else if (period === '7d') {
+  } else if (period === "7d") {
     startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  } else if (period === '14d') {
+  } else if (period === "14d") {
     startDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-  } else if (period === '30d') {
+  } else if (period === "30d") {
     startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  } else if (period === 'custom' && customStartDate) {
+  } else if (period === "custom" && customStartDate) {
     startDate = new Date(customStartDate);
   } else {
     startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   }
 
-  const accountFilter = accountId ? { account_id: accountId } : { platform_accounts: { workspaceId } };
-  const messageAccountFilter = accountId 
-    ? { conversation: { account_id: accountId } } 
+  const accountFilter = accountId
+    ? { account_id: accountId }
+    : { platform_accounts: { workspaceId } };
+  const messageAccountFilter = accountId
+    ? { conversation: { account_id: accountId } }
     : { conversation: { platform_accounts: { workspaceId } } };
 
   const dateFilter: any = { gte: startDate };
-  if (period === 'custom' && customEndDate) {
+  if (period === "custom" && customEndDate) {
     const endDate = new Date(customEndDate);
     endDate.setHours(23, 59, 59, 999);
     dateFilter.lte = endDate;
@@ -266,43 +297,45 @@ export async function getInboxMetrics(
     db.message.count({
       where: {
         ...messageAccountFilter,
-        createdAt: dateFilter
-      }
+        createdAt: dateFilter,
+      },
     }),
     db.aIReplyLog.count({
       where: {
         message: {
           ...messageAccountFilter,
-          createdAt: dateFilter
-        }
-      }
-    })
+          createdAt: dateFilter,
+        },
+      },
+    }),
   ]);
 
   const humanNeeded = Math.max(0, totalMessages - aiHandledCount);
-  const aiHandledPct = totalMessages > 0 ? Math.round((aiHandledCount / totalMessages) * 100) : 0;
-  const humanNeededPct = totalMessages > 0 ? Math.round((humanNeeded / totalMessages) * 100) : 0;
+  const aiHandledPct =
+    totalMessages > 0 ? Math.round((aiHandledCount / totalMessages) * 100) : 0;
+  const humanNeededPct =
+    totalMessages > 0 ? Math.round((humanNeeded / totalMessages) * 100) : 0;
 
   // Lead Distribution
   // Note: Using lead_status from Conversation as a proxy for 'tag' if FanProfile.tag doesn't exist,
   // or assuming FanProfile.tag was intended as Conversation.lead_status.
   // However, I will check FanProfile as requested.
-  
+
   const leadStats = await db.conversation.groupBy({
-    by: ['lead_status'],
+    by: ["lead_status"],
     where: {
       platform_accounts: { workspaceId },
-      ...(accountId ? { account_id: accountId } : {})
+      ...(accountId ? { account_id: accountId } : {}),
     },
     _count: {
-      id: true
-    }
+      id: true,
+    },
   });
 
   const leadDistribution = {
-    hot: leadStats.find(s => s.lead_status === 'hot')?._count.id || 0,
-    warm: leadStats.find(s => s.lead_status === 'warm')?._count.id || 0,
-    cold: leadStats.find(s => s.lead_status === 'cold')?._count.id || 0,
+    hot: leadStats.find((s) => s.lead_status === "hot")?._count.id || 0,
+    warm: leadStats.find((s) => s.lead_status === "warm")?._count.id || 0,
+    cold: leadStats.find((s) => s.lead_status === "cold")?._count.id || 0,
   };
 
   return {
@@ -311,7 +344,7 @@ export async function getInboxMetrics(
     humanNeeded,
     aiHandledPct,
     humanNeededPct,
-    leadDistribution
+    leadDistribution,
   };
 }
 
@@ -334,7 +367,7 @@ export async function getDashboardTrends(workspaceId: string) {
     const date = new Date(now);
     date.setDate(now.getDate() - (6 - i));
     return {
-      date: date.toISOString().split('T')[0],
+      date: date.toISOString().split("T")[0],
       messages: Math.floor(Math.random() * 50) + 10,
       aiReplies: Math.floor(Math.random() * 30) + 5,
     };

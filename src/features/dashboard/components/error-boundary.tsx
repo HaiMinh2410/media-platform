@@ -34,19 +34,19 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="flex flex-col items-center justify-center p-8 bg-error/5 border border-error/20 rounded-2xl space-y-4 text-center min-h-[200px]">
-          <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error">
+        <div className="flex flex-col items-center justify-center p-8 bg-error/5 border border-error/20 rounded-2xl space-y-4 text-center min-h-[250px] w-full h-full flex-1 transition-all duration-300">
+          <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error animate-bounce">
             <AlertTriangle size={24} />
           </div>
           <div className="space-y-1">
-            <h3 className="font-bold text-lg">Hệ thống gặp sự cố</h3>
-            <p className="text-sm text-foreground-secondary max-w-xs mx-auto">
+            <h3 className="font-bold text-lg text-error">Hệ thống gặp sự cố</h3>
+            <p className="text-sm text-base-content/60 max-w-xs mx-auto">
               Không thể tải dữ liệu {this.props.name || 'này'}. Vui lòng thử lại sau.
             </p>
           </div>
           <button 
             onClick={() => this.setState({ hasError: false })}
-            className="btn btn-sm btn-outline border-error/30 hover:bg-error hover:border-error text-error hover:text-white gap-2"
+            className="btn btn-sm btn-outline border-error/30 hover:bg-error hover:border-error text-error hover:text-white gap-2 transition-all"
           >
             <RefreshCcw size={14} />
             Thử lại
@@ -60,13 +60,13 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 export const SectionError: React.FC<{ title: string }> = ({ title }) => (
-  <div className="flex flex-col items-center justify-center p-8 bg-base-200/50 border border-base-content/5 rounded-2xl space-y-3 text-center min-h-[200px]">
+  <div className="flex flex-col items-center justify-center p-8 bg-base-200/50 border border-base-content/5 rounded-2xl space-y-3 text-center min-h-[250px] w-full h-full flex-1 transition-all duration-300">
     <div className="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center text-error animate-pulse">
       <AlertTriangle size={20} />
     </div>
     <div className="space-y-1">
-      <h3 className="font-semibold text-base">{title}</h3>
-      <p className="text-xs text-foreground-tertiary">
+      <h3 className="font-bold text-base text-base-content/85">{title}</h3>
+      <p className="text-xs text-base-content/40">
         Dữ liệu tạm thời không khả dụng.
       </p>
     </div>
