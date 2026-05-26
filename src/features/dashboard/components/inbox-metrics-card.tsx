@@ -7,7 +7,7 @@ import {
 } from "@features/dashboard/actions/dashboard.actions";
 import { AccountHealthData } from "@features/settings";
 import { cn } from "@shared/lib/utils";
-import { ChevronDown } from "lucide-react";
+import { RangeSelector } from "@shared/ui/range-selector";
 
 interface InboxMetricsCardProps {
   workspaceId: string;
@@ -20,7 +20,9 @@ export function InboxMetricsCard({
   accounts,
   initialData,
 }: InboxMetricsCardProps) {
-  const [period, setPeriod] = useState<"24h" | "7d" | "30d">("24h");
+  const [period, setPeriod] = useState<"24h" | "7d" | "14d" | "30d" | "custom">("24h");
+  const [customStartDate, setCustomStartDate] = useState<string>("");
+  const [customEndDate, setCustomEndDate] = useState<string>("");
   const [selectedAccountId, setSelectedAccountId] = useState<
     string | undefined
   >(undefined);
@@ -50,6 +52,8 @@ export function InboxMetricsCard({
         workspaceId,
         selectedAccountId,
         period,
+        customStartDate ? new Date(customStartDate) : undefined,
+        customEndDate ? new Date(customEndDate) : undefined,
       );
       setMetrics(data);
     });
@@ -57,7 +61,7 @@ export function InboxMetricsCard({
 
   useEffect(() => {
     fetchMetrics();
-  }, [workspaceId, selectedAccountId, period]);
+  }, [workspaceId, selectedAccountId, period, customStartDate, customEndDate]);
 
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
 
@@ -81,68 +85,70 @@ export function InboxMetricsCard({
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Dropdown Chọn Tài Khoản */}
-          <details className="dropdown dropdown-end">
-            <summary className="btn btn-sm btn-soft bg-base-200 hover:bg-base-300 border border-base-content/5 text-[11px] font-bold rounded-lg flex items-center gap-1.5 cursor-pointer">
-              <span>
-                {selectedAccountId
-                  ? (selectedAccount?.platform === "facebook" ? "👤 " : "📸 ") +
-                    selectedAccount?.platform_user_name
-                  : "🌐 Tất cả tài khoản"}
-              </span>
-              <ChevronDown className="size-3.5 opacity-60" />
-            </summary>
-            <ul className="dropdown-content menu p-1.5 shadow-md bg-base-100 border border-base-content/5 rounded-xl w-52 z-50 text-[11px] font-semibold gap-0.5 mt-1">
-              <li>
-                <button
-                  onClick={() => setSelectedAccountId(undefined)}
-                  className={cn(
-                    "w-full text-left px-3 py-2 rounded-lg transition-all cursor-pointer",
-                    !selectedAccountId
-                      ? "bg-primary/10 text-primary"
-                      : "text-base-content/70 hover:bg-base-200",
-                  )}
-                >
-                  🌐 Tất cả tài khoản
-                </button>
-              </li>
-              {accounts.map((account) => (
-                <li key={account.id}>
-                  <button
-                    onClick={() => setSelectedAccountId(account.id)}
-                    className={cn(
-                      "w-full text-left px-3 py-2 rounded-lg transition-all cursor-pointer truncate",
-                      selectedAccountId === account.id
-                        ? "bg-primary/10 text-primary"
-                        : "text-base-content/70 hover:bg-base-200",
-                    )}
-                  >
-                    {account.platform === "facebook" ? "👤 " : "📸 "}
-                    {account.platform_user_name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </details>
+          <RangeSelector
+            options={[
+              {
+                id: "all",
+                label: "Tất cả tài khoản",
+                icon: <span className="text-xs">🌐</span>,
+              },
+              ...accounts.map((account) => ({
+                id: account.id,
+                label: account.platform_user_name,
+                icon: (
+                  <span className="text-xs">
+                    {account.platform === "facebook" ? "👤" : "📸"}
+                  </span>
+                ),
+              })),
+            ]}
+            value={selectedAccountId || "all"}
+            onChange={(val) =>
+              setSelectedAccountId(val === "all" ? undefined : val)
+            }
+            menuAlign="right"
+            menuMinWidth="w-52"
+          />
 
           {/* Bộ lọc thời gian */}
-          <div className="flex items-center gap-1 bg-base-200/70 p-1 rounded-lg border border-base-content/5">
-            {(["24h", "7d", "30d"] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={cn(
-                  "px-3 py-1 rounded-md text-[10px] font-mono font-bold transition-all cursor-pointer",
-                  period === p
-                    ? "bg-primary text-primary-content shadow-xs"
-                    : "text-base-content/40 hover:text-base-content/70",
-                )}
-              >
-                {p === "24h" ? "24h" : p === "7d" ? "7 ngày" : "30 ngày"}
-              </button>
-            ))}
-          </div>
+          <RangeSelector
+            options={[
+              { id: "24h", label: "24h" },
+              { id: "7d", label: "7 ngày" },
+              { id: "14d", label: "14 ngày" },
+              { id: "30d", label: "30 ngày" },
+              { id: "custom", label: "Tùy chỉnh" },
+            ]}
+            value={period}
+            onChange={setPeriod}
+            menuAlign="right"
+          />
         </div>
       </div>
+
+      {/* Custom Date Range Picker */}
+      {period === "custom" && (
+        <div className="flex flex-wrap items-center gap-3 bg-base-200/40 p-3 rounded-xl border border-base-content/5 -mt-2">
+          <div className="flex items-center gap-2">
+            <span className="text-2xs font-bold text-base-content/50 uppercase font-mono">Từ:</span>
+            <input
+              type="date"
+              value={customStartDate}
+              onChange={(e) => setCustomStartDate(e.target.value)}
+              className="input input-xs input-bordered rounded-lg bg-base-100 font-mono text-[11px] font-semibold text-base-content border-base-content/10 focus:border-primary!"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-2xs font-bold text-base-content/50 uppercase font-mono">Đến:</span>
+            <input
+              type="date"
+              value={customEndDate}
+              onChange={(e) => setCustomEndDate(e.target.value)}
+              className="input input-xs input-bordered rounded-lg bg-base-100 font-mono text-[11px] font-semibold text-base-content border-base-content/10 focus:border-primary!"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Hàng 1 - Tổng quan nhanh (Quick Stats Bento) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -181,7 +187,7 @@ export function InboxMetricsCard({
         {/* Card: Cần người */}
         <div className="bg-warning/5 border border-warning/10 rounded-xl p-4.5 flex items-center justify-between shadow-xs transition-all hover:bg-warning/8 hover:scale-[1.01]">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold text-warning/70 uppercase tracking-wider">
+            <span className="text-2xs font-bold text-warning/70 uppercase tracking-wider">
               Nhân viên hỗ trợ
             </span>
             <div className="flex items-baseline gap-2">
@@ -203,7 +209,7 @@ export function InboxMetricsCard({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grow">
         {/* Bên trái: Biểu đồ hiệu suất AI vs Con người */}
         <div className="bg-base-200/50 border border-base-content/5 rounded-xl p-5 flex flex-col gap-4.5 justify-between min-h-[220px]">
-          <div className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider">
+          <div className="text-2xs font-bold text-base-content/40 uppercase tracking-wider">
             Hiệu suất AI vs Con người
           </div>
 
@@ -251,7 +257,7 @@ export function InboxMetricsCard({
             </div>
           </div>
 
-          <div className="text-[10px] text-base-content/40 font-semibold italic border-t border-base-content/5 pt-3">
+          <div className="text-2xs text-base-content/40 font-semibold italic border-t border-base-content/5 pt-3">
             * AI tự động giải quyết hiệu quả {metrics?.aiHandledPct || 0}% hội
             thoại.
           </div>
@@ -259,7 +265,7 @@ export function InboxMetricsCard({
 
         {/* Bên phải: Phân bổ Lead theo AI Tag */}
         <div className="bg-base-200/50 border border-base-content/5 rounded-xl p-5 flex flex-col gap-4.5 justify-between min-h-[220px]">
-          <div className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider">
+          <div className="text-2xs font-bold text-base-content/40 uppercase tracking-wider">
             Phân bổ Lead theo AI Tag
           </div>
 
@@ -319,7 +325,7 @@ export function InboxMetricsCard({
             />
           </div>
 
-          <div className="text-[10px] text-base-content/40 font-semibold border-t border-base-content/5 pt-3 flex justify-between">
+          <div className="text-2xs text-base-content/40 font-semibold border-t border-base-content/5 pt-3 flex justify-between">
             <span>Tổng Lead phân loại:</span>
             <span className="font-bold text-base-content font-mono">
               {totalLeads.toLocaleString()}

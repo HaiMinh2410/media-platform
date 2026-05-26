@@ -76,7 +76,6 @@ async function DashboardContent({ workspaceId, workspaceName }: { workspaceId: s
 
         {/* Section 1: Account Health Command Center */}
         <section className="space-y-4">
-          <SectionTitle icon="⚡" label="Account Health Command Center" />
           <ErrorBoundary fallback={<SectionError title="Account Health" />}>
             <AccountHealthGrid accounts={healthData} />
           </ErrorBoundary>

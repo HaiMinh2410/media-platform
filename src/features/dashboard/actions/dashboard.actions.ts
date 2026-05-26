@@ -229,7 +229,9 @@ export interface InboxMetrics {
 export async function getInboxMetrics(
   workspaceId: string,
   accountId?: string,     // null = all accounts
-  period: '24h' | '7d' | '30d' = '24h'
+  period: '24h' | '7d' | '14d' | '30d' | 'custom' = '24h',
+  customStartDate?: Date,
+  customEndDate?: Date
 ): Promise<InboxMetrics> {
   const now = new Date();
   let startDate = new Date();
@@ -238,7 +240,13 @@ export async function getInboxMetrics(
     startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   } else if (period === '7d') {
     startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  } else if (period === '14d') {
+    startDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
   } else if (period === '30d') {
+    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  } else if (period === 'custom' && customStartDate) {
+    startDate = new Date(customStartDate);
+  } else {
     startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   }
 
@@ -247,18 +255,25 @@ export async function getInboxMetrics(
     ? { conversation: { account_id: accountId } } 
     : { conversation: { platform_accounts: { workspaceId } } };
 
+  const dateFilter: any = { gte: startDate };
+  if (period === 'custom' && customEndDate) {
+    const endDate = new Date(customEndDate);
+    endDate.setHours(23, 59, 59, 999);
+    dateFilter.lte = endDate;
+  }
+
   const [totalMessages, aiHandledCount] = await Promise.all([
     db.message.count({
       where: {
         ...messageAccountFilter,
-        createdAt: { gte: startDate }
+        createdAt: dateFilter
       }
     }),
     db.aIReplyLog.count({
       where: {
         message: {
           ...messageAccountFilter,
-          createdAt: { gte: startDate }
+          createdAt: dateFilter
         }
       }
     })

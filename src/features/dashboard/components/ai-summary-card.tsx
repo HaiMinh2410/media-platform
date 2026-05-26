@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 
 import { getAISummary, AISummary } from '@features/dashboard/actions/dashboard.actions';
-import { Shimmer } from './shimmer';
 import { cn } from '@shared/lib/utils';
 import { createClient } from '@shared/api/supabase/client';
 
@@ -115,8 +114,8 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest font-mono">Hiệu suất AI</span>
-              <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold font-mono">Core Engine</span>
+              <span className="text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Hiệu suất AI</span>
+              <span className="text-3xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold font-mono">Core Engine</span>
             </div>
 
             {/* Big Stat: Tin nhắn AI đã xử lý */}
@@ -125,10 +124,10 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
                 {data?.messagesProcessed.value || '0'}
               </span>
               <div className="flex items-center gap-1.5 mt-1.5">
-                <span className="text-[10px] text-base-content/50 font-bold uppercase tracking-wider">Tin nhắn đã xử lý</span>
+                <span className="text-2xs text-base-content/50 font-bold uppercase tracking-wider">Tin nhắn đã xử lý</span>
                 {data?.messagesProcessed.trend && (
                   <span className={cn(
-                    "text-[9px] font-bold px-1 py-0.5 rounded flex items-center gap-0.5",
+                    "text-3xs font-bold px-1 py-0.5 rounded flex items-center gap-0.5",
                     data.messagesProcessed.trendDirection === 'up' ? "text-success bg-success/10" : "text-error bg-error/10"
                   )}>
                     {data.messagesProcessed.trendDirection === 'up' && '↑'}
@@ -147,7 +146,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
           {/* Sub-Stat: Thời gian phản hồi TB */}
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest font-mono">Phản hồi TB</span>
+              <span className="text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Phản hồi TB</span>
               <span className="text-lg font-bold text-base-content font-mono mt-0.5">
                 {data?.avgResponseTime.value || '0s'}
               </span>
@@ -170,10 +169,10 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
               }
               return (
                 <div className="flex flex-col items-end">
-                  <span className={cn("text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border", statusColor)}>
+                  <span className={cn("text-3xs font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border", statusColor)}>
                     {statusText}
                   </span>
-                  <span className="text-[9px] text-base-content/30 mt-0.5 font-medium font-mono">Target &lt;1.5s</span>
+                  <span className="text-3xs text-base-content/30 mt-0.5 font-medium font-mono">Target &lt;1.5s</span>
                 </div>
               );
             })()}
@@ -186,7 +185,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
           <div className="bg-base-200/40 rounded-xl p-3.5 border border-base-content/5 border-t-2 border-t-success flex flex-col justify-between grow relative overflow-hidden">
             <div className="absolute -right-4 -top-4 w-12 h-12 rounded-full bg-success/5 blur-lg pointer-events-none" />
             <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest font-mono">Hài lòng</span>
+              <span className="text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Hài lòng</span>
               <span className="text-sm">😊</span>
             </div>
             <div className="mt-2">
@@ -194,10 +193,10 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
                 {data?.satisfaction.value || '0%'}
               </div>
               <div className="flex items-center justify-between mt-1">
-                <span className="text-[10px] text-base-content/50 font-medium">Khách phản hồi</span>
+                <span className="text-2xs text-base-content/50 font-medium">Khách phản hồi</span>
                 {data?.satisfaction.trend && (
                   <span className={cn(
-                    "text-[9px] font-bold px-1 rounded flex items-center gap-0.5",
+                    "text-3xs font-bold px-1 rounded flex items-center gap-0.5",
                     data.satisfaction.trendDirection === 'up' ? "text-success bg-success/10" : "text-error bg-error/10"
                   )}>
                     {data.satisfaction.trendDirection === 'up' && '↑'}
@@ -214,7 +213,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
           <div className="bg-base-200/40 rounded-xl p-3.5 border border-base-content/5 border-t-2 border-t-info flex flex-col justify-between grow relative overflow-hidden">
             <div className="absolute -right-4 -top-4 w-12 h-12 rounded-full bg-info/5 blur-lg pointer-events-none" />
             <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-widest font-mono">Tiết kiệm</span>
+              <span className="text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Tiết kiệm</span>
               <span className="text-sm text-info">⏱</span>
             </div>
             <div className="mt-2">
@@ -222,10 +221,10 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
                 {data?.timeSaved.value || '0.0h'}
               </div>
               <div className="flex items-center justify-between mt-1">
-                <span className="text-[10px] text-base-content/50 font-medium">Thời gian vận hành</span>
+                <span className="text-2xs text-base-content/50 font-medium">Thời gian vận hành</span>
                 {data?.timeSaved.trend && (
                   <span className={cn(
-                    "text-[9px] font-bold px-1 rounded flex items-center gap-0.5",
+                    "text-3xs font-bold px-1 rounded flex items-center gap-0.5",
                     data.timeSaved.trendDirection === 'up' ? "text-success bg-success/10" : "text-error bg-error/10"
                   )}>
                     {data.timeSaved.trendDirection === 'up' && '↑'}
@@ -267,7 +266,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
             </div>
             
             {/* Static line indicator */}
-            <div className="flex-1 max-w-[140px] h-[1px] bg-base-content/5" />
+            <div className="flex-1 max-w-[140px] h-px bg-base-content/5" />
           </>
         )}
       </div>
@@ -280,10 +279,10 @@ const AISummaryCardSkeleton = () => (
     {/* Header Skeleton */}
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-2">
-        <Shimmer width="28px" height="28px" className="rounded-lg" />
-        <Shimmer width="140px" height="18px" />
+        <div className="skeleton w-7 h-7 rounded-lg" />
+        <div className="skeleton w-[140px] h-[18px]" />
       </div>
-      <Shimmer width="50px" height="18px" className="rounded" />
+      <div className="skeleton w-[50px] h-[18px] rounded" />
     </div>
 
     {/* Content Skeleton */}
@@ -292,19 +291,19 @@ const AISummaryCardSkeleton = () => (
       <div className="md:col-span-3 bg-base-200/40 rounded-xl p-4 border border-base-content/5 flex flex-col justify-between">
         <div>
           <div className="flex justify-between items-center mb-3">
-            <Shimmer width="60px" height="12px" />
-            <Shimmer width="70px" height="16px" className="rounded" />
+            <div className="skeleton w-[60px] h-3" />
+            <div className="skeleton w-[70px] h-4 rounded" />
           </div>
-          <Shimmer width="100px" height="36px" className="mb-2" />
-          <Shimmer width="120px" height="12px" />
+          <div className="skeleton w-[100px] h-9 mb-2" />
+          <div className="skeleton w-[120px] h-3" />
         </div>
         <div className="border-t border-base-content/5 my-3" />
         <div className="flex justify-between items-center">
           <div>
-            <Shimmer width="60px" height="12px" className="mb-1" />
-            <Shimmer width="50px" height="20px" />
+            <div className="skeleton w-[60px] h-3 mb-1" />
+            <div className="skeleton w-[50px] h-5" />
           </div>
-          <Shimmer width="70px" height="24px" className="rounded" />
+          <div className="skeleton w-[70px] h-6 rounded" />
         </div>
       </div>
 
@@ -313,24 +312,24 @@ const AISummaryCardSkeleton = () => (
         {/* Thẻ 1 */}
         <div className="bg-base-200/40 rounded-xl p-3.5 border border-base-content/5 flex flex-col justify-between grow">
           <div className="flex justify-between items-center mb-2">
-            <Shimmer width="50px" height="10px" />
-            <Shimmer width="16px" height="16px" className="rounded-full" />
+            <div className="skeleton w-[50px] h-2.5" />
+            <div className="skeleton w-4 h-4 rounded-full" />
           </div>
           <div>
-            <Shimmer width="60px" height="24px" className="mb-1.5" />
-            <Shimmer width="80px" height="10px" />
+            <div className="skeleton w-[60px] h-6 mb-1.5" />
+            <div className="skeleton w-20 h-2.5" />
           </div>
         </div>
 
         {/* Thẻ 2 */}
         <div className="bg-base-200/40 rounded-xl p-3.5 border border-base-content/5 flex flex-col justify-between grow">
           <div className="flex justify-between items-center mb-2">
-            <Shimmer width="50px" height="10px" />
-            <Shimmer width="16px" height="16px" className="rounded-full" />
+            <div className="skeleton w-[50px] h-2.5" />
+            <div className="skeleton w-4 h-4 rounded-full" />
           </div>
           <div>
-            <Shimmer width="50px" height="24px" className="mb-1.5" />
-            <Shimmer width="80px" height="10px" />
+            <div className="skeleton w-[50px] h-6 mb-1.5" />
+            <div className="skeleton w-20 h-2.5" />
           </div>
         </div>
       </div>
@@ -339,10 +338,10 @@ const AISummaryCardSkeleton = () => (
     {/* Bottom Status Skeleton */}
     <div className="mt-auto pt-3 border-t border-base-content/5 flex items-center justify-between gap-4">
       <div className="flex items-center gap-2">
-        <Shimmer width="8px" height="8px" className="rounded-full animate-ping" />
-        <Shimmer width="100px" height="12px" />
+        <div className="skeleton w-2 h-2 rounded-full animate-ping" />
+        <div className="skeleton w-[100px] h-3" />
       </div>
-      <Shimmer width="100px" height="6px" className="rounded-full" />
+      <div className="skeleton w-[100px] h-1.5 rounded-full" />
     </div>
   </div>
 );
