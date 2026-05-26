@@ -122,15 +122,7 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
     <div className="p-8 space-y-8 bg-background-primary min-h-screen text-foreground pb-20 select-none">
       
       {/* HEADER SECTION */}
-      {onBack && (
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-xs font-semibold text-foreground-secondary hover:text-foreground bg-foreground/[0.03] hover:bg-foreground/5 border border-foreground/10 px-4 py-2.5 rounded-xl transition-all cursor-pointer self-start"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Quay lại Thống kê Tổng quan</span>
-        </button>
-      )}
+
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-foreground/5 pb-6">
         <div>
           <div className="flex items-center gap-2.5">

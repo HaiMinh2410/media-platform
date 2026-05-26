@@ -10,6 +10,7 @@ interface ChartSelectorProps {
   setActiveChart: (chart: ChartType) => void;
   isInstagram: boolean;
   isFollowerInsufficientData: boolean;
+  isLoading?: boolean;
 }
 
 export function ChartSelector({
@@ -17,6 +18,7 @@ export function ChartSelector({
   setActiveChart,
   isInstagram,
   isFollowerInsufficientData,
+  isLoading,
 }: ChartSelectorProps) {
   const tabItems = React.useMemo(() => [
     { 
@@ -41,6 +43,15 @@ export function ChartSelector({
       activeTextClass: 'text-accent-content'
     },
   ], [isInstagram, isFollowerInsufficientData]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="h-8 w-80 bg-base-200 rounded-xl border border-base-content/5 skeleton" />
+        <div className="h-4 w-60 bg-base-200 rounded-md skeleton" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 mb-6">

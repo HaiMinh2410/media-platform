@@ -71,6 +71,7 @@ export function AnalyticsChartsSection({
         setActiveChart={setActiveChart}
         isInstagram={isInstagram}
         isFollowerInsufficientData={isFollowerInsufficientData}
+        isLoading={isPending}
       />
 
       {/* CHARTS CONTAINER */}
