@@ -15,7 +15,7 @@ import { PostDetailModal } from "@features/analytics/components/post-detail-moda
 import { FollowerDetailedSection } from "@features/analytics/components/follower-detailed-section";
 import { ContentInsightsSection } from "@features/analytics/components/content-insights-section";
 import { ReauthNotice } from "@features/analytics/components/dashboard-states";
-import AIAnalyticsPage from "@/app/dashboard/ai-analytics/page";
+import { AIInsightsSection } from "./ai-insights-section";
 import { useAnalyticsDashboard } from "@features/analytics/hooks/useAnalyticsDashboard";
 import { AnalyticsDashboardHeader } from "./AnalyticsDashboardHeader";
 import { AnalyticsStatsGrid } from "./AnalyticsStatsGrid";
@@ -132,9 +132,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
       </div>
 
       {deferredActiveTab === "ai" ? (
-        <div className="-mx-6 -my-4">
-          <AIAnalyticsPage onBack={() => setActiveTab("general")} />
-        </div>
+        <AIInsightsSection />
       ) : deferredActiveTab === "content" ? (
         <ContentInsightsSection
           accountId={selectedAccountId}

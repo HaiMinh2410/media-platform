@@ -1,4 +1,4 @@
-// src/app/dashboard/ai-analytics/page.tsx
+// src/features/analytics/components/ai-insights-section.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -48,15 +48,15 @@ const COLORS_MAP = {
   Unknown: '#6b7280'  // Xám nhạt
 };
 
-export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
+export function AIInsightsSection() {
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | 'all'>('7d');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFanType, setSelectedFanType] = useState<string>('All');
   
   // State chứa toàn bộ dữ liệu từ API
   const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   // Gọi API lấy dữ liệu thực tế
   const fetchMetrics = async () => {
@@ -84,22 +84,22 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
   }, []);
 
   if (!mounted) {
-    return <div className="p-8 text-foreground/50">Đang chuẩn bị giao diện...</div>;
+    return <div className="text-base-content/50">Đang chuẩn bị giao diện...</div>;
   }
 
   // 1. Loading state (Skeleton effect)
   if (loading || !data) {
     return (
-      <div className="p-8 space-y-8 animate-pulse bg-background-primary min-h-screen text-foreground">
-        <div className="h-12 w-64 bg-foreground/10 rounded-lg" />
+      <div className="space-y-6 animate-pulse text-base-content">
+        <div className="h-12 w-64 bg-base-content/10 rounded-lg skeleton" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 bg-foreground/5 border border-foreground/10 rounded-2xl" />
+            <div key={i} className="h-28 bg-base-200 border border-base-content/5 rounded-2xl skeleton" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="h-[400px] lg:col-span-1 bg-foreground/5 border border-foreground/10 rounded-2xl" />
-          <div className="h-[400px] lg:col-span-2 bg-foreground/5 border border-foreground/10 rounded-2xl" />
+          <div className="h-[400px] lg:col-span-1 bg-base-200 border border-base-content/5 rounded-2xl skeleton" />
+          <div className="h-[400px] lg:col-span-2 bg-base-200 border border-base-content/5 rounded-2xl skeleton" />
         </div>
       </div>
     );
@@ -119,11 +119,10 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
   });
 
   return (
-    <div className="p-8 space-y-8 bg-background-primary min-h-screen text-foreground pb-20 select-none">
+    <div className="space-y-6 select-none">
       
       {/* HEADER SECTION */}
-
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-foreground/5 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-base-content/5 pb-6">
         <div>
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-pink-500/10 border border-pink-500/20 text-pink-500 shadow-md shadow-pink-500/5">
@@ -133,7 +132,7 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
               AI Agent DM Analytics
             </h1>
           </div>
-          <p className="text-foreground-secondary mt-1 text-sm md:text-md">
+          <p className="text-base-content/50 mt-1 text-sm">
             Hệ thống phân tích chuyển đổi hội thoại, hành vi khách hàng và tối ưu hiệu suất tự động hóa.
           </p>
         </div>
@@ -147,7 +146,7 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
                 onClick={() => setTimeRange(range)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   timeRange === range
-                    ? 'bg-primary text-primary-content shadow-sm'
+                    ? 'bg-primary text-primary-content shadow-xs'
                     : 'text-foreground-secondary hover:text-foreground'
                 }`}
               >
@@ -172,17 +171,17 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
         {/* Widget 1: Total Managed Fans */}
         <motion.div
           whileHover={{ y: -4, scale: 1.01 }}
-          className="bg-background-secondary/40 backdrop-blur-md border border-foreground/10 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-lg"
+          className="bg-base-100 border border-base-content/5 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-sm"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/10 transition-all duration-500" />
           <div className="flex justify-between items-start mb-4">
-            <span className="text-xs font-bold text-foreground-secondary tracking-wider uppercase">Tổng Hồ Sơ Khách Hàng</span>
+            <span className="text-xs font-bold text-base-content/60 tracking-wider uppercase">Tổng Hồ Sơ Khách Hàng</span>
             <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <span className="text-3xl font-black">{widgets.totalFans.toLocaleString()}</span>
+            <span className="text-3xl font-black text-base-content">{widgets.totalFans.toLocaleString()}</span>
             <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-500 font-semibold">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>+14.2% tuần này</span>
@@ -193,17 +192,17 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
         {/* Widget 2: AI Conversion Rate */}
         <motion.div
           whileHover={{ y: -4, scale: 1.01 }}
-          className="bg-background-secondary/40 backdrop-blur-md border border-foreground/10 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-lg"
+          className="bg-base-100 border border-base-content/5 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-sm"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all duration-500" />
           <div className="flex justify-between items-start mb-4">
-            <span className="text-xs font-bold text-foreground-secondary tracking-wider uppercase">Tỉ Lệ Chốt Đơn AI</span>
+            <span className="text-xs font-bold text-base-content/60 tracking-wider uppercase">Tỉ Lệ Chốt Đơn AI</span>
             <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
               <Zap className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <span className="text-3xl font-black">{(widgets.overallConversionRate * 100).toFixed(2)}%</span>
+            <span className="text-3xl font-black text-base-content">{(widgets.overallConversionRate * 100).toFixed(2)}%</span>
             <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-500 font-semibold">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>+1.8% vs tháng trước</span>
@@ -214,21 +213,21 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
         {/* Widget 3: Average Emotion Score */}
         <motion.div
           whileHover={{ y: -4, scale: 1.01 }}
-          className="bg-background-secondary/40 backdrop-blur-md border border-foreground/10 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-lg"
+          className="bg-base-100 border border-base-content/5 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-sm"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-2xl group-hover:bg-rose-500/10 transition-all duration-500" />
           <div className="flex justify-between items-start mb-4">
-            <span className="text-xs font-bold text-foreground-secondary tracking-wider uppercase">Cảm Xúc Trung Bình</span>
+            <span className="text-xs font-bold text-base-content/60 tracking-wider uppercase">Cảm Xúc Trung Bình</span>
             <div className="p-2 rounded-xl bg-rose-500/10 text-rose-500">
               <Heart className="w-4 h-4 fill-rose-500/20" />
             </div>
           </div>
           <div>
-            <span className="text-3xl font-black">{widgets.avgSentiment} / 1.0</span>
+            <span className="text-3xl font-black text-base-content">{widgets.avgSentiment} / 1.0</span>
             <div className="flex items-center gap-1.5 mt-2 text-xs text-rose-400 font-semibold">
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <div key={s} className={`w-1.5 h-3.5 rounded-sm ${s <= Math.round(widgets.avgSentiment * 5) ? 'bg-rose-500' : 'bg-foreground/10'}`} />
+                  <div key={s} className={`w-1.5 h-3.5 rounded-sm ${s <= Math.round(widgets.avgSentiment * 5) ? 'bg-rose-500' : 'bg-base-content/10'}`} />
                 ))}
               </div>
               <span className="ml-1.5">Xu hướng: Tăng (Stable)</span>
@@ -239,17 +238,17 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
         {/* Widget 4: Escalation Rate */}
         <motion.div
           whileHover={{ y: -4, scale: 1.01 }}
-          className="bg-background-secondary/40 backdrop-blur-md border border-foreground/10 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-lg"
+          className="bg-base-100 border border-base-content/5 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-sm"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all duration-500" />
           <div className="flex justify-between items-start mb-4">
-            <span className="text-xs font-bold text-foreground-secondary tracking-wider uppercase">Chuyển Nhân Viên</span>
+            <span className="text-xs font-bold text-base-content/60 tracking-wider uppercase">Chuyển Nhân Viên</span>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <span className="text-3xl font-black">{(widgets.escalationRate * 100).toFixed(1)}%</span>
+            <span className="text-3xl font-black text-base-content">{(widgets.escalationRate * 100).toFixed(1)}%</span>
             <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-500 font-semibold">
               <span>-0.5% (Kiểm soát tốt)</span>
             </div>
@@ -259,17 +258,17 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
         {/* Widget 5: AI-Attributed Revenue */}
         <motion.div
           whileHover={{ y: -4, scale: 1.01 }}
-          className="bg-background-secondary/40 backdrop-blur-md border border-foreground/10 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-lg"
+          className="bg-base-100 border border-base-content/5 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between group shadow-sm"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-all duration-500" />
           <div className="flex justify-between items-start mb-4">
-            <span className="text-xs font-bold text-foreground-secondary tracking-wider uppercase">Doanh Thu Thuần AI</span>
+            <span className="text-xs font-bold text-base-content/60 tracking-wider uppercase">Doanh Thu Thuần AI</span>
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <span className="text-3xl font-black">{widgets.totalRevenue.toLocaleString()} ₫</span>
+            <span className="text-3xl font-black text-base-content">{widgets.totalRevenue.toLocaleString()} ₫</span>
             <div className="flex items-center gap-1.5 mt-2 text-xs text-indigo-400 font-semibold">
               <Cpu className="w-3.5 h-3.5" />
               <span>Độc lập chốt đơn từ AI</span>
@@ -283,13 +282,13 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Graph 1: Fan Type Distribution & conversion (Donut / Pie) */}
-        <div className="bg-background-secondary/20 border border-foreground/10 rounded-2xl p-6 flex flex-col justify-between shadow-lg">
+        <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 flex flex-col justify-between shadow-sm">
           <div>
             <h3 className="text-lg font-bold flex items-center gap-2">
               <Users className="w-5 h-5 text-indigo-500" />
-              Phân Phối & Chốt Đơn Loại Fan
+              Phần Phối & Chốt Đơn Loại Fan
             </h3>
-            <p className="text-xs text-foreground-secondary mt-1">
+            <p className="text-xs text-base-content/60 mt-1">
               Phân mảnh lưu lượng và hiệu quả chuyển đổi thực tế từng nhóm.
             </p>
           </div>
@@ -329,8 +328,8 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
             
             {/* Trung tâm Donut hiển thị tổng số */}
             <div className="absolute flex flex-col items-center justify-center">
-              <span className="text-3xl font-black text-foreground">{widgets.totalFans}</span>
-              <span className="text-2xs font-semibold text-foreground-secondary uppercase tracking-wider">Hồ Sơ Fan</span>
+              <span className="text-3xl font-black text-base-content">{widgets.totalFans}</span>
+              <span className="text-2xs font-semibold text-base-content/60 uppercase tracking-wider">Hồ Sơ Fan</span>
             </div>
           </div>
 
@@ -339,15 +338,15 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
             {distribution.map((entry: any) => {
               const color = COLORS_MAP[entry.name as keyof typeof COLORS_MAP];
               return (
-                <div key={entry.name} className="flex items-center justify-between text-xs border-b border-foreground/5 pb-2 last:border-0 last:pb-0">
+                <div key={entry.name} className="flex items-center justify-between text-xs border-b border-base-content/5 pb-2 last:border-0 last:pb-0">
                   <div className="flex items-center gap-2.5">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
-                    <span className="font-bold text-foreground">{entry.name}</span>
-                    <span className="text-foreground-secondary">({entry.value})</span>
+                    <span className="font-bold text-base-content">{entry.name}</span>
+                    <span className="text-base-content/60">({entry.value})</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-foreground-secondary">Cảm xúc: <strong className="text-foreground">{(entry.avgEmotion * 100).toFixed(0)}%</strong></span>
-                    <span className="text-foreground-secondary">Chốt: <strong className="text-emerald-500">{(entry.conversionRate * 100).toFixed(0)}%</strong></span>
+                    <span className="text-base-content/60">Cảm xúc: <strong className="text-base-content">{(entry.avgEmotion * 100).toFixed(0)}%</strong></span>
+                    <span className="text-base-content/60">Chốt: <strong className="text-emerald-500">{(entry.conversionRate * 100).toFixed(0)}%</strong></span>
                   </div>
                 </div>
               );
@@ -356,14 +355,14 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
         </div>
 
         {/* Graph 2: Revenue & Conversations over Time (Area Chart) */}
-        <div className="bg-background-secondary/20 border border-foreground/10 rounded-2xl p-6 flex flex-col justify-between lg:col-span-2 shadow-lg">
+        <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 flex flex-col justify-between lg:col-span-2 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-emerald-500" />
                 Xu Hướng Chuyển Đổi & Doanh Thu AI Tuần
               </h3>
-              <p className="text-xs text-foreground-secondary mt-1">
+              <p className="text-xs text-base-content/60 mt-1">
                 Lịch sử tăng trưởng doanh thu độc lập mang lại từ các kịch bản AI Agent qua từng snapshot tuần.
               </p>
             </div>
@@ -414,14 +413,14 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
             </ResponsiveContainer>
           </div>
 
-          <div className="flex justify-around text-xs text-foreground-secondary border-t border-foreground/5 pt-4">
+          <div className="flex justify-around text-xs text-base-content/60 border-t border-base-content/5 pt-4">
             <div className="text-center">
               <span>Trung bình tuần</span>
-              <p className="text-sm font-bold text-foreground">{(totalRevenue / history.length).toLocaleString('vi-VN')} ₫</p>
+              <p className="text-sm font-bold text-base-content">{(totalRevenue / history.length).toLocaleString('vi-VN')} ₫</p>
             </div>
             <div className="text-center">
               <span>Hội thoại / Tuần</span>
-              <p className="text-sm font-bold text-foreground">{(totalConversationsAllTime / history.length).toFixed(0)} lượt</p>
+              <p className="text-sm font-bold text-base-content">{(totalConversationsAllTime / history.length).toFixed(0)} lượt</p>
             </div>
             <div className="text-center">
               <span>Hiệu suất chốt trung bình</span>
@@ -436,7 +435,7 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* A/B Test comparative summary */}
-        <div className="bg-background-secondary/20 border border-foreground/10 rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between shadow-lg">
+        <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 lg:col-span-2 flex flex-col justify-between shadow-sm">
           <div>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <h3 className="text-lg font-bold flex items-center gap-2">
@@ -449,7 +448,7 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
                 <span>Trạng thái: Đã thăng cấp Winner</span>
               </div>
             </div>
-            <p className="text-xs text-foreground-secondary mt-1">
+            <p className="text-xs text-base-content/60 mt-1">
               Phân tích chỉ số đối đầu trực diện giữa Variant A (Cơ sở) và Variant B (Sáng tạo ngọt ngào).
             </p>
           </div>
@@ -461,7 +460,7 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
             </div>
             <div className="text-xs">
               <p className="font-bold text-emerald-400">Winner chính thức tuần qua: Variant {abTest.winner} 🎉</p>
-              <p className="text-foreground-secondary mt-0.5 leading-relaxed">{abTest.reason}</p>
+              <p className="text-base-content/60 mt-0.5 leading-relaxed">{abTest.reason}</p>
             </div>
           </div>
 
@@ -497,10 +496,10 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
 
             {/* Right side: Detailed numerical list comparison */}
             <div className="space-y-4 text-xs">
-              <div className="bg-foreground/[0.02] border border-foreground/5 rounded-xl p-3.5 space-y-2.5">
-                <span className="font-bold text-foreground-secondary uppercase tracking-wider text-2xs block">Chỉ số chuyển đổi</span>
+              <div className="bg-base-200/50 border border-base-content/5 rounded-xl p-3.5 space-y-2.5">
+                <span className="font-bold text-base-content/60 uppercase tracking-wider text-2xs block">Chỉ số chuyển đổi</span>
                 <div className="flex justify-between">
-                  <span className="text-foreground-secondary">Variant A (Mẫu: {abTest.metricsA.totalConversations})</span>
+                  <span className="text-base-content/60">Variant A (Mẫu: {abTest.metricsA.totalConversations})</span>
                   <span className="font-bold">{(abTest.metricsA.conversionRate * 100).toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between text-pink-400">
@@ -509,14 +508,14 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
                 </div>
               </div>
 
-              <div className="bg-foreground/[0.02] border border-foreground/5 rounded-xl p-3.5 space-y-2.5">
-                <span className="font-bold text-foreground-secondary uppercase tracking-wider text-2xs block">Mức độ an toàn / Spam</span>
+              <div className="bg-base-200/50 border border-base-content/5 rounded-xl p-3.5 space-y-2.5">
+                <span className="font-bold text-base-content/60 uppercase tracking-wider text-2xs block">Mức độ an toàn / Spam</span>
                 <div className="flex justify-between">
-                  <span className="text-foreground-secondary">Vi phạm Variant A</span>
+                  <span className="text-base-content/60">Vi phạm Variant A</span>
                   <span className="font-semibold text-emerald-500">{abTest.metricsA.flagIncidents} lần</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-foreground-secondary">Vi phạm Variant B</span>
+                  <span className="text-base-content/60">Vi phạm Variant B</span>
                   <span className="font-semibold text-emerald-500">{abTest.metricsB.flagIncidents} lần</span>
                 </div>
               </div>
@@ -526,13 +525,13 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
         </div>
 
         {/* Funnel chart: Conversation Stages flow (Native CSS / HTML representation for total control and rich style) */}
-        <div className="bg-background-secondary/20 border border-foreground/10 rounded-2xl p-6 flex flex-col justify-between shadow-lg">
+        <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 flex flex-col justify-between shadow-sm">
           <div>
             <h3 className="text-lg font-bold flex items-center gap-2">
               <Cpu className="w-5 h-5 text-purple-500" />
               Phễu Tương Tác Giai Đoạn AI
             </h3>
-            <p className="text-xs text-foreground-secondary mt-1">
+            <p className="text-xs text-base-content/60 mt-1">
               Phân tích điểm rò rỉ tỷ lệ phản hồi qua từng giai đoạn Playbook.
             </p>
           </div>
@@ -545,7 +544,7 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
                 <span className="font-semibold text-indigo-400">G1: Xây Dựng Lòng Tin (Build Trust)</span>
                 <span className="font-bold">100% (Tiếp nhận)</span>
               </div>
-              <div className="w-full h-2.5 bg-foreground/10 rounded-full overflow-hidden">
+              <div className="w-full h-2.5 bg-base-content/10 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1 }} className="h-full bg-indigo-500" />
               </div>
             </div>
@@ -556,7 +555,7 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
                 <span className="font-semibold text-pink-400">G2: Làm Ấm & Kết Nối (Warm-up)</span>
                 <span className="font-bold">72.4% (Duy trì)</span>
               </div>
-              <div className="w-full h-2.5 bg-foreground/10 rounded-full overflow-hidden">
+              <div className="w-full h-2.5 bg-base-content/10 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: '72.4%' }} transition={{ duration: 1, delay: 0.1 }} className="h-full bg-pink-500" />
               </div>
             </div>
@@ -567,7 +566,7 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
                 <span className="font-semibold text-amber-400">G3: Độc Quyền VIP (Upsell Links)</span>
                 <span className="font-bold">34.8% (Đủ điều kiện)</span>
               </div>
-              <div className="w-full h-2.5 bg-foreground/10 rounded-full overflow-hidden">
+              <div className="w-full h-2.5 bg-base-content/10 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: '34.8%' }} transition={{ duration: 1, delay: 0.2 }} className="h-full bg-amber-500" />
               </div>
             </div>
@@ -578,14 +577,14 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
                 <span className="font-semibold text-emerald-400">Giao dịch mua hàng (Purchase)</span>
                 <span className="font-bold text-emerald-400">8.6% (Chuyển đổi thực tế)</span>
               </div>
-              <div className="w-full h-2.5 bg-foreground/10 rounded-full overflow-hidden">
+              <div className="w-full h-2.5 bg-base-content/10 rounded-full overflow-hidden">
                 <motion.div initial={{ width: 0 }} animate={{ width: '8.6%' }} transition={{ duration: 1, delay: 0.3 }} className="h-full bg-emerald-500" />
               </div>
             </div>
 
           </div>
 
-          <div className="bg-foreground/[0.02] border border-foreground/5 rounded-xl p-3 text-2xs text-foreground-secondary leading-relaxed flex items-start gap-2">
+          <div className="bg-base-200/50 border border-base-content/5 rounded-xl p-3 text-2xs text-base-content/60 leading-relaxed flex items-start gap-2">
             <Info className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
             <span>
               <strong>Gợi ý tối ưu:</strong> Tỷ lệ rò rỉ chủ yếu xuất hiện khi chuyển từ <strong>G2 sang G3</strong> (rơi mất 37.6%). Cần cải thiện kịch bản làm ấm bằng các turn thoại gợi ý khéo léo để tăng tỉ lệ gửi link chốt đơn.
@@ -596,15 +595,15 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
       </div>
 
       {/* TOP PERFORMING SCRIPTS (INTERACTIVE LIST) */}
-      <div className="bg-background-secondary/20 border border-foreground/10 rounded-2xl p-6 shadow-lg space-y-6">
+      <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 shadow-sm space-y-6">
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold flex items-center gap-2">
+            <h3 className="text-lg font-bold flex items-center gap-2 text-base-content">
               <Sparkles className="w-5 h-5 text-pink-500 animate-pulse" />
               Bảng Hiệu Năng Kịch Bản (Scripts Performance)
             </h3>
-            <p className="text-xs text-foreground-secondary mt-1">
+            <p className="text-xs text-base-content/60 mt-1">
               Thống kê lượt sử dụng, điểm cải thiện thiện cảm cảm xúc và tỉ lệ chốt đơn của các template hội thoại.
             </p>
           </div>
@@ -614,26 +613,26 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
             
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground-secondary" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/60" />
               <input
                 type="text"
                 placeholder="Tìm kịch bản..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full sm:w-56 text-xs font-semibold rounded-xl bg-foreground/[0.03] border border-foreground/10 focus:border-primary focus:bg-background-secondary outline-none transition-all"
+                className="pl-10 pr-4 py-2 w-full sm:w-56 text-xs font-semibold rounded-xl bg-base-300/30 border border-base-content/10 focus:border-primary focus:bg-base-100 outline-none transition-all text-base-content"
               />
             </div>
 
             {/* Fan Type Filter */}
-            <div className="flex items-center gap-1.5 bg-foreground/[0.03] border border-foreground/10 rounded-xl p-1">
+            <div className="flex items-center gap-1.5 bg-base-300/30 border border-base-content/10 rounded-xl p-1">
               {['All', 'Luy', 'Cool', 'Whale', 'Drainer'].map((type) => (
                 <button
                   key={type}
                   onClick={() => setSelectedFanType(type)}
                   className={`px-2.5 py-1 rounded-lg text-2xs font-bold transition-all ${
                     selectedFanType === type
-                      ? 'bg-foreground/10 text-foreground'
-                      : 'text-foreground-secondary hover:text-foreground'
+                      ? 'bg-base-content/10 text-base-content'
+                      : 'text-base-content/60 hover:text-base-content'
                   }`}
                 >
                   {type}
@@ -645,10 +644,10 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
         </div>
 
         {/* Dynamic Scripts Table representation */}
-        <div className="overflow-x-auto border border-foreground/5 rounded-xl">
+        <div className="overflow-x-auto border border-base-content/5 rounded-xl">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-foreground/[0.02] border-b border-foreground/5 text-foreground-secondary font-bold">
+              <tr className="bg-base-200/50 border-b border-base-content/5 text-base-content/60 font-bold">
                 <th className="p-4">Tên kịch bản</th>
                 <th className="p-4">Loại fan áp dụng</th>
                 <th className="p-4 text-right">Lượt gửi thành công</th>
@@ -657,85 +656,85 @@ export default function AIAnalyticsPage({ onBack }: { onBack?: () => void }) {
                 <th className="p-4 text-center">Hiệu suất</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-foreground/5">
+            <tbody className="divide-y divide-base-content/5">
               <AnimatePresence mode="popLayout">
                 {filteredScripts.length > 0 ? (
                   filteredScripts.map((script: any) => {
-                    const color = COLORS_MAP[script.fanType as keyof typeof COLORS_MAP] || '#6b7280';
-                    const scoreWidth = `${script.avgEmotion * 100}%`;
-                    const rateWidth = `${script.conversionRate * 100}%`;
-                    
-                    return (
-                      <motion.tr
-                        key={script.id}
-                        layout
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="hover:bg-foreground/[0.01] transition-all group"
-                      >
-                        <td className="p-4 font-semibold text-foreground flex items-center gap-2">
-                          <div className="w-1.5 h-6 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                          <div>
-                            <span className="group-hover:text-primary transition-colors">{script.name}</span>
-                            <span className="text-3xs text-foreground-secondary block mt-0.5 font-mono">{script.id}</span>
-                          </div>
-                        </td>
-                        
-                        <td className="p-4">
-                          <span
-                            className="px-2.5 py-1 rounded-full text-3xs font-black uppercase tracking-wider"
-                            style={{
-                              backgroundColor: `${color}15`,
-                              color: color,
-                              border: `1px solid ${color}30`
-                            }}
-                          >
-                            {script.fanType}
-                          </span>
-                        </td>
-
-                        <td className="p-4 text-right font-mono font-bold text-foreground">
-                          {script.usageCount.toLocaleString()}
-                        </td>
-
-                        <td className="p-4 text-right">
-                          <div className="flex flex-col items-end gap-1.5">
-                            <span className="font-bold text-foreground font-mono">{(script.avgEmotion * 10).toFixed(1)} / 10</span>
-                            <div className="w-24 h-1 bg-foreground/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-rose-500 rounded-full" style={{ width: scoreWidth }} />
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="p-4 text-right">
-                          <div className="flex flex-col items-end gap-1.5">
-                            <span className="font-bold text-emerald-500 font-mono">{(script.conversionRate * 100).toFixed(1)}%</span>
-                            <div className="w-24 h-1 bg-foreground/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-emerald-500 rounded-full" style={{ width: rateWidth }} />
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="p-4 text-center">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-2xs font-extrabold ${
-                              script.conversionRate >= 0.15
-                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                : script.conversionRate >= 0.05
-                                ? 'bg-primary/10 text-primary border border-primary/20'
-                                : 'bg-foreground/5 text-foreground-secondary border border-foreground/10'
-                            }`}
-                          >
-                            {script.conversionRate >= 0.15 ? 'Xuất sắc' : script.conversionRate >= 0.05 ? 'Tốt' : 'Trung bình'}
-                          </span>
-                        </td>
-                      </motion.tr>
-                    );
+                     const color = COLORS_MAP[script.fanType as keyof typeof COLORS_MAP] || '#6b7280';
+                     const scoreWidth = `${script.avgEmotion * 100}%`;
+                     const rateWidth = `${script.conversionRate * 100}%`;
+                     
+                     return (
+                       <motion.tr
+                         key={script.id}
+                         layout
+                         initial={{ opacity: 0, y: 8 }}
+                         animate={{ opacity: 1, y: 0 }}
+                         exit={{ opacity: 0, scale: 0.95 }}
+                         className="hover:bg-base-content/[0.01] transition-all group"
+                       >
+                         <td className="p-4 font-semibold text-base-content flex items-center gap-2">
+                           <div className="w-1.5 h-6 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                           <div>
+                             <span className="group-hover:text-primary transition-colors">{script.name}</span>
+                             <span className="text-3xs text-base-content/40 block mt-0.5 font-mono">{script.id}</span>
+                           </div>
+                         </td>
+                         
+                         <td className="p-4">
+                           <span
+                             className="px-2.5 py-1 rounded-full text-3xs font-black uppercase tracking-wider"
+                             style={{
+                               backgroundColor: `${color}15`,
+                               color: color,
+                               border: `1px solid ${color}30`
+                             }}
+                           >
+                             {script.fanType}
+                           </span>
+                         </td>
+ 
+                         <td className="p-4 text-right font-mono font-bold text-base-content">
+                           {script.usageCount.toLocaleString()}
+                         </td>
+ 
+                         <td className="p-4 text-right">
+                           <div className="flex flex-col items-end gap-1.5">
+                             <span className="font-bold text-base-content font-mono">{(script.avgEmotion * 10).toFixed(1)} / 10</span>
+                             <div className="w-24 h-1 bg-base-content/10 rounded-full overflow-hidden">
+                               <div className="h-full bg-rose-500 rounded-full" style={{ width: scoreWidth }} />
+                             </div>
+                           </div>
+                         </td>
+ 
+                         <td className="p-4 text-right">
+                           <div className="flex flex-col items-end gap-1.5">
+                             <span className="font-bold text-emerald-500 font-mono">{(script.conversionRate * 100).toFixed(1)}%</span>
+                             <div className="w-24 h-1 bg-base-content/10 rounded-full overflow-hidden">
+                               <div className="h-full bg-emerald-500 rounded-full" style={{ width: rateWidth }} />
+                             </div>
+                           </div>
+                         </td>
+ 
+                         <td className="p-4 text-center">
+                           <span
+                             className={`px-2.5 py-1 rounded-full text-2xs font-extrabold ${
+                               script.conversionRate >= 0.15
+                                 ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                                 : script.conversionRate >= 0.05
+                                 ? 'bg-primary/10 text-primary border border-primary/20'
+                                 : 'bg-base-content/5 text-base-content/60 border border-base-content/10'
+                             }`}
+                           >
+                             {script.conversionRate >= 0.15 ? 'Xuất sắc' : script.conversionRate >= 0.05 ? 'Tốt' : 'Trung bình'}
+                           </span>
+                         </td>
+                       </motion.tr>
+                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-foreground-secondary">
+                    <td colSpan={6} className="p-8 text-center text-base-content/60">
                       Không tìm thấy kịch bản nào phù hợp với bộ lọc tìm kiếm.
                     </td>
                   </tr>
