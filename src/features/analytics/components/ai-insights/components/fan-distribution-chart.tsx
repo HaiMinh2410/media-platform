@@ -3,11 +3,11 @@ import { Users } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 
 const COLORS_MAP = {
-  Whale: 'var(--color-status-warning)',    // Vàng Amber của hệ thống
-  Luy: 'var(--color-accent-secondary)',    // Hồng Romantic của hệ thống
-  Cool: 'var(--color-status-info)',        // Xanh Cyan của hệ thống
-  Drainer: 'var(--color-status-error)',    // Đỏ cam của hệ thống
-  Unknown: 'var(--color-foreground-tertiary)' // Xám nhạt
+  Whale: 'var(--color-warning)',    // Vàng Amber
+  Luy: 'var(--color-secondary)',    // Hồng lãng mạn
+  Cool: 'var(--color-info)',        // Xanh Cyan
+  Drainer: 'var(--color-error)',    // Đỏ cam
+  Unknown: 'var(--color-base-content)'
 };
 
 interface FanDistributionChartProps {
@@ -22,7 +22,7 @@ interface FanDistributionChartProps {
 
 export function FanDistributionChart({ distribution, totalFans }: FanDistributionChartProps) {
   return (
-    <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 flex flex-col justify-between shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+    <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 flex flex-col justify-between shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-98">
       <div>
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">

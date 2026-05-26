@@ -30,7 +30,7 @@ export function ConversionTrendChart({
   const totalConversationsAllTime = history.reduce((sum, item) => sum + item.conversations, 0);
 
   return (
-    <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 flex flex-col justify-between lg:col-span-2 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+    <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 flex flex-col justify-between lg:col-span-2 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-98">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
@@ -64,12 +64,12 @@ export function ConversionTrendChart({
           <ComposedChart data={history} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
             <defs>
               <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-status-success)" stopOpacity={0.2}/>
-                <stop offset="95%" stopColor="var(--color-status-success)" stopOpacity={0}/>
+                <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.2}/>
+                <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0}/>
               </linearGradient>
               <linearGradient id="colorConv" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-accent-primary)" stopOpacity={0.15}/>
-                <stop offset="95%" stopColor="var(--color-accent-primary)" stopOpacity={0}/>
+                <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.15}/>
+                <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-base-content)" strokeOpacity={0.05} />
@@ -96,9 +96,9 @@ export function ConversionTrendChart({
                 return null;
               }}
             />
-            <Area yAxisId="right" type="monotone" dataKey="revenue" name="Doanh thu AI" stroke="var(--color-status-success)" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
-            <Area yAxisId="left" type="monotone" dataKey="conversations" name="Cuộc trò chuyện" stroke="var(--color-accent-primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorConv)" />
-            <Line yAxisId="left" type="monotone" dataKey="purchases" name="Đơn hàng" stroke="var(--color-status-warning)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+            <Area yAxisId="right" type="monotone" dataKey="revenue" name="Doanh thu AI" stroke="var(--color-success)" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
+            <Area yAxisId="left" type="monotone" dataKey="conversations" name="Cuộc trò chuyện" stroke="var(--color-primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorConv)" />
+            <Line yAxisId="left" type="monotone" dataKey="purchases" name="Đơn hàng" stroke="var(--color-warning)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

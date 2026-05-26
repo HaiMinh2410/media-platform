@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 export function EngagementFunnel() {
   return (
-    <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 flex flex-col justify-between shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+    <div className="bg-base-100 border border-base-content/5 rounded-2xl p-6 flex flex-col justify-between shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-98">
       <div>
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -28,7 +28,12 @@ export function EngagementFunnel() {
             <span className="font-bold font-mono">100% (Tiếp nhận)</span>
           </div>
           <div className="w-full h-2.5 bg-base-200 rounded-full overflow-hidden shadow-inner">
-            <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1 }} className="h-full bg-primary rounded-full" />
+            <motion.div 
+              initial={{ width: 0 }} 
+              animate={{ width: '100%' }} 
+              transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }} 
+              className="h-full bg-primary rounded-full" 
+            />
           </div>
         </div>
 
@@ -39,7 +44,12 @@ export function EngagementFunnel() {
             <span className="font-bold font-mono">72.4% (Duy trì)</span>
           </div>
           <div className="w-full h-2.5 bg-base-200 rounded-full overflow-hidden shadow-inner">
-            <motion.div initial={{ width: 0 }} animate={{ width: '72.4%' }} transition={{ duration: 1, delay: 0.1 }} className="h-full bg-secondary rounded-full" />
+            <motion.div 
+              initial={{ width: 0 }} 
+              animate={{ width: '72.4%' }} 
+              transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1], delay: 0.1 }} 
+              className="h-full bg-secondary rounded-full" 
+            />
           </div>
         </div>
 
@@ -50,7 +60,12 @@ export function EngagementFunnel() {
             <span className="font-bold font-mono">34.8% (Đủ điều kiện)</span>
           </div>
           <div className="w-full h-2.5 bg-base-200 rounded-full overflow-hidden shadow-inner">
-            <motion.div initial={{ width: 0 }} animate={{ width: '34.8%' }} transition={{ duration: 1, delay: 0.2 }} className="h-full bg-warning rounded-full" />
+            <motion.div 
+              initial={{ width: 0 }} 
+              animate={{ width: '34.8%' }} 
+              transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1], delay: 0.2 }} 
+              className="h-full bg-warning rounded-full" 
+            />
           </div>
         </div>
 
@@ -61,7 +76,12 @@ export function EngagementFunnel() {
             <span className="text-success font-mono">8.6% (Chuyển đổi)</span>
           </div>
           <div className="w-full h-2.5 bg-base-200 rounded-full overflow-hidden shadow-inner">
-            <motion.div initial={{ width: 0 }} animate={{ width: '8.6%' }} transition={{ duration: 1, delay: 0.3 }} className="h-full bg-success rounded-full" />
+            <motion.div 
+              initial={{ width: 0 }} 
+              animate={{ width: '8.6%' }} 
+              transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1], delay: 0.3 }} 
+              className="h-full bg-success rounded-full" 
+            />
           </div>
         </div>
 

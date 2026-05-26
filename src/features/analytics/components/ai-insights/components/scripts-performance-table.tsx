@@ -3,11 +3,11 @@ import { Sparkles, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const COLORS_MAP = {
-  Whale: 'var(--color-status-warning)',    // Vàng Amber của hệ thống
-  Luy: 'var(--color-accent-secondary)',    // Hồng Romantic của hệ thống
-  Cool: 'var(--color-status-info)',        // Xanh Cyan của hệ thống
-  Drainer: 'var(--color-status-error)',    // Đỏ cam của hệ thống
-  Unknown: 'var(--color-foreground-tertiary)' // Xám nhạt
+  Whale: 'var(--color-warning)',    // Vàng Amber
+  Luy: 'var(--color-secondary)',    // Hồng lãng mạn
+  Cool: 'var(--color-info)',        // Xanh Cyan
+  Drainer: 'var(--color-error)',    // Đỏ cam
+  Unknown: 'var(--color-base-content)'
 };
 
 interface Script {
