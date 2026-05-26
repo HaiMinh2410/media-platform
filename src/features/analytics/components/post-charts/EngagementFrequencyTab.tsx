@@ -109,21 +109,21 @@ export function EngagementFrequencyTab({ data }: EngagementFrequencyTabProps) {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[10px] text-base-content/40 uppercase tracking-widest font-bold font-mono">Total</span>
+                <span className="text-2xs text-base-content/40 uppercase tracking-widest font-bold font-mono">Total</span>
                 <span className="text-lg font-black text-base-content font-mono">{numberFormatter(totalInteractions)}</span>
               </div>
             </div>
 
-            <div className="w-full sm:w-1/2 space-y-2.5">
+            <div className="w-full sm:w-1/2 divide-y divide-base-content/5">
               {breakdownChartData.map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-base-300/20 border border-base-content/5 group hover:bg-base-300/40 transition-all duration-200">
+                <div key={i} className="flex items-center justify-between py-2 group transition-all duration-200">
                   <div className="flex items-center gap-2.5">
                     <div className="w-2.5 h-2.5 rounded-full shadow-md" style={{ backgroundColor: item.color, boxShadow: `0 0 8px ${item.color}30` }} />
-                    <span className="text-xs font-bold text-base-content/70 group-hover:text-base-content transition-colors">{item.name}</span>
+                    <span className="text-sm font-bold text-base-content/60 group-hover:text-base-content transition-colors">{item.name}</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs font-black text-base-content font-mono">{numberFormatter(item.value)}</div>
-                    <div className="text-2xs text-base-content/40 font-mono font-extrabold">({((item.value / totalInteractions) * 100).toFixed(1)}%)</div>
+                    <div className="font-black text-base-content font-mono">{numberFormatter(item.value)}</div>
+                    <div className="text-xs text-base-content/40 mt-0.5 font-mono font-extrabold">({((item.value / totalInteractions) * 100).toFixed(1)}%)</div>
                   </div>
                 </div>
               ))}
@@ -140,11 +140,10 @@ export function EngagementFrequencyTab({ data }: EngagementFrequencyTabProps) {
               <Icon lucide={Calendar} size={18} className="text-blue-400" />
               Tần Suất Đăng Bài
             </h3>
-            <div className="text-[9px] uppercase tracking-widest text-base-content/40 font-black bg-base-300/40 px-2 py-0.5 rounded font-mono">
+            <div className="text-xs border-b border-base-content/10 px-1.5 py-0.5 uppercase tracking-widest text-base-content/60 font-black font-mono">
               {totalPosts} Posts
             </div>
           </div>
-          <p className="text-xs text-base-content/50 font-medium mt-0.5">Biểu đồ phân phối tần suất đăng bài theo các ngày trong tuần</p>
         </div>
 
         {totalPosts === 0 ? (
@@ -153,7 +152,7 @@ export function EngagementFrequencyTab({ data }: EngagementFrequencyTabProps) {
           </div>
         ) : (
           <div className="mt-6">
-            <div className="h-[220px] w-full">
+            <div className="h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={frequencyChartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.05} vertical={false} />
@@ -179,7 +178,7 @@ export function EngagementFrequencyTab({ data }: EngagementFrequencyTabProps) {
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-base-300/95 backdrop-blur-md border border-base-content/10 p-2.5 rounded-xl shadow-2xl">
+                          <div className="bg-base-100/80 backdrop-blur-md border border-base-content/10 p-2.5 rounded-md shadow-2xl">
                             <div className="text-2xs font-extrabold text-base-content mb-0.5">{payload[0].payload.name}</div>
                             <div className="text-xs font-black text-blue-400 font-mono">
                               {payload[0].value} bài đăng
@@ -205,13 +204,6 @@ export function EngagementFrequencyTab({ data }: EngagementFrequencyTabProps) {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-
-            <div className="mt-4 p-2.5 bg-blue-500/5 border border-blue-500/10 rounded-xl flex items-start gap-2.5 shadow-xs">
-              <Icon lucide={Sparkles} size={14} className="text-blue-400 mt-0.5 shrink-0" />
-              <p className="text-xs text-base-content/70 leading-relaxed font-semibold">
-                Thứ {optimalDays.join(', ')} có tần suất đăng bài cao nhất. Hãy duy trì lịch đăng đều đặn vào những ngày này để tối đa hoá tiếp cận.
-              </p>
             </div>
           </div>
         )}

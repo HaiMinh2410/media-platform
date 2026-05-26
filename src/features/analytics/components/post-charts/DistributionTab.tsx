@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { 
-  ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ZAxis 
+  ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ZAxis, Cell 
 } from 'recharts';
 import { Sparkles, Percent, Calendar } from 'lucide-react';
 import { cn } from '@shared/lib/utils';
@@ -156,7 +156,7 @@ export function DistributionTab({ data }: DistributionTabProps) {
                 axisLine={false}
                 tickFormatter={numberFormatter}
               />
-              <ZAxis type="number" dataKey="er" range={[40, 160]} name="ER" />
+              <ZAxis type="number" dataKey="er" range={[50, 150]} name="ER" />
               <SafeTooltip
                 content={({ active, payload }: any) => {
                   if (active && payload && payload.length) {
@@ -185,21 +185,49 @@ export function DistributionTab({ data }: DistributionTabProps) {
                 }}
                 cursor={{ strokeDasharray: '3 3', stroke: 'var(--color-base-content)', strokeOpacity: 0.15, strokeWidth: 1.5 }}
               />
-              <Scatter 
-                name="Posts" 
-                data={data.scatter} 
-                fill="var(--color-accent)" 
-                fillOpacity={0.65}
-                stroke="var(--color-accent)"
-                strokeWidth={1.5}
-              />
+              <Scatter name="Posts" data={data.scatter}>
+                {data.scatter.map((entry, index) => {
+                  const erVal = entry.er || 0;
+                  
+                  // Phân cấp thị giác dựa trên tỷ lệ tương tác (ER)
+                  let fill = "var(--color-accent)";
+                  let opacity = 0.85;
+                  let strokeOpacity = 1;
+
+                  if (erVal >= 5) {
+                    fill = "var(--color-accent)"; // Ngọc bích rực rỡ
+                    opacity = 0.85;
+                  } else if (erVal >= 2) {
+                    fill = "var(--color-primary)"; // Tím primary
+                    opacity = 0.55;
+                  } else {
+                    fill = "currentColor"; // Xám chìm xuống nền
+                    opacity = 0.12;
+                    strokeOpacity = 0.25;
+                  }
+
+                  return (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={fill}
+                      fillOpacity={opacity}
+                      stroke="var(--color-base-100)"
+                      strokeOpacity={strokeOpacity}
+                      strokeWidth={1.2}
+                    />
+                  );
+                })}
+              </Scatter>
             </ScatterChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="text-xs text-base-content/70 flex items-start gap-1.5 justify-center mt-3">
-          <Percent className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
-          Bài viết nằm xa góc trên bên trái là bài có tỉ lệ tương tác rất cao.
+        <div className="text-xs text-base-content/60 flex flex-col items-center gap-2 justify-center mt-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs font-semibold justify-center">
+            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-accent opacity-90" /> Tương tác cao (≥5%)</span>
+            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-primary opacity-60" /> Trung bình (2-5%)</span>
+            <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-base-content/20" /> Hiệu quả thấp (&lt;2%)</span>
+          </div>
         </div>
       </div>
     </div>
