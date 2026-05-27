@@ -27,6 +27,11 @@ interface RangeSelectorProps {
   hideIcon?: boolean;
   menuMinWidth?: string;
   menuAlign?: 'left' | 'right';
+  
+  // Custom styles & content
+  triggerClassName?: string;
+  dropdownClassName?: string;
+  children?: React.ReactNode;
 }
 
 export function RangeSelector({
@@ -40,6 +45,9 @@ export function RangeSelector({
   hideIcon = false,
   menuMinWidth = 'min-w-[155px]',
   menuAlign = 'left',
+  triggerClassName = '',
+  dropdownClassName = '',
+  children,
 }: RangeSelectorProps) {
   const [localIsOpen, setLocalIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -92,11 +100,13 @@ export function RangeSelector({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 hover:border-foreground/20 rounded-full px-4.5 h-8 text-xs font-bold text-foreground/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner shrink-0"
+        className={triggerClassName || "bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 hover:border-foreground/20 rounded-full px-4.5 h-8 text-xs font-bold text-foreground/90 flex items-center gap-2 transition-all cursor-pointer shadow-inner shrink-0"}
       >
-        {renderIcon(activeIcon, activeIconFallback, `w-3.5 h-3.5 ${triggerIconColor}`)}
-        <span>{getSelectedLabel()}</span>
-        <ChevronDown className={`w-3.5 h-3.5 text-base-content/40 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <div className="flex items-center gap-2.5 flex-1 text-left overflow-hidden">
+          {renderIcon(activeIcon, activeIconFallback, `w-3.5 h-3.5 ${triggerIconColor}`)}
+          <span className="truncate">{getSelectedLabel()}</span>
+        </div>
+        <ChevronDown className={`w-3.5 h-3.5 text-base-content/40 transition-transform duration-200 shrink-0 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -106,9 +116,9 @@ export function RangeSelector({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 5 }}
             transition={{ duration: 0.15 }}
-            className={`absolute top-[110%] ${menuAlign === 'left' ? 'left-0' : 'right-0'} bg-foreground/5 border border-foreground/10 rounded-xl p-1.5 shadow-2xl z-50 ${menuMinWidth} flex flex-col gap-0.5 backdrop-blur-xl`}
+            className={`absolute top-[110%] ${menuAlign === 'left' ? 'left-0' : 'right-0'} ${dropdownClassName || 'bg-foreground/5 border border-foreground/10 backdrop-blur-xl'} rounded-xl p-1.5 shadow-2xl z-50 ${menuMinWidth} flex flex-col gap-0.5`}
           >
-            {options.map(r => (
+            {children ? children : options.map(r => (
               <button
                 key={r.id}
                 onClick={() => {

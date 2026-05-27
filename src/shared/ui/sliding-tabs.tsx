@@ -7,7 +7,7 @@ import { Icon } from '@shared/ui/icon';
 
 export interface TabItem<T extends string> {
   value: T;
-  label: string;
+  label: React.ReactNode;
   icon?: LucideIcon;
   /**
    * Optional custom background class for the active sliding indicator
@@ -65,8 +65,8 @@ export function SlidingTabs<T extends string>({
       icon: 12,
     },
     md: {
-      container: 'p-1.5 rounded-2xl gap-1.5',
-      button: 'px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider gap-2.5',
+      container: 'p-1.5 rounded-2xl gap-2',
+      button: 'px-3 py-1.5 rounded-xl text-sm font-bold gap-2.5',
       icon: 14,
     },
     lg: {
@@ -80,7 +80,7 @@ export function SlidingTabs<T extends string>({
 
   return (
     <div
-      className={`flex flex-wrap border border-base-content/5 rounded-2xl select-none shadow-inner relative ${
+      className={`flex items-center border border-base-content/5 rounded-2xl select-none shadow-inner relative ${
         fullWidth ? 'w-full' : 'w-fit'
       } ${currentStyle.container} ${className}`}
     >
