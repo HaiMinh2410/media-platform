@@ -46,7 +46,7 @@ export function ContentEditor({
         value={content}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Nhập nội dung bài đăng..."
-        className="w-full min-h-[140px] bg-transparent border-0 p-4 text-sm text-foreground placeholder:text-foreground-tertiary focus:ring-0 focus:outline-none resize-none leading-relaxed"
+        className="w-full min-h-[140px] bg-transparent border-0 p-4 text-sm text-base-content placeholder:text-base-content/40 focus:ring-0 focus:outline-none resize-none leading-relaxed"
         style={{ fontFamily: "'Be Vietnam Pro', sans-serif" }}
       />
       
@@ -54,33 +54,33 @@ export function ContentEditor({
         <div className="flex flex-col items-end px-2">
           <span className={cn(
             "font-mono text-2xs",
-            isError ? "text-error font-bold" : isWarning ? "text-warning" : "text-foreground-secondary"
+            isError ? "text-error font-bold" : isWarning ? "text-warning" : "text-base-content/70"
           )}>
             {charCount} / {maxLength === Infinity ? '∞' : maxLength}
           </span>
           {platformCount > 1 && (
-            <span className="text-2xs text-foreground-tertiary font-medium italic">
+            <span className="text-2xs text-base-content/40 font-medium italic">
               * Giới hạn theo nền tảng khắt khe nhất
             </span>
           )}
         </div>
 
-        <div className="flex items-center justify-between bg-base-300/50 rounded-b-md px-2 py-1.5 border-t border-foreground/10 mt-1">
+        <div className="flex items-center justify-between bg-base-300/40 rounded-b-2xl px-2 py-1.5 border-t border-base-content/5 mt-1">
           <div className="flex items-center gap-1">
-            <button className="p-1.5 rounded-md text-foreground-secondary hover:bg-base-300 hover:text-foreground transition-colors">
+            <button className="p-1.5 rounded-md text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors cursor-pointer">
               <ImageIcon size={18} />
             </button>
-            <button className="p-1.5 rounded-md text-foreground-secondary hover:bg-base-300 hover:text-foreground transition-colors">
+            <button className="p-1.5 rounded-md text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors cursor-pointer">
               <Film size={18} />
             </button>
-            <button className="p-1.5 rounded-md text-foreground-secondary hover:bg-base-300 hover:text-foreground transition-colors">
+            <button className="p-1.5 rounded-md text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors cursor-pointer">
               <Smile size={18} />
             </button>
-            <button className="p-1.5 rounded-md text-foreground-secondary hover:bg-base-300 hover:text-foreground transition-colors">
+            <button className="p-1.5 rounded-md text-base-content/70 hover:bg-base-300 hover:text-base-content transition-colors cursor-pointer">
               <LinkIcon size={18} />
             </button>
           </div>
-          <div className="text-2xs text-foreground-secondary pr-2 font-medium">
+          <div className="text-2xs text-base-content/50 pr-2 font-medium">
             {hasInstagram ? `${mediaCount}/10 ảnh (IG)` : ''}
           </div>
         </div>

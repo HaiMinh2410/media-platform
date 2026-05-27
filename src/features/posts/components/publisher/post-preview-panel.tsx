@@ -77,14 +77,14 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
   return (
     <div className="flex flex-col gap-5 w-full">
       {/* Level 1: Platform Tabs (Segmented Control) */}
-      <div className="flex items-center bg-base-200 border-[1.5px] border-foreground/10 rounded-xl p-1 h-[42px]">
+      <div className="flex items-center bg-base-200/50 border border-base-content/10 rounded-xl p-1 h-[42px]">
         <button
           onClick={() => setActivePlatform('facebook')}
           className={cn(
-            "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all",
+            "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all cursor-pointer",
             activePlatform === 'facebook' 
-              ? "bg-base-300 text-primary shadow-sm" 
-              : "text-foreground-secondary hover:text-foreground"
+              ? "bg-base-100 text-primary shadow-xs" 
+              : "text-base-content/50 hover:text-base-content hover:bg-base-200/40"
           )}
         >
           <div className="w-2 h-2 rounded-full bg-facebook" />
@@ -96,15 +96,15 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
         <button
           onClick={() => setActivePlatform('instagram')}
           className={cn(
-            "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all",
+            "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all cursor-pointer",
             activePlatform === 'instagram' 
-              ? "bg-base-300 text-[#E1306C] shadow-sm" 
-              : "text-foreground-secondary hover:text-foreground"
+              ? "bg-base-100 text-pink-600 shadow-xs" 
+              : "text-base-content/50 hover:text-base-content hover:bg-base-200/40"
           )}
         >
-          <div className="w-2 h-2 rounded-full bg-[#E1306C]" />
+          <div className="w-2 h-2 rounded-full bg-pink-600" />
           Instagram
-          <span className="bg-[#E1306C]/10 text-[#E1306C] text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-mono">
+          <span className="bg-pink-600/10 text-pink-600 text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-mono">
             {igAccounts.length}
           </span>
         </button>
@@ -115,8 +115,8 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
         {currentAccounts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 w-full opacity-40">
             <span className="text-2xl mb-1">👆</span>
-            <span className="text-[12px] font-medium text-foreground">Chưa có tài khoản {activePlatform === 'facebook' ? 'Facebook' : 'Instagram'}</span>
-            <span className="text-[10px] text-foreground-tertiary">Vui lòng chọn tài khoản ở cột bên trái</span>
+            <span className="text-[12px] font-medium text-base-content">Chưa có tài khoản {activePlatform === 'facebook' ? 'Facebook' : 'Instagram'}</span>
+            <span className="text-[10px] text-base-content/40">Vui lòng chọn tài khoản ở cột bên trái</span>
           </div>
         ) : (
           currentAccounts.map(acc => {
@@ -126,17 +126,17 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
                 key={acc.id}
                 onClick={() => setActiveAccountId(acc.id)}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all border shrink-0",
+                  "flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all border shrink-0 cursor-pointer",
                   isActive 
                     ? "bg-primary/10 border-primary text-primary" 
-                    : "bg-transparent border-foreground/10 text-foreground-secondary hover:border-primary/50"
+                    : "bg-transparent border-base-content/10 text-base-content/60 hover:border-primary/50 hover:text-primary"
                 )}
               >
                 <div className="w-4 h-4 rounded-full overflow-hidden flex items-center justify-center bg-base-300 shrink-0">
                   {acc.avatar_url ? (
                     <img src={acc.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-[9px] text-foreground font-bold">{acc.name.charAt(0)}</span>
+                    <span className="text-[9px] text-base-content font-bold">{acc.name.charAt(0)}</span>
                   )}
                 </div>
                 {acc.name}
@@ -148,7 +148,7 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
 
       {/* Post Mock */}
       {currentAccounts.length > 0 && activeAccount ? (
-        <div className="bg-base-200 border-[1.5px] border-foreground/10 rounded-xl overflow-hidden shadow-2xl">
+        <div className="bg-base-100 border border-base-content/10 rounded-2xl overflow-hidden shadow-2xl">
           {activePlatform === 'facebook' ? (
             <FacebookMock account={activeAccount} content={content} media={doneMedia} />
           ) : (

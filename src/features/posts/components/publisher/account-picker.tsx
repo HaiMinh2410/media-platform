@@ -77,17 +77,17 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
       {/* TRIGGER BAR */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center min-h-[52px] bg-base-200 border-[1.5px] border-foreground/10 rounded-xl px-3 py-2 cursor-pointer hover:border-primary/50 transition-colors"
+        className="flex items-center min-h-[52px] bg-base-200 border border-base-content/10 shadow-inner rounded-xl px-3 py-2 cursor-pointer hover:border-primary/50 transition-colors"
       >
         <div className="flex-1 flex flex-wrap items-center gap-2">
           {selectedAccounts.length === 0 ? (
-            <span className="text-foreground-secondary text-[13px] ml-1">Chọn tài khoản đăng bài...</span>
+            <span className="text-base-content/50 text-[13px] ml-1">Chọn tài khoản đăng bài...</span>
           ) : (
             <>
               {visibleChips.map(acc => {
                 const isFb = acc.platform.toLowerCase() === 'facebook';
                 return (
-                  <div key={acc.id} className="flex items-center bg-base-300 rounded-full pl-1 pr-2 py-1 border border-foreground/10 gap-2">
+                  <div key={acc.id} className="flex items-center bg-base-300 rounded-full pl-1 pr-2 py-1 border border-base-content/5 gap-2">
                     <div className="relative w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: isFb ? '#1877F2' : '#E1306C' }}>
                       {acc.avatar_url ? (
                         <img src={acc.avatar_url} alt="" className="w-full h-full object-cover rounded-full" />
@@ -98,10 +98,10 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
                         {isFb ? <Icon name="facebook" size={6} className="text-white" /> : <Icon name="instagram" size={6} className="text-white" />}
                       </div>
                     </div>
-                    <span className="text-[12px] text-foreground font-medium whitespace-nowrap">{acc.name}</span>
+                    <span className="text-[12px] text-base-content font-medium whitespace-nowrap">{acc.name}</span>
                     <button 
                       onClick={(e) => toggleAccount(acc.id, e)}
-                      className="text-foreground-secondary hover:text-error transition-colors p-0.5"
+                      className="text-base-content/40 hover:text-error transition-colors p-0.5 cursor-pointer"
                     >
                       <X size={12} />
                     </button>
@@ -116,7 +116,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
             </>
           )}
         </div>
-        <ChevronDown size={16} className={cn("text-foreground-secondary transition-transform duration-200 ml-2", isOpen && "rotate-180")} />
+        <ChevronDown size={16} className={cn("text-base-content/50 transition-transform duration-200 ml-2", isOpen && "rotate-180")} />
       </div>
 
       {/* DROPDOWN */}
@@ -127,34 +127,34 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 top-[calc(100%+8px)] left-0 w-full bg-base-200/95 backdrop-blur-md border border-foreground/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[400px]"
+            className="absolute z-50 top-[calc(100%+8px)] left-0 w-full bg-base-100 border border-base-content/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[400px]"
           >
             {/* Search input */}
-            <div className="p-3 border-b border-foreground/10">
+            <div className="p-3 border-b border-base-content/5">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" />
                 <input 
                   type="text" 
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Tìm tài khoản..." 
-                  className="w-full bg-base-100 border border-foreground/10 rounded-lg pl-9 pr-3 py-2 text-[13px] text-foreground placeholder:text-foreground-secondary focus:outline-none focus:border-primary"
+                  className="w-full bg-base-200 border border-base-content/10 rounded-lg pl-9 pr-3 py-2 text-[13px] text-base-content placeholder:text-base-content/40 focus:outline-none focus:border-primary/50"
                 />
               </div>
             </div>
 
             {/* Quick Actions Row */}
             <div className="flex flex-wrap items-center gap-2 p-3 pb-2">
-              <button onClick={(e) => selectGroup('facebook', e)} className="text-[11px] font-medium bg-base-300 text-foreground-secondary px-3 py-1.5 rounded-full hover:bg-base-200 transition-colors border border-foreground/10">
+              <button onClick={(e) => selectGroup('facebook', e)} className="btn btn-xs btn-soft border-none hover:bg-base-300 text-base-content/70 cursor-pointer">
                 ✓ Tất cả Facebook
               </button>
-              <button onClick={(e) => selectGroup('instagram', e)} className="text-[11px] font-medium bg-base-300 text-foreground-secondary px-3 py-1.5 rounded-full hover:bg-base-200 transition-colors border border-foreground/10">
+              <button onClick={(e) => selectGroup('instagram', e)} className="btn btn-xs btn-soft border-none hover:bg-base-300 text-base-content/70 cursor-pointer">
                 ✓ Tất cả Instagram
               </button>
-              <button className="text-[11px] font-medium bg-base-300 text-foreground-secondary px-3 py-1.5 rounded-full hover:bg-base-200 transition-colors border border-foreground/10">
+              <button className="btn btn-xs btn-soft border-none hover:bg-base-300 text-base-content/70 cursor-pointer">
                 📦 Preset Marketing
               </button>
-              <button onClick={clearAll} className="text-[11px] font-medium bg-transparent text-error px-3 py-1.5 rounded-full hover:bg-error/10 transition-colors border border-transparent ml-auto">
+              <button onClick={clearAll} className="btn btn-xs btn-link text-error hover:no-underline ml-auto cursor-pointer">
                 ✕ Bỏ hết
               </button>
             </div>
@@ -163,7 +163,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
             <div className="overflow-y-auto max-h-[280px] pb-2">
               {fbAccounts.length > 0 && (
                 <div className="mb-2">
-                  <div className="px-4 py-2 text-[11px] font-bold text-foreground-secondary tracking-[1px] font-mono">FACEBOOK</div>
+                  <div className="px-4 py-2 text-[11px] font-bold text-base-content/40 tracking-[1px] font-mono">FACEBOOK</div>
                   {fbAccounts.map(acc => (
                     <AccountRow 
                       key={acc.id} 
@@ -176,7 +176,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
               )}
               {igAccounts.length > 0 && (
                 <div>
-                  <div className="px-4 py-2 text-[11px] font-bold text-foreground-secondary tracking-[1px] font-mono">INSTAGRAM</div>
+                  <div className="px-4 py-2 text-[11px] font-bold text-base-content/40 tracking-[1px] font-mono">INSTAGRAM</div>
                   {igAccounts.map(acc => (
                     <AccountRow 
                       key={acc.id} 
@@ -188,7 +188,7 @@ export function AccountPicker({ accounts, selectedIds, onChange }: AccountPicker
                 </div>
               )}
               {fbAccounts.length === 0 && igAccounts.length === 0 && (
-                <div className="p-8 text-center text-foreground-secondary text-[13px]">
+                <div className="p-8 text-center text-base-content/50 text-[13px]">
                   Không tìm thấy tài khoản nào
                 </div>
               )}
@@ -208,8 +208,8 @@ function AccountRow({ account, isSelected, onToggle }: { account: any; isSelecte
     <div 
       onClick={onToggle}
       className={cn(
-        "flex items-center gap-3 px-4 py-2 cursor-pointer transition-colors border-b border-foreground/10 last:border-0",
-        isSelected ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-base-300",
+        "flex items-center gap-3 px-4 py-2 cursor-pointer transition-colors border-b border-base-content/5 last:border-0",
+        isSelected ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-base-300/60",
         isLegacy && "opacity-70"
       )}
     >
@@ -229,14 +229,14 @@ function AccountRow({ account, isSelected, onToggle }: { account: any; isSelecte
       
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex items-center gap-2">
-          <span className={cn("text-[13px] font-bold truncate", isSelected ? "text-primary" : "text-foreground")}>{account.name}</span>
+          <span className={cn("text-[13px] font-bold truncate", isSelected ? "text-primary" : "text-base-content")}>{account.name}</span>
           {isLegacy && (
-            <span className="flex items-center gap-1 text-[9px] bg-amber-500/20 text-amber-500 px-1.5 py-0.5 rounded-full border border-amber-500/30 font-bold uppercase tracking-tighter">
+            <span className="badge badge-xs badge-soft badge-warning font-bold uppercase tracking-tighter shrink-0">
               Cần kết nối lại
             </span>
           )}
         </div>
-        <span className={cn("text-[11px] truncate", isSelected ? "text-primary" : "text-foreground-secondary")}>
+        <span className={cn("text-[11px] truncate", isSelected ? "text-primary" : "text-base-content/50")}>
           {account.username ? `@${account.username}` : (isLegacy ? 'Tài khoản cũ' : '')}
         </span>
       </div>

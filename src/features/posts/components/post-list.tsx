@@ -10,6 +10,7 @@ import { cn } from '@shared/lib/utils';
 import { BatchPublishSummary, BatchPublishCard } from './publisher/batch-publish-card';
 import { createClient } from '@shared/api/supabase/client';
 import { useEffect } from 'react';
+import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 type PostListProps = {
   initialPosts: Post[];
@@ -172,39 +173,36 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
     <div className="space-y-6">
       {/* Filters Header */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-        <div className="flex items-center gap-1.5 glass-card rounded-2xl p-1.5 w-fit">
-          {['all', 'scheduled', 'published', 'failed', 'draft'].map((s) => (
-            <button
-              key={s}
-              onClick={() => setFilter(s as PostStatus | 'all')}
-              className={cn(
-                "px-5 py-2.5 text-11 font-bold uppercase tracking-widest rounded-[14px] transition-all duration-300",
-                filter === s 
-                  ? "bg-primary text-primary-content shadow-xl shadow-primary/30" 
-                  : "text-foreground-secondary hover:text-foreground hover:bg-foreground/5"
-              )}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
+        <SlidingTabs
+          items={[
+            { value: 'all', label: 'All' },
+            { value: 'scheduled', label: 'Scheduled' },
+            { value: 'published', label: 'Published' },
+            { value: 'failed', label: 'Failed' },
+            { value: 'draft', label: 'Draft' },
+          ]}
+          activeValue={filter}
+          onChange={(val) => setFilter(val as PostStatus | 'all')}
+          size="sm"
+          layoutId="postListFilterTabs"
+        />
 
         <div className="flex items-center gap-3">
           <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary" size={14} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={14} />
             <input 
               type="text"
               placeholder="Search posts..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-foreground/5 border border-foreground/10 rounded-xl pl-10 pr-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all"
+              className="w-full bg-base-100 border border-base-content/10 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 rounded-xl pl-10 pr-4 py-2 text-sm text-base-content transition-all"
             />
           </div>
           
           <button 
             onClick={fetchPosts}
             disabled={isLoading}
-            className="p-2 rounded-xl bg-foreground/5 border border-foreground/10 text-foreground-tertiary hover:text-foreground transition-all disabled:opacity-50"
+            className="btn btn-ghost border border-base-content/5 bg-base-200/30 hover:bg-base-200 rounded-xl p-2.5 text-base-content/60 hover:text-base-content transition-all disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? <Loader2 className="animate-spin" size={18} /> : <RefreshCw size={18} />}
           </button>

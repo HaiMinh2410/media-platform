@@ -54,14 +54,14 @@ export function BatchPublishToast({ initialAccounts, onClose, onRetry }: BatchPu
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      className="fixed bottom-7 right-7 w-[340px] bg-base-200 border-[1.5px] border-foreground/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-100"
+      className="fixed bottom-7 right-7 w-[340px] bg-base-100 border border-base-content/10 rounded-2xl shadow-2xl overflow-hidden z-100"
     >
       {/* HEADER */}
-      <div className="bg-base-300 px-4 py-3 flex items-center justify-between border-b border-foreground/10">
-        <span className="text-foreground font-bold text-[13px] flex items-center gap-2">
+      <div className="bg-base-200/50 px-4 py-3 flex items-center justify-between border-b border-base-content/5">
+        <span className="text-base-content font-bold text-[13px] flex items-center gap-2">
           🚀 {isDone ? 'Đã hoàn tất' : 'Đang xuất bản...'}
         </span>
-        <button onClick={onClose} className="text-foreground-secondary hover:text-foreground transition-colors">
+        <button onClick={onClose} className="text-base-content/50 hover:text-base-content transition-colors cursor-pointer">
           <X size={16} />
         </button>
       </div>
@@ -69,7 +69,7 @@ export function BatchPublishToast({ initialAccounts, onClose, onRetry }: BatchPu
       {/* ITEM LIST */}
       <div className="max-h-[300px] overflow-y-auto">
         {accounts.map((acc) => (
-          <div key={acc.id} className="flex items-center gap-3 px-4 h-[52px] border-b border-foreground/10 last:border-0">
+          <div key={acc.id} className="flex items-center gap-3 px-4 h-[52px] border-b border-base-content/5 last:border-0 text-base-content">
             <div className="relative w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-[12px] shrink-0 overflow-hidden" style={{ backgroundColor: acc.platform.toLowerCase() === 'facebook' ? '#1877F2' : '#E1306C' }}>
               {acc.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -80,11 +80,11 @@ export function BatchPublishToast({ initialAccounts, onClose, onRetry }: BatchPu
             </div>
             
             <div className="flex-1 flex flex-col min-w-0">
-              <span className="text-[12px] text-foreground font-bold truncate">{acc.name}</span>
+              <span className="text-[12px] font-bold truncate">{acc.name}</span>
               <span className={cn(
                 "text-[10px] font-medium",
                 acc.status === 'SUCCESS' ? "text-success" : 
-                acc.status === 'FAILED' ? "text-error" : "text-foreground-secondary"
+                acc.status === 'FAILED' ? "text-error" : "text-base-content/60"
               )}>
                 {acc.status === 'PENDING' && "⏳ Đang chờ..."}
                 {acc.status === 'LOADING' && "🔄 Đang đăng..."}
@@ -106,13 +106,13 @@ export function BatchPublishToast({ initialAccounts, onClose, onRetry }: BatchPu
 
       {/* FOOTER */}
       {hasFailed && isDone && (
-        <div className="bg-base-300 px-4 py-3 flex items-center justify-between border-t border-foreground/10">
+        <div className="bg-base-200/50 px-4 py-3 flex items-center justify-between border-t border-base-content/5">
           <div className="bg-error/10 text-error text-2xs px-2 py-1 rounded-full font-bold flex items-center gap-1">
             ⚠️ {failedAccounts.length} thất bại
           </div>
           <button 
             onClick={() => onRetry(failedAccounts.map(a => a.id))}
-            className="bg-primary/10 text-primary text-2xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1.5 hover:bg-primary/20 transition-colors"
+            className="btn btn-xs btn-soft btn-primary rounded-full cursor-pointer hover:shadow-xs transition-all"
           >
             <RefreshCcw size={12} /> Thử lại
           </button>

@@ -37,7 +37,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
 
   return (
     <div className={cn(
-      "group relative bg-foreground/5 border border-foreground/10 rounded-2xl overflow-hidden hover:border-foreground/20 transition-all duration-300",
+      "group relative bg-base-100 border border-base-content/5 shadow-xs rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-md active:scale-[0.99] transition-all duration-300",
       isDeleting && "opacity-50 pointer-events-none"
     )}>
       {/* Media Preview */}
@@ -50,7 +50,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Eye className="text-foreground-tertiary" size={48} />
+            <Eye className="text-base-content/30" size={48} />
           </div>
         )}
         
@@ -59,7 +59,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
         </div>
 
         {post.mediaUrls.length > 1 && (
-          <div className="absolute bottom-3 right-3 bg-foreground/60 backdrop-blur-md text-background text-2xs px-2 py-1 rounded-md">
+          <div className="absolute bottom-3 right-3 badge badge-sm badge-soft bg-base-300/80 backdrop-blur-md text-base-content font-mono border-none">
             +{post.mediaUrls.length - 1} more
           </div>
         )}
@@ -68,44 +68,38 @@ export function PostCard({ post, onDelete }: PostCardProps) {
       {/* Content */}
       <div className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-sm text-foreground line-clamp-2 leading-relaxed">
-            {post.content || <span className="text-foreground-tertiary italic">No content</span>}
+          <p className="text-sm text-base-content line-clamp-2 leading-relaxed">
+            {post.content || <span className="text-base-content/30 italic">No content</span>}
           </p>
           
-          <div className="relative">
-            <button 
-              onClick={() => setShowActions(!showActions)}
-              className="p-1 rounded-lg hover:bg-foreground/5 text-foreground-secondary transition-colors"
+          <div className="dropdown dropdown-end dropdown-top shrink-0">
+            <div 
+              tabIndex={0} 
+              role="button" 
+              className="btn btn-ghost btn-xs p-1 rounded-lg text-base-content/60 hover:bg-base-200"
             >
               <MoreVertical size={16} />
-            </button>
-            
-            {showActions && (
-              <>
-                <div 
-                  className="fixed inset-0 z-10" 
-                  onClick={() => setShowActions(false)} 
-                />
-                <div className="absolute right-0 bottom-full mb-2 w-32 bg-base-200 border border-foreground/10 rounded-xl shadow-2xl z-20 py-1 animate-in fade-in zoom-in duration-200">
-                  <button
-                    onClick={() => {
-                      setShowActions(false);
-                      handleDelete();
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-11 text-red-400 hover:bg-red-500/10 transition-colors text-left font-bold uppercase tracking-wider"
-                  >
-                    <Trash2 size={14} />
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
+            </div>
+            <ul 
+              tabIndex={0} 
+              className="dropdown-content menu p-1 shadow-lg bg-base-200 border border-base-content/10 rounded-xl w-32 z-20"
+            >
+              <li>
+                <button
+                  onClick={handleDelete}
+                  className="flex items-center gap-2 text-xs text-error hover:bg-error/10 font-bold uppercase tracking-wider py-2"
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
 
         {/* Footer info */}
-        <div className="pt-3 border-t border-foreground/5 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-foreground-secondary">
+        <div className="pt-3 border-t border-base-content/5 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-base-content/50">
             <Calendar size={12} />
             <span className="text-11 font-medium">
               {post.status === 'scheduled' && post.scheduledAt 
@@ -115,7 +109,7 @@ export function PostCard({ post, onDelete }: PostCardProps) {
           </div>
 
           {post.status === 'failed' && post.errorMessage && (
-            <div className="flex items-center gap-1 text-red-500" title={post.errorMessage}>
+            <div className="flex items-center gap-1 text-error" title={post.errorMessage}>
               <AlertTriangle size={12} />
               <span className="text-2xs font-bold uppercase">Error</span>
             </div>

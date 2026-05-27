@@ -11,22 +11,22 @@ type PostEmptyStateProps = {
 
 export function PostEmptyState({ hasFilters, onClear }: PostEmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 px-6 bg-background-secondary border border-dashed border-foreground/10 rounded-[2rem] text-center space-y-6">
-      <div className="w-20 h-20 rounded-3xl bg-background-tertiary flex items-center justify-center shadow-2xl border border-foreground/10 ring-4 ring-foreground/5">
+    <div className="flex flex-col items-center justify-center py-20 px-6 bg-base-100/50 border border-dashed border-base-content/10 rounded-3xl text-center space-y-6">
+      <div className="w-20 h-20 rounded-3xl bg-base-200 flex items-center justify-center shadow-md border border-base-content/5 ring-4 ring-base-content/5">
         {hasFilters ? (
-          <XCircle className="text-slate-500" size={32} />
+          <XCircle className="text-base-content/40" size={32} />
         ) : (
-          <FileText className="text-blue-500" size={32} />
+          <FileText className="text-primary" size={32} />
         )}
       </div>
 
       <div className="max-w-xs space-y-2">
-        <h3 className="text-lg font-bold text-foreground">
+        <h3 className="text-lg font-bold text-base-content">
           {hasFilters ? 'No posts matched' : 'No posts yet'}
         </h3>
-        <p className="text-sm text-foreground-tertiary leading-relaxed">
+        <p className="text-sm text-base-content/70 leading-relaxed">
           {hasFilters 
-            ? 'Try adjusting your filters or search terms to find what you\'re looking for.'
+            ? "Try adjusting your filters or search terms to find what you're looking for."
             : 'Start creating amazing content and schedule them across your social platforms.'}
         </p>
       </div>
@@ -34,14 +34,14 @@ export function PostEmptyState({ hasFilters, onClear }: PostEmptyStateProps) {
       {hasFilters ? (
         <button
           onClick={onClear}
-          className="text-xs font-bold uppercase tracking-widest text-blue-500 hover:text-blue-400 transition-colors"
+          className="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors cursor-pointer"
         >
           Clear all filters
         </button>
       ) : (
         <Link
           href="/dashboard/composer"
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:shadow-blue-600/20 hover:-translate-y-0.5"
+          className="btn btn-primary rounded-xl flex items-center gap-2 font-bold text-sm hover:-translate-y-0.5 shadow-lg shadow-primary/20 transition-all cursor-pointer"
         >
           <Plus size={18} />
           Create First Post

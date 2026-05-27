@@ -19,12 +19,12 @@ export default async function ComposerPage() {
   // Canary Rollout Check
   if (!FeatureFlagService.isEnabled(user.id, FLAGS.SOCIAL_PUBLISHER_PRO, 100)) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 max-w-lg mx-auto text-center">
-        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20 mb-2">
+      <div className="flex flex-col items-center justify-center min-h-[50vh] max-w-lg mx-auto text-center p-8 bg-base-100 border border-base-content/5 shadow-md rounded-3xl space-y-4 my-12">
+        <div className="w-16 h-16 bg-info/10 rounded-2xl flex items-center justify-center border border-info/20 mb-2">
           <span className="text-2xl">🚀</span>
         </div>
-        <h2 className="text-2xl font-bold text-white tracking-tight">Social Publisher Pro</h2>
-        <p className="text-slate-400 font-medium leading-relaxed">
+        <h2 className="text-2xl font-brand font-bold text-base-content tracking-tight">Social Publisher Pro</h2>
+        <p className="text-base-content/70 font-medium leading-relaxed">
           Tính năng lên lịch và đăng bài đa nền tảng đang trong giai đoạn thử nghiệm (Canary Rollout).
           Chúng tôi đang triển khai dần cho người dùng và sẽ sớm mở rộng cho tài khoản của bạn!
         </p>
@@ -37,8 +37,8 @@ export default async function ComposerPage() {
 
   if (!workspace) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-slate-400">No workspace found. Please create one first.</p>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-base-content/70 font-medium">No workspace found. Please create one first.</p>
       </div>
     );
   }

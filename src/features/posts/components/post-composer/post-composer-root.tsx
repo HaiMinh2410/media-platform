@@ -176,20 +176,20 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
     .join(', ');
 
   return (
-    <div className="min-h-screen bg-base-100 text-foreground selection:bg-primary/30">
+    <div className="min-h-screen bg-base-100 text-base-content selection:bg-primary/30">
       {/* Top Navbar / Header */}
-      <div className="h-14 bg-base-200 border-b border-foreground/10 flex items-center px-6 justify-between">
+      <div className="h-14 bg-base-200/50 border-b border-base-content/5 flex items-center px-6 justify-between">
         <Link 
           href="/dashboard/posts" 
-          className="inline-flex items-center gap-2 text-foreground-secondary hover:text-foreground transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 text-base-content/70 hover:text-base-content transition-colors text-sm font-medium"
         >
           <ArrowLeft size={16} />
           SocialPub Pro
         </Link>
-        <div className="flex items-center gap-4 text-foreground-secondary text-2xs uppercase tracking-widest font-mono">
-          <span className="hover:text-foreground cursor-pointer transition-colors">📅 Lịch</span>
-          <span className="hover:text-foreground cursor-pointer transition-colors">📊 Báo cáo</span>
-          <span className="hover:text-foreground cursor-pointer transition-colors">👤 Tài khoản</span>
+        <div className="flex items-center gap-4 text-base-content/50 text-2xs uppercase tracking-widest font-mono">
+          <span className="hover:text-base-content cursor-pointer transition-colors">📅 Lịch</span>
+          <span className="hover:text-base-content cursor-pointer transition-colors">📊 Báo cáo</span>
+          <span className="hover:text-base-content cursor-pointer transition-colors">👤 Tài khoản</span>
         </div>
       </div>
  
@@ -198,7 +198,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
  
           {/* LEFT COLUMN (Composer) */}
           <div className="space-y-6">
-            <h2 className="text-xs font-extrabold text-foreground uppercase tracking-widest flex items-center gap-2">
+            <h2 className="text-xs font-extrabold text-base-content/40 font-mono tracking-widest flex items-center gap-2">
               ✍️ SOẠN BÀI ĐĂNG
             </h2>
  
@@ -242,7 +242,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
               </AnimatePresence>
             </div>
  
-            <div className="bg-base-200 border-[1.5px] border-foreground/10 rounded-lg overflow-hidden flex flex-col">
+            <div className="bg-base-200 border border-base-content/5 shadow-inner rounded-2xl overflow-hidden flex flex-col">
               <ContentEditor
                 content={content}
                 onChange={setContent}
@@ -273,9 +273,9 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
           </div>
  
           {/* RIGHT COLUMN (Preview) */}
-          <aside className="hidden xl:block border-l border-foreground/10 border-dashed pl-10 relative">
+          <aside className="hidden xl:block border-l border-base-content/10 border-dashed pl-10 relative">
             <div className="sticky top-8">
-              <h2 className="text-xs font-extrabold text-foreground uppercase tracking-widest flex items-center gap-2 mb-6">
+              <h2 className="text-xs font-extrabold text-base-content/40 font-mono tracking-widest flex items-center gap-2 mb-6">
                 👁️ XEM TRƯỚC
               </h2>
               <PostPreviewPanel

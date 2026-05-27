@@ -9,22 +9,22 @@ const STATUS_CONFIG = {
   draft: {
     label: 'Draft',
     icon: FileText,
-    className: 'bg-background-tertiary text-foreground-secondary border-foreground/10',
+    className: 'bg-base-200 text-base-content/70 border-base-content/5',
   },
   scheduled: {
     label: 'Scheduled',
     icon: Clock,
-    className: 'bg-blue-600/10 text-blue-400 border-blue-500/30',
+    className: 'bg-info/10 text-info border-info/20',
   },
   published: {
     label: 'Published',
     icon: CheckCircle2,
-    className: 'bg-emerald-600/10 text-emerald-400 border-emerald-500/30',
+    className: 'bg-success/10 text-success border-success/20',
   },
   failed: {
     label: 'Failed',
     icon: AlertCircle,
-    className: 'bg-red-600/10 text-red-400 border-red-500/30',
+    className: 'bg-error/10 text-error border-error/20',
   },
 };
 
