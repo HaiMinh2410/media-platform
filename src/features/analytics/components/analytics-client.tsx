@@ -101,7 +101,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-7xl mx-auto">
+    <div className="flex flex-col gap-6 py-10 max-w-7xl mx-auto">
       {/* GLOBAL HEADER BAR (TABS SELECTOR & CONTROLS TOOLBAR) */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-base-content/5">
         {/* TABS SELECTOR */}

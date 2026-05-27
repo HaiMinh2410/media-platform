@@ -3,7 +3,7 @@
 import React, { startTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LayoutDashboard, Users } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
+import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 interface DashboardTabsLayoutProps {
   activeTab: 'overview' | 'leads';
@@ -42,32 +42,17 @@ export function DashboardTabsLayout({
           </div>
 
           {/* Bento Tabs Switcher */}
-          <div className="flex bg-base-100/60 backdrop-blur-md p-1 rounded-xl border border-base-content/10 shadow-xs shrink-0 self-start sm:self-center">
-            <button
-              onClick={() => handleTabChange('overview')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer",
-                activeTab === 'overview'
-                  ? "bg-primary text-primary-content shadow-xs"
-                  : "text-base-content/60 hover:text-base-content/80"
-              )}
-            >
-              <LayoutDashboard size={14} />
-              Tổng quan
-            </button>
-            <button
-              onClick={() => handleTabChange('leads')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer",
-                activeTab === 'leads'
-                  ? "bg-primary text-primary-content shadow-xs"
-                  : "text-base-content/60 hover:text-base-content/80"
-              )}
-            >
-              <Users size={14} />
-              Khách hàng tiềm năng
-            </button>
-          </div>
+          <SlidingTabs
+            items={[
+              { value: 'overview', label: 'Tổng quan', icon: LayoutDashboard },
+              { value: 'leads', label: 'Khách hàng tiềm năng', icon: Users }
+            ]}
+            activeValue={activeTab}
+            onChange={handleTabChange}
+            size="md"
+            layoutId="dashboardMainTabs"
+            className="self-start sm:self-center shrink-0"
+          />
         </div>
 
         {/* Content Area */}

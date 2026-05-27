@@ -50,7 +50,7 @@ export function AnalyticsDashboardHeader({
   return (
     <div className="flex flex-wrap items-center gap-2 relative z-30">
       {/* FILTER GROUP */}
-      <div className="flex flex-wrap items-center gap-1.5 bg-base-200/40 dark:bg-base-300/30 p-1 border border-base-content/5 rounded-2xl shadow-inner">
+      <div className="flex flex-wrap items-center gap-1.5 p-1">
         {/* RANGE SELECTOR DROPDOWN */}
         <RangeSelector 
           value={range}

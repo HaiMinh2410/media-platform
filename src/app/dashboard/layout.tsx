@@ -3,7 +3,6 @@
 import React from 'react';
 import { Sidebar } from '@shared/components/layout/sidebar';
 import { CommandPalette } from '@shared/components/layout/command-palette';
-import { MainHeader } from '@shared/components/layout/main-header';
 import { Toaster } from 'sonner';
 import { getCurrentUserWorkspaceAction } from '@features/settings/actions/workspace.actions';
 
@@ -28,7 +27,6 @@ export default function DashboardLayout({
       <CommandPalette />
       <Sidebar />
       <main className="flex-1 min-w-0 max-w-[calc(100vw-var(--sidebar-width,260px))] ml-(--sidebar-width,260px) bg-[radial-gradient(circle_at_0%_0%,rgba(99,102,241,0.03)_0%,transparent_50%),radial-gradient(circle_at_100%_100%,rgba(168,85,247,0.03)_0%,transparent_50%)] flex flex-col h-screen transition-[margin-left,max-width] duration-300 ease-in-out">
-        {workspaceId && <MainHeader workspaceId={workspaceId} />}
         <div className="w-full flex-1 overflow-y-auto overflow-x-hidden p-0">
           {children}
         </div>

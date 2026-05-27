@@ -19,6 +19,7 @@ import { cn } from '@shared/lib/utils';
 import { getCurrentWorkspaceUnreadCountAction, getCurrentUserWorkspaceAction } from '@features/settings/actions/workspace.actions';
 import { useUnreadRealtime } from '@features/inbox/hooks/use-unread-realtime';
 import { FeatureFlagService, FLAGS } from '@shared/lib/feature-flag.service';
+import { ThemeSwitcher } from '@shared/ui/theme-switcher';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -51,12 +52,6 @@ export function Sidebar() {
       icon: <Inbox size={20} />,
       badge: unreadCount > 0 ? (unreadCount > 99 ? '99+' : String(unreadCount)) : undefined
     },
-    {
-      label: 'Leads',
-      href: '/dashboard/leads',
-      icon: <Users size={20} />,
-    },
-
     {
       label: 'Posts',
       href: '/dashboard/posts',
@@ -130,7 +125,7 @@ export function Sidebar() {
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 h-screen bg-background-secondary border-r border-foreground/10 flex flex-col z-50 transition-[width,padding] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-x-hidden",
+        "fixed left-0 top-0 h-screen bg-background-secondary border-r border-foreground/10 flex flex-col z-50 transition-[width,padding] duration-300 ease-in-out overflow-x-hidden",
         isCollapsed ? "w-[80px] p-8 px-3" : "w-[260px] p-8 px-4"
       )}
       onMouseEnter={() => {
@@ -176,7 +171,7 @@ export function Sidebar() {
                 "flex items-center justify-between p-3 rounded-md text-foreground-secondary font-medium transition-all duration-200 relative no-underline hover:bg-foreground/5 hover:text-foreground group",
                 isCollapsed && "justify-center",
                 isActive && "bg-primary/10 text-foreground border border-primary/30 shadow-md shadow-primary/10",
-                isCollapsed && "after:content-[attr(data-tooltip)] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:ml-3 after:px-3 after:py-1.5 after:bg-base-200 after:text-foreground after:text-xs after:rounded-sm after:whitespace-nowrap after:opacity-0 after:pointer-events-none after:transition-all after:duration-200 after:z-[100] after:border after:border-foreground/10 after:shadow-lg hover:after:opacity-100 hover:after:translate-x-1"
+                isCollapsed && "after:content-[attr(data-tooltip)] after:absolute after:left-full after:top-1/2 after:-translate-y-1/2 after:ml-3 after:px-3 after:py-1.5 after:bg-base-200 after:text-foreground after:text-xs after:rounded-sm after:whitespace-nowrap after:opacity-0 after:pointer-events-none after:transition-all after:duration-200 after:z-100 after:border after:border-foreground/10 after:shadow-lg hover:after:opacity-100 hover:after:translate-x-1"
               )}
               data-tooltip={isCollapsed ? item.label : undefined}
             >
@@ -202,7 +197,36 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Global tools & User Profile at bottom */}
+      <div className="mt-auto pt-6 border-t border-foreground/10 flex flex-col gap-4 w-full shrink-0">
+        {/* Theme Switcher ở trên */}
+        <div className={cn(
+          "flex w-full items-center",
+          isCollapsed ? "justify-center" : "justify-start px-2"
+        )}>
+          <ThemeSwitcher showLabel={!isCollapsed} />
+        </div>
 
+        {/* User Profile ở dưới */}
+        <div className={cn(
+          "flex items-center gap-3 min-w-0 w-full",
+          isCollapsed ? "justify-center px-0" : "justify-start px-2"
+        )}>
+          <div className="w-9 h-9 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground-secondary border border-foreground/10 shrink-0 overflow-hidden shadow-md">
+            {userData?.avatar ? (
+              <img src={userData.avatar} alt="" className="w-full h-full object-cover" />
+            ) : (
+              userData?.name?.charAt(0) || 'U'
+            )}
+          </div>
+          {!isCollapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-extrabold text-foreground truncate font-brand leading-none">{userData?.name || 'User'}</span>
+              <span className="text-3xs text-foreground-secondary truncate uppercase tracking-widest font-mono mt-1 leading-none">{userData?.role || 'Member'}</span>
+            </div>
+          )}
+        </div>
+      </div>
     </aside>
   );
 }

@@ -80,7 +80,7 @@ export function SlidingTabs<T extends string>({
 
   return (
     <div
-      className={`flex flex-wrap bg-base-200/70 border border-base-content/5 rounded-2xl select-none shadow-inner relative ${
+      className={`flex flex-wrap border border-base-content/5 rounded-2xl select-none shadow-inner relative ${
         fullWidth ? 'w-full' : 'w-fit'
       } ${currentStyle.container} ${className}`}
     >
