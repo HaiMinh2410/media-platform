@@ -216,7 +216,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.2 }}
-                    className="flex items-start gap-3 bg-warning/10 border border-warning/30 rounded-md px-[14px] py-[10px] text-warning shadow-sm"
+                    className="flex items-start gap-3 bg-warning/10 border border-warning/30 rounded-xl p-4 text-warning shadow-sm"
                   >
                     <AlertTriangle size={15} className="shrink-0 mt-0.5 text-warning" />
                     <div className="text-[13px] leading-[1.6]">
@@ -231,7 +231,7 @@ export function PostComposerRoot({ accounts, workspaceId }: PostComposerRootProp
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.2 }}
-                    className="flex items-center gap-3 bg-info/10 border-[1.5px] border-info/30 rounded-lg px-4 py-2.5 text-info shadow-sm"
+                    className="flex items-center gap-3 bg-info/10 border border-info/20 rounded-xl p-4 text-info shadow-sm"
                   >
                     <Lock size={15} className="shrink-0" />
                     <div className="text-[12px] flex-1">

@@ -64,7 +64,7 @@ export function DatetimePicker({ value, onChange }: DatetimePickerProps) {
             key={preset.label}
             type="button"
             onClick={() => onChange(preset.getDate())}
-            className="px-3 py-1.5 rounded-md bg-background-secondary/50 border border-foreground/5 text-[10px] font-bold text-foreground-secondary hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all uppercase tracking-wider"
+            className="btn btn-xs btn-soft border-none text-base-content/70 hover:text-primary transition-all font-bold uppercase tracking-wider rounded-lg cursor-pointer"
           >
             {preset.label}
           </button>
@@ -74,31 +74,31 @@ export function DatetimePicker({ value, onChange }: DatetimePickerProps) {
       <div className="grid grid-cols-2 gap-3">
         {/* Date Input Wrapper */}
         <div className="relative group">
-          <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary group-focus-within:text-primary transition-colors pointer-events-none" size={14} />
+          <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors pointer-events-none" size={14} />
           <input
             type="date"
             value={format(value, 'yyyy-MM-dd')}
             onChange={handleDateChange}
-            className="w-full bg-background-tertiary/50 border border-foreground/10 rounded-md pl-9 pr-3 py-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all appearance-none"
+            className="w-full bg-base-200/50 border border-base-content/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-base-content focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 transition-all appearance-none"
           />
         </div>
 
         {/* Time Input Wrapper */}
         <div className="relative group">
-          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary group-focus-within:text-primary transition-colors pointer-events-none" size={14} />
+          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors pointer-events-none" size={14} />
           <input
             type="time"
             value={format(value, 'HH:mm')}
             onChange={handleTimeChange}
-            className="w-full bg-background-tertiary/50 border border-foreground/10 rounded-md pl-9 pr-3 py-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all appearance-none"
+            className="w-full bg-base-200/50 border border-base-content/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-base-content focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 transition-all appearance-none"
           />
         </div>
       </div>
 
       {/* Timezone Indicator */}
-      <div className="flex items-center gap-2 px-1 text-[10px] font-medium text-foreground-tertiary">
+      <div className="flex items-center gap-2 px-1 text-[10px] font-medium text-base-content/40">
         <Globe size={12} className="text-primary/60" />
-        <span className="bg-foreground/5 px-2 py-0.5 rounded-sm border border-foreground/5 text-foreground-secondary">
+        <span className="bg-base-300 px-2 py-0.5 rounded-md border border-base-content/5 text-base-content/70">
           {timezone || 'Detecting...'}
         </span>
         <span className="ml-auto italic opacity-40">Múi giờ hệ thống</span>
