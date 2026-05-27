@@ -122,11 +122,11 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-xs font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
-          Nhãn <Info size={14} className="text-foreground-tertiary cursor-help" />
+        <h3 className="text-xs font-bold text-base-content/40 uppercase tracking-wider flex items-center gap-1 font-mono">
+          Nhãn <Info size={14} className="text-base-content/40 cursor-help" />
         </h3>
         <span 
-          className="text-xs text-accent-primary cursor-pointer hover:underline"
+          className="text-xs text-primary cursor-pointer hover:underline font-mono"
           onClick={() => setIsManageTagsOpen(true)}
         >
           Quản lý nhãn
@@ -156,7 +156,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
             );
           })
         ) : (
-          <p className="text-xs text-foreground-tertiary italic my-2">
+          <p className="text-xs text-base-content/40 italic my-2">
             Chưa có nhãn nào được gắn
           </p>
         )}
@@ -164,7 +164,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
 
       <div className="relative w-full mt-2" ref={tagDropdownRef}>
         <div 
-          className="flex items-center justify-between w-full p-2.5 bg-background-secondary border border-foreground/10 rounded-lg text-sm text-foreground cursor-pointer transition-all hover:bg-background-tertiary hover:border-accent-primary"
+          className="flex items-center justify-between w-full p-2.5 bg-base-200 border border-base-content/10 rounded-lg text-sm text-base-content cursor-pointer transition-all hover:bg-base-300 hover:border-primary"
           onClick={toggleTagDropdown}
         >
           <span>Thêm nhãn</span>
@@ -175,7 +175,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
           <div 
             ref={tagMenuRef}
             className={cn(
-              "fixed bg-base-200 border border-foreground/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
+              "fixed bg-base-100 border border-base-content/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
               dropdownDirection === 'up' && "mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
             )}
             style={{
@@ -185,14 +185,14 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
               width: dropdownPos.width,
             }}
           >
-            <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-foreground/10">
+            <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-base-content/10">
               {unappliedTags.length > 0 ? (
                 unappliedTags.map((tag: string) => {
                   const { name, color } = parseTag(tag);
                   return (
                     <div 
                       key={tag} 
-                      className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-foreground/5"
+                      className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-base-content/5"
                       onClick={() => {
                         toggleTag(tag);
                         setIsTagDropdownOpen(false);
@@ -202,12 +202,12 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
                         style={{ backgroundColor: color }} 
                       />
-                      <span className="font-bold text-sm text-foreground">{name}</span>
+                      <span className="font-bold text-sm text-base-content">{name}</span>
                     </div>
                   );
                 })
               ) : (
-                <div className="p-4 text-center text-sm text-foreground-tertiary italic">Không còn nhãn nào để thêm</div>
+                <div className="p-4 text-center text-sm text-base-content/40 italic">Không còn nhãn nào để thêm</div>
               )}
             </div>
           </div>,

@@ -89,12 +89,12 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
     <Link 
       href={`/dashboard/inbox/${conversation.id}`} 
       className={cn(
-        "flex gap-3 p-3 rounded-xl cursor-pointer transition-all border border-transparent no-underline absolute left-3 w-[calc(100%-24px)] box-border hover:bg-foreground/5 group", 
-        isActive && "bg-foreground/5 border-foreground/10 shadow-sm"
+        "flex gap-3 p-3 rounded-xl cursor-pointer transition-all border border-transparent no-underline absolute left-3 w-[calc(100%-24px)] box-border hover:bg-base-content/5 group", 
+        isActive && "bg-base-100 border-base-content/10 shadow-xs"
       )}
       style={style}
     >
-      <div className="w-11 h-11 rounded-full bg-background-tertiary flex items-center justify-center text-base font-semibold text-foreground-secondary shrink-0 relative border border-foreground/10 overflow-visible">
+      <div className="w-11 h-11 rounded-full bg-base-300 flex items-center justify-center text-base font-semibold text-base-content/70 shrink-0 relative border border-base-content/10 overflow-visible">
         {conversation.customer_avatar ? (
           <img src={conversation.customer_avatar} alt={conversation.sender_name} className="w-full h-full rounded-full object-cover" />
         ) : (
@@ -113,7 +113,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
         <div className="flex justify-between items-baseline mb-0.5">
           <div className="flex items-center gap-1 min-w-0 flex-1">
             <span className={cn(
-              "font-medium text-foreground text-base whitespace-nowrap overflow-hidden text-ellipsis",
+              "font-medium text-base-content text-base whitespace-nowrap overflow-hidden text-ellipsis",
               isUnread && "font-semibold"
             )}>
               {conversation.sender_name || 'Unknown User'}
@@ -144,7 +144,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
             {!conversation.is_pinned && (
               <div className="relative w-full h-full flex items-center justify-end overflow-hidden">
                 {/* Timestamp - shown by default, hidden on hover */}
-                <span className="text-xs text-foreground-tertiary transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-[-10px] absolute right-0">
+                <span className="text-xs text-base-content/40 transition-all duration-200 group-hover:opacity-0 group-hover:translate-y-[-10px] absolute right-0">
                   {formatTime(conversation.last_message_at)}
                 </span>
                 {/* Pin Button - hidden by default, shown on hover */}
@@ -152,7 +152,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
                   type="button"
                   onClick={handlePinClick}
                   disabled={isPinning}
-                  className="opacity-0 translate-y-[10px] group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 text-foreground-tertiary hover:text-indigo-500 hover:scale-110 p-1 rounded-full hover:bg-foreground/5 absolute right-0 flex items-center justify-center cursor-pointer border-0 bg-transparent"
+                  className="opacity-0 translate-y-[10px] group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 text-base-content/40 hover:text-primary hover:scale-110 p-1 rounded-full hover:bg-base-content/5 absolute right-0 flex items-center justify-center cursor-pointer border-0 bg-transparent"
                   title="Ghim hội thoại"
                 >
                   <Pin size={13} className="rotate-45" />
@@ -164,7 +164,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
             {conversation.is_pinned && (
               <div className="flex items-center gap-1 shrink-0">
                 {/* Timestamp - ALWAYS shown, no animation to prevent layout shifts */}
-                <span className="text-xs text-foreground-tertiary mr-1">
+                <span className="text-xs text-base-content/40 mr-1">
                   {formatTime(conversation.last_message_at)}
                 </span>
                 {/* Pin Button - ALWAYS shown, turns red on hover for intuitive unpinning */}
@@ -172,7 +172,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
                   type="button"
                   onClick={handlePinClick}
                   disabled={isPinning}
-                  className="text-indigo-500 hover:text-error hover:scale-110 transition-all duration-150 p-1 rounded-full hover:bg-foreground/5 flex items-center justify-center cursor-pointer border-0 bg-transparent"
+                  className="text-primary hover:text-error hover:scale-110 transition-all duration-150 p-1 rounded-full hover:bg-base-content/5 flex items-center justify-center cursor-pointer border-0 bg-transparent"
                   title="Bỏ ghim hội thoại"
                 >
                   <Pin size={13} fill="currentColor" className="rotate-45" />
@@ -184,8 +184,8 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
         
         <div className="flex justify-between items-center gap-2">
           <span className={cn(
-            "text-sm text-foreground-secondary whitespace-nowrap overflow-hidden text-ellipsis",
-            isUnread && "font-medium text-foreground"
+            "text-sm text-base-content/70 whitespace-nowrap overflow-hidden text-ellipsis",
+            isUnread && "font-medium text-base-content"
           )}>
             {conversation.last_message_content ? (
               (conversation.last_message_sender_type === 'agent' || conversation.last_message_sender_type === 'ai') ? (
@@ -211,7 +211,7 @@ export function ThreadCard({ conversation, style }: { conversation: Conversation
             </span>
           )}
           {conversation.canonical_conversation_id && (
-            <span className="text-foreground-tertiary" title="Linked Identity">
+            <span className="text-base-content/40" title="Linked Identity">
               <Users size={12} />
             </span>
           )}

@@ -116,13 +116,13 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
 
         {/* Main scrolling chat window */}
         <div
-          className="flex-1 overflow-y-auto overflow-x-hidden p-md px-4 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent"
+          className="flex-1 overflow-y-auto overflow-x-hidden p-md px-4 flex flex-col bg-transparent scrollbar-thin scrollbar-thumb-base-content/10 scrollbar-track-transparent"
           ref={scrollRef}
         >
           <div ref={observerTarget} style={{ height: '1px', opacity: 0 }} />
 
           {loading && nextCursor && (
-            <div className="p-4 text-center text-foreground-tertiary text-sm">Loading older messages...</div>
+            <div className="p-4 text-center text-base-content/40 text-sm">Loading older messages...</div>
           )}
 
           {loading && messages.length === 0 && <ChatSkeleton />}
@@ -189,7 +189,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
               <React.Fragment key={msg.id}>
                 {showSeparator && (
                   <div className="flex justify-center items-center my-6 relative">
-                    <span className="px-4 py-1 rounded-full text-xs font-semibold text-foreground/85 relative z-10">
+                    <span className="px-4 py-1 rounded-full text-xs font-semibold text-base-content/80 relative z-10">
                       {formatChatSeparator(msg.createdAt)}
                     </span>
                   </div>
@@ -214,7 +214,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
           <TypingIndicatorList typingUsers={typingUsers} />
 
           {!loading && messages.length === 0 && (
-            <div className="p-4 text-center text-foreground-tertiary text-sm">
+            <div className="p-4 text-center text-base-content/40 text-sm">
               No messages found for this conversation.
             </div>
           )}

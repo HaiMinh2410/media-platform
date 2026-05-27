@@ -281,7 +281,7 @@ export function ReplyComposer({
     <div className="p-md px-4 pt-0">
       {errorMsg && (
         <div
-          className="p-sm px-3 mb-2 bg-status-error/10 border border-status-error/30 rounded-sm text-status-error text-sm"
+          className="p-sm px-3 mb-2 bg-error/10 border border-error/20 rounded-md text-error text-sm"
           role="alert"
         >
           {errorMsg}
@@ -299,8 +299,8 @@ export function ReplyComposer({
 
       <div className="relative">
         {aiStatusText && (
-          <div className="flex items-center gap-1.5 px-1 pb-2 text-2xs text-foreground-tertiary font-bold tracking-wide animate-pulse transition-all duration-300">
-            <Loader2 size={11} className="animate-spin text-accent-primary" />
+          <div className="flex items-center gap-1.5 px-1 pb-2 text-2xs text-base-content/40 font-bold tracking-wide animate-pulse transition-all duration-300">
+            <Loader2 size={11} className="animate-spin text-primary" />
             <span>{aiStatusText}</span>
           </div>
         )}
@@ -350,12 +350,12 @@ export function ReplyComposer({
       </div>
 
       {text.length > 0 && text.length < 5 && (
-        <div className="mt-2 p-2 bg-accent-secondary/5 rounded-md border border-accent-secondary/10 animate-pulse">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-accent-secondary uppercase tracking-wide mb-1">
+        <div className="mt-2 p-2 bg-secondary/5 rounded-md border border-secondary/10 animate-pulse">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-secondary uppercase tracking-wide mb-1">
             <Icon name="ai-sparkles" size={14} />
             AI Suggestion
           </div>
-          <p className="text-xs text-foreground-tertiary">
+          <p className="text-xs text-base-content/40">
             Continue typing to see AI-powered drafts...
           </p>
         </div>

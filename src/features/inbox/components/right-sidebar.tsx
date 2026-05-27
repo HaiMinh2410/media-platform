@@ -169,13 +169,13 @@ export function RightSidebar({
   }
 
   return (
-    <aside className="flex flex-col h-full bg-base-200 border-l border-foreground/5" data-sidebar="right">
+    <aside className="flex flex-col h-full bg-base-200 border-l border-base-content/5" data-sidebar="right">
       {/* Tab Header */}
-      <div className="flex items-center gap-1 p-2 border-b border-foreground/10">
+      <div className="flex items-center gap-1 p-2 border-b border-base-content/10">
         <button 
           className={cn(
-            "flex-1 py-2 text-sm font-semibold text-foreground-tertiary rounded-md transition-all hover:text-foreground-secondary hover:bg-foreground/5",
-            activeTab === 'detail' && "text-accent-primary bg-accent-primary/10"
+            "flex-1 py-2 text-sm font-semibold text-base-content/40 rounded-md transition-all hover:text-base-content/70 hover:bg-base-content/5",
+            activeTab === 'detail' && "text-primary bg-primary/10"
           )}
           onClick={() => setActiveTab('detail')}
         >
@@ -189,8 +189,8 @@ export function RightSidebar({
                 ? "text-success bg-success/15 border border-success/30 font-bold shadow-[0_0_12px_rgba(34,197,94,0.1)]"
                 : "text-success bg-success/5 border border-success/10 hover:bg-success/10 font-bold"
               : activeTab === 'ai'
-                ? "text-accent-primary bg-accent-primary/10"
-                : "text-foreground-tertiary hover:text-foreground-secondary hover:bg-foreground/5"
+                ? "text-primary bg-primary/10"
+                : "text-base-content/40 hover:text-base-content/70 hover:bg-base-content/5"
           )}
           onClick={() => setActiveTab('ai')}
         >
@@ -204,7 +204,7 @@ export function RightSidebar({
         </button>
         {activeTab === 'search' && (
           <button 
-            className="flex-1 py-2 text-sm font-semibold text-accent-primary bg-accent-primary/10 rounded-md transition-all"
+            className="flex-1 py-2 text-sm font-semibold text-primary bg-primary/10 rounded-md transition-all"
             onClick={() => setActiveTab('search')}
           >
             Search
@@ -212,7 +212,7 @@ export function RightSidebar({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-base-content/10">
         {activeTab === 'detail' && (
           <div className="p-4 flex flex-col gap-6">
             <CustomerProfile 

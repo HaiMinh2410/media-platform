@@ -195,7 +195,7 @@ export function RightPanel({
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 flex flex-col border-r border-foreground/10 relative z-10">
+      <div className="flex-1 flex flex-col border-r border-base-content/10 relative z-10">
         <ChatHeader 
           conversationId={conversationId}
           customerName={customerName || externalId}
@@ -226,7 +226,7 @@ export function RightPanel({
       </div>
 
       <div className={cn(
-        "w-[340px] flex flex-col transition-[width] duration-300 ease-in-out overflow-hidden border-l border-foreground/10 bg-background-tertiary/40",
+        "w-[340px] flex flex-col transition-[width] duration-300 ease-in-out overflow-hidden border-l border-base-content/5 bg-base-200/40",
         !isRightPanelVisible && "w-[60px]"
       )}>
         <RightSidebar

@@ -43,12 +43,12 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
 
   if (!profile) {
     return (
-      <div className="p-4 bg-foreground/[0.02] border border-foreground/5 rounded-xl flex flex-col gap-3">
-        <div className="flex items-center gap-2 text-foreground-secondary">
-          <Sparkles size={16} className="text-accent animate-pulse" />
+      <div className="p-4 bg-base-200/50 border border-base-content/5 rounded-xl flex flex-col gap-3">
+        <div className="flex items-center gap-2 text-base-content/70">
+          <Sparkles size={16} className="text-primary animate-pulse" />
           <h4 className="text-sm font-bold">Hồ sơ AI DM Agent</h4>
         </div>
-        <p className="text-xs text-foreground-tertiary leading-normal">
+        <p className="text-xs text-base-content/40 leading-normal">
           Chưa có hồ sơ AI cho cuộc hội thoại này. AI Agent sẽ tự động phân loại fan_type, stage và tính điểm thiện cảm sau khi nhận được 3-4 tin nhắn đầu tiên từ khách hàng.
         </p>
       </div>
@@ -85,7 +85,7 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
       default:
         return {
           label: 'Chưa rõ (Unknown)',
-          style: 'bg-foreground/5 text-foreground-secondary border-foreground/10',
+          style: 'bg-base-200 text-base-content/70 border-base-content/10',
           desc: 'Chưa đủ dữ liệu để phân loại tính cách khách hàng.',
         };
     }
@@ -116,7 +116,7 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
         return {
           label: stage,
           target: 'Không xác định',
-          style: 'bg-foreground/5 text-foreground-secondary border-foreground/10',
+          style: 'bg-base-200 text-base-content/70 border-base-content/10',
         };
     }
   };
@@ -135,9 +135,9 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
       case 'escalate_to_human':
         return { label: 'Chuyển nhân viên trực chat xử lý', color: 'text-error bg-error/10 border-error/20 font-bold' };
       case 'wait':
-        return { label: 'Đợi khách hàng phản hồi', color: 'text-foreground-secondary bg-foreground/5 border-foreground/10' };
+        return { label: 'Đợi khách hàng phản hồi', color: 'text-base-content/70 bg-base-200 border-base-content/10' };
       default:
-        return { label: action, color: 'text-foreground-secondary bg-foreground/5 border-foreground/10' };
+        return { label: action, color: 'text-base-content/70 bg-base-200 border-base-content/10' };
     }
   };
 
@@ -146,80 +146,75 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
   const actionConfig = getNextActionConfig(profile.nextAction);
 
   return (
-    <div className="p-4 bg-background-secondary/60 border border-foreground/5 rounded-2xl flex flex-col gap-5 transition-all duration-300 hover:border-accent/20 shadow-sm relative overflow-hidden group">
+    <div className="p-4 bg-base-100 border border-base-content/5 rounded-2xl flex flex-col gap-5 transition-all duration-300 hover:border-primary/20 shadow-sm relative overflow-hidden group hover:shadow-md hover:-translate-y-0.5">
       {/* Decorative top ambient glow */}
-      <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-accent/30 to-transparent blur-xs group-hover:via-accent/50" />
+      <div className="absolute top-0 left-1/4 right-1/4 h-px bg-linear-to-r from-transparent via-primary/30 to-transparent blur-xs group-hover:via-primary/50" />
       
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-accent/10 text-accent border border-accent/20">
+          <div className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20">
             <Sparkles size={14} className="animate-pulse" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-foreground-secondary uppercase tracking-wider">Hồ sơ phân tích AI</h4>
-            <p className="text-3xs text-foreground-tertiary">Cập nhật thời gian thực</p>
+            <h4 className="text-xs font-bold text-base-content/70 uppercase tracking-wider font-brand">Hồ sơ phân tích AI</h4>
+            <p className="text-3xs text-base-content/40 font-mono">Cập nhật thời gian thực</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-3xs font-bold px-1.5 py-0.5 rounded bg-accent/10 text-accent border border-accent/20">AGENT ACTIVE</span>
+          <span className="text-3xs font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-mono">AGENT ACTIVE</span>
         </div>
       </div>
 
       {/* Grid: Fan Type & Stage */}
       <div className="grid grid-cols-2 gap-3">
         {/* Fan Type Card */}
-        <div className="flex flex-col gap-1.5 p-2.5 bg-foreground/[0.02] border border-foreground/5 rounded-xl hover:bg-foreground/[0.04] transition-colors">
-          <span className="text-3xs font-semibold text-foreground-tertiary">Kiểu tính cách</span>
+        <div className="flex flex-col gap-1.5 p-2.5 bg-base-200/30 border border-base-content/5 rounded-xl hover:bg-base-200/50 transition-colors">
+          <span className="text-3xs font-semibold text-base-content/40 font-mono">Kiểu tính cách</span>
           <div className={cn("text-2xs font-semibold px-2 py-1 rounded-md border text-center truncate", fanConfig.style)}>
             {fanConfig.label} {profile.fanTypeConfidence > 0 && `(${Math.round(profile.fanTypeConfidence * 100)}%)`}
           </div>
         </div>
 
         {/* Stage Card */}
-        <div className="flex flex-col gap-1.5 p-2.5 bg-foreground/[0.02] border border-foreground/5 rounded-xl hover:bg-foreground/[0.04] transition-colors">
-          <span className="text-3xs font-semibold text-foreground-tertiary">Giai đoạn hội thoại</span>
+        <div className="flex flex-col gap-1.5 p-2.5 bg-base-200/30 border border-base-content/5 rounded-xl hover:bg-base-200/50 transition-colors">
+          <span className="text-3xs font-semibold text-base-content/40 font-mono">Giai đoạn hội thoại</span>
           <div className={cn("text-2xs font-semibold px-2 py-1 rounded-md border text-center truncate", stageConfig.style)}>
             {stageConfig.label}
           </div>
         </div>
       </div>
 
-      {/* Fan Type description */}
-      <p className="text-3xs text-foreground-tertiary leading-relaxed bg-foreground/[0.01] p-2 rounded-lg border border-foreground/[0.03]">
-        <strong className="text-foreground-secondary">Đặc trưng:</strong> {fanConfig.desc}
-      </p>
-
-      {/* Emotion & Flirt Section */}
-      <div className="flex flex-col gap-3 bg-foreground/[0.01] border border-foreground/5 p-3 rounded-xl">
+      {/* Fan      {/* Emotion & Flirt Section */}
+      <div className="flex flex-col gap-3 bg-base-200/20 border border-base-content/5 p-3 rounded-xl">
         {/* Slider: Emotion Score */}
         <div className="flex flex-col gap-1.5">
           <div className="flex justify-between items-center">
-            <span className="text-2xs font-bold text-foreground-secondary flex items-center gap-1">
+            <span className="text-2xs font-bold text-base-content/70 flex items-center gap-1">
               Độ thân thiện (Cảm xúc)
               {profile.emotionTrend === 'increasing' && <TrendingUp size={12} className="text-emerald-400" />}
               {profile.emotionTrend === 'decreasing' && <TrendingDown size={12} className="text-rose-400" />}
             </span>
-            <span className="text-2xs font-bold text-accent bg-accent/10 px-1.5 py-0.2 rounded">
+            <span className="text-2xs font-bold text-primary bg-primary/10 px-1.5 py-0.2 rounded font-mono">
               {Math.round(profile.emotionScore * 100)}%
             </span>
           </div>
           
-          <div className="w-full h-2 bg-foreground/10 rounded-full overflow-hidden relative">
+          <div className="w-full h-2 bg-base-300 rounded-full overflow-hidden relative">
             <div 
-              className="h-full rounded-full bg-gradient-to-r from-primary via-accent to-secondary transition-all duration-500 ease-out"
+              className="h-full rounded-full bg-linear-to-r from-primary via-secondary to-accent transition-all duration-500 ease-out"
               style={{ width: `${profile.emotionScore * 100}%` }}
             />
           </div>
-          <div className="flex justify-between text-3xs text-foreground-tertiary">
+          <div className="flex justify-between text-3xs text-base-content/40 font-mono">
             <span>Lạnh nhạt (0%)</span>
             <span>Nồng nhiệt (100%)</span>
           </div>
         </div>
-
+ 
         {/* Flirt Level */}
-        <div className="flex justify-between items-center pt-1 border-t border-foreground/5">
-          <span className="text-2xs font-bold text-foreground-secondary flex items-center gap-1">
+        <div className="flex justify-between items-center pt-1 border-t border-base-content/5">
+          <span className="text-2xs font-bold text-base-content/70 flex items-center gap-1">
             Độ quấn quýt (Thính)
           </span>
           <div className="flex gap-0.5">
@@ -231,7 +226,7 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
                   "transition-all duration-300",
                   val <= profile.flirtLevel 
                     ? "fill-pink-500 text-pink-500 scale-110 drop-shadow-[0_0_4px_rgba(236,72,153,0.4)]" 
-                    : "text-foreground-tertiary opacity-40"
+                    : "text-base-content/40 opacity-40"
                 )}
               />
             ))}
@@ -256,7 +251,7 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
             <span className="font-bold uppercase tracking-wider text-2xs">
               Cảnh báo rủi ro: {profile.riskLevel === 'high' ? 'Rất cao' : 'Trung bình'}
             </span>
-            <span className="text-3xs text-foreground-tertiary opacity-90 leading-relaxed">
+            <span className="text-3xs text-base-content/40 opacity-90 leading-relaxed">
               {profile.riskLevel === 'high' 
                 ? 'Khách hàng có hành vi tiêu cực, bào tài nguyên nặng, hoặc vi phạm từ khóa an toàn. Khuyến nghị HUMAN tiếp quản ngay.' 
                 : 'Khách hàng spam liên tục hoặc có tín hiệu quấy rối nhẹ. Cẩn trọng khi phản hồi.'}
@@ -266,8 +261,8 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
       )}
 
       {/* Next Recommended Action */}
-      <div className="flex flex-col gap-2 p-3 bg-foreground/[0.01] border border-foreground/5 rounded-xl">
-        <span className="text-3xs font-semibold text-foreground-tertiary uppercase tracking-wider">Hành động khuyên dùng</span>
+      <div className="flex flex-col gap-2 p-3 bg-base-200/20 border border-base-content/5 rounded-xl">
+        <span className="text-3xs font-semibold text-base-content/40 uppercase tracking-wider font-mono">Hành động khuyên dùng</span>
         <div className={cn("text-2xs font-bold px-2.5 py-1.5 rounded-lg border flex items-center justify-between", actionConfig.color)}>
           <span>{actionConfig.label}</span>
           <Zap size={12} className="shrink-0" />
@@ -275,9 +270,9 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
       </div>
 
       {/* Stats and Collapsible Key Insights */}
-      <div className="border-t border-foreground/5 pt-3">
+      <div className="border-t border-base-content/5 pt-3">
         {/* Day & Message Count Stats */}
-        <div className="flex justify-between text-3xs text-foreground-tertiary mb-2 px-1">
+        <div className="flex justify-between text-3xs text-base-content/40 mb-2 px-1 font-mono">
           <span className="flex items-center gap-1">
             <Calendar size={11} /> Đã chat: {profile.dayCount} ngày
           </span>
@@ -290,7 +285,7 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
         {(profile.keyInsights.length > 0 || profile.objectionsSeen.length > 0) && (
           <div className="mt-2">
             <button 
-              className="flex justify-between items-center w-full py-1 text-2xs font-bold text-foreground-tertiary hover:text-foreground transition-colors"
+              className="flex justify-between items-center w-full py-1 text-2xs font-bold text-base-content/40 hover:text-base-content transition-colors font-mono"
               onClick={() => setShowInsights(!showInsights)}
             >
               <span>XEM NHẬN ĐỊNH SÂU ({profile.keyInsights.length + profile.objectionsSeen.length})</span>
@@ -298,13 +293,13 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
             </button>
             
             {showInsights && (
-              <div className="flex flex-col gap-2.5 mt-2 p-2 bg-foreground/[0.02] border border-foreground/5 rounded-lg">
+              <div className="flex flex-col gap-2.5 mt-2 p-2 bg-base-200/50 border border-base-content/5 rounded-lg">
                 {profile.keyInsights.length > 0 && (
                   <div className="flex flex-col gap-1">
-                    <span className="text-3xs text-foreground-tertiary font-bold">Insight thu thập:</span>
+                    <span className="text-3xs text-base-content/40 font-bold font-mono">Insight thu thập:</span>
                     <div className="flex flex-wrap gap-1">
                       {profile.keyInsights.map((insight: string, idx: number) => (
-                        <span key={idx} className="text-3xs px-2 py-0.5 bg-accent/10 text-accent border border-accent/20 rounded">
+                        <span key={idx} className="text-3xs px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded">
                           {insight}
                         </span>
                       ))}
@@ -313,7 +308,7 @@ export function AiProfileViewer({ fanProfile }: AiProfileViewerProps) {
                 )}
                 {profile.objectionsSeen.length > 0 && (
                   <div className="flex flex-col gap-1">
-                    <span className="text-3xs text-error font-bold">Rào cản/Từ chối đã gặp:</span>
+                    <span className="text-3xs text-error font-bold font-mono">Rào cản/Từ chối đã gặp:</span>
                     <div className="flex flex-wrap gap-1">
                       {profile.objectionsSeen.map((objection: string, idx: number) => (
                         <span key={idx} className="text-3xs px-2 py-0.5 bg-error/10 text-error border border-error/20 rounded">

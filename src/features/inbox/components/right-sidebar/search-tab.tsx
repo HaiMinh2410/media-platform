@@ -57,20 +57,20 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center p-4 border-b border-foreground/10">
-        <h3 className="text-sm font-bold text-foreground">Search in Conversation</h3>
-        <button className="text-foreground-tertiary hover:text-foreground p-1 transition-colors animate-in fade-in" onClick={onClose}>
+      <div className="flex justify-between items-center p-4 border-b border-base-content/10">
+        <h3 className="text-sm font-bold text-base-content">Search in Conversation</h3>
+        <button className="text-base-content/40 hover:text-base-content p-1 transition-colors animate-in fade-in" onClick={onClose}>
           <X size={16} />
         </button>
       </div>
       
       <div className="p-4 flex flex-col gap-4">
         <div className="relative group">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-tertiary group-focus-within:text-primary transition-colors" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors" />
           <input 
             type="text" 
             placeholder="Search keywords..." 
-            className="w-full bg-background-secondary border border-foreground/10 pl-10 pr-10 py-2 rounded-lg text-sm text-foreground outline-none focus:border-primary transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]" 
+            className="w-full bg-base-200 border border-base-content/10 pl-10 pr-10 py-2 rounded-lg text-sm text-base-content outline-none focus:border-primary transition-all shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]" 
             autoFocus 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -84,7 +84,7 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
               senderFilter === 'user' 
                 ? "bg-primary/10 border-primary/30 text-primary" 
-                : "bg-foreground/5 border-foreground/10 text-foreground-tertiary hover:bg-foreground/10"
+                : "bg-base-content/5 border-base-content/10 text-base-content/40 hover:bg-base-content/10"
             )}
             onClick={() => setSenderFilter(senderFilter === 'user' ? '' : 'user')}
           >
@@ -96,7 +96,7 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
               senderFilter === 'agent' 
                 ? "bg-primary/10 border-primary/30 text-primary" 
-                : "bg-foreground/5 border-foreground/10 text-foreground-tertiary hover:bg-foreground/10"
+                : "bg-base-content/5 border-base-content/10 text-base-content/40 hover:bg-base-content/10"
             )}
             onClick={() => setSenderFilter(senderFilter === 'agent' ? '' : 'agent')}
           >
@@ -108,7 +108,7 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all cursor-pointer",
               dateFilter === 'today' 
                 ? "bg-primary/10 border-primary/30 text-primary" 
-                : "bg-foreground/5 border-foreground/10 text-foreground-tertiary hover:bg-foreground/10"
+                : "bg-base-content/5 border-base-content/10 text-base-content/40 hover:bg-base-content/10"
             )}
             onClick={() => setDateFilter(dateFilter === 'today' ? '' : 'today')}
           >
@@ -118,19 +118,19 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-foreground/10">
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 scrollbar-thin scrollbar-thumb-base-content/10">
         {!searchQuery.trim() ? (
           <div className="flex flex-col items-center justify-center gap-4 py-10 px-6 text-center animate-in fade-in duration-300">
-            <div className="w-16 h-16 rounded-full bg-foreground/5 flex items-center justify-center text-foreground-tertiary">
+            <div className="w-16 h-16 rounded-full bg-base-content/5 flex items-center justify-center text-base-content/40">
               <Search size={32} />
             </div>
-            <p className="text-sm text-foreground-tertiary leading-relaxed">Enter a keyword to start searching for messages and files in this conversation.</p>
+            <p className="text-sm text-base-content/40 leading-relaxed">Enter a keyword to start searching for messages and files in this conversation.</p>
           </div>
         ) : searchResults.length > 0 ? (
           searchResults.map((msg) => (
             <div 
               key={msg.id} 
-              className="p-3 bg-foreground/[0.03] border border-foreground/5 rounded-lg cursor-pointer transition-all hover:bg-foreground/10 hover:border-foreground/20 shadow-sm"
+              className="p-3 bg-base-content/5 border border-base-content/5 rounded-lg cursor-pointer transition-all hover:bg-base-content/10 hover:border-base-content/10 shadow-sm"
               onClick={() => onJumpToMessage?.(msg.id)}
             >
               <div className="flex justify-between items-center mb-1.5">
@@ -140,15 +140,15 @@ export function SearchTab({ conversationId, onJumpToMessage, onClose }: SearchTa
                 )}>
                   {msg.senderType === 'user' ? 'Customer' : 'Agent'}
                 </span>
-                <span className="text-xs text-foreground-tertiary">
+                <span className="text-xs text-base-content/40">
                   {format(new Date(msg.createdAt), 'MMM d, HH:mm')}
                 </span>
               </div>
-              <p className="text-sm text-foreground-secondary line-clamp-2 leading-relaxed">{msg.content}</p>
+              <p className="text-sm text-base-content/70 line-clamp-2 leading-relaxed">{msg.content}</p>
             </div>
           ))
         ) : !isSearching ? (
-          <div className="py-10 text-center text-foreground-tertiary text-sm">
+          <div className="py-10 text-center text-base-content/40 text-sm">
             <p>No results found for "{searchQuery}"</p>
           </div>
         ) : null}

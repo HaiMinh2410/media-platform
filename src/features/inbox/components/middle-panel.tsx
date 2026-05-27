@@ -64,12 +64,12 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
 
   return (
     <aside
-      className="relative min-w-[280px] max-w-[500px] border-r border-foreground/10 bg-background/5 flex flex-col h-full shrink-0"
+      className="relative min-w-[280px] max-w-[500px] border-r border-base-content/5 bg-base-200/30 flex flex-col h-full shrink-0"
       ref={panelRef}
       style={{ width: middlePanelWidth }}
     >
       <div
-        className="absolute -right-1 top-0 bottom-0 w-2 cursor-col-resize z-30 transition-colors hover:bg-indigo-500/30"
+        className="absolute -right-1 top-0 bottom-0 w-2 cursor-col-resize z-30 transition-colors hover:bg-primary/20"
         onMouseDown={startResizing}
       />
 
@@ -93,7 +93,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
       />
 
       <div
-        className="flex-1 overflow-y-auto relative scrollbar-thin scrollbar-thumb-foreground/10 scrollbar-track-transparent"
+        className="flex-1 overflow-y-auto relative scrollbar-thin scrollbar-thumb-base-content/10 scrollbar-track-transparent"
         ref={parentRef}
       >
         {loading && conversations.length === 0 ? (
@@ -103,7 +103,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
             <ConversationSkeleton />
           </div>
         ) : conversations.length === 0 ? (
-          <div className="p-10 text-center text-foreground-tertiary">
+          <div className="p-10 text-center text-base-content/40">
             <p>No conversations found</p>
           </div>
         ) : (
@@ -128,7 +128,7 @@ export function MiddlePanel({ workspaceId }: { workspaceId: string }) {
                   }}
                 >
                   {isLoaderRow ? (
-                    <div className="p-4 text-center text-foreground-tertiary">Loading more...</div>
+                    <div className="p-4 text-center text-base-content/40">Loading more...</div>
                   ) : (
                     <ThreadCard
                       conversation={conv}

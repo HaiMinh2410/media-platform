@@ -157,25 +157,25 @@ export function ChatHeader({
   };
 
   return (
-    <header className="px-4 py-1 border-b-2 border-background-secondary relative z-20 flex items-center justify-between">
+    <header className="px-4 py-1 border-b border-base-content/5 relative z-20 flex items-center justify-between">
       <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={handleAvatarClick}
-          className="p-1 px-1.5 -ml-1.5 rounded-lg flex items-center gap-2 transition-all duration-150 hover:bg-foreground/5 cursor-pointer select-none border border-transparent text-left"
+          className="p-1 px-1.5 -ml-1.5 rounded-lg flex items-center gap-2 transition-all duration-150 hover:bg-base-content/5 cursor-pointer select-none border border-transparent text-left"
           title="Xem trang cá nhân khách hàng"
         >
-          <div className="size-10 rounded-full bg-background-tertiary flex items-center justify-center font-semibold text-foreground border border-foreground/10 overflow-hidden shrink-0">
+          <div className="size-10 rounded-full bg-base-300 flex items-center justify-center font-semibold text-base-content border border-base-content/10 overflow-hidden shrink-0">
             {customerAvatar ? (
               <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover" />
             ) : (
               getInitials(customerName)
             )}
           </div>
-          <h2 className="text-lg font-semibold text-foreground leading-tight">{customerName}</h2>
+          <h2 className="text-lg font-semibold text-base-content leading-tight">{customerName}</h2>
         </button>
         <div className="flex items-center gap-1">
-          <span className="text-xs text-foreground-tertiary leading-none">via {platformUserName}</span>
+          <span className="text-xs text-base-content/40 leading-none">via {platformUserName}</span>
           <PlatformIcon platform={platform} size={12} className="shrink-0" />
         </div>
       </div>
@@ -183,8 +183,8 @@ export function ChatHeader({
         <div className="relative" ref={dropdownRef}>
           <button
             className={cn(
-              "bg-transparent border border-foreground/10 text-foreground-secondary w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-colors hover:bg-foreground/5 hover:text-foreground",
-              isDropdownOpen && "bg-accent-primary/15 border-accent-primary text-accent-primary"
+              "bg-transparent border border-base-content/10 text-base-content/70 w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-colors hover:bg-base-content/5 hover:text-base-content",
+              isDropdownOpen && "bg-primary/10 border-primary text-primary"
             )}
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             title="More Options"
@@ -193,24 +193,24 @@ export function ChatHeader({
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute top-full right-0 mt-2 w-56 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-              <button className="w-full px-4 py-2 flex items-center gap-3 text-sm text-foreground-secondary hover:bg-foreground/5 hover:text-foreground transition-colors text-left" onClick={handleToggleSearch}>
+            <div className="absolute top-full right-0 mt-2 w-56 bg-base-100 border border-base-content/10 rounded-lg shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <button className="w-full px-4 py-2 flex items-center gap-3 text-sm text-base-content/70 hover:bg-base-content/5 hover:text-base-content transition-colors text-left" onClick={handleToggleSearch}>
                 <Search size={16} />
                 <span>Search conversation</span>
               </button>
               {tags.some(t => t.startsWith('Bị chặn::')) ? (
-                <button className="w-full px-4 py-2 flex items-center gap-3 text-sm text-foreground-secondary hover:bg-foreground/5 hover:text-foreground transition-colors text-left" onClick={handleUnblock}>
+                <button className="w-full px-4 py-2 flex items-center gap-3 text-sm text-base-content/70 hover:bg-base-content/5 hover:text-base-content transition-colors text-left" onClick={handleUnblock}>
                   <ShieldCheck size={16} />
                   <span>Unblock</span>
                 </button>
               ) : (
-                <button className="w-full px-4 py-2 flex items-center gap-3 text-sm text-foreground-secondary hover:bg-foreground/5 hover:text-foreground transition-colors text-left" onClick={handleMoveToSpam}>
+                <button className="w-full px-4 py-2 flex items-center gap-3 text-sm text-base-content/70 hover:bg-base-content/5 hover:text-base-content transition-colors text-left" onClick={handleMoveToSpam}>
                   <ShieldAlert size={16} />
                   <span>Move to spam</span>
                 </button>
               )}
               <button
-                className="w-full px-4 py-2 flex items-center gap-3 text-sm text-status-error hover:bg-status-error/10 hover:text-status-error transition-colors text-left"
+                className="w-full px-4 py-2 flex items-center gap-3 text-sm text-error hover:bg-error/10 hover:text-error transition-colors text-left"
                 onClick={handleDeleteConversation}
               >
                 <Trash2 size={16} />

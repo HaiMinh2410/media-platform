@@ -24,7 +24,7 @@ export function CustomerProfile({
 }: CustomerProfileProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-12 h-12 rounded-full bg-surface-primary border border-foreground/10 overflow-hidden flex items-center justify-center text-lg font-bold">
+      <div className="w-12 h-12 rounded-full bg-base-300 border border-base-content/10 overflow-hidden flex items-center justify-center text-lg font-bold">
         {customerAvatar ? (
           <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover" />
         ) : (
@@ -32,7 +32,7 @@ export function CustomerProfile({
         )}
       </div>
       <div className="flex-1 flex flex-col gap-0.5">
-        <h4 className="text-base font-bold text-foreground truncate">{customerName || 'Unknown'}</h4>
+        <h4 className="text-base font-bold text-base-content truncate">{customerName || 'Unknown'}</h4>
         {platform === 'instagram' ? (
           customerUsername ? (
             <a 
@@ -46,13 +46,13 @@ export function CustomerProfile({
           ) : (
             <>
               <span 
-                className="text-xs text-foreground-tertiary cursor-help" 
+                className="text-xs text-base-content/40 cursor-help" 
                 title="Chưa đồng bộ được username Instagram. Nhấn 'Làm mới' để thử lại."
               >
                 Chưa có liên kết
               </span>
               <button 
-                className="inline-flex items-center gap-1 text-2xs text-foreground-tertiary hover:text-foreground mt-1 transition-colors disabled:opacity-50" 
+                className="inline-flex items-center gap-1 text-2xs text-base-content/40 hover:text-base-content mt-1 transition-colors disabled:opacity-50" 
                 onClick={onSyncProfile}
                 disabled={isSyncing}
               >
@@ -74,13 +74,13 @@ export function CustomerProfile({
           ) : (
             <>
               <span 
-                className="text-xs text-foreground-tertiary cursor-help" 
+                className="text-xs text-base-content/40 cursor-help" 
                 title="Facebook hạn chế link trang cá nhân qua API nếu không có quyền user_link. Nhấn 'Làm mới' để thử lại."
               >
                 Chưa có liên kết
               </span>
               <button 
-                className="inline-flex items-center gap-1 text-2xs text-foreground-tertiary hover:text-foreground mt-1 transition-colors disabled:opacity-50" 
+                className="inline-flex items-center gap-1 text-2xs text-base-content/40 hover:text-base-content mt-1 transition-colors disabled:opacity-50" 
                 onClick={onSyncProfile}
                 disabled={isSyncing}
               >
@@ -92,7 +92,7 @@ export function CustomerProfile({
         )}
       </div>
       <div className="flex items-center gap-1">
-        <button className="p-2 text-foreground-tertiary hover:text-foreground hover:bg-foreground/5 rounded-md transition-all" onClick={onToggleCollapse}>
+        <button className="p-2 text-base-content/40 hover:text-base-content hover:bg-base-content/5 rounded-md transition-all animate-none bg-transparent border-none cursor-pointer" onClick={onToggleCollapse}>
           <ChevronRight size={18} />
         </button>
       </div>

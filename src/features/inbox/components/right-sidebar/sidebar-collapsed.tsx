@@ -24,13 +24,13 @@ export function SidebarCollapsed({
   const otherThreads = activeThreads.filter(t => t.id !== conversationId);
   
   return (
-    <aside className="w-full h-full p-3 flex flex-col items-center gap-4 bg-base-200 border-l border-foreground/5">
+    <aside className="w-full h-full p-3 flex flex-col items-center gap-4 bg-base-200 border-l border-base-content/5">
       <div className="flex flex-col items-center gap-4 w-full">
         {/* Active Conversation Avatar - Toggles Sidebar */}
         <div 
           className={cn(
-            "relative w-9 h-9 rounded-full bg-background-tertiary border-2 border-foreground/10 flex items-center justify-center text-sm font-bold text-foreground cursor-pointer transition-all hover:scale-105 hover:border-accent-primary shadow-lg",
-            "border-accent-primary bg-accent-primary/10 ring-2 ring-accent-primary/20"
+            "relative w-9 h-9 rounded-full bg-base-300 border-2 border-base-content/10 flex items-center justify-center text-sm font-bold text-base-content cursor-pointer transition-all hover:scale-105 hover:border-primary shadow-lg",
+            "border-primary bg-primary/10 ring-2 ring-primary/20"
           )}
           onClick={onToggleCollapse}
           title={customerName || 'Active Conversation'}
@@ -46,7 +46,7 @@ export function SidebarCollapsed({
         </div>
 
         {/* Divider */}
-        {otherThreads.length > 0 && <div className="w-6 h-px bg-foreground/10 opacity-50 my-2" />}
+        {otherThreads.length > 0 && <div className="w-6 h-px bg-base-content/10 opacity-50 my-2" />}
 
         {/* Other Active Threads */}
         {otherThreads.length > 0 && (
@@ -54,14 +54,14 @@ export function SidebarCollapsed({
             {otherThreads.map(t => (
               <div 
                 key={t.id} 
-                className="group relative w-8 h-8 rounded-full border border-foreground/10 flex items-center justify-center bg-foreground/5 cursor-pointer transition-all hover:scale-110 hover:bg-foreground/10 hover:border-foreground-tertiary"
+                className="group relative w-8 h-8 rounded-full border border-base-content/10 flex items-center justify-center bg-base-content/5 cursor-pointer transition-all hover:scale-110 hover:bg-base-content/10 hover:border-base-content/40"
                 onClick={() => router.push(`/dashboard/inbox/${t.id}`)}
                 title={t.sender_name || 'Switch conversation'}
               >
                 {t.customer_avatar ? (
                   <img src={t.customer_avatar} alt="" className="w-full h-full object-cover rounded-full" />
                 ) : (
-                  <span className="text-xs font-bold text-foreground-secondary">{t.sender_name?.charAt(0) || '?'}</span>
+                  <span className="text-xs font-bold text-base-content/70">{t.sender_name?.charAt(0) || '?'}</span>
                 )}
                 
                 <button 

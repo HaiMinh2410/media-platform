@@ -71,18 +71,18 @@ export function ThemeSwitcher({ showLabel = false }: { showLabel?: boolean }) {
         tabIndex={0}
         role="button"
         className={cn(
-          "btn btn-ghost btn-sm md:btn-md flex items-center gap-2.5 backdrop-blur-md transition-all duration-300 rounded-xl w-fit justify-center px-2.5",
+          "btn btn-ghost btn-sm md:btn-md flex items-center gap-2.5 backdrop-blur-md transition-all duration-300 rounded-xl w-fit",
         )}
       >
         <div className="rounded-lg bg-primary/20 p-1.5 flex items-center justify-center shrink-0">
           <Palette className="h-4 w-4 text-primary" />
         </div>
+        {showLabel && (
+          <span className="text-xs font-black tracking-wider uppercase text-base-content/70 font-mono leading-none">
+            Theme
+          </span>
+        )}
       </div>
-      {showLabel && (
-        <span className="text-xs font-black tracking-wider uppercase text-base-content/70 font-mono leading-none">
-          Theme
-        </span>
-      )}
       <ul
         tabIndex={0}
         className="dropdown-content fixed bottom-20 left-16 z-[100] menu py-4 px-2 shadow-2xl bg-base-200/95 backdrop-blur-xl rounded-2xl w-64 max-h-[70vh] overflow-y-auto flex-nowrap border border-base-content/10 gap-1 animate-in fade-in zoom-in duration-200"
