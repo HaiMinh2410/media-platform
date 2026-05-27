@@ -380,9 +380,9 @@ function AccountHealthList({ accounts }: AccountHealthListProps) {
       <div className="absolute -right-12 -top-12 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
 
       {/* Header Bento Card */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-base-content/5 pb-4 gap-4 lg:h-[56px]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-base-content/5 pb-4 gap-4 lg:h-[56px] shrink-0">
         <div className="flex items-center gap-2.5">
-          <h2 className="text-lg font-extrabold tracking-tight text-base-content uppercase font-brand">
+          <h2 className="text-xl font-extrabold tracking-tight text-base-content uppercase font-brand">
             Account Health Command Center
           </h2>
         </div>
@@ -410,7 +410,7 @@ function AccountHealthList({ accounts }: AccountHealthListProps) {
       </div>
 
       {/* Body: Danh sách tài khoản dạng Hàng Ngang với scroll */}
-      <div className="flex flex-col border border-base-content/5 divide-y divide-base-content/5 overflow-hidden rounded-md max-h-[475px] overflow-y-auto pr-1 flex-1">
+      <div className="flex flex-col border border-base-content/5 divide-y divide-base-content/5 overflow-hidden rounded-md overflow-y-auto pr-1 flex-1 min-h-0 max-h-[400px] lg:max-h-none">
         {sortedAccounts.map((acc) => (
           <AccountHealthRow key={acc.id} account={acc} />
         ))}
@@ -435,20 +435,22 @@ interface AccountHealthGridProps {
 
 export function AccountHealthGrid({ accounts, stats }: AccountHealthGridProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 divide-x divide-base-content/5 items-stretch w-full bg-base-100 border border-base-content/5 rounded-2xl p-6 shadow-sm">
+    <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-base-content/5 items-stretch w-full gap-6 lg:gap-0 relative">
       {/* Stats Panel (Left 4 columns) */}
-      <div className="lg:col-span-4 pr-5 flex flex-col h-full">
+      <div className="lg:col-span-4 lg:pr-5 flex flex-col h-full">
         <ErrorBoundary name="Stats Strip">
           <StatsPanel stats={stats} />
         </ErrorBoundary>
       </div>
 
       {/* Account Health Command Center (Right 8 columns) */}
-      <div className="lg:col-span-8 pl-5 flex flex-col h-full">
+      <div className="lg:col-span-8 lg:pl-5 flex flex-col h-full relative min-h-[350px] lg:min-h-0">
         <ErrorBoundary
           fallback={<SectionError title="Account Health Command Center" />}
         >
-          <AccountHealthList accounts={accounts} />
+          <div className="lg:absolute lg:inset-0 lg:pl-5 flex flex-col h-full w-full">
+            <AccountHealthList accounts={accounts} />
+          </div>
         </ErrorBoundary>
       </div>
     </div>

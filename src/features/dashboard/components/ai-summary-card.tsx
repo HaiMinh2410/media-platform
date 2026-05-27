@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 import { getAISummary, AISummary } from '@features/dashboard/actions/dashboard.actions';
 import { cn } from '@shared/lib/utils';
@@ -16,6 +16,18 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
   const [data, setData] = useState<AISummary | null>(initialData || null);
   const [loading, setLoading] = useState(!initialData);
   const [isDrafting, setIsDrafting] = useState(false);
+
+  // Hàm tải dữ liệu thống kê dùng chung giữa mount và realtime event
+  const fetchSummaryData = useCallback(async () => {
+    try {
+      const result = await getAISummary(workspaceId);
+      setData(result);
+    } catch (error) {
+      console.error('Failed to fetch AI summary:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [workspaceId]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -48,6 +60,8 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
         () => {
           // AI has finished drafting the reply
           setIsDrafting(false);
+          // Tự động cập nhật lại số liệu thống kê thời gian thực!
+          fetchSummaryData();
         }
       )
       .subscribe();
@@ -55,7 +69,7 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchSummaryData]);
 
   // Safeguard: auto-reset drafting state after 8 seconds in case worker fails or timeouts
   useEffect(() => {
@@ -70,20 +84,8 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
 
   useEffect(() => {
     if (initialData) return;
-    if (initialData) return;
-    
-    async function fetchData() {
-      try {
-        const result = await getAISummary(workspaceId);
-        setData(result);
-      } catch (error) {
-        console.error('Failed to fetch AI summary:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, [workspaceId, initialData]);
+    fetchSummaryData();
+  }, [fetchSummaryData, initialData]);
 
   if (loading && !data) {
     return <AISummaryCardSkeleton />;
@@ -94,15 +96,8 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
-            🤖
-          </div>
-          <h3 className="font-bold text-sm tracking-tight text-base-content">AI Activity Summary</h3>
+          <h3 className="text-lg font-extrabold tracking-tight flex items-center gap-2 text-base-content font-brand uppercase">AI Activity Summary</h3>
         </div>
-        <span className="badge badge-xs badge-success badge-soft gap-1 py-1.5 px-2 font-semibold">
-          <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse"></span>
-          Live
-        </span>
       </div>
 
       {/* Main Content: Grid 1:5 */}
@@ -112,10 +107,10 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
           {/* Aurora glow effect */}
           <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-primary/5 blur-xl pointer-events-none" />
 
-          <div>
+          <div className="flex-1 flex flex-col justify-center">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Hiệu suất AI</span>
-              <span className="text-3xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold font-mono">Core Engine</span>
+              <span className="text-xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Hiệu suất AI</span>
+              <span className="text-xs text-primary font-bold font-mono">Core Engine</span>
             </div>
 
             {/* Big Stat: Tin nhắn AI đã xử lý */}
@@ -124,11 +119,11 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
                 {data?.messagesProcessed.value || '0'}
               </span>
               <div className="flex items-center gap-1.5 mt-1.5">
-                <span className="text-2xs text-base-content/50 font-bold uppercase tracking-wider">Tin nhắn đã xử lý</span>
+                <span className="text-xs text-base-content/50">Tin nhắn đã xử lý</span>
                 {data?.messagesProcessed.trend && (
                   <span className={cn(
-                    "text-3xs font-bold px-1 py-0.5 rounded flex items-center gap-0.5",
-                    data.messagesProcessed.trendDirection === 'up' ? "text-success bg-success/10" : "text-error bg-error/10"
+                    "text-xs font-bold px-1 py-0.5 rounded flex items-center gap-0.5",
+                    data.messagesProcessed.trendDirection === 'up' ? "text-success" : "text-error"
                   )}>
                     {data.messagesProcessed.trendDirection === 'up' && '↑'}
                     {data.messagesProcessed.trendDirection === 'down' && '↓'}
@@ -141,13 +136,13 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
           </div>
 
           {/* Thin divider */}
-          <div className="border-t border-base-content/5 my-3" />
+          <div className="border-t border-base-content/5 my-3 shrink-0" />
 
           {/* Sub-Stat: Thời gian phản hồi TB */}
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Phản hồi TB</span>
-              <span className="text-lg font-bold text-base-content font-mono mt-0.5">
+          <div className="flex-1 flex items-center justify-between">
+            <div className="flex flex-col justify-center">
+              <span className="text-xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Phản hồi TB</span>
+              <span className="text-2xl font-bold text-base-content font-mono mt-0.5">
                 {data?.avgResponseTime.value || '0s'}
               </span>
             </div>
@@ -156,23 +151,23 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
             {data?.avgResponseTime.value && (() => {
               const val = parseFloat(data.avgResponseTime.value);
               let statusText = "Stable";
-              let statusColor = "bg-warning/20 text-warning border-warning/10";
+              let statusColor = "bg-warning/10 text-warning border-warning/10";
               if (val < 1.5) {
                 statusText = "Excellent";
-                statusColor = "bg-success/20 text-success border-success/10";
+                statusColor = "bg-success/10 text-success border-success/10";
               } else if (val <= 3) {
                 statusText = "Good";
-                statusColor = "bg-info/20 text-info border-info/10";
+                statusColor = "bg-info/10 text-info border-info/10";
               } else {
                 statusText = "Slow";
-                statusColor = "bg-error/20 text-error border-error/10";
+                statusColor = "bg-error/10 text-error border-error/10";
               }
               return (
-                <div className="flex flex-col items-end">
-                  <span className={cn("text-3xs font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border", statusColor)}>
+                <div className="flex flex-col items-end justify-center">
+                  <span className={cn("text-2xs font-bold px-2 py-0.5 rounded-full border", statusColor)}>
                     {statusText}
                   </span>
-                  <span className="text-3xs text-base-content/30 mt-0.5 font-medium font-mono">Target &lt;1.5s</span>
+                  <span className="text-2xs text-base-content/30 mt-1.5 font-medium font-mono">Target &lt;1.5s</span>
                 </div>
               );
             })()}
@@ -182,11 +177,10 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
         {/* Cột phải: 2 thẻ chồng lên nhau (Chiếm 2/5 cột) */}
         <div className="md:col-span-2 flex flex-col gap-3">
           {/* Thẻ 1: Khách hài lòng */}
-          <div className="bg-base-200/40 rounded-xl p-3.5 border border-base-content/5 border-t-2 border-t-success flex flex-col justify-between grow relative overflow-hidden">
+          <div className="bg-base-200/40 rounded-lg p-3.5 border border-base-content/5 flex flex-col justify-between grow relative overflow-hidden">
             <div className="absolute -right-4 -top-4 w-12 h-12 rounded-full bg-success/5 blur-lg pointer-events-none" />
             <div className="flex justify-between items-start">
-              <span className="text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Hài lòng</span>
-              <span className="text-sm">😊</span>
+              <span className="text-xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Hài lòng</span>
             </div>
             <div className="mt-2">
               <div className="text-2xl font-bold tracking-tight text-base-content font-mono leading-none">
@@ -196,8 +190,8 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
                 <span className="text-2xs text-base-content/50 font-medium">Khách phản hồi</span>
                 {data?.satisfaction.trend && (
                   <span className={cn(
-                    "text-3xs font-bold px-1 rounded flex items-center gap-0.5",
-                    data.satisfaction.trendDirection === 'up' ? "text-success bg-success/10" : "text-error bg-error/10"
+                    "text-2xs font-bold px-1 rounded flex items-center gap-0.5",
+                    data.satisfaction.trendDirection === 'up' ? "text-success" : "text-error"
                   )}>
                     {data.satisfaction.trendDirection === 'up' && '↑'}
                     {data.satisfaction.trendDirection === 'down' && '↓'}
@@ -210,11 +204,10 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
           </div>
 
           {/* Thẻ 2: Thời gian tiết kiệm */}
-          <div className="bg-base-200/40 rounded-xl p-3.5 border border-base-content/5 border-t-2 border-t-info flex flex-col justify-between grow relative overflow-hidden">
+          <div className="bg-base-200/40 rounded-lg p-3.5 border border-base-content/5 flex flex-col justify-between grow relative overflow-hidden">
             <div className="absolute -right-4 -top-4 w-12 h-12 rounded-full bg-info/5 blur-lg pointer-events-none" />
             <div className="flex justify-between items-start">
-              <span className="text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Tiết kiệm</span>
-              <span className="text-sm text-info">⏱</span>
+              <span className="text-xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Tiết kiệm</span>
             </div>
             <div className="mt-2">
               <div className="text-2xl font-bold tracking-tight text-base-content font-mono leading-none">
@@ -224,8 +217,8 @@ export const AISummaryCard: React.FC<AISummaryCardProps> = ({ workspaceId, initi
                 <span className="text-2xs text-base-content/50 font-medium">Thời gian vận hành</span>
                 {data?.timeSaved.trend && (
                   <span className={cn(
-                    "text-3xs font-bold px-1 rounded flex items-center gap-0.5",
-                    data.timeSaved.trendDirection === 'up' ? "text-success bg-success/10" : "text-error bg-error/10"
+                    "text-2xs font-bold px-1 rounded flex items-center gap-0.5",
+                    data.timeSaved.trendDirection === 'up' ? "text-success" : "text-error"
                   )}>
                     {data.timeSaved.trendDirection === 'up' && '↑'}
                     {data.timeSaved.trendDirection === 'down' && '↓'}
@@ -289,7 +282,7 @@ const AISummaryCardSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4 grow animate-pulse">
       {/* Cột trái lớn */}
       <div className="md:col-span-3 bg-base-200/40 rounded-xl p-4 border border-base-content/5 flex flex-col justify-between">
-        <div>
+        <div className="flex-1 flex flex-col justify-center">
           <div className="flex justify-between items-center mb-3">
             <div className="skeleton w-[60px] h-3" />
             <div className="skeleton w-[70px] h-4 rounded" />
@@ -297,9 +290,9 @@ const AISummaryCardSkeleton = () => (
           <div className="skeleton w-[100px] h-9 mb-2" />
           <div className="skeleton w-[120px] h-3" />
         </div>
-        <div className="border-t border-base-content/5 my-3" />
-        <div className="flex justify-between items-center">
-          <div>
+        <div className="border-t border-base-content/5 my-3 shrink-0" />
+        <div className="flex-1 flex items-center justify-between">
+          <div className="flex flex-col justify-center">
             <div className="skeleton w-[60px] h-3 mb-1" />
             <div className="skeleton w-[50px] h-5" />
           </div>
