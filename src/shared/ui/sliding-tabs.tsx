@@ -41,6 +41,10 @@ interface SlidingTabsProps<T extends string> {
    * @default false
    */
   fullWidth?: boolean;
+  /**
+   * Optional custom class for the active indicator
+   */
+  activeIndicatorClassName?: string;
 }
 
 export function SlidingTabs<T extends string>({
@@ -51,27 +55,32 @@ export function SlidingTabs<T extends string>({
   layoutId = 'slidingTabIndicator',
   className = '',
   fullWidth = false,
+  activeIndicatorClassName = '',
 }: SlidingTabsProps<T>) {
   // Định nghĩa styles cho từng kích thước
   const sizeStyles = {
     xs: {
       container: 'p-0.5 rounded-xl gap-0.5',
       button: 'px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase gap-1',
+      indicator: 'rounded-lg shadow-xs',
       icon: 10,
     },
     sm: {
       container: 'p-1 rounded-xl gap-1',
-      button: 'px-3 py-1.5 rounded-lg text-xs font-bold gap-2',
+      button: 'px-3 py-1.5 rounded-md text-xs font-bold gap-2',
+      indicator: 'rounded-md shadow-xs',
       icon: 12,
     },
     md: {
       container: 'p-1 rounded-2xl gap-2',
       button: 'px-3 py-1.5 rounded-xl text-sm font-bold gap-2.5',
+      indicator: 'rounded-xl shadow-md',
       icon: 14,
     },
     lg: {
       container: 'p-2 rounded-2xl gap-2',
       button: 'px-6 py-3 rounded-2xl text-sm font-extrabold uppercase tracking-widest gap-3',
+      indicator: 'rounded-2xl shadow-lg',
       icon: 16,
     },
   };
@@ -104,7 +113,7 @@ export function SlidingTabs<T extends string>({
             {isActive && (
               <motion.div
                 layoutId={layoutId}
-                className={`absolute inset-0 rounded-xl shadow-md -z-10 ${activeBg}`}
+                className={`absolute inset-0 -z-10 ${currentStyle.indicator} ${activeIndicatorClassName} ${activeBg}`}
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
               />
             )}

@@ -225,8 +225,15 @@ export function RightPanel({
         />
       </div>
 
+      {/* Spacer div to keep structural spacing in flow layout */}
       <div className={cn(
-        "w-[340px] flex flex-col transition-[width] duration-300 ease-in-out overflow-hidden border-l border-base-content/5 bg-base-200/40",
+        "w-[340px] shrink-0 transition-[width] duration-300 ease-in-out overflow-hidden",
+        !isRightPanelVisible && "w-[60px]"
+      )} />
+
+      {/* Actual Fixed container that covers full height (h-screen) without header intersection */}
+      <div className={cn(
+        "fixed top-0 right-0 bottom-0 h-screen z-40 bg-base-200 shadow-2xl border-l border-base-content/5 flex flex-col transition-[width] duration-300 ease-in-out overflow-hidden w-[340px]",
         !isRightPanelVisible && "w-[60px]"
       )}>
         <RightSidebar

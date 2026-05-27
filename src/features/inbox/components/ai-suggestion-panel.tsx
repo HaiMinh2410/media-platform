@@ -149,7 +149,7 @@ export function AiSuggestionPanel({
   };
 
   return (
-    <div className="flex flex-col bg-base-200 text-foreground select-none">
+    <div className="flex flex-col text-foreground select-none">
       {/* ================= SECTION 1: AI SUGGESTIONS & AUTO REPLY ================= */}
       <div>
         <div className="px-4 py-2 flex items-center justify-between">

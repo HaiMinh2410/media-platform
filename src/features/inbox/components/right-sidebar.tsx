@@ -169,9 +169,9 @@ export function RightSidebar({
   }
 
   return (
-    <aside className="flex flex-col h-full bg-base-200 border-l border-base-content/5" data-sidebar="right">
+    <aside className="flex flex-col h-full bg-background/80 border-l border-base-content/5" data-sidebar="right">
       {/* Tab Header */}
-      <div className="flex items-center gap-1 p-2 border-b border-base-content/10">
+      <div className="flex items-center h-[64px] gap-1 p-2 border-b-2 border-background-secondary backdrop-blur-xl">
         <button 
           className={cn(
             "flex-1 py-2 text-sm font-semibold text-base-content/40 rounded-md transition-all hover:text-base-content/70 hover:bg-base-content/5",

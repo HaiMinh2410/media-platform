@@ -30,7 +30,6 @@ interface StatItemProps {
   isPositive?: boolean;
   variant?: "primary" | "default";
   icon?: React.ReactNode;
-  labelPosition?: "top-right" | "bottom-left";
 }
 
 const parseTrend = (trendStr: string) => {
@@ -61,7 +60,6 @@ function StatItem({
   trend,
   isPositive,
   variant = "default",
-  labelPosition = "bottom-left",
 }: StatItemProps) {
   const hasTrend = !!trend;
   const { value: trendVal, label: trendLabel } = parseTrend(trend || "");
@@ -106,29 +104,23 @@ function StatItem({
         }}
       />
       <div className="flex justify-end text-right">
-        {labelPosition === "top-right" ? (
-          <span className="text-xs mb-4 font-bold tracking-widest text-base-content/30 uppercase font-mono mt-1">
-            {label}
-          </span>
-        ) : (
-          hasTrend && (
-            <div className="flex flex-col items-end text-right shrink-0">
-              <span
-                className={`text-sm font-black transition-all duration-300 ${
-                  isPositive
-                    ? "text-success/90 group-hover:text-success"
-                    : "text-error/90 group-hover:text-error"
-                }`}
-              >
-                {trendVal}
+        {hasTrend && (
+          <div className="flex flex-col items-end text-right shrink-0">
+            <span
+              className={`text-sm font-black transition-all duration-300 ${
+                isPositive
+                  ? "text-success/90 group-hover:text-success"
+                  : "text-error/90 group-hover:text-error"
+              }`}
+            >
+              {trendVal}
+            </span>
+            {trendLabel && (
+              <span className="text-2xs font-bold text-base-content/30 uppercase tracking-wider mt-0.5 font-mono">
+                {trendLabel}
               </span>
-              {trendLabel && (
-                <span className="text-2xs font-bold text-base-content/30 uppercase tracking-wider mt-0.5 font-mono">
-                  {trendLabel}
-                </span>
-              )}
-            </div>
-          )
+            )}
+          </div>
         )}
       </div>
 
@@ -137,11 +129,9 @@ function StatItem({
         <span className="text-5xl font-mono font-normal tracking-tight text-base-content group-hover:translate-x-1 transition-transform duration-300">
           {typeof value === "number" ? value.toLocaleString() : value}
         </span>
-        {labelPosition !== "top-right" && (
-          <span className="text-xs font-bold tracking-widest text-base-content/30 uppercase font-mono mt-1.5">
-            {label}
-          </span>
-        )}
+        <span className="text-xs font-bold tracking-widest text-base-content/30 uppercase font-mono mt-1.5">
+          {label}
+        </span>
       </div>
     </div>
   );
@@ -151,7 +141,6 @@ interface StatsPanelProps {
   stats: {
     connected: { value: number; trend: string; isPositive: boolean };
     messages: { value: number; trend: string; isPositive: boolean };
-    conversations: { value: number; trend: string; isPositive: boolean };
     webhooks: { value: number; trend: string; isPositive: boolean };
   };
 }
@@ -167,14 +156,6 @@ function StatsPanel({ stats }: StatsPanelProps) {
           value={stats.connected.value}
           variant="primary"
           icon={<Link2 size={20} />}
-        />
-        <StatItem
-          label="Conversations"
-          value={stats.conversations.value}
-          trend={stats.conversations.trend}
-          isPositive={stats.conversations.isPositive}
-          icon={<MessageCircle size={18} />}
-          labelPosition="top-right"
         />
         <StatItem
           label="Total Messages"
@@ -428,7 +409,6 @@ interface AccountHealthGridProps {
   stats: {
     connected: { value: number; trend: string; isPositive: boolean };
     messages: { value: number; trend: string; isPositive: boolean };
-    conversations: { value: number; trend: string; isPositive: boolean };
     webhooks: { value: number; trend: string; isPositive: boolean };
   };
 }
