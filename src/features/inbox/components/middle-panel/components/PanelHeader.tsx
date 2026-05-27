@@ -1,6 +1,7 @@
 import React from 'react';
-import { Search, ChevronDown, Check, TrendingUp, TrendingDown } from 'lucide-react';
+import { Search, Check, TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from '@shared/lib/utils';
+import { RangeSelector } from '@shared/ui/range-selector';
 
 type PanelHeaderProps = {
   conversationsCount: number;
@@ -39,6 +40,20 @@ export function PanelHeader({
   setSortOrder,
   sortRef,
 }: PanelHeaderProps) {
+  const filterOptions = [
+    { id: 'all', label: 'Tất cả' },
+    { id: 'unread', label: 'Chưa đọc' },
+    ...usedTags.map((tag) => ({
+      id: tag,
+      label: tag.split('::')[0],
+    })),
+  ];
+
+  const sortOptions = [
+    { id: 'date', label: 'Date' },
+    { id: 'name', label: 'Name' },
+  ];
+
   return (
     <div className="p-[16px_20px_12px]">
       <div className="relative w-full mb-3">
@@ -46,7 +61,7 @@ export function PanelHeader({
         <input
           type="text"
           placeholder="Search conversations..."
-          className="w-full p-[10px_16px_10px_38px] rounded-md border border-foreground/10 bg-background-secondary text-foreground text-base outline-none transition-all focus:border-accent-primary focus:bg-background-tertiary focus:ring-3 focus:ring-accent-primary/20"
+          className="w-full p-[10px_16px_10px_38px] rounded-full border border-foreground/10 bg-background-secondary text-foreground text-base outline-none transition-all focus:border-foreground/20"
           value={searchInput}
           onChange={(e) => onSearchInputChange(e.target.value)}
         />
@@ -59,118 +74,116 @@ export function PanelHeader({
 
         <div className="flex items-center gap-3">
           {/* Filter Dropdown */}
-          <div className="flex items-center gap-1 bg-background-secondary p-[2px_6px] rounded-md border border-foreground/10 shrink-0 relative" ref={filterRef}>
-            <div
-              className="flex items-center justify-between gap-1 cursor-pointer text-xs font-medium text-foreground-secondary w-[90px] min-w-0"
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
+          <div ref={filterRef} className="shrink-0">
+            <RangeSelector
+              value={filterBy}
+              onChange={setFilterBy}
+              options={filterOptions}
+              isOpen={isFilterOpen}
+              onOpenChange={setIsFilterOpen}
+              hideIcon={true}
+              size="sm"
+              menuAlign="left"
             >
-              <span className="truncate">
-                {filterBy === 'all'
-                  ? 'Tất cả'
-                  : filterBy === 'unread'
-                  ? 'Chưa đọc'
-                  : filterBy.split('::')[0]}
-              </span>
-              <ChevronDown size={12} className={cn('transition-transform duration-200 text-foreground-tertiary', isFilterOpen && 'rotate-180')} />
-            </div>
-
-            {isFilterOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl z-100 w-[180px] overflow-hidden flex flex-col">
-                <div
-                  className={cn(
-                    'p-[8px_12px] text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
-                    filterBy === 'all' && 'bg-accent-primary/10 text-accent-primary'
-                  )}
-                  onClick={() => {
-                    setFilterBy('all');
-                    setIsFilterOpen(false);
-                  }}
-                >
-                  Tất cả
-                </div>
-                <div
-                  className={cn(
-                    'p-[8px_12px] text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
-                    filterBy === 'unread' && 'bg-accent-primary/10 text-accent-primary'
-                  )}
-                  onClick={() => {
-                    setFilterBy('unread');
-                    setIsFilterOpen(false);
-                  }}
-                >
-                  Chưa đọc
-                </div>
-
-                <div className="p-[8px_12px_4px] text-3xs font-bold text-foreground-tertiary uppercase tracking-wider border-t border-foreground/10 mt-1">
-                  Lọc theo nhãn
-                </div>
-                <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
-                  {usedTags.map((tag) => {
-                    const name = tag.split('::')[0];
-                    const isActive = filterBy === tag;
-                    return (
-                      <div
-                        key={tag}
-                        className={cn(
-                          'p-[8px_12px] text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
-                          isActive && 'bg-accent-primary/10 text-accent-primary'
-                        )}
-                        onClick={() => {
-                          setFilterBy(tag);
-                          setIsFilterOpen(false);
-                        }}
-                      >
-                        {name}
-                        {isActive && <Check size={10} />}
-                      </div>
-                    );
-                  })}
-                </div>
+              <div
+                className={cn(
+                  'p-[8px_12px] rounded-md text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
+                  filterBy === 'all' && 'bg-accent-primary/10 text-accent-primary'
+                )}
+                onClick={() => {
+                  setFilterBy('all');
+                  setIsFilterOpen(false);
+                }}
+              >
+                Tất cả
               </div>
-            )}
+              <div
+                className={cn(
+                  'p-[8px_12px] rounded-md text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
+                  filterBy === 'unread' && 'bg-accent-primary/10 text-accent-primary'
+                )}
+                onClick={() => {
+                  setFilterBy('unread');
+                  setIsFilterOpen(false);
+                }}
+              >
+                Chưa đọc
+              </div>
+
+              {usedTags.length > 0 && (
+                <>
+                  <div className="p-[8px_12px_4px] text-3xs font-bold text-foreground-tertiary uppercase tracking-wider border-t border-foreground/10 mt-1">
+                    Lọc theo nhãn
+                  </div>
+                  <div className="max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-foreground/10">
+                    {usedTags.map((tag) => {
+                      const name = tag.split('::')[0];
+                      const isActive = filterBy === tag;
+                      return (
+                        <div
+                          key={tag}
+                          className={cn(
+                            'p-[8px_12px] rounded-md text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
+                            isActive && 'bg-accent-primary/10 text-accent-primary'
+                          )}
+                          onClick={() => {
+                            setFilterBy(tag);
+                            setIsFilterOpen(false);
+                          }}
+                        >
+                          {name}
+                          {isActive && <Check size={10} />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </RangeSelector>
           </div>
 
           {/* Sort Dropdown */}
-          <div className="flex items-center gap-1 bg-foreground/5 p-[2px_6px] rounded-md border border-foreground/10 shrink-0 relative" ref={sortRef}>
-            <div
-              className="flex items-center justify-between gap-1 cursor-pointer text-xs font-medium text-foreground-secondary w-[50px] min-w-0"
-              onClick={() => setIsSortOpen(!isSortOpen)}
+          <div ref={sortRef} className="flex items-center -space-x-px shrink-0">
+            <RangeSelector
+              value={sortField}
+              onChange={(val) => setSortField(val as 'date' | 'name')}
+              options={sortOptions}
+              isOpen={isSortOpen}
+              onOpenChange={setIsSortOpen}
+              hideIcon={true}
+              size="sm"
+              menuAlign="left"
+              triggerClassName="flex items-center justify-between gap-1 bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 hover:border-foreground/20 rounded-l-md rounded-r-none text-xs font-bold text-foreground-secondary transition-all cursor-pointer shadow-inner px-3 h-7 shrink-0"
             >
-              <span className="truncate">{sortField === 'date' ? 'Date' : 'Name'}</span>
-              <ChevronDown size={12} className={cn('transition-transform duration-200 text-foreground-tertiary', isSortOpen && 'rotate-180')} />
-            </div>
-
-            {isSortOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl z-100 w-[100px] overflow-hidden flex flex-col">
-                <div
-                  className={cn(
-                    'p-[8px_12px] text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
-                    sortField === 'date' && 'bg-accent-primary/10 text-accent-primary'
-                  )}
-                  onClick={() => {
-                    setSortField('date');
-                    setIsSortOpen(false);
-                  }}
-                >
-                  Date
-                </div>
-                <div
-                  className={cn(
-                    'p-[8px_12px] text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
-                    sortField === 'name' && 'bg-accent-primary/10 text-accent-primary'
-                  )}
-                  onClick={() => {
-                    setSortField('name');
-                    setIsSortOpen(false);
-                  }}
-                >
-                  Name
-                </div>
+              <div
+                className={cn(
+                  'p-[8px_12px] rounded-md text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
+                  sortField === 'date' && 'bg-accent-primary/10 text-accent-primary'
+                )}
+                onClick={() => {
+                  setSortField('date');
+                  setIsSortOpen(false);
+                }}
+              >
+                Date
               </div>
-            )}
+              <div
+                className={cn(
+                  'p-[8px_12px] rounded-md text-xs text-foreground-secondary cursor-pointer flex items-center justify-between transition-all hover:bg-foreground/5 hover:text-foreground',
+                  sortField === 'name' && 'bg-accent-primary/10 text-accent-primary'
+                )}
+                onClick={() => {
+                  setSortField('name');
+                  setIsSortOpen(false);
+                }}
+              >
+                Name
+              </div>
+            </RangeSelector>
 
+            {/* Sort Order Button */}
             <button
-              className="flex items-center justify-center bg-transparent border-none text-foreground-tertiary cursor-pointer p-0.5 rounded transition-all hover:text-foreground hover:bg-foreground/5"
+              className="flex items-center justify-center bg-foreground/5 hover:bg-foreground/10 border border-foreground/10 hover:border-foreground/20 rounded-r-md rounded-l-none transition-all text-foreground-tertiary hover:text-foreground cursor-pointer p-1.5 h-7 w-7 shrink-0 shadow-inner"
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
             >

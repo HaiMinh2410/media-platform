@@ -65,7 +65,7 @@ export function SlidingTabs<T extends string>({
       icon: 12,
     },
     md: {
-      container: 'p-1.5 rounded-2xl gap-2',
+      container: 'p-1 rounded-2xl gap-2',
       button: 'px-3 py-1.5 rounded-xl text-sm font-bold gap-2.5',
       icon: 14,
     },

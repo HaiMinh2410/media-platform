@@ -168,6 +168,93 @@ export class AccountGroupRepository {
       return { success: false, error: error.message || 'DATABASE_ERROR' };
     }
   }
+
+  async resetToDefault(workspaceId: string): Promise<{ success: boolean; error: string | null }> {
+    try {
+      await db.$transaction(async (tx) => {
+        // 1. Delete all current groups for this workspace
+        await tx.accountGroup.deleteMany({
+          where: { workspace_id: workspaceId }
+        });
+
+        // 2. Fetch all active platform accounts in this workspace
+        const accounts = await tx.platformAccount.findMany({
+          where: { 
+            workspaceId,
+            disconnected_at: null
+          }
+        });
+
+        const facebookAccounts = accounts.filter(a => a.platform === 'facebook');
+        const instagramAccounts = accounts.filter(a => a.platform === 'instagram');
+
+        const matchedInstagramIds = new Set<string>();
+        let position = 0;
+
+        // 3. Match Facebook accounts with their linked Instagram accounts
+        for (const fb of facebookAccounts) {
+          const fbMetadata = fb.metadata as any;
+          const linkedIgId = fbMetadata?.instagram_id;
+
+          // Find matching Instagram account
+          const matchingIg = instagramAccounts.find(ig => {
+            const igMetadata = ig.metadata as any;
+            const igLinkedFbId = igMetadata?.facebook_page_id;
+
+            // Match by Meta link in metadata OR by name similarity (e.g. "Name (Instagram)" matches "Name")
+            return (
+              (linkedIgId && ig.platform_user_id === linkedIgId) ||
+              (igLinkedFbId && fb.platform_user_id === igLinkedFbId) ||
+              ig.platform_user_name.replace(' (Instagram)', '').trim().toLowerCase() === fb.platform_user_name.trim().toLowerCase()
+            );
+          });
+
+          const accountIdsToGroup = [fb.id];
+          if (matchingIg) {
+            accountIdsToGroup.push(matchingIg.id);
+            matchedInstagramIds.add(matchingIg.id);
+          }
+
+          // Create cluster (group) named after the Facebook page name with Cluster suffix
+          await tx.accountGroup.create({
+            data: {
+              workspace_id: workspaceId,
+              name: `${fb.platform_user_name} Cluster`,
+              position: position++,
+              members: {
+                create: accountIdsToGroup.map(id => ({
+                  account_id: id
+                }))
+              }
+            }
+          });
+        }
+
+        // 4. Create separate clusters for any leftover Instagram accounts that didn't match any Facebook account
+        for (const ig of instagramAccounts) {
+          if (!matchedInstagramIds.has(ig.id)) {
+            await tx.accountGroup.create({
+              data: {
+                workspace_id: workspaceId,
+                name: `${ig.platform_user_name.replace(' (Instagram)', '').trim()} Cluster`,
+                position: position++,
+                members: {
+                  create: [
+                    { account_id: ig.id }
+                  ]
+                }
+              }
+            });
+          }
+        }
+      });
+
+      return { success: true, error: null };
+    } catch (error: any) {
+      console.error('[AccountGroupRepository] resetToDefault failed:', error);
+      return { success: false, error: error.message || 'DATABASE_ERROR' };
+    }
+  }
 }
 
 let instance: AccountGroupRepository | null = null;

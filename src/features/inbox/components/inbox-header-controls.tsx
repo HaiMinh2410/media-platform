@@ -3,7 +3,7 @@
 import React from 'react';
 import { 
   ChevronDown, Check, Users, Plus, 
-  MoreHorizontal, Trash2
+  MoreHorizontal, Trash2, RotateCcw
 } from 'lucide-react';
 import { cn } from '@shared/lib/utils';
 import { CreateClusterModal } from './modals/create-cluster-modal';
@@ -15,6 +15,7 @@ import {
   getAccountGroupsAction, 
   deleteAccountGroupAction,
   updateAccountGroupsOrderAction,
+  resetAccountGroupsAction,
   AccountGroup,
   PlatformAccount
 } from '@features/settings';
@@ -179,7 +180,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
         isOpen={isOpen}
         onOpenChange={setIsOpen}
         triggerClassName={cn(
-          "flex items-center gap-3 px-3.5 h-10 bg-background-secondary border border-foreground/10 rounded-lg text-foreground-secondary cursor-pointer transition-all duration-200 min-w-[180px] outline-none hover:bg-background-tertiary hover:border-foreground/20 hover:-translate-y-px text-sm font-semibold select-none shadow-sm",
+          "flex items-center gap-3 px-3.5 h-10 bg-background-secondary border border-base-content/5 rounded-xl text-foreground-secondary cursor-pointer transition-all duration-200 min-w-[180px] outline-none hover:border-base-content/10 hover:-translate-y-px text-sm font-semibold select-none shadow-sm",
           selectedGroupId && "bg-primary/10 border-primary/20 text-foreground"
         )}
         dropdownClassName="bg-base-100 border border-foreground/10 shadow-2xl glass-shadow !p-2"
@@ -202,9 +203,9 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
               </button>
 
               {showManagementMenu && (
-                <div className="absolute top-full right-0 mt-2 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl w-40 overflow-hidden z-101 p-1">
+                <div className="absolute top-full right-0 mt-2 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl overflow-hidden z-101 p-2">
                   <button 
-                    className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
+                    className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-md hover:bg-foreground/5 hover:text-foreground transition-all"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowCreateModal(true);
@@ -212,17 +213,37 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
                       setIsOpen(false);
                     }}
                   >
-                    <Plus size={14} /> Thêm cụm mới
+                    <Plus size={14} /> <span className="whitespace-nowrap">Add Cluster</span>
                   </button>
                   <button 
-                    className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-lg hover:bg-foreground/5 hover:text-foreground transition-all"
+                    className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-md hover:bg-foreground/5 hover:text-foreground transition-all"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsSelectionMode(true);
                       setShowManagementMenu(false);
                     }}
                   >
-                    <Check size={14} /> Quản lý cụm
+                    <Check size={14} /> <span className="whitespace-nowrap">Cluster management</span>
+                  </button>
+                  <button 
+                    className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-md hover:bg-foreground/5 hover:text-foreground transition-all"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm('Bạn có chắc chắn muốn khôi phục về các cụm tài khoản mặc định? Toàn bộ các cụm hiện tại sẽ bị xóa.')) {
+                        resetAccountGroupsAction(workspaceId).then((res) => {
+                          if (res.success) {
+                            fetchCounts();
+                            setGroupId(null);
+                          } else {
+                            alert('Khôi phục thất bại: ' + res.error);
+                          }
+                        });
+                        setShowManagementMenu(false);
+                        setIsOpen(false);
+                      }
+                    }}
+                  >
+                    <RotateCcw size={14} /> <span className="whitespace-nowrap">Reset to default</span>
                   </button>
                 </div>
               )}
@@ -263,7 +284,7 @@ export function InboxHeaderControls({ workspaceId }: InboxHeaderControlsProps) {
         </div>
         <button 
           className={cn(
-            "flex items-center gap-3 w-full p-[10px_12px] rounded-xl border-none bg-transparent text-foreground-secondary cursor-pointer transition-all duration-150 text-left hover:bg-foreground/5 hover:text-foreground",
+            "flex items-center gap-3 w-full p-[10px_12px] rounded-md border-none bg-transparent text-foreground-secondary cursor-pointer transition-all duration-150 text-left hover:bg-foreground/5 hover:text-foreground",
             !selectedGroupId && "bg-primary/10 text-foreground"
           )}
           onClick={() => {

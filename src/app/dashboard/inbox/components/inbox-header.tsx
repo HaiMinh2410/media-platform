@@ -9,7 +9,7 @@ interface InboxHeaderProps {
 
 export function InboxHeader({ workspaceId }: { workspaceId: string }) {
   return (
-    <div className="flex items-center px-6 h-[56px] border-b-2 border-background-secondary bg-background/80 backdrop-blur-xl sticky top-0 z-20 w-full shrink-0">
+    <div className="flex items-center px-6  h-[64px] border-b-2 border-background-secondary bg-background/80 backdrop-blur-xl sticky top-0 z-20 w-full shrink-0">
       <InboxHeaderControls workspaceId={workspaceId} />
     </div>
   );

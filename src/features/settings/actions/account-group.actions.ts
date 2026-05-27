@@ -63,3 +63,17 @@ export async function updateAccountGroupsOrderAction(
   const repo = getAccountGroupRepository();
   return await repo.updatePositions(workspaceId, orderedIds);
 }
+
+/**
+ * Resets account clusters (groups) to defaults.
+ */
+export async function resetAccountGroupsAction(
+  workspaceId: string
+): Promise<{ success: boolean; error: string | null }> {
+  if (!workspaceId) {
+    return { success: false, error: 'WORKSPACE_ID_REQUIRED' };
+  }
+
+  const repo = getAccountGroupRepository();
+  return await repo.resetToDefault(workspaceId);
+}

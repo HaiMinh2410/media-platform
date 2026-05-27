@@ -32,7 +32,7 @@ export function ReorderItem({
       dragListener={false}
       dragControls={controls}
       className={cn(
-        "flex items-center gap-3 w-full p-[10px_12px] rounded-xl border-none bg-transparent text-foreground-secondary cursor-pointer transition-all duration-150 text-left hover:bg-foreground/5 hover:text-foreground group",
+        "flex items-center gap-3 w-full p-[10px_12px] rounded-md border-none bg-transparent text-foreground-secondary cursor-pointer transition-all duration-150 text-left hover:bg-foreground/5 hover:text-foreground group",
         selectedGroupId === group.id && !isSelectionMode && "bg-primary/10 text-foreground",
         isSelectionMode && isSelected && "bg-primary/5"
       )}
