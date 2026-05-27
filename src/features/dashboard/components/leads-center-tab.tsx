@@ -63,7 +63,7 @@ const MOCK_LEADS = [
   },
 ];
 
-export default function LeadsCenter() {
+export function LeadsCenterTab() {
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [searchQuery, setSearchQuery] = useState('');
   const [userData, setUserData] = useState<{ name: string; avatar?: string | null } | null>(null);
@@ -80,13 +80,13 @@ export default function LeadsCenter() {
   }, []);
   
   return (
-    <div className="flex flex-col gap-6 h-full p-6 xl:p-8 overflow-y-auto bg-base-200/30 text-base-content min-h-screen">
-      {/* Header */}
+    <div className="flex flex-col gap-6 h-full text-base-content w-full animate-fade-in">
+      {/* Header của Leads (Đã bỏ bớt title to trùng lặp, tập trung vào subtitle và actions) */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-base-content">
-            Trung tâm khách hàng tiềm năng
-          </h1>
+          <h2 className="text-xl font-black uppercase tracking-tight text-base-content font-brand">
+            Quản lý phễu khách hàng
+          </h2>
           <p className="text-xs text-base-content/60 font-medium mt-1">
             Quản lý, phân loại và theo dõi tiến trình chuyển đổi khách hàng tiềm năng của bạn
           </p>
@@ -100,7 +100,7 @@ export default function LeadsCenter() {
           <button className="btn btn-sm btn-square btn-soft border border-base-content/10 text-base-content/80 rounded-lg">
             <RefreshCw size={14} />
           </button>
-          <button className="btn btn-sm btn-primary font-bold shadow-sm rounded-lg flex items-center gap-1.5">
+          <button className="btn btn-sm btn-primary font-bold shadow-xs rounded-lg flex items-center gap-1.5">
             <Plus size={14} />
             Thêm khách hàng tiềm năng
           </button>
@@ -114,7 +114,7 @@ export default function LeadsCenter() {
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all",
               viewMode === 'kanban' 
-                ? "bg-primary text-primary-content shadow-sm" 
+                ? "bg-primary text-primary-content shadow-xs" 
                 : "text-base-content/60 hover:text-base-content/80"
             )}
             onClick={() => setViewMode('kanban')}
@@ -126,7 +126,7 @@ export default function LeadsCenter() {
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all",
               viewMode === 'table' 
-                ? "bg-primary text-primary-content shadow-sm" 
+                ? "bg-primary text-primary-content shadow-xs" 
                 : "text-base-content/60 hover:text-base-content/80"
             )}
             onClick={() => setViewMode('table')}
@@ -164,7 +164,7 @@ export default function LeadsCenter() {
       {/* Stats Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Stat 1 */}
-        <div className="bg-base-100 rounded-lg p-4 border border-base-content/10 border-t-2 border-t-info flex flex-col gap-1 relative overflow-hidden transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
+        <div className="bg-base-100 rounded-lg p-4 border border-base-content/10 border-t-2 border-t-info flex flex-col gap-1 relative overflow-hidden transition-all duration-300 hover:shadow-xs hover:-translate-y-0.5">
           <div className="flex justify-between items-start">
             <span className="text-xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Tiếp nhận</span>
             <div className="w-7 h-7 rounded-md bg-info/10 flex items-center justify-center border border-info/10">
@@ -178,7 +178,7 @@ export default function LeadsCenter() {
         </div>
         
         {/* Stat 2 */}
-        <div className="bg-base-100 rounded-lg p-4 border border-base-content/10 border-t-2 border-t-primary flex flex-col gap-1 relative overflow-hidden transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
+        <div className="bg-base-100 rounded-lg p-4 border border-base-content/10 border-t-2 border-t-primary flex flex-col gap-1 relative overflow-hidden transition-all duration-300 hover:shadow-xs hover:-translate-y-0.5">
           <div className="flex justify-between items-start">
             <span className="text-xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Đã chuyển đổi</span>
             <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center border border-primary/10">
@@ -192,7 +192,7 @@ export default function LeadsCenter() {
         </div>
 
         {/* Stat 3 */}
-        <div className="bg-base-100 rounded-lg p-4 border border-base-content/10 border-t-2 border-t-success flex flex-col gap-1 relative overflow-hidden transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
+        <div className="bg-base-100 rounded-lg p-4 border border-base-content/10 border-t-2 border-t-success flex flex-col gap-1 relative overflow-hidden transition-all duration-300 hover:shadow-xs hover:-translate-y-0.5">
           <div className="flex justify-between items-start">
             <span className="text-xs font-bold text-base-content/40 uppercase tracking-widest font-mono">Tỷ lệ chuyển đổi</span>
             <div className="w-7 h-7 rounded-md bg-success/10 flex items-center justify-center border border-success/10">
@@ -214,7 +214,7 @@ export default function LeadsCenter() {
             return (
               <div 
                 key={stage.id} 
-                className="min-w-[310px] max-w-[310px] bg-base-100/20 border border-base-content/10 rounded-xl p-4 flex flex-col gap-3 h-full max-h-[calc(100vh-280px)] overflow-y-auto hide-scrollbar"
+                className="min-w-[310px] max-w-[310px] bg-base-100/20 border border-base-content/10 rounded-xl p-4 flex flex-col gap-3 h-full max-h-[calc(100vh-320px)] overflow-y-auto hide-scrollbar"
               >
                 <div className="flex justify-between items-center py-2 px-1 sticky top-0 bg-base-100/0 backdrop-blur-md z-10">
                   <div className="flex items-center gap-2 text-sm font-bold tracking-tight text-base-content">
@@ -234,7 +234,7 @@ export default function LeadsCenter() {
                     stageLeads.map((lead) => (
                       <div 
                         key={lead.id} 
-                        className="bg-base-100 rounded-lg p-3.5 border border-base-content/10 flex flex-col gap-3 cursor-pointer transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5 hover:border-primary/45 group active:scale-[0.98]"
+                        className="bg-base-100 rounded-lg p-3.5 border border-base-content/10 flex flex-col gap-3 cursor-pointer transition-all duration-300 hover:shadow-xs hover:-translate-y-0.5 hover:border-primary/45 group active:scale-[0.98]"
                       >
                         <div className="flex items-center gap-3">
                           <div className="avatar placeholder shrink-0">
@@ -252,13 +252,13 @@ export default function LeadsCenter() {
                             </div>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               {lead.platform === 'instagram' && (
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-instagram/10 text-instagram uppercase tracking-wider">Instagram</span>
+                                <span className="px-1.5 py-0.5 rounded text-xs font-extrabold bg-instagram/10 text-instagram uppercase tracking-wider">Instagram</span>
                               )}
                               {lead.platform === 'messenger' && (
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-messenger/10 text-messenger uppercase tracking-wider">Messenger</span>
+                                <span className="px-1.5 py-0.5 rounded text-xs font-extrabold bg-messenger/10 text-messenger uppercase tracking-wider">Messenger</span>
                               )}
                               {lead.platform === 'unknown' && (
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-base-300 text-base-content/50 uppercase tracking-wider">Trực tiếp</span>
+                                <span className="px-1.5 py-0.5 rounded text-xs font-extrabold bg-base-300 text-base-content/50 uppercase tracking-wider">Trực tiếp</span>
                               )}
                               <span className="text-[11px] font-semibold text-base-content/40 before:content-['•'] before:mr-1 before:opacity-30">{lead.source}</span>
                             </div>
@@ -309,7 +309,7 @@ export default function LeadsCenter() {
           </div>
         </div>
       ) : (
-        <div className="bg-base-100/40 border border-base-content/10 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-base-100/40 border border-base-content/10 rounded-xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="table table-zebra w-full">
               <thead>
@@ -385,4 +385,3 @@ export default function LeadsCenter() {
     </div>
   );
 }
-

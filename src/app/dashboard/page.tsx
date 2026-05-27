@@ -11,16 +11,21 @@ import {
   getAISummary 
 } from '@features/dashboard/actions/dashboard.actions';
 import { AccountHealthGrid } from '@features/dashboard/components/account-health-grid';
-import { SectionTitle } from '@features/dashboard/components/section-title';
 import { InboxMetricsCard } from '@features/dashboard/components/inbox-metrics-card';
 import { AISummaryCard } from '@features/dashboard/components/ai-summary-card';
 import { ErrorBoundary, SectionError } from '@features/dashboard/components/error-boundary';
+import { LeadsCenterTab } from '@features/dashboard/components/leads-center-tab';
+import { DashboardTabsLayout } from '@features/dashboard/components/dashboard-tabs-layout';
 import DashboardSkeleton from '@features/dashboard/components/dashboard-skeleton';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{ tab?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const supabase = createClient();
   const { data: { user } } = await (await supabase).auth.getUser();
 
@@ -47,57 +52,77 @@ export default async function DashboardPage() {
     );
   }
 
+  const resolvedParams = await searchParams;
+  const activeTab = resolvedParams.tab === 'leads' ? 'leads' : 'overview';
+
   return (
     <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardContent workspaceId={workspace.id} workspaceName={workspace.name} />
+      <DashboardContent 
+        workspaceId={workspace.id} 
+        workspaceName={workspace.name} 
+        activeTab={activeTab} 
+      />
     </Suspense>
   );
 }
 
-async function DashboardContent({ workspaceId, workspaceName }: { workspaceId: string, workspaceName: string }) {
-  // Parallel Data Fetching
-  const [stats, trends, healthData, inboxMetrics, aiSummary] = await Promise.all([
-    getDashboardStats(workspaceId),
-    getDashboardTrends(workspaceId),
-    getAccountHealthData(workspaceId),
-    getInboxMetrics(workspaceId),
-    getAISummary(workspaceId),
-  ]);
+interface DashboardContentProps {
+  workspaceId: string;
+  workspaceName: string;
+  activeTab: 'overview' | 'leads';
+}
 
-  return (
-    <div className="min-h-screen bg-base-200 flex flex-col">
-      {/* 4.5 — Stats Strip (Outside padding container) */}
+async function DashboardContent({ workspaceId, workspaceName, activeTab }: DashboardContentProps) {
+  // Server-Side Tab Navigation: Chỉ fetch dữ liệu Overview nếu đang ở tab overview!
+  if (activeTab === 'overview') {
+    const [stats, trends, healthData, inboxMetrics, aiSummary] = await Promise.all([
+      getDashboardStats(workspaceId),
+      getDashboardTrends(workspaceId),
+      getAccountHealthData(workspaceId),
+      getInboxMetrics(workspaceId),
+      getAISummary(workspaceId),
+    ]);
 
+    return (
+      <DashboardTabsLayout activeTab={activeTab} workspaceName={workspaceName}>
+        <div className="space-y-8 animate-fade-in w-full">
+          {/* Section 1: Stats & Account Health Command Center (Bento Grid 4-8) */}
+          <AccountHealthGrid accounts={healthData} stats={stats} />
 
-      <div className="p-6 xl:p-7 pb-12 xl:pb-16 space-y-8 max-w-[1600px] mx-auto w-full">
+          {/* Section 2 + 3: Two-column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+            {/* Inbox Metrics (Left 58%) */}
+            <div className="lg:col-span-7 flex flex-col w-full">
+              <ErrorBoundary fallback={<SectionError title="Inbox Metrics" />}>
+                <InboxMetricsCard
+                  workspaceId={workspaceId}
+                  initialData={inboxMetrics}
+                  accounts={healthData}
+                />
+              </ErrorBoundary>
+            </div>
 
-        {/* Section 1: Stats & Account Health Command Center (Bento Grid 4-8) */}
-        <AccountHealthGrid accounts={healthData} stats={stats} />
-
-        {/* Section 2 + 3: Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Inbox Metrics (Left 58%) */}
-          <div className="lg:col-span-7 flex flex-col">
-            <ErrorBoundary fallback={<SectionError title="Inbox Metrics" />}>
-              <InboxMetricsCard 
-                workspaceId={workspaceId} 
-                initialData={inboxMetrics}
-                accounts={healthData}
-              />
-            </ErrorBoundary>
-          </div>
-
-          {/* AI Summary (Right) */}
-          <div className="lg:col-span-5 flex flex-col">
-            <ErrorBoundary fallback={<SectionError title="AI Summary" />}>
-              <AISummaryCard 
-                workspaceId={workspaceId} 
-                initialData={aiSummary} 
-              />
-            </ErrorBoundary>
+            {/* AI Summary (Right) */}
+            <div className="lg:col-span-5 flex flex-col w-full">
+              <ErrorBoundary fallback={<SectionError title="AI Summary" />}>
+                <AISummaryCard
+                  workspaceId={workspaceId}
+                  initialData={aiSummary}
+                />
+              </ErrorBoundary>
+            </div>
           </div>
         </div>
+      </DashboardTabsLayout>
+    );
+  }
+
+  // Nếu đang ở tab leads, import trực tiếp và render LeadsCenterTab (không fetch thừa dữ liệu Overview)
+  return (
+    <DashboardTabsLayout activeTab={activeTab} workspaceName={workspaceName}>
+      <div className="animate-fade-in w-full">
+        <LeadsCenterTab />
       </div>
-    </div>
+    </DashboardTabsLayout>
   );
 }
