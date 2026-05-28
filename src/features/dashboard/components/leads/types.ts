@@ -7,6 +7,7 @@ export interface Lead {
   platform: string;
   date: string;
   unread?: boolean;
+  accountId?: string;
 }
 
 export interface LeadStage {

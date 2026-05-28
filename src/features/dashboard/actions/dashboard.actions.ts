@@ -375,3 +375,77 @@ export async function getDashboardTrends(workspaceId: string) {
 
   return trends;
 }
+
+/**
+ * Lấy danh sách khách hàng tiềm năng (Leads) thực tế từ cơ sở dữ liệu.
+ * Khách hàng tiềm năng là các conversations có priority thuộc các giai đoạn khách hàng hợp lệ.
+ */
+export async function getLeadsFromDB(workspaceId: string) {
+  const conversations = await db.conversation.findMany({
+    where: {
+      platform_accounts: {
+        workspaceId,
+        disconnected_at: null,
+      },
+      priority: {
+        in: ['new', 'qualified', 'converted', 'lost', 'unqualified'],
+      },
+    },
+    include: {
+      platform_accounts: true,
+      messages: {
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 1,
+      },
+    },
+    orderBy: {
+      lastMessageAt: 'desc',
+    },
+  });
+
+  return conversations.map((convo: any) => {
+    // Quy đổi platform chuẩn
+    const platform = convo.platform_accounts.platform === 'facebook' ? 'messenger' : convo.platform_accounts.platform;
+    
+    // Format thời gian hiển thị gọn gàng
+    const dateObj = new Date(convo.lastMessageAt);
+    const dateStr = dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+    // Kiểm tra tin nhắn chưa đọc
+    const hasUnread = convo.messages[0] ? !convo.messages[0].is_read && convo.messages[0].senderType === 'user' : false;
+
+    return {
+      id: convo.id,
+      name: convo.customer_name || 'Khách hàng ẩn danh',
+      avatar: convo.customer_avatar,
+      stage: convo.priority || 'new',
+      source: 'Tự nhiên',
+      platform,
+      date: dateStr,
+      unread: hasUnread,
+      accountId: convo.account_id,
+    };
+  });
+}
+
+/**
+ * Cập nhật giai đoạn (priority) của khách hàng tiềm năng trong database.
+ */
+export async function updateLeadStageInDB(leadId: string, newStageId: string) {
+  return db.conversation.update({
+    where: { id: leadId },
+    data: { priority: newStageId },
+  });
+}
+
+/**
+ * Bỏ đánh dấu khách hàng tiềm năng (đặt priority về null).
+ */
+export async function deleteLeadInDB(leadId: string) {
+  return db.conversation.update({
+    where: { id: leadId },
+    data: { priority: null },
+  });
+}

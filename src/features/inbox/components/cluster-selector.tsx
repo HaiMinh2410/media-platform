@@ -102,7 +102,7 @@ export function ClusterSelector({
   ], [accountGroups]);
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div ref={dropdownRef} className="relative w-full">
       <RangeSelector
         value={selectedGroupId || 'all_clusters'}
         onChange={(val) => {
@@ -112,9 +112,10 @@ export function ClusterSelector({
         isOpen={isOpen}
         onOpenChange={setIsOpen}
         triggerClassName={triggerClassName || cn(
-          "flex items-center gap-3 px-3.5 h-10 bg-background-secondary border border-base-content/5 rounded-xl text-foreground-secondary cursor-pointer transition-all duration-200 min-w-[180px] outline-none hover:border-base-content/10 hover:-translate-y-px text-sm font-semibold select-none shadow-sm",
+          "flex items-center gap-3 px-3.5 h-10 bg-background-secondary border border-base-300 rounded-xl text-foreground-secondary cursor-pointer transition-all duration-200 min-w-[180px] outline-none hover:border-base-content/10 hover:-translate-y-px text-sm font-semibold select-none shadow-sm",
           selectedGroupId && "bg-primary/10 border-primary/20 text-foreground"
         )}
+        className="w-full"
         dropdownClassName={dropdownClassName}
         menuMinWidth={menuMinWidth}
         hideIcon={false}

@@ -6,8 +6,10 @@ import { LeadsStats } from './leads/leads-stats';
 import { LeadsFilters } from './leads/leads-filters';
 import { KanbanColumn } from './leads/kanban-column';
 import { LeadsTable } from './leads/leads-table';
-import { LEAD_STAGES, MOCK_LEADS } from './leads/constants';
+import { LEAD_STAGES } from './leads/constants';
 import { Lead, LeadStage } from './leads/types';
+import { useInboxStore } from '../../inbox/store/inbox.store';
+import { getLeadsFromDB, updateLeadStageInDB, deleteLeadInDB } from '../actions/dashboard.actions';
 
 interface LeadsCenterTabProps {
   workspaceId?: string;
@@ -15,15 +17,55 @@ interface LeadsCenterTabProps {
 
 export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCenterTabProps) {
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
+  const { accountGroups } = useInboxStore();
   
   // Quản lý cụm tài khoản hiện tại được lọc
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+
+  // Đọc giá trị đã lưu từ localStorage sau khi mounted để tránh lỗi Hydration Mismatch
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('leads_selected_group_id');
+      if (saved) {
+        setSelectedGroupId(saved);
+      }
+    }
+  }, []);
+
+  const handleGroupChange = (id: string | null) => {
+    setSelectedGroupId(id);
+    if (typeof window !== 'undefined') {
+      if (id) {
+        localStorage.setItem('leads_selected_group_id', id);
+      } else {
+        localStorage.removeItem('leads_selected_group_id');
+      }
+    }
+  };
   
   // 1. Quản lý trạng thái bằng React State
   const [stages, setStages] = useState<LeadStage[]>(LEAD_STAGES);
-  const [leads, setLeads] = useState<Lead[]>(MOCK_LEADS);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [currentSubTab, setCurrentSubTab] = useState<string>('all');
+
+  // Tải danh sách leads thực tế từ DB khi mounted
+  useEffect(() => {
+    if (workspaceId) {
+      setLoading(true);
+      getLeadsFromDB(workspaceId)
+        .then((dbLeads) => {
+          setLeads(dbLeads);
+        })
+        .catch((err) => {
+          console.error("Failed to load leads from DB:", err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [workspaceId]);
   
   // Trạng thái hiển thị các cột đặc biệt và lọc chưa đọc
   const [showLost, setShowLost] = useState(false);
@@ -57,6 +99,8 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
   }, [toast.show]);
 
   // 2. Logic Lọc dữ liệu khách hàng
+  const selectedGroup = accountGroups.find((g) => g.id === selectedGroupId);
+
   const filteredLeads = leads.filter((lead) => {
     // Lọc theo sub-tab (trong chế độ xem bảng)
     const matchesSubTab = viewMode === 'table' && currentSubTab !== 'all'
@@ -65,6 +109,11 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
 
     // Lọc chỉ hiển thị khách hàng tiềm năng chưa đọc
     const matchesUnreadOnly = showUnreadOnly ? lead.unread === true : true;
+
+    // Lọc theo cụm tài khoản được chọn (chỉ giữ lại những leads thuộc tài khoản thành viên trong cụm)
+    const matchesCluster = selectedGroup
+      ? selectedGroup.members.some((member) => member.id === lead.accountId)
+      : true;
 
     // Lọc theo dropdown Trạng thái
     const matchesStageFilter = filters.stage !== 'all'
@@ -91,7 +140,7 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
       ? true // Mock data đều hiển thị trong hôm nay
       : true;
 
-    return matchesSubTab && matchesUnreadOnly && matchesStageFilter && matchesSource && matchesCampaign && matchesForm && matchesDate;
+    return matchesSubTab && matchesUnreadOnly && matchesCluster && matchesStageFilter && matchesSource && matchesCampaign && matchesForm && matchesDate;
   });
 
   // 3. Cơ chế thêm giai đoạn tùy chỉnh (test1, test2...)
@@ -127,7 +176,8 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
   };
 
   // 4. Cơ chế di chuyển & Cập nhật giai đoạn
-  const handleChangeStage = (leadId: string, newStageId: string) => {
+  const handleChangeStage = async (leadId: string, newStageId: string) => {
+    // Cập nhật local state trước để UI phản hồi lập tức (Optimistic Update)
     setLeads(prevLeads => 
       prevLeads.map(lead => 
         lead.id === leadId ? { ...lead, stage: newStageId } : lead
@@ -137,23 +187,48 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
     const stageLabel = stages.find(s => s.id === newStageId)?.label || newStageId;
     const leadName = leads.find(l => l.id === leadId)?.name || 'Khách hàng';
 
-    setToast({
-      show: true,
-      message: `Đã chuyển ${leadName} sang giai đoạn "${stageLabel}".`,
-      type: 'info'
-    });
+    try {
+      await updateLeadStageInDB(leadId, newStageId);
+      
+      setToast({
+        show: true,
+        message: `Đã chuyển ${leadName} sang giai đoạn "${stageLabel}".`,
+        type: 'info'
+      });
+    } catch (err) {
+      console.error("Failed to update lead stage in DB:", err);
+      setToast({
+        show: true,
+        message: `Lỗi kết nối DB khi cập nhật giai đoạn!`,
+        type: 'info'
+      });
+    }
   };
 
   // Cơ chế xóa khách hàng tiềm năng
-  const handleDeleteLead = (leadId: string) => {
+  const handleDeleteLead = async (leadId: string) => {
     const leadName = leads.find(l => l.id === leadId)?.name || 'Khách hàng';
+    
+    // Cập nhật local state trước
     setLeads(prevLeads => prevLeads.filter(lead => lead.id !== leadId));
-    setSelectedLeadIds(prev => prev.filter(id => id !== leadId)); // Xóa khỏi danh sách selected
-    setToast({
-      show: true,
-      message: `Đã xóa khách hàng tiềm năng "${leadName}" thành công!`,
-      type: 'success'
-    });
+    setSelectedLeadIds(prev => prev.filter(id => id !== leadId));
+
+    try {
+      await deleteLeadInDB(leadId);
+
+      setToast({
+        show: true,
+        message: `Đã xóa khách hàng tiềm năng "${leadName}" thành công!`,
+        type: 'success'
+      });
+    } catch (err) {
+      console.error("Failed to delete lead in DB:", err);
+      setToast({
+        show: true,
+        message: `Lỗi kết nối DB khi xóa khách hàng tiềm năng!`,
+        type: 'info'
+      });
+    }
   };
 
   // 5. Thao tác hàng loạt (Chỉnh sửa hàng loạt)
@@ -265,7 +340,6 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
         stages={stages}
         filters={filters}
         onFilterChange={handleFilterChange}
-        onDownload={handleDownload}
         showLost={showLost}
         onToggleLost={() => setShowLost(!showLost)}
         showUnqualified={showUnqualified}
@@ -274,14 +348,18 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
         onToggleUnreadOnly={() => setShowUnreadOnly(!showUnreadOnly)}
         workspaceId={workspaceId}
         selectedGroupId={selectedGroupId}
-        onChangeGroup={setSelectedGroupId}
+        onChangeGroup={handleGroupChange}
       />
  
       {/* 2. Thanh đo lường hiệu suất (Bento Stats) */}
       <LeadsStats leads={leads} />
       
       {/* 3. Vùng nội dung chính */}
-      {viewMode === 'kanban' ? (
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center min-h-[400px]">
+          <span className="loading loading-ring loading-lg text-primary"></span>
+        </div>
+      ) : viewMode === 'kanban' ? (
         <div className="flex gap-4 overflow-x-auto pb-4 flex-1 hide-scrollbar w-full items-start min-h-[500px]">
           {/* Render các cột Kanban động theo stages */}
           {stages.map((stage) => {

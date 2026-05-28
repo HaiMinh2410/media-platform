@@ -35,7 +35,7 @@ export function CombinedAvatar({ group, unreadCount }: CombinedAvatarProps) {
       {fbAccount && renderAvatar(fbAccount)}
       {igAccount && renderAvatar(igAccount, true)}
       {unreadCount !== undefined && unreadCount > 0 && (
-        <div className="absolute -top-1.5 -right-1.5 min-w-md h-4 px-1 bg-error text-error-content rounded-full border-[1.5px] border-background z-4 shadow-md shadow-error/20 text-3xs font-extrabold flex items-center justify-center leading-none">
+        <div className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-error text-error-content rounded-full border border-background z-10 shadow-sm text-3xs font-black flex items-center justify-center leading-none">
           {unreadCount > 99 ? '99+' : unreadCount}
         </div>
       )}
