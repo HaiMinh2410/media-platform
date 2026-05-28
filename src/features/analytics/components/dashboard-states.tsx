@@ -1,15 +1,20 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { 
-  Users, BarChart3, Calendar, Sparkles, RefreshCw, 
-  TrendingUp, TrendingDown 
-} from 'lucide-react';
-import { Icon } from '@shared/ui/icon';
+import React from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  Users,
+  BarChart3,
+  Calendar,
+  Sparkles,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+} from "lucide-react";
+import { Icon } from "@shared/ui/icon";
 
-export type ActiveMetric = 'reach' | 'views' | 'engagement' | 'followers';
+export type ActiveMetric = "reach" | "views" | "engagement" | "followers";
 
 export function SkeletonChart() {
   return (
@@ -27,7 +32,7 @@ export function SkeletonChart() {
 
 export function InsufficientDataState() {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col items-center justify-center p-12 bg-foreground/2 rounded-3xl border border-foreground/10 border-dashed text-center min-h-[400px] mt-6"
@@ -41,19 +46,47 @@ export function InsufficientDataState() {
           <Icon lucide={Sparkles} size={12} className="text-foreground" />
         </div>
       </div>
-      <h3 className="text-2xl font-bold text-foreground mb-3">Tài khoản đang được tối ưu</h3>
+      <h3 className="text-2xl font-bold text-foreground mb-3">
+        Tài khoản đang được tối ưu
+      </h3>
       <p className="text-foreground-secondary max-w-md leading-relaxed mb-8 text-sm">
-        Meta Graph API yêu cầu tài khoản có ít nhất <span className="text-blue-400 font-bold">100 followers</span> để cung cấp các số liệu nhân khẩu học và thói quen hoạt động của người theo dõi.
+        Meta Graph API yêu cầu tài khoản có ít nhất{" "}
+        <span className="text-blue-400 font-bold">100 followers</span> để cung
+        cấp các số liệu nhân khẩu học và thói quen hoạt động của người theo dõi.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-lg">
         {[
-          { label: 'Followers', val: '< 100', icon: Users, color: 'text-blue-400' },
-          { label: 'Nhân khẩu học', val: 'Khóa', icon: BarChart3, color: 'text-foreground-secondary/20' },
-          { label: 'Hoạt động', val: 'Khóa', icon: Calendar, color: 'text-foreground-secondary/20' }
+          {
+            label: "Followers",
+            val: "< 100",
+            icon: Users,
+            color: "text-blue-400",
+          },
+          {
+            label: "Nhân khẩu học",
+            val: "Khóa",
+            icon: BarChart3,
+            color: "text-foreground-secondary/20",
+          },
+          {
+            label: "Hoạt động",
+            val: "Khóa",
+            icon: Calendar,
+            color: "text-foreground-secondary/20",
+          },
         ].map((item, i) => (
-          <div key={i} className="p-4 bg-foreground/5 rounded-2xl border border-foreground/10 flex flex-col items-center">
-            <Icon lucide={item.icon} size={16} className={`${item.color} mb-2`} />
-            <div className="text-[10px] uppercase tracking-widest text-foreground-secondary/30 font-bold mb-1">{item.label}</div>
+          <div
+            key={i}
+            className="p-4 bg-foreground/5 rounded-2xl border border-foreground/10 flex flex-col items-center"
+          >
+            <Icon
+              lucide={item.icon}
+              size={16}
+              className={`${item.color} mb-2`}
+            />
+            <div className="text-2xs uppercase tracking-widest text-foreground-secondary/30 font-bold mb-1">
+              {item.label}
+            </div>
             <div className="text-sm font-bold text-foreground">{item.val}</div>
           </div>
         ))}
@@ -64,7 +97,7 @@ export function InsufficientDataState() {
 
 export function ReauthNotice() {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4"
@@ -74,11 +107,16 @@ export function ReauthNotice() {
           <Icon lucide={TrendingDown} size={20} className="text-red-400" />
         </div>
         <div>
-          <h4 className="text-sm font-bold text-foreground">Token kết nối đã hết hạn hoặc bị thu hồi</h4>
-          <p className="text-xs text-foreground-secondary">Vui lòng kết nối lại tài khoản Instagram của bạn để tiếp tục đồng bộ dữ liệu live theo thời gian thực.</p>
+          <h4 className="text-sm font-bold text-foreground">
+            Token kết nối đã hết hạn hoặc bị thu hồi
+          </h4>
+          <p className="text-xs text-foreground-secondary">
+            Vui lòng kết nối lại tài khoản Instagram của bạn để tiếp tục đồng bộ
+            dữ liệu live theo thời gian thực.
+          </p>
         </div>
       </div>
-      <Link 
+      <Link
         href="/dashboard/settings/accounts"
         className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 flex items-center gap-2 no-underline"
       >
@@ -100,67 +138,101 @@ interface CustomTooltipProps {
   activeMetric: ActiveMetric;
 }
 
-export function CustomTooltip({ active, payload, label, activeMetric }: CustomTooltipProps) {
+export function CustomTooltip({
+  active,
+  payload,
+  label,
+  activeMetric,
+}: CustomTooltipProps) {
   if (active && payload && payload.length) {
     const data = payload[0].payload as Record<string, string | number>;
-    
+
     const getMetricLabel = (m: string) => {
-      switch(m) {
-        case 'reach': return 'Reach';
-        case 'views': return 'Views';
-        case 'engagement': return 'Engagement';
-        case 'followers': return 'Followers';
-        default: return m;
+      switch (m) {
+        case "reach":
+          return "Reach";
+        case "views":
+          return "Views";
+        case "engagement":
+          return "Engagement";
+        case "followers":
+          return "Followers";
+        default:
+          return m;
       }
     };
- 
+
     const getMetricColor = (m: string) => {
-      switch(m) {
-        case 'reach': return 'bg-blue-500';
-        case 'views': return 'bg-purple-500';
-        case 'engagement': return 'bg-emerald-500';
-        case 'followers': return 'bg-orange-500';
-        default: return 'bg-foreground';
+      switch (m) {
+        case "reach":
+          return "bg-blue-500";
+        case "views":
+          return "bg-purple-500";
+        case "engagement":
+          return "bg-emerald-500";
+        case "followers":
+          return "bg-orange-500";
+        default:
+          return "bg-foreground";
       }
     };
- 
+
     const prevKey = `prev${activeMetric.charAt(0).toUpperCase()}${activeMetric.slice(1)}`;
     const val = Number(data[activeMetric]) || 0;
     const prevValue = Number(data[prevKey]) || 0;
-    
+
     const trend = prevValue > 0 ? ((val - prevValue) / prevValue) * 100 : 0;
     const isPositive = trend > 0;
     const absDiff = val - prevValue;
 
     return (
       <div className="bg-base-300/85 backdrop-blur-xl border border-foreground/10 rounded-2xl p-5 min-w-[220px] shadow-2xl pointer-events-none animate-in fade-in zoom-in-95 duration-200">
-        <div className="text-[10px] font-bold text-foreground/30 mb-4 uppercase tracking-wider flex items-center gap-2">
+        <div className="text-2xs font-bold text-foreground/30 mb-4 uppercase tracking-wider flex items-center gap-2">
           <Icon lucide={Calendar} size={10} />
           {label}
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3 text-sm font-medium text-foreground/90">
-              <div className={`w-2 h-2 rounded-sm shadow-[0_0_10px_currentColor] ${getMetricColor(activeMetric)}`} />
+              <div
+                className={`w-2 h-2 rounded-sm shadow-[0_0_10px_currentColor] ${getMetricColor(activeMetric)}`}
+              />
               <span>{getMetricLabel(activeMetric)}</span>
             </div>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-extrabold text-foreground tabular-nums">{val.toLocaleString()}</span>
+                <span className="text-lg font-extrabold text-foreground tabular-nums">
+                  {val.toLocaleString()}
+                </span>
                 {absDiff !== 0 && (
-                  <div className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                    isPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-                  }`}>
-                    <Icon lucide={isPositive ? TrendingUp : TrendingDown} size={10} />
-                    <span>{isPositive ? '+' : ''}{absDiff.toLocaleString()}</span>
+                  <div
+                    className={`flex items-center text-2xs font-bold px-1.5 py-0.5 rounded-full ${
+                      isPositive
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-red-500/10 text-red-400"
+                    }`}
+                  >
+                    <Icon
+                      lucide={isPositive ? TrendingUp : TrendingDown}
+                      size={10}
+                    />
+                    <span>
+                      {isPositive ? "+" : ""}
+                      {absDiff.toLocaleString()}
+                    </span>
                   </div>
                 )}
               </div>
               {prevValue > 0 && (
                 <div className="flex flex-col mt-1">
-                  <span className="text-[10px] font-medium text-foreground/25 mt-0.5">Kỳ trước: {prevValue.toLocaleString()}</span>
-                  <span className={`text-[10px] ${isPositive ? 'text-emerald-400' : 'text-red-400'} font-medium`}>
-                    ({isPositive ? '+' : ''}{trend.toFixed(1)}%)
+                  <span className="text-2xs font-medium text-foreground/25 mt-0.5">
+                    Kỳ trước: {prevValue.toLocaleString()}
+                  </span>
+                  <span
+                    className={`text-2xs ${isPositive ? "text-emerald-400" : "text-red-400"} font-medium`}
+                  >
+                    ({isPositive ? "+" : ""}
+                    {trend.toFixed(1)}%)
                   </span>
                 </div>
               )}

@@ -72,7 +72,7 @@ export function FollowerPersonaCard({
         <div className="mb-6 p-4 bg-warning/10 border border-warning/20 text-warning rounded-2xl text-xs font-semibold leading-relaxed flex items-start gap-3">
           <AlertTriangle size={18} className="shrink-0 mt-0.5" />
           <div>
-            <span className="font-black uppercase tracking-wider block text-[10px] mb-1">
+            <span className="font-black uppercase tracking-wider block text-2xs mb-1">
               Cảnh báo quy mô dữ liệu
             </span>
             Quy mô người theo dõi hiện tại ({followersCount} followers) còn
@@ -87,13 +87,13 @@ export function FollowerPersonaCard({
         {/* LEFT SIDE: RADAR CHART & DETAILS GRID (4/12 columns) */}
         <div className="w-full lg:col-span-4 flex flex-col items-center justify-start">
           <div className="flex items-center gap-2 mb-4 self-start">
-              {/* Confidence Score Badge */}
-              <div
-                className={`flex items-center gap-1.5 text-xs font-bold font-mono ${confidenceColor}`}
-              >
-                <ShieldCheck size={12} className="shrink-0" />
-                Độ tin cậy: {confidenceScore}% ({confidenceLevel})
-              </div>
+            {/* Confidence Score Badge */}
+            <div
+              className={`flex items-center gap-1.5 text-xs font-bold font-mono ${confidenceColor}`}
+            >
+              <ShieldCheck size={12} className="shrink-0" />
+              Độ tin cậy: {confidenceScore}% ({confidenceLevel})
+            </div>
           </div>
 
           <div className="w-full h-[250px] relative">

@@ -101,7 +101,7 @@ export function FollowerGenderCard({
 
               {/* Inside Center label */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
+                <span className="text-2xs text-base-content/40 font-bold uppercase tracking-wider font-mono">
                   Giới tính
                 </span>
                 <span className="text-sm font-black text-base-content">

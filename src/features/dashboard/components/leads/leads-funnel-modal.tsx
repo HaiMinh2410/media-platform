@@ -162,7 +162,7 @@ export function LeadsFunnelModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/45 dark:bg-black/60 backdrop-blur-xs flex items-center justify-center z-[250] animate-fade-in p-4">
+    <div className="fixed inset-0 bg-black/45 dark:bg-black/60 backdrop-blur-xs flex items-center justify-center z-250 animate-fade-in p-4">
       {/* Thẻ Modal chính */}
       <div className="bg-base-100 dark:bg-base-900 border border-base-content/10 rounded-2xl w-full max-w-[500px] shadow-2xl relative flex flex-col max-h-[85vh] overflow-hidden">
         

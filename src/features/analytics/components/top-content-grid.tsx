@@ -1,15 +1,12 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
-import { cn, formatMetric } from './primitives';
-import { 
-  MousePointer2, Users, Heart, User, UserPlus 
-} from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { getTopPostsAction } from '@features/analytics/actions/analytics.actions';
-
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { cn, formatMetric } from "./primitives";
+import { MousePointer2, Users, Heart, User, UserPlus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getTopPostsAction } from "@features/analytics/actions/analytics.actions";
 
 export interface TopContentPost {
   id: string;
@@ -17,7 +14,7 @@ export interface TopContentPost {
   mediaUrl: string | null;
   thumbnailUrl: string | null;
   postedAt: Date | string;
-  mediaType: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REELS';
+  mediaType: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM" | "REELS";
   caption: string | null;
   views: number;
   totalInteractions: number;
@@ -30,7 +27,12 @@ export interface TopContentPost {
   follows?: number;
 }
 
-export type MetricType = 'interactions' | 'reach' | 'likes' | 'profile_visits' | 'follows';
+export type MetricType =
+  | "interactions"
+  | "reach"
+  | "likes"
+  | "profile_visits"
+  | "follows";
 
 interface TopContentGridProps {
   posts: TopContentPost[];
@@ -41,11 +43,41 @@ interface TopContentGridProps {
 }
 
 const METRIC_TABS = [
-  { id: 'interactions', label: 'Interactions', icon: MousePointer2, gradient: 'from-emerald-500 to-teal-600', glow: 'rgba(16, 185, 129, 0.15)' },
-  { id: 'reach', label: 'Reach', icon: Users, gradient: 'from-purple-500 to-indigo-600', glow: 'rgba(168, 85, 247, 0.15)' },
-  { id: 'likes', label: 'Likes', icon: Heart, gradient: 'from-rose-500 to-pink-600', glow: 'rgba(244, 63, 94, 0.15)' },
-  { id: 'profile_visits', label: 'Profile Visits', icon: User, gradient: 'from-amber-500 to-orange-600', glow: 'rgba(245, 158, 11, 0.15)' },
-  { id: 'follows', label: 'Follows', icon: UserPlus, gradient: 'from-fuchsia-500 to-pink-600', glow: 'rgba(217, 70, 239, 0.15)' },
+  {
+    id: "interactions",
+    label: "Interactions",
+    icon: MousePointer2,
+    gradient: "from-emerald-500 to-teal-600",
+    glow: "rgba(16, 185, 129, 0.15)",
+  },
+  {
+    id: "reach",
+    label: "Reach",
+    icon: Users,
+    gradient: "from-purple-500 to-indigo-600",
+    glow: "rgba(168, 85, 247, 0.15)",
+  },
+  {
+    id: "likes",
+    label: "Likes",
+    icon: Heart,
+    gradient: "from-rose-500 to-pink-600",
+    glow: "rgba(244, 63, 94, 0.15)",
+  },
+  {
+    id: "profile_visits",
+    label: "Profile Visits",
+    icon: User,
+    gradient: "from-amber-500 to-orange-600",
+    glow: "rgba(245, 158, 11, 0.15)",
+  },
+  {
+    id: "follows",
+    label: "Follows",
+    icon: UserPlus,
+    gradient: "from-fuchsia-500 to-pink-600",
+    glow: "rgba(217, 70, 239, 0.15)",
+  },
 ] as const;
 
 const GRADIENTS = [
@@ -59,9 +91,9 @@ const GRADIENTS = [
 const formatShortDate = (dateStr: string | Date) => {
   try {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   } catch {
-    return '';
+    return "";
   }
 };
 
@@ -69,7 +101,7 @@ function PostThumb({
   post,
   metricType,
   gradient,
-  index
+  index,
 }: {
   post: TopContentPost;
   metricType: MetricType;
@@ -87,22 +119,25 @@ function PostThumb({
     const baseInteractions = likes + comments + shares + saves;
 
     switch (metricType) {
-      case 'interactions': {
-        return post.totalInteractions > 0 ? post.totalInteractions : baseInteractions;
+      case "interactions": {
+        return post.totalInteractions > 0
+          ? post.totalInteractions
+          : baseInteractions;
       }
-      case 'reach': {
+      case "reach": {
         return post.reach || 0;
       }
-      case 'likes': {
+      case "likes": {
         return likes;
       }
-      case 'profile_visits': {
+      case "profile_visits": {
         return post.profileVisits || 0;
       }
-      case 'follows': {
+      case "follows": {
         return post.follows || 0;
       }
-      default: return 0;
+      default:
+        return 0;
     }
   };
 
@@ -110,7 +145,7 @@ function PostThumb({
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, type: 'spring', stiffness: 100 }}
+      transition={{ delay: index * 0.05, type: "spring", stiffness: 100 }}
       className="flex flex-col items-center relative"
     >
       {/* Media Container */}
@@ -129,7 +164,9 @@ function PostThumb({
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-foreground/5">
-            <span className="text-foreground-tertiary text-[10px] font-bold tracking-widest uppercase">{post.mediaType}</span>
+            <span className="text-foreground-tertiary text-2xs font-bold tracking-widest uppercase">
+              {post.mediaType}
+            </span>
           </div>
         )}
 
@@ -137,16 +174,27 @@ function PostThumb({
         <div className="absolute inset-0 bg-linear-to-t from-base-300/80 via-transparent to-transparent pointer-events-none" />
 
         {/* Media Format Icon Overlay */}
-        {post.mediaType === 'CAROUSEL_ALBUM' ? (
+        {post.mediaType === "CAROUSEL_ALBUM" ? (
           <div className="absolute top-3 right-3 bg-base-300/70 backdrop-blur-md rounded-lg p-1.5 border border-foreground/10 shadow-lg flex items-center justify-center">
-            <svg className="w-3.5 h-3.5 text-foreground animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="w-3.5 h-3.5 text-foreground animate-pulse"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
           </div>
-        ) : post.mediaType === 'VIDEO' || post.mediaType === 'REELS' ? (
+        ) : post.mediaType === "VIDEO" || post.mediaType === "REELS" ? (
           <div className="absolute top-3 right-3 bg-base-300/70 backdrop-blur-md rounded-lg p-1.5 border border-foreground/10 shadow-lg flex items-center justify-center">
-            <svg className="w-3.5 h-3.5 text-foreground fill-current animate-pulse" viewBox="0 0 24 24">
+            <svg
+              className="w-3.5 h-3.5 text-foreground fill-current animate-pulse"
+              viewBox="0 0 24 24"
+            >
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>
@@ -169,9 +217,8 @@ export function TopContentGrid({
   activeMetric,
   setActiveMetric,
   isLoading = false,
-  onSeeAll
+  onSeeAll,
 }: TopContentGridProps) {
-
   const sortedAndFilteredPosts = React.useMemo(() => {
     return [...posts]
       .sort((a, b) => {
@@ -183,15 +230,17 @@ export function TopContentGrid({
           const baseInteractions = likes + comments + shares + saves;
 
           switch (activeMetric) {
-            case 'interactions':
-              return p.totalInteractions > 0 ? p.totalInteractions : baseInteractions;
-            case 'reach':
+            case "interactions":
+              return p.totalInteractions > 0
+                ? p.totalInteractions
+                : baseInteractions;
+            case "reach":
               return p.reach || 0;
-            case 'likes':
+            case "likes":
               return likes;
-            case 'profile_visits':
+            case "profile_visits":
               return p.profileVisits || 0;
-            case 'follows':
+            case "follows":
               return p.follows || 0;
             default:
               return 0;
@@ -202,7 +251,8 @@ export function TopContentGrid({
       .slice(0, 5);
   }, [posts, activeMetric]);
 
-  const activeTabConfig = METRIC_TABS.find(t => t.id === activeMetric) || METRIC_TABS[0];
+  const activeTabConfig =
+    METRIC_TABS.find((t) => t.id === activeMetric) || METRIC_TABS[0];
 
   if (isLoading) {
     return (
@@ -215,7 +265,10 @@ export function TopContentGrid({
           </div>
           <div className="flex gap-2 flex-wrap">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-8 w-20 bg-foreground/5 rounded-full animate-pulse" />
+              <div
+                key={i}
+                className="h-8 w-20 bg-foreground/5 rounded-full animate-pulse"
+              />
             ))}
           </div>
         </div>
@@ -232,17 +285,17 @@ export function TopContentGrid({
   }
 
   return (
-    <div 
+    <div
       className="glass rounded-3xl p-6 text-foreground overflow-hidden shadow-2xl relative transition-all duration-300"
       style={{
-        boxShadow: `var(--glass-shadow)`
+        boxShadow: `var(--glass-shadow)`,
       }}
     >
       {/* Decorative Gradient Line matching active tab */}
-      <div 
+      <div
         className={cn(
           "absolute top-0 left-0 w-full h-[3px] bg-linear-to-r transition-all duration-500",
-          activeTabConfig.gradient
+          activeTabConfig.gradient,
         )}
       />
 
@@ -273,9 +326,9 @@ export function TopContentGrid({
                 onClick={() => setActiveMetric(tab.id)}
                 className={cn(
                   "relative flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer select-none",
-                  isActive 
-                    ? "text-white" 
-                    : "text-foreground-secondary hover:text-foreground hover:bg-foreground/5"
+                  isActive
+                    ? "text-white"
+                    : "text-foreground-secondary hover:text-foreground hover:bg-foreground/5",
                 )}
               >
                 {isActive && (
@@ -283,12 +336,17 @@ export function TopContentGrid({
                     layoutId="activeTabGlow"
                     className={cn(
                       "absolute inset-0 bg-linear-to-r rounded-xl -z-10 shadow-lg border border-foreground/10",
-                      tab.gradient
+                      tab.gradient,
                     )}
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
-                <IconComponent className={cn("w-3.5 h-3.5 transition-transform duration-300", isActive && "scale-110")} />
+                <IconComponent
+                  className={cn(
+                    "w-3.5 h-3.5 transition-transform duration-300",
+                    isActive && "scale-110",
+                  )}
+                />
                 <span>{tab.label}</span>
               </button>
             );
@@ -319,8 +377,18 @@ export function TopContentGrid({
               ))
             ) : (
               <div className="w-full min-h-[180px] flex flex-col items-center justify-center border border-dashed border-foreground/10 rounded-2xl text-foreground-tertiary text-xs py-8">
-                <svg className="w-8 h-8 opacity-20 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg
+                  className="w-8 h-8 opacity-20 mb-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
                 Không có dữ liệu bài viết phù hợp
               </div>
@@ -334,22 +402,24 @@ export function TopContentGrid({
 
 function useTopContent(accountId: string, sortBy: MetricType) {
   return useQuery({
-    queryKey: ['top-content', accountId, sortBy],
-    queryFn: () => getTopPostsAction(accountId, '30d', undefined, undefined, sortBy),
+    queryKey: ["top-content", accountId, sortBy],
+    queryFn: () =>
+      getTopPostsAction(accountId, "30d", undefined, undefined, sortBy),
     staleTime: 5 * 60 * 1000,
   });
 }
 
-export function TopContentGridWrapper({ 
+export function TopContentGridWrapper({
   accountId,
-  onSeeAll
-}: { 
+  onSeeAll,
+}: {
   accountId: string;
   onSeeAll?: () => void;
 }) {
-  const [activeMetric, setActiveMetric] = React.useState<MetricType>('interactions');
+  const [activeMetric, setActiveMetric] =
+    React.useState<MetricType>("interactions");
   const { data: result, isPending } = useTopContent(accountId, activeMetric);
-  
+
   return (
     <TopContentGrid
       posts={(result?.data || []) as TopContentPost[]}

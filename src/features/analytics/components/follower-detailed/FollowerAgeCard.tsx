@@ -51,7 +51,7 @@ export function FollowerAgeCard({ ageData = [] }: FollowerAgeCardProps) {
                     </span>
                     <span className="text-base-content font-bold font-mono">
                       {age.value.toLocaleString()}{" "}
-                      <span className="text-base-content/40 text-[10px] font-normal font-mono">
+                      <span className="text-base-content/40 text-2xs font-normal font-mono">
                         ({percent}%)
                       </span>
                     </span>

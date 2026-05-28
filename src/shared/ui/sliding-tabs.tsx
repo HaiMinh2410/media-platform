@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
-import { Icon } from '@shared/ui/icon';
+import React from "react";
+import { motion } from "framer-motion";
+import { LucideIcon } from "lucide-react";
+import { Icon } from "@shared/ui/icon";
 
 export interface TabItem<T extends string> {
   value: T;
@@ -29,7 +29,7 @@ interface SlidingTabsProps<T extends string> {
    * Layout size of the tabs selector
    * @default 'md'
    */
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: "xs" | "sm" | "md" | "lg";
   /**
    * Optional custom layout ID for Framer Motion to prevent conflicts if multiple sliding tabs are on the same page
    * @default 'slidingTabIndicator'
@@ -51,36 +51,37 @@ export function SlidingTabs<T extends string>({
   items,
   activeValue,
   onChange,
-  size = 'md',
-  layoutId = 'slidingTabIndicator',
-  className = '',
+  size = "md",
+  layoutId = "slidingTabIndicator",
+  className = "",
   fullWidth = false,
-  activeIndicatorClassName = '',
+  activeIndicatorClassName = "",
 }: SlidingTabsProps<T>) {
   // Định nghĩa styles cho từng kích thước
   const sizeStyles = {
     xs: {
-      container: 'p-0.5 rounded-xl gap-0.5',
-      button: 'px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase gap-1',
-      indicator: 'rounded-lg shadow-xs',
+      container: "p-0.5 rounded-xl gap-0.5",
+      button: "px-2 py-0.5 rounded-lg text-3xs font-bold uppercase gap-1",
+      indicator: "rounded-lg shadow-xs",
       icon: 10,
     },
     sm: {
-      container: 'p-1 rounded-xl gap-1',
-      button: 'px-3 py-1.5 rounded-md text-xs font-bold gap-2',
-      indicator: 'rounded-md shadow-xs',
+      container: "p-1 rounded-xl gap-1",
+      button: "px-3 py-1.5 rounded-md text-xs font-bold gap-2",
+      indicator: "rounded-md shadow-xs",
       icon: 12,
     },
     md: {
-      container: 'p-1 rounded-2xl gap-2',
-      button: 'px-3 py-1.5 rounded-xl text-sm font-bold gap-2.5',
-      indicator: 'rounded-xl shadow-md',
+      container: "p-1 rounded-2xl gap-2",
+      button: "px-3 py-1.5 rounded-xl text-sm font-bold gap-2.5",
+      indicator: "rounded-xl shadow-md",
       icon: 14,
     },
     lg: {
-      container: 'p-2 rounded-2xl gap-2',
-      button: 'px-6 py-3 rounded-2xl text-sm font-extrabold uppercase tracking-widest gap-3',
-      indicator: 'rounded-2xl shadow-lg',
+      container: "p-2 rounded-2xl gap-2",
+      button:
+        "px-6 py-3 rounded-2xl text-sm font-extrabold uppercase tracking-widest gap-3",
+      indicator: "rounded-2xl shadow-lg",
       icon: 16,
     },
   };
@@ -90,31 +91,31 @@ export function SlidingTabs<T extends string>({
   return (
     <div
       className={`flex items-center border border-base-content/5 rounded-2xl select-none shadow-inner relative ${
-        fullWidth ? 'w-full' : 'w-fit'
+        fullWidth ? "w-full" : "w-fit"
       } ${currentStyle.container} ${className}`}
     >
       {items.map((item) => {
         const isActive = activeValue === item.value;
-        const activeBg = item.activeBgClass || 'bg-primary';
-        const activeText = item.activeTextClass || 'text-primary-content';
+        const activeBg = item.activeBgClass || "bg-primary";
+        const activeText = item.activeTextClass || "text-primary-content";
 
         return (
           <button
             key={item.value}
             onClick={() => onChange(item.value)}
             className={`relative flex items-center transition-all duration-300 cursor-pointer select-none outline-none ${
-              fullWidth ? 'flex-1 justify-center' : ''
+              fullWidth ? "flex-1 justify-center" : ""
             } ${currentStyle.button} ${
               isActive
                 ? `${activeText} scale-[1.02]`
-                : 'text-base-content/50 hover:text-base-content hover:bg-base-300/10'
+                : "text-base-content/50 hover:text-base-content hover:bg-base-300/10"
             }`}
           >
             {isActive && (
               <motion.div
                 layoutId={layoutId}
                 className={`absolute inset-0 -z-10 ${currentStyle.indicator} ${activeIndicatorClassName} ${activeBg}`}
-                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
             {item.icon && (
@@ -124,7 +125,9 @@ export function SlidingTabs<T extends string>({
                 className="relative z-10 transition-colors duration-300"
               />
             )}
-            <span className="relative z-10 transition-colors duration-300">{item.label}</span>
+            <span className="relative z-10 transition-colors duration-300">
+              {item.label}
+            </span>
           </button>
         );
       })}

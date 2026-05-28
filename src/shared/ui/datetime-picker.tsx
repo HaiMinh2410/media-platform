@@ -1,9 +1,16 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { format, addDays, setHours, setMinutes, startOfToday, nextMonday } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, Globe } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
+import React, { useState, useEffect } from "react";
+import {
+  format,
+  addDays,
+  setHours,
+  setMinutes,
+  startOfToday,
+  nextMonday,
+} from "date-fns";
+import { Calendar as CalendarIcon, Clock, Globe } from "lucide-react";
+import { cn } from "@shared/lib/utils";
 
 type DatetimePickerProps = {
   value: Date;
@@ -11,33 +18,33 @@ type DatetimePickerProps = {
 };
 
 export function DatetimePicker({ value, onChange }: DatetimePickerProps) {
-  const [timezone, setTimezone] = useState<string>('');
+  const [timezone, setTimezone] = useState<string>("");
 
   useEffect(() => {
     try {
       setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
     } catch (e) {
-      setTimezone('UTC');
+      setTimezone("UTC");
     }
   }, []);
 
   const presets = [
-    { 
-      label: 'Chiều nay 15:00', 
-      getDate: () => setMinutes(setHours(startOfToday(), 15), 0) 
+    {
+      label: "Chiều nay 15:00",
+      getDate: () => setMinutes(setHours(startOfToday(), 15), 0),
     },
-    { 
-      label: 'Sáng mai 09:00', 
-      getDate: () => setMinutes(setHours(addDays(startOfToday(), 1), 9), 0) 
+    {
+      label: "Sáng mai 09:00",
+      getDate: () => setMinutes(setHours(addDays(startOfToday(), 1), 9), 0),
     },
-    { 
-      label: 'Thứ Hai 09:00', 
-      getDate: () => setMinutes(setHours(nextMonday(startOfToday()), 9), 0) 
+    {
+      label: "Thứ Hai 09:00",
+      getDate: () => setMinutes(setHours(nextMonday(startOfToday()), 9), 0),
     },
   ];
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const [hours, minutes] = e.target.value.split(':').map(Number);
+    const [hours, minutes] = e.target.value.split(":").map(Number);
     const newDate = new Date(value);
     newDate.setHours(hours);
     newDate.setMinutes(minutes);
@@ -47,7 +54,7 @@ export function DatetimePicker({ value, onChange }: DatetimePickerProps) {
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const [year, month, day] = e.target.value.split('-').map(Number);
+    const [year, month, day] = e.target.value.split("-").map(Number);
     const newDate = new Date(value);
     newDate.setFullYear(year);
     newDate.setMonth(month - 1);
@@ -74,10 +81,13 @@ export function DatetimePicker({ value, onChange }: DatetimePickerProps) {
       <div className="grid grid-cols-2 gap-3">
         {/* Date Input Wrapper */}
         <div className="relative group">
-          <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors pointer-events-none" size={14} />
+          <CalendarIcon
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors pointer-events-none"
+            size={14}
+          />
           <input
             type="date"
-            value={format(value, 'yyyy-MM-dd')}
+            value={format(value, "yyyy-MM-dd")}
             onChange={handleDateChange}
             className="w-full bg-base-200/50 border border-base-content/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-base-content focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 transition-all appearance-none"
           />
@@ -85,10 +95,13 @@ export function DatetimePicker({ value, onChange }: DatetimePickerProps) {
 
         {/* Time Input Wrapper */}
         <div className="relative group">
-          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors pointer-events-none" size={14} />
+          <Clock
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 group-focus-within:text-primary transition-colors pointer-events-none"
+            size={14}
+          />
           <input
             type="time"
-            value={format(value, 'HH:mm')}
+            value={format(value, "HH:mm")}
             onChange={handleTimeChange}
             className="w-full bg-base-200/50 border border-base-content/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-base-content focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50 transition-all appearance-none"
           />
@@ -96,10 +109,10 @@ export function DatetimePicker({ value, onChange }: DatetimePickerProps) {
       </div>
 
       {/* Timezone Indicator */}
-      <div className="flex items-center gap-2 px-1 text-[10px] font-medium text-base-content/40">
+      <div className="flex items-center gap-2 px-1 text-2xs font-medium text-base-content/40">
         <Globe size={12} className="text-primary/60" />
         <span className="bg-base-300 px-2 py-0.5 rounded-md border border-base-content/5 text-base-content/70">
-          {timezone || 'Detecting...'}
+          {timezone || "Detecting..."}
         </span>
         <span className="ml-auto italic opacity-40">Múi giờ hệ thống</span>
       </div>

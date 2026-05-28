@@ -136,7 +136,7 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
           <div 
             ref={menuRef}
             className={cn(
-              "fixed bg-base-100 border border-base-content/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
+              "fixed bg-base-100 border border-base-content/10 rounded-xl shadow-2xl z-10000 overflow-hidden flex flex-col",
               dropdownDirection === 'up' && "mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
             )}
             style={{

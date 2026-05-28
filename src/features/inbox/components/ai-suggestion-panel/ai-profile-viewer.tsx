@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { cn } from '@shared/lib/utils';
+import React, { useState } from "react";
+import { cn } from "@shared/lib/utils";
 import {
   Sparkles,
   ChevronUp,
@@ -18,13 +18,13 @@ import {
   ShieldAlert,
   AlertTriangle,
   Calendar,
-  MessageSquare
-} from 'lucide-react';
+  MessageSquare,
+} from "lucide-react";
 import {
   getFanPersonalityConfiguration,
   getConversationStageConfiguration,
-  getNextActionConfiguration
-} from './panel-constants';
+  getNextActionConfiguration,
+} from "./panel-constants";
 
 type AiProfileViewerProps = {
   fanProfile: any;
@@ -35,30 +35,43 @@ type AiProfileViewerProps = {
 export function AiProfileViewer({
   fanProfile,
   gender,
-  onUpdateGender
+  onUpdateGender,
 }: AiProfileViewerProps) {
   const [isProfileExpanded, setIsProfileExpanded] = useState(true);
   const [showInsights, setShowInsights] = useState(true);
 
   // Chuẩn hóa dữ liệu hồ sơ fan
-  const profile = fanProfile ? {
-    fanType: fanProfile.fan_type || fanProfile.fanType || 'Unknown',
-    fanTypeConfidence: fanProfile.fan_type_confidence ?? fanProfile.fanTypeConfidence ?? 0,
-    stage: fanProfile.stage || 'G1',
-    dayCount: fanProfile.day_count ?? fanProfile.dayCount ?? 0,
-    messageCount: fanProfile.message_count ?? fanProfile.messageCount ?? 0,
-    emotionScore: fanProfile.emotion_score ?? fanProfile.emotionScore ?? 0.5,
-    emotionTrend: fanProfile.emotion_trend ?? fanProfile.emotionTrend ?? 'stable',
-    flirtLevel: fanProfile.flirt_level ?? fanProfile.flirtLevel ?? 0,
-    riskLevel: fanProfile.risk_level ?? fanProfile.riskLevel ?? 'low',
-    nextAction: fanProfile.next_action ?? fanProfile.nextAction ?? 'continue',
-    keyInsights: fanProfile.key_insights ?? fanProfile.keyInsights ?? [],
-    objectionsSeen: fanProfile.objections_seen ?? fanProfile.objectionsSeen ?? [],
-  } : null;
+  const profile = fanProfile
+    ? {
+        fanType: fanProfile.fan_type || fanProfile.fanType || "Unknown",
+        fanTypeConfidence:
+          fanProfile.fan_type_confidence ?? fanProfile.fanTypeConfidence ?? 0,
+        stage: fanProfile.stage || "G1",
+        dayCount: fanProfile.day_count ?? fanProfile.dayCount ?? 0,
+        messageCount: fanProfile.message_count ?? fanProfile.messageCount ?? 0,
+        emotionScore:
+          fanProfile.emotion_score ?? fanProfile.emotionScore ?? 0.5,
+        emotionTrend:
+          fanProfile.emotion_trend ?? fanProfile.emotionTrend ?? "stable",
+        flirtLevel: fanProfile.flirt_level ?? fanProfile.flirtLevel ?? 0,
+        riskLevel: fanProfile.risk_level ?? fanProfile.riskLevel ?? "low",
+        nextAction:
+          fanProfile.next_action ?? fanProfile.nextAction ?? "continue",
+        keyInsights: fanProfile.key_insights ?? fanProfile.keyInsights ?? [],
+        objectionsSeen:
+          fanProfile.objections_seen ?? fanProfile.objectionsSeen ?? [],
+      }
+    : null;
 
-  const fanConfig = profile ? getFanPersonalityConfiguration(profile.fanType) : null;
-  const stageConfig = profile ? getConversationStageConfiguration(profile.stage) : null;
-  const actionConfig = profile ? getNextActionConfiguration(profile.nextAction) : null;
+  const fanConfig = profile
+    ? getFanPersonalityConfiguration(profile.fanType)
+    : null;
+  const stageConfig = profile
+    ? getConversationStageConfiguration(profile.stage)
+    : null;
+  const actionConfig = profile
+    ? getNextActionConfiguration(profile.nextAction)
+    : null;
 
   return (
     <div className="p-4 border-b border-foreground/5 bg-foreground/1 flex flex-col gap-4 relative">
@@ -68,8 +81,12 @@ export function AiProfileViewer({
             <Sparkles size={14} className="animate-pulse" />
           </div>
           <div>
-            <h4 className="text-xs font-black text-foreground-secondary uppercase tracking-wider">Hồ sơ phân tích AI</h4>
-            <p className="text-[10px] text-foreground-tertiary">Báo cáo cập nhật thời gian thực</p>
+            <h4 className="text-xs font-black text-foreground-secondary uppercase tracking-wider">
+              Hồ sơ phân tích AI
+            </h4>
+            <p className="text-2xs text-foreground-tertiary">
+              Báo cáo cập nhật thời gian thực
+            </p>
           </div>
         </div>
 
@@ -78,7 +95,11 @@ export function AiProfileViewer({
           className="p-1 rounded bg-foreground/5 hover:bg-foreground/10 text-foreground-secondary transition-all"
           title={isProfileExpanded ? "Thu gọn" : "Mở rộng"}
         >
-          {isProfileExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          {isProfileExpanded ? (
+            <ChevronUp size={14} />
+          ) : (
+            <ChevronDown size={14} />
+          )}
         </button>
       </div>
 
@@ -88,7 +109,12 @@ export function AiProfileViewer({
           {renderFanPersonalitySection(profile, fanConfig)}
 
           {/* 2. Trạng thái xưng hô & Giai đoạn hội thoại */}
-          {renderXungHoAndStageSection(gender, onUpdateGender, profile, stageConfig)}
+          {renderXungHoAndStageSection(
+            gender,
+            onUpdateGender,
+            profile,
+            stageConfig,
+          )}
 
           {/* 3. Hành động khuyên dùng (Next Action) */}
           {renderNextActionSection(profile, actionConfig)}
@@ -103,7 +129,11 @@ export function AiProfileViewer({
           {renderRiskBannerSection(profile)}
 
           {/* 7. Nhận định sâu & Từ chối (Insights & Objections) */}
-          {renderInsightsAndObjectionsSection(profile, showInsights, setShowInsights)}
+          {renderInsightsAndObjectionsSection(
+            profile,
+            showInsights,
+            setShowInsights,
+          )}
         </div>
       )}
     </div>
@@ -118,22 +148,30 @@ function renderFanPersonalitySection(profile: any, fanConfig: any) {
   return (
     <div className="flex flex-col gap-2 p-3 bg-foreground/2 border border-foreground/5 rounded-xl hover:bg-foreground/[0.04] transition-all">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
+        <span className="text-2xs font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
           <Users size={11} /> Kiểu tính cách (Fan Type)
         </span>
         {profile && profile.fanTypeConfidence > 0 && (
-          <span className="text-[10px] font-bold text-violet-400 bg-violet-500/10 px-1.5 py-0.2 rounded">
+          <span className="text-2xs font-bold text-violet-400 bg-violet-500/10 px-1.5 py-0.2 rounded">
             Mức độ tin cậy: {Math.round(profile.fanTypeConfidence * 100)}%
           </span>
         )}
       </div>
       {profile && fanConfig ? (
         <div className="flex flex-col gap-2">
-          <div className={cn("text-xs font-black px-3 py-1.5 rounded-lg border text-center font-mono", fanConfig.styleClass)}>
+          <div
+            className={cn(
+              "text-xs font-black px-3 py-1.5 rounded-lg border text-center font-mono",
+              fanConfig.styleClass,
+            )}
+          >
             {fanConfig.label}
           </div>
           <p className="text-[11px] text-foreground-secondary leading-relaxed bg-foreground/1 p-2 rounded-md border border-foreground/3 italic">
-            <strong className="text-foreground-secondary not-italic font-bold">Đặc trưng:</strong> {fanConfig.description}
+            <strong className="text-foreground-secondary not-italic font-bold">
+              Đặc trưng:
+            </strong>{" "}
+            {fanConfig.description}
           </p>
         </div>
       ) : (
@@ -149,25 +187,32 @@ function renderXungHoAndStageSection(
   gender: string | null,
   onUpdateGender: (gender: string | null) => void,
   profile: any,
-  stageConfig: any
+  stageConfig: any,
 ) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
         {/* Gender Card */}
         <div className="flex flex-col gap-1.5 p-2.5 bg-foreground/[0.02] border border-foreground/5 rounded-xl hover:bg-foreground/[0.04] transition-all">
-          <span className="text-[10px] font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
+          <span className="text-2xs font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
             <User size={11} /> Xưng hô hội thoại
           </span>
           <select
             className={cn(
               "w-full text-2xs font-bold bg-background-secondary border border-foreground/10 rounded-lg p-1.5 outline-none transition-all focus:border-accent-primary cursor-pointer text-center",
-              gender === 'Nam' && "text-blue-400 bg-blue-500/5 border-blue-500/20",
-              gender === 'Nữ' && "text-pink-400 bg-pink-500/5 border-pink-500/20",
-              (!gender || gender === 'Chưa rõ') && "text-slate-400 bg-slate-500/5 border-slate-500/20"
+              gender === "Nam" &&
+                "text-blue-400 bg-blue-500/5 border-blue-500/20",
+              gender === "Nữ" &&
+                "text-pink-400 bg-pink-500/5 border-pink-500/20",
+              (!gender || gender === "Chưa rõ") &&
+                "text-slate-400 bg-slate-500/5 border-slate-500/20",
             )}
-            value={gender || 'Chưa rõ'}
-            onChange={(e) => onUpdateGender(e.target.value === 'Chưa rõ' ? null : e.target.value)}
+            value={gender || "Chưa rõ"}
+            onChange={(e) =>
+              onUpdateGender(
+                e.target.value === "Chưa rõ" ? null : e.target.value,
+              )
+            }
           >
             <option value="Chưa rõ">Chưa xác định ⚦</option>
             <option value="Nam">Nam ♂ (Anh)</option>
@@ -177,12 +222,15 @@ function renderXungHoAndStageSection(
 
         {/* Stage Card */}
         <div className="flex flex-col gap-1.5 p-2.5 bg-foreground/[0.02] border border-foreground/5 rounded-xl hover:bg-foreground/[0.04] transition-all">
-          <span className="text-[10px] font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
+          <span className="text-2xs font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
             <Activity size={11} /> Giai đoạn (Stage)
           </span>
           {profile && stageConfig ? (
             <div
-              className={cn("text-2xs font-black px-2 py-1.5 rounded-lg border text-center truncate", stageConfig.styleClass)}
+              className={cn(
+                "text-2xs font-black px-2 py-1.5 rounded-lg border text-center truncate",
+                stageConfig.styleClass,
+              )}
               title={`Mục tiêu: ${stageConfig.targetGoal}`}
             >
               {stageConfig.label}
@@ -196,8 +244,10 @@ function renderXungHoAndStageSection(
       </div>
 
       {profile && stageConfig && (
-        <p className="text-[10px] text-foreground-tertiary leading-relaxed px-2.5 py-1.5 rounded-lg bg-foreground/[0.01] border border-foreground/[0.02] -mt-1.5">
-          🎯 <strong className="text-foreground-secondary">Mục tiêu Stage:</strong> {stageConfig.targetGoal}
+        <p className="text-2xs text-foreground-tertiary leading-relaxed px-2.5 py-1.5 rounded-lg bg-foreground/[0.01] border border-foreground/[0.02] -mt-1.5">
+          🎯{" "}
+          <strong className="text-foreground-secondary">Mục tiêu Stage:</strong>{" "}
+          {stageConfig.targetGoal}
         </p>
       )}
     </>
@@ -207,13 +257,22 @@ function renderXungHoAndStageSection(
 function renderNextActionSection(profile: any, actionConfig: any) {
   return (
     <div className="flex flex-col gap-2 p-3 bg-foreground/[0.02] border border-foreground/5 rounded-xl hover:bg-foreground/[0.04] transition-all">
-      <span className="text-[10px] font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
+      <span className="text-2xs font-bold text-foreground-tertiary uppercase tracking-wider flex items-center gap-1">
         <Compass size={11} /> Hành động khuyên dùng (Next Action)
       </span>
       {profile && actionConfig ? (
-        <div className={cn("text-xs font-black px-3 py-2 rounded-lg flex items-center justify-between", actionConfig.styleClass)}>
+        <div
+          className={cn(
+            "text-xs font-black px-3 py-2 rounded-lg flex items-center justify-between",
+            actionConfig.styleClass,
+          )}
+        >
           <span>{actionConfig.label}</span>
-          <Compass size={13} className="shrink-0 animate-bounce" fill="currentColor" />
+          <Compass
+            size={13}
+            className="shrink-0 animate-bounce"
+            fill="currentColor"
+          />
         </div>
       ) : (
         <div className="text-xs font-bold text-foreground-tertiary px-3 py-2 rounded-lg border border-foreground/5 bg-foreground/[0.01] text-center">
@@ -226,18 +285,22 @@ function renderNextActionSection(profile: any, actionConfig: any) {
 
 function renderEmotionAndFlirtSection(profile: any) {
   if (!profile) return null;
-  const isEmotionIncreasing = profile.emotionTrend === 'increasing';
-  const isEmotionDecreasing = profile.emotionTrend === 'decreasing';
+  const isEmotionIncreasing = profile.emotionTrend === "increasing";
+  const isEmotionDecreasing = profile.emotionTrend === "decreasing";
 
   return (
     <div className="flex flex-col gap-3 bg-foreground/[0.01] border border-foreground/5 p-3 rounded-xl hover:bg-foreground/[0.02] transition-all">
       {/* Emotion Score */}
       <div className="flex flex-col gap-1.5">
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold text-foreground-secondary uppercase tracking-wider flex items-center gap-1.5">
+          <span className="text-2xs font-bold text-foreground-secondary uppercase tracking-wider flex items-center gap-1.5">
             <Smile size={11} /> Độ thiện cảm (Emotion)
-            {isEmotionIncreasing && <TrendingUp size={11} className="text-emerald-400" />}
-            {isEmotionDecreasing && <TrendingDown size={11} className="text-rose-400" />}
+            {isEmotionIncreasing && (
+              <TrendingUp size={11} className="text-emerald-400" />
+            )}
+            {isEmotionDecreasing && (
+              <TrendingDown size={11} className="text-rose-400" />
+            )}
           </span>
           <span className="text-2xs font-black text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded font-mono">
             {Math.round(profile.emotionScore * 100)}%
@@ -250,7 +313,7 @@ function renderEmotionAndFlirtSection(profile: any) {
             style={{ width: `${profile.emotionScore * 100}%` }}
           />
         </div>
-        <div className="flex justify-between text-[9px] text-foreground-tertiary">
+        <div className="flex justify-between text-3xs text-foreground-tertiary">
           <span>Lạnh nhạt (0%)</span>
           <span>Nồng nhiệt (100%)</span>
         </div>
@@ -258,7 +321,7 @@ function renderEmotionAndFlirtSection(profile: any) {
 
       {/* Flirt Level */}
       <div className="flex justify-between items-center pt-2 border-t border-foreground/5">
-        <span className="text-[10px] font-bold text-foreground-secondary uppercase tracking-wider flex items-center gap-1">
+        <span className="text-2xs font-bold text-foreground-secondary uppercase tracking-wider flex items-center gap-1">
           <Heart size={11} /> Độ quấn quýt (Thính)
         </span>
         <div className="flex gap-1">
@@ -270,7 +333,7 @@ function renderEmotionAndFlirtSection(profile: any) {
                 "transition-all duration-300",
                 val <= profile.flirtLevel
                   ? "fill-pink-500 text-pink-500 scale-110 drop-shadow-[0_0_4px_rgba(236,72,153,0.4)]"
-                  : "text-foreground-tertiary opacity-30"
+                  : "text-foreground-tertiary opacity-30",
               )}
             />
           ))}
@@ -283,41 +346,52 @@ function renderEmotionAndFlirtSection(profile: any) {
 function renderChatStatisticsSection(profile: any) {
   if (!profile) return null;
   return (
-    <div className="flex justify-between text-[10px] text-foreground-tertiary px-1 border-t border-foreground/5 pt-2">
+    <div className="flex justify-between text-2xs text-foreground-tertiary px-1 border-t border-foreground/5 pt-2">
       <span className="flex items-center gap-1">
-        <Calendar size={11} /> Đã tương tác: <strong className="text-foreground-secondary">{profile.dayCount} ngày</strong>
+        <Calendar size={11} /> Đã tương tác:{" "}
+        <strong className="text-foreground-secondary">
+          {profile.dayCount} ngày
+        </strong>
       </span>
       <span className="flex items-center gap-1">
-        <MessageSquare size={11} /> Tổng tin nhắn: <strong className="text-foreground-secondary">{profile.messageCount} tin</strong>
+        <MessageSquare size={11} /> Tổng tin nhắn:{" "}
+        <strong className="text-foreground-secondary">
+          {profile.messageCount} tin
+        </strong>
       </span>
     </div>
   );
 }
 
 function renderRiskBannerSection(profile: any) {
-  if (!profile || profile.riskLevel === 'low') return null;
-  const isHighRisk = profile.riskLevel === 'high';
+  if (!profile || profile.riskLevel === "low") return null;
+  const isHighRisk = profile.riskLevel === "high";
 
   return (
-    <div className={cn(
-      "flex gap-2.5 p-3 rounded-xl border text-[11px] leading-relaxed shadow-sm",
-      isHighRisk
-        ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-        : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-    )}>
+    <div
+      className={cn(
+        "flex gap-2.5 p-3 rounded-xl border text-[11px] leading-relaxed shadow-sm",
+        isHighRisk
+          ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+          : "bg-amber-500/10 text-amber-400 border-amber-500/20",
+      )}
+    >
       {isHighRisk ? (
-        <ShieldAlert size={15} className="text-rose-400 shrink-0 mt-0.5 animate-pulse" />
+        <ShieldAlert
+          size={15}
+          className="text-rose-400 shrink-0 mt-0.5 animate-pulse"
+        />
       ) : (
         <AlertTriangle size={15} className="text-amber-400 shrink-0 mt-0.5" />
       )}
       <div className="flex-1 flex flex-col gap-0.5">
-        <p className="font-bold uppercase tracking-wider text-[9px]">
-          Cảnh báo rủi ro: {isHighRisk ? 'Rất cao (Escalate)' : 'Trung bình'}
+        <p className="font-bold uppercase tracking-wider text-3xs">
+          Cảnh báo rủi ro: {isHighRisk ? "Rất cao (Escalate)" : "Trung bình"}
         </p>
-        <p className="opacity-80 text-[10px]">
+        <p className="opacity-80 text-2xs">
           {isHighRisk
-            ? 'AI phát hiện hành vi bào tài nguyên cực đoan, từ khóa nhạy cảm nặng hoặc quấy rối nguy cấp. Hội thoại được tự động chuyển giao cho nhân viên trực chat can thiệp thủ công.'
-            : 'Người dùng gửi liên kết nhiều lần hoặc có tín hiệu spam nhẹ. Cần thận trọng khi gửi thông tin.'}
+            ? "AI phát hiện hành vi bào tài nguyên cực đoan, từ khóa nhạy cảm nặng hoặc quấy rối nguy cấp. Hội thoại được tự động chuyển giao cho nhân viên trực chat can thiệp thủ công."
+            : "Người dùng gửi liên kết nhiều lần hoặc có tín hiệu spam nhẹ. Cần thận trọng khi gửi thông tin."}
         </p>
       </div>
     </div>
@@ -327,18 +401,24 @@ function renderRiskBannerSection(profile: any) {
 function renderInsightsAndObjectionsSection(
   profile: any,
   showInsights: boolean,
-  setShowInsights: (show: boolean) => void
+  setShowInsights: (show: boolean) => void,
 ) {
-  if (!profile || (profile.keyInsights.length === 0 && profile.objectionsSeen.length === 0)) return null;
+  if (
+    !profile ||
+    (profile.keyInsights.length === 0 && profile.objectionsSeen.length === 0)
+  )
+    return null;
   const totalItems = profile.keyInsights.length + profile.objectionsSeen.length;
 
   return (
     <div className="border-t border-foreground/5 pt-2">
       <button
         onClick={() => setShowInsights(!showInsights)}
-        className="flex justify-between items-center w-full py-1 text-[10px] font-bold text-foreground-tertiary hover:text-foreground transition-colors"
+        className="flex justify-between items-center w-full py-1 text-2xs font-bold text-foreground-tertiary hover:text-foreground transition-colors"
       >
-        <span className="uppercase tracking-wider">Nhận định sâu & Rào cản ({totalItems})</span>
+        <span className="uppercase tracking-wider">
+          Nhận định sâu & Rào cản ({totalItems})
+        </span>
         {showInsights ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
       </button>
 
@@ -346,26 +426,38 @@ function renderInsightsAndObjectionsSection(
         <div className="flex flex-col gap-3 mt-2 p-2.5 bg-foreground/[0.01] border border-foreground/5 rounded-xl">
           {profile.keyInsights.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <span className="text-[9px] text-violet-400 uppercase tracking-wider font-bold">Insight thu thập được:</span>
+              <span className="text-3xs text-violet-400 uppercase tracking-wider font-bold">
+                Insight thu thập được:
+              </span>
               <div className="flex flex-wrap gap-1">
                 {profile.keyInsights.map((insight: string, idx: number) => (
-                  <span key={idx} className="text-[10px] px-2 py-0.5 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-md font-medium leading-relaxed">
+                  <span
+                    key={idx}
+                    className="text-2xs px-2 py-0.5 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-md font-medium leading-relaxed"
+                  >
                     • {insight}
                   </span>
                 ))}
               </div>
             </div>
           )}
-          
+
           {profile.objectionsSeen.length > 0 && (
             <div className="flex flex-col gap-1.5 mt-1 border-t border-foreground/5 pt-2">
-              <span className="text-[9px] text-rose-400 uppercase tracking-wider font-bold">Từ chối / Rào cản đã gặp:</span>
+              <span className="text-3xs text-rose-400 uppercase tracking-wider font-bold">
+                Từ chối / Rào cản đã gặp:
+              </span>
               <div className="flex flex-wrap gap-1">
-                {profile.objectionsSeen.map((objection: string, idx: number) => (
-                  <span key={idx} className="text-[10px] px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-md font-medium leading-relaxed">
-                    ✗ {objection}
-                  </span>
-                ))}
+                {profile.objectionsSeen.map(
+                  (objection: string, idx: number) => (
+                    <span
+                      key={idx}
+                      className="text-2xs px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-md font-medium leading-relaxed"
+                    >
+                      ✗ {objection}
+                    </span>
+                  ),
+                )}
               </div>
             </div>
           )}

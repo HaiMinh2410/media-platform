@@ -175,7 +175,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
           <div 
             ref={tagMenuRef}
             className={cn(
-              "fixed bg-base-100 border border-base-content/10 rounded-xl shadow-2xl z-[10000] overflow-hidden flex flex-col",
+              "fixed bg-base-100 border border-base-content/10 rounded-xl shadow-2xl z-10000 overflow-hidden flex flex-col",
               dropdownDirection === 'up' && "mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
             )}
             style={{
@@ -199,7 +199,7 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
                       }}
                     >
                       <div 
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
+                        className="w-2.5 h-2.5 rounded-full shrink-0" 
                         style={{ backgroundColor: color }} 
                       />
                       <span className="font-bold text-sm text-base-content">{name}</span>

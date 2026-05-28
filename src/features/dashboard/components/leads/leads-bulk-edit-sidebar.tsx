@@ -36,15 +36,16 @@ export function LeadsBulkEditSidebar({
         </button>
       </div>
 
-      <p className="text-[10px] leading-relaxed text-base-content/50 font-medium">
-        Cập nhật người chịu trách nhiệm và giai đoạn cho mọi khách hàng tiềm năng đã chọn.
+      <p className="text-2xs leading-relaxed text-base-content/50 font-medium">
+        Cập nhật người chịu trách nhiệm và giai đoạn cho mọi khách hàng tiềm
+        năng đã chọn.
       </p>
 
       <div className="h-px bg-base-content/5" />
 
       {/* Chuyển đến Giai đoạn */}
       <div className="flex flex-col gap-1.5">
-        <span className="text-[9px] font-bold text-base-content/45 uppercase tracking-wider">
+        <span className="text-3xs font-bold text-base-content/45 uppercase tracking-wider">
           Chuyển đến
         </span>
         <div className="relative">
@@ -57,7 +58,7 @@ export function LeadsBulkEditSidebar({
                 onBulkEdit(stageId);
               } else if (selectedCount === 0) {
                 alert(
-                  "Vui lòng chọn ít nhất 1 khách hàng tiềm năng để thực hiện chuyển giai đoạn!"
+                  "Vui lòng chọn ít nhất 1 khách hàng tiềm năng để thực hiện chuyển giai đoạn!",
                 );
               }
             }}
@@ -79,7 +80,7 @@ export function LeadsBulkEditSidebar({
 
       {/* Chỉ định người chịu trách nhiệm */}
       <div className="flex flex-col gap-1.5">
-        <span className="text-[9px] font-bold text-base-content/45 uppercase tracking-wider">
+        <span className="text-3xs font-bold text-base-content/45 uppercase tracking-wider">
           Chi định cho
         </span>
         <div className="relative">
@@ -92,7 +93,7 @@ export function LeadsBulkEditSidebar({
                 onAssigneeChange(assignee);
               } else if (selectedCount === 0) {
                 alert(
-                  "Vui lòng chọn ít nhất 1 khách hàng tiềm năng để thực hiện gán người chịu trách nhiệm!"
+                  "Vui lòng chọn ít nhất 1 khách hàng tiềm năng để thực hiện gán người chịu trách nhiệm!",
                 );
               }
             }}

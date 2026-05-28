@@ -37,15 +37,18 @@ export function DoubleCalendarPicker({
   // Đóng mở dropdown khi click outside
   React.useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
-    
+
     if (isOpen) {
       document.addEventListener("mousedown", handleOutsideClick);
     }
-    
+
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
@@ -91,9 +94,11 @@ export function DoubleCalendarPicker({
   referenceToday.setHours(0, 0, 0, 0);
 
   // Hàm chuyển đổi filter sang khoảng ngày (start & end Date)
-  const getRangeFromFilter = (filterVal: string): { start: Date; end: Date } | null => {
+  const getRangeFromFilter = (
+    filterVal: string,
+  ): { start: Date; end: Date } | null => {
     const today = new Date(referenceToday);
-    
+
     if (filterVal === "Hôm nay") {
       return { start: today, end: today };
     }
@@ -128,27 +133,39 @@ export function DoubleCalendarPicker({
       const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
       return { start, end };
     }
-    
+
     // Nếu filterVal là khoảng ngày dạng "DD/MM/YYYY - DD/MM/YYYY"
     if (filterVal.includes(" - ")) {
       const parts = filterVal.split(" - ");
       const pStart = parts[0].split("/");
       const pEnd = parts[1].split("/");
       return {
-        start: new Date(parseInt(pStart[2]), parseInt(pStart[1]) - 1, parseInt(pStart[0])),
-        end: new Date(parseInt(pEnd[2]), parseInt(pEnd[1]) - 1, parseInt(pEnd[0]))
+        start: new Date(
+          parseInt(pStart[2]),
+          parseInt(pStart[1]) - 1,
+          parseInt(pStart[0]),
+        ),
+        end: new Date(
+          parseInt(pEnd[2]),
+          parseInt(pEnd[1]) - 1,
+          parseInt(pEnd[0]),
+        ),
       };
     }
-    
+
     // Nếu filterVal là một ngày cụ thể (ví dụ: "28/05/2026")
     if (filterVal.includes("/")) {
       const parts = filterVal.split("/");
       if (parts.length === 3) {
-        const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        const d = new Date(
+          parseInt(parts[2]),
+          parseInt(parts[1]) - 1,
+          parseInt(parts[0]),
+        );
         return { start: d, end: d };
       }
     }
-    
+
     return null;
   };
 
@@ -157,33 +174,38 @@ export function DoubleCalendarPicker({
   // Nhãn hiển thị khoảng ngày thân thiện ở footer
   const getRangeLabel = (range: { start: Date; end: Date } | null) => {
     if (!range) return "";
-    
+
     const formatSingle = (date: Date) => {
       return `${date.getDate()} Tháng ${date.getMonth() + 1}, ${date.getFullYear()}`;
     };
-    
+
     if (range.start.getTime() === range.end.getTime()) {
       return formatSingle(range.start);
     }
-    
+
     return `${formatSingle(range.start)} - ${formatSingle(range.end)}`;
   };
 
   // Xác định trạng thái của từng ngày trên lịch để tô màu dải băng
-  const getDayStatus = (d: number, m: number, y: number, range: { start: Date; end: Date } | null) => {
+  const getDayStatus = (
+    d: number,
+    m: number,
+    y: number,
+    range: { start: Date; end: Date } | null,
+  ) => {
     if (!range) return { isStart: false, isEnd: false, isWithin: false };
-    
+
     const current = new Date(y, m, d);
     current.setHours(0, 0, 0, 0);
-    
+
     const startTime = range.start.getTime();
     const endTime = range.end.getTime();
     const currentTime = current.getTime();
-    
+
     const isStart = currentTime === startTime;
     const isEnd = currentTime === endTime;
     const isWithin = currentTime > startTime && currentTime < endTime;
-    
+
     return { isStart, isEnd, isWithin };
   };
 
@@ -193,10 +215,18 @@ export function DoubleCalendarPicker({
     if (tempDateFilter.includes("/") && !tempDateFilter.includes(" - ")) {
       const partsStart = tempDateFilter.split("/");
       const partsNew = dayStr.split("/");
-      
-      const dateStart = new Date(parseInt(partsStart[2]), parseInt(partsStart[1]) - 1, parseInt(partsStart[0]));
-      const dateNew = new Date(parseInt(partsNew[2]), parseInt(partsNew[1]) - 1, parseInt(partsNew[0]));
-      
+
+      const dateStart = new Date(
+        parseInt(partsStart[2]),
+        parseInt(partsStart[1]) - 1,
+        parseInt(partsStart[0]),
+      );
+      const dateNew = new Date(
+        parseInt(partsNew[2]),
+        parseInt(partsNew[1]) - 1,
+        parseInt(partsNew[0]),
+      );
+
       if (dateNew >= dateStart) {
         // Thiết lập khoảng ngày hoàn chỉnh
         setTempDateFilter(`${tempDateFilter} - ${dayStr}`);
@@ -213,7 +243,14 @@ export function DoubleCalendarPicker({
   // Hàm kiểm định preset nào đang active
   const isPresetActive = (presetValue: string) => {
     if (presetValue === "Tùy chỉnh") {
-      const standardPresets = ["Hôm nay", "Hôm qua", "7 ngày qua", "14 ngày qua", "30 ngày qua", "Tháng này"];
+      const standardPresets = [
+        "Hôm nay",
+        "Hôm qua",
+        "7 ngày qua",
+        "14 ngày qua",
+        "30 ngày qua",
+        "Tháng này",
+      ];
       return !standardPresets.includes(tempDateFilter);
     }
     return tempDateFilter === presetValue;
@@ -233,10 +270,15 @@ export function DoubleCalendarPicker({
           <div key={`empty-${m}-${i}`} className="h-7 w-7" />
         ))}
         {dayNumbers.map((dayNum) => {
-          const { isStart, isEnd, isWithin } = getDayStatus(dayNum, m, y, currentRange);
-          
+          const { isStart, isEnd, isWithin } = getDayStatus(
+            dayNum,
+            m,
+            y,
+            currentRange,
+          );
+
           const formattedDate = `${dayNum < 10 ? "0" + dayNum : dayNum}/${m + 1 < 10 ? "0" + (m + 1) : m + 1}/${y}`;
-          
+
           // Mốc ngày Hôm nay mẫu là 28/05/2026
           const isTodayMock = dayNum === 28 && m === 4 && y === 2026;
 
@@ -248,17 +290,22 @@ export function DoubleCalendarPicker({
               className={cn(
                 "h-7 w-7 mx-auto flex items-center justify-center cursor-pointer font-medium font-mono transition-all duration-200 hover:scale-105 active:scale-90",
                 // Nút bắt đầu hoặc kết thúc khoảng ngày (Xanh đậm, chữ trắng)
-                (isStart || isEnd) && 
+                (isStart || isEnd) &&
                   "bg-primary text-primary-content font-bold rounded-lg shadow-sm shadow-primary/20 scale-105 z-10",
                 // Các ngày ở giữa khoảng ngày (Xanh nhạt, dải băng liền mạch)
-                isWithin && 
+                isWithin &&
                   "bg-primary/10 text-primary font-semibold rounded-none scale-y-[1.03]",
                 // Trạng thái ngày bình thường
-                !isStart && !isEnd && !isWithin && 
+                !isStart &&
+                  !isEnd &&
+                  !isWithin &&
                   "text-base-content/80 hover:bg-base-200 rounded-full",
                 // Highlight chữ màu xanh dương cho ngày hôm nay 28/05/2026 khi không được chọn trong khoảng
-                isTodayMock && !isStart && !isEnd && !isWithin && 
-                  "text-primary font-bold hover:bg-primary/10"
+                isTodayMock &&
+                  !isStart &&
+                  !isEnd &&
+                  !isWithin &&
+                  "text-primary font-bold hover:bg-primary/10",
               )}
             >
               {dayNum}
@@ -270,11 +317,11 @@ export function DoubleCalendarPicker({
   };
 
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className={cn(
         "dropdown dropdown-bottom w-40 justify-self-start block",
-        isOpen && "dropdown-open"
+        isOpen && "dropdown-open",
       )}
     >
       {/* Trigger Button */}
@@ -296,14 +343,16 @@ export function DoubleCalendarPicker({
             {selectedDate === "all" ? "Chọn ngày" : selectedDate}
           </span>
         </div>
-        <ChevronDown size={12} className="opacity-60 shrink-0 transition-transform duration-300" style={{ transform: isOpen ? 'rotate(180deg)' : 'none' }} />
+        <ChevronDown
+          size={12}
+          className="opacity-60 shrink-0 transition-transform duration-300"
+          style={{ transform: isOpen ? "rotate(180deg)" : "none" }}
+        />
       </div>
 
       {/* Dropdown Content */}
       {isOpen && (
-        <div
-          className="dropdown-content p-0 shadow-2xl bg-base-100 rounded-2xl border border-base-content/5 mt-1.5 flex flex-row overflow-hidden z-150 w-[660px] max-w-[95vw] select-none text-left animate-fade-in"
-        >
+        <div className="dropdown-content p-0 shadow-2xl bg-base-100 rounded-2xl border border-base-content/5 mt-1.5 flex flex-row overflow-hidden z-150 w-[660px] max-w-[95vw] select-none text-left animate-fade-in">
           {/* Cột trái: Presets chọn nhanh */}
           <div className="w-[180px] shrink-0 border-r border-base-content/5 p-5 flex flex-col gap-3.5 bg-base-200/20 dark:bg-base-300/10">
             {datePresets.map((preset) => {
@@ -326,7 +375,7 @@ export function DoubleCalendarPicker({
                       "w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all duration-200 active:scale-90",
                       isActive
                         ? "border-primary bg-base-100"
-                        : "border-base-content/20 bg-base-100 group-hover:border-base-content/40"
+                        : "border-base-content/20 bg-base-100 group-hover:border-base-content/40",
                     )}
                   >
                     {isActive && (
@@ -338,7 +387,7 @@ export function DoubleCalendarPicker({
                       "text-xs font-semibold transition-colors duration-200",
                       isActive
                         ? "text-primary font-bold"
-                        : "text-base-content/70 group-hover:text-base-content"
+                        : "text-base-content/70 group-hover:text-base-content",
                     )}
                   >
                     {preset.label}
@@ -358,7 +407,10 @@ export function DoubleCalendarPicker({
                 onClick={handlePrevMonth}
                 className="p-1.5 hover:bg-base-200 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
               >
-                <ChevronLeft size={16} className="text-base-content/50 hover:text-base-content" />
+                <ChevronLeft
+                  size={16}
+                  className="text-base-content/50 hover:text-base-content"
+                />
               </button>
 
               {/* Nhãn 2 tháng căn giữa tương ứng trên 2 lịch */}
@@ -373,7 +425,10 @@ export function DoubleCalendarPicker({
                 onClick={handleNextMonth}
                 className="p-1.5 hover:bg-base-200 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
               >
-                <ChevronRight size={16} className="text-base-content/50 hover:text-base-content" />
+                <ChevronRight
+                  size={16}
+                  className="text-base-content/50 hover:text-base-content"
+                />
               </button>
             </div>
 
@@ -382,9 +437,12 @@ export function DoubleCalendarPicker({
               {/* Lịch Tháng bên trái */}
               <div className="flex flex-col gap-2">
                 {/* Thứ trong tuần */}
-                <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-base-content/40 uppercase tracking-widest font-mono pb-1.5 border-b border-base-content/5">
+                <div className="grid grid-cols-7 gap-1 text-center text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono pb-1.5 border-b border-base-content/5">
                   {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((d) => (
-                    <div key={d} className="h-6 flex items-center justify-center">
+                    <div
+                      key={d}
+                      className="h-6 flex items-center justify-center"
+                    >
                       {d}
                     </div>
                   ))}
@@ -398,9 +456,12 @@ export function DoubleCalendarPicker({
               {/* Lịch Tháng bên phải */}
               <div className="flex flex-col gap-2">
                 {/* Thứ trong tuần */}
-                <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-base-content/40 uppercase tracking-widest font-mono pb-1.5 border-b border-base-content/5">
+                <div className="grid grid-cols-7 gap-1 text-center text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono pb-1.5 border-b border-base-content/5">
                   {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((d) => (
-                    <div key={d} className="h-6 flex items-center justify-center">
+                    <div
+                      key={d}
+                      className="h-6 flex items-center justify-center"
+                    >
                       {d}
                     </div>
                   ))}
@@ -420,7 +481,7 @@ export function DoubleCalendarPicker({
                     {getRangeLabel(currentRange)}
                   </span>
                 )}
-                <span className="text-[10px] font-semibold text-base-content/40 leading-none font-mono">
+                <span className="text-2xs font-semibold text-base-content/40 leading-none font-mono">
                   Ngày hiển thị theo Giờ Jakarta
                 </span>
               </div>

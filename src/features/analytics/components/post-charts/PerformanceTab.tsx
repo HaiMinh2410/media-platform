@@ -151,7 +151,7 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
                   if (active && payload && payload.length) {
                     return (
                       <div className="bg-base-300/95 backdrop-blur-xl border border-base-content/10 p-3 rounded-xl shadow-2xl space-y-1.5 min-w-[150px]">
-                        <div className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider mb-1 font-mono">
+                        <div className="text-2xs text-base-content/40 font-bold uppercase tracking-wider mb-1 font-mono">
                           {label}
                         </div>
                         {payload.map((item: any, i: number) => (
@@ -261,7 +261,7 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
                   className="border-t border-base-content/5 p-3 flex items-end justify-between"
                 >
                   <div>
-                    <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-wide">
+                    <span className="text-2xs font-bold text-base-content/40 uppercase tracking-wide">
                       {m.metric}
                     </span>
                     <div className="flex items-baseline gap-2 mt-0.5">
@@ -277,9 +277,7 @@ export function PerformanceTab({ data }: PerformanceTabProps) {
                   <div
                     className={cn(
                       "flex items-center gap-0.5 text-sm font-bold",
-                      isPositive
-                        ? "text-success/85"
-                        : "text-error/85",
+                      isPositive ? "text-success/85" : "text-error/85",
                     )}
                   >
                     {isPositive ? (

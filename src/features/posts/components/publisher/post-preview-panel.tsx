@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Globe, 
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Globe,
   MoreHorizontal,
   Play,
   ThumbsUp,
@@ -10,101 +10,122 @@ import {
   Share2,
   Heart,
   Send,
-  Bookmark
-} from 'lucide-react';
-import { cn } from '@shared/lib/utils';
-import { PlatformAccount } from '@features/settings';
+  Bookmark,
+} from "lucide-react";
+import { cn } from "@shared/lib/utils";
+import { PlatformAccount } from "@features/settings";
 
 type MediaFile = {
   id: string;
   url: string;
-  type: 'image' | 'video';
-  status: 'uploading' | 'transcoding' | 'done' | 'error' | 'transcode_error';
+  type: "image" | "video";
+  status: "uploading" | "transcoding" | "done" | "error" | "transcode_error";
   progress?: number;
 };
 
 type PostPreviewPanelProps = {
   content: string;
   mediaFiles: MediaFile[];
-  activePlatforms: ('facebook' | 'instagram')[];
+  activePlatforms: ("facebook" | "instagram")[];
   accounts: PlatformAccount[];
 };
 
-export function PostPreviewPanel({ content, mediaFiles, activePlatforms, accounts }: PostPreviewPanelProps) {
-  const [activePlatform, setActivePlatform] = useState<'facebook' | 'instagram'>(
-    activePlatforms.includes('facebook') ? 'facebook' : 'instagram'
-  );
+export function PostPreviewPanel({
+  content,
+  mediaFiles,
+  activePlatforms,
+  accounts,
+}: PostPreviewPanelProps) {
+  const [activePlatform, setActivePlatform] = useState<
+    "facebook" | "instagram"
+  >(activePlatforms.includes("facebook") ? "facebook" : "instagram");
 
   const [activeAccountId, setActiveAccountId] = useState<string | null>(null);
   const prevAccountsRef = useRef<string[]>([]);
 
-  const fbAccounts = accounts.filter(a => a.platform.toLowerCase() === 'facebook');
-  const igAccounts = accounts.filter(a => a.platform.toLowerCase() === 'instagram');
+  const fbAccounts = accounts.filter(
+    (a) => a.platform.toLowerCase() === "facebook",
+  );
+  const igAccounts = accounts.filter(
+    (a) => a.platform.toLowerCase() === "instagram",
+  );
 
-  const currentAccounts = activePlatform === 'facebook' ? fbAccounts : igAccounts;
+  const currentAccounts =
+    activePlatform === "facebook" ? fbAccounts : igAccounts;
 
   // Sync behavior: auto-activate newly added account
   useEffect(() => {
-    const currentIds = accounts.map(a => a.id);
-    const addedId = currentIds.find(id => !prevAccountsRef.current.includes(id));
-    
+    const currentIds = accounts.map((a) => a.id);
+    const addedId = currentIds.find(
+      (id) => !prevAccountsRef.current.includes(id),
+    );
+
     if (addedId) {
-      const addedAccount = accounts.find(a => a.id === addedId);
+      const addedAccount = accounts.find((a) => a.id === addedId);
       if (addedAccount) {
-        setActivePlatform(addedAccount.platform.toLowerCase() as 'facebook' | 'instagram');
+        setActivePlatform(
+          addedAccount.platform.toLowerCase() as "facebook" | "instagram",
+        );
         setActiveAccountId(addedId);
       }
     }
-    
+
     prevAccountsRef.current = currentIds;
   }, [accounts]);
 
   useEffect(() => {
-    if (activePlatforms.length > 0 && !activePlatforms.includes(activePlatform)) {
+    if (
+      activePlatforms.length > 0 &&
+      !activePlatforms.includes(activePlatform)
+    ) {
       setActivePlatform(activePlatforms[0]);
     }
   }, [activePlatforms, activePlatform]);
 
   useEffect(() => {
-    if (currentAccounts.length > 0 && (!activeAccountId || !currentAccounts.find(a => a.id === activeAccountId))) {
+    if (
+      currentAccounts.length > 0 &&
+      (!activeAccountId ||
+        !currentAccounts.find((a) => a.id === activeAccountId))
+    ) {
       setActiveAccountId(currentAccounts[0].id);
     }
   }, [currentAccounts, activeAccountId]);
 
-  const activeAccount = currentAccounts.find(a => a.id === activeAccountId);
-  const doneMedia = mediaFiles.filter(f => f.status === 'done');
+  const activeAccount = currentAccounts.find((a) => a.id === activeAccountId);
+  const doneMedia = mediaFiles.filter((f) => f.status === "done");
 
   return (
     <div className="flex flex-col gap-5 w-full">
       {/* Level 1: Platform Tabs (Segmented Control) */}
       <div className="flex items-center bg-base-200/50 border border-base-content/10 rounded-xl p-1 h-[42px]">
         <button
-          onClick={() => setActivePlatform('facebook')}
+          onClick={() => setActivePlatform("facebook")}
           className={cn(
             "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all cursor-pointer",
-            activePlatform === 'facebook' 
-              ? "bg-base-100 text-primary shadow-xs" 
-              : "text-base-content/50 hover:text-base-content hover:bg-base-200/40"
+            activePlatform === "facebook"
+              ? "bg-base-100 text-primary shadow-xs"
+              : "text-base-content/50 hover:text-base-content hover:bg-base-200/40",
           )}
         >
           <div className="w-2 h-2 rounded-full bg-facebook" />
           Facebook
-          <span className="bg-facebook/10 text-facebook text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-mono">
+          <span className="bg-facebook/10 text-facebook text-2xs px-1.5 py-0.5 rounded-full ml-1 font-mono">
             {fbAccounts.length}
           </span>
         </button>
         <button
-          onClick={() => setActivePlatform('instagram')}
+          onClick={() => setActivePlatform("instagram")}
           className={cn(
             "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all cursor-pointer",
-            activePlatform === 'instagram' 
-              ? "bg-base-100 text-pink-600 shadow-xs" 
-              : "text-base-content/50 hover:text-base-content hover:bg-base-200/40"
+            activePlatform === "instagram"
+              ? "bg-base-100 text-pink-600 shadow-xs"
+              : "text-base-content/50 hover:text-base-content hover:bg-base-200/40",
           )}
         >
           <div className="w-2 h-2 rounded-full bg-pink-600" />
           Instagram
-          <span className="bg-pink-600/10 text-pink-600 text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-mono">
+          <span className="bg-pink-600/10 text-pink-600 text-2xs px-1.5 py-0.5 rounded-full ml-1 font-mono">
             {igAccounts.length}
           </span>
         </button>
@@ -115,11 +136,16 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
         {currentAccounts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 w-full opacity-40">
             <span className="text-2xl mb-1">👆</span>
-            <span className="text-[12px] font-medium text-base-content">Chưa có tài khoản {activePlatform === 'facebook' ? 'Facebook' : 'Instagram'}</span>
-            <span className="text-[10px] text-base-content/40">Vui lòng chọn tài khoản ở cột bên trái</span>
+            <span className="text-[12px] font-medium text-base-content">
+              Chưa có tài khoản{" "}
+              {activePlatform === "facebook" ? "Facebook" : "Instagram"}
+            </span>
+            <span className="text-2xs text-base-content/40">
+              Vui lòng chọn tài khoản ở cột bên trái
+            </span>
           </div>
         ) : (
-          currentAccounts.map(acc => {
+          currentAccounts.map((acc) => {
             const isActive = activeAccountId === acc.id;
             return (
               <button
@@ -127,16 +153,22 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
                 onClick={() => setActiveAccountId(acc.id)}
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all border shrink-0 cursor-pointer",
-                  isActive 
-                    ? "bg-primary/10 border-primary text-primary" 
-                    : "bg-transparent border-base-content/10 text-base-content/60 hover:border-primary/50 hover:text-primary"
+                  isActive
+                    ? "bg-primary/10 border-primary text-primary"
+                    : "bg-transparent border-base-content/10 text-base-content/60 hover:border-primary/50 hover:text-primary",
                 )}
               >
                 <div className="w-4 h-4 rounded-full overflow-hidden flex items-center justify-center bg-base-300 shrink-0">
                   {acc.avatar_url ? (
-                    <img src={acc.avatar_url} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={acc.avatar_url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    <span className="text-[9px] text-base-content font-bold">{acc.name.charAt(0)}</span>
+                    <span className="text-3xs text-base-content font-bold">
+                      {acc.name.charAt(0)}
+                    </span>
                   )}
                 </div>
                 {acc.name}
@@ -149,10 +181,18 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
       {/* Post Mock */}
       {currentAccounts.length > 0 && activeAccount ? (
         <div className="bg-base-100 border border-base-content/10 rounded-2xl overflow-hidden shadow-2xl">
-          {activePlatform === 'facebook' ? (
-            <FacebookMock account={activeAccount} content={content} media={doneMedia} />
+          {activePlatform === "facebook" ? (
+            <FacebookMock
+              account={activeAccount}
+              content={content}
+              media={doneMedia}
+            />
           ) : (
-            <InstagramMock account={activeAccount} content={content} media={doneMedia} />
+            <InstagramMock
+              account={activeAccount}
+              content={content}
+              media={doneMedia}
+            />
           )}
         </div>
       ) : null}
@@ -160,17 +200,34 @@ export function PostPreviewPanel({ content, mediaFiles, activePlatforms, account
   );
 }
 
-function FacebookMock({ account, content, media }: { account: PlatformAccount; content: string; media: MediaFile[] }) {
+function FacebookMock({
+  account,
+  content,
+  media,
+}: {
+  account: PlatformAccount;
+  content: string;
+  media: MediaFile[];
+}) {
   return (
     <div className="bg-white text-[#1c1e21]">
       <div className="p-3 pb-2">
         {/* Header */}
         <div className="flex items-center gap-2 mb-3">
           <div className="w-10 h-10 rounded-full bg-facebook flex items-center justify-center text-white font-bold text-[18px] overflow-hidden shrink-0">
-            {account.avatar_url ? <img src={account.avatar_url} className="w-full h-full object-cover" /> : account.name.charAt(0).toUpperCase()}
+            {account.avatar_url ? (
+              <img
+                src={account.avatar_url}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              account.name.charAt(0).toUpperCase()
+            )}
           </div>
           <div className="flex flex-col">
-            <div className="text-[14px] font-bold leading-tight">{account.name}</div>
+            <div className="text-[14px] font-bold leading-tight">
+              {account.name}
+            </div>
             <div className="text-[11px] text-[#65676B] flex items-center gap-1 mt-0.5">
               Vừa xong <span className="text-[8px]">·</span> <Globe size={11} />
             </div>
@@ -180,24 +237,33 @@ function FacebookMock({ account, content, media }: { account: PlatformAccount; c
 
         {/* Content */}
         <div className="text-[13px] leading-[1.65] mb-3 whitespace-pre-wrap wrap-break-word">
-          {content || <span className="text-[#65676B] italic">Nội dung bài viết...</span>}
+          {content || (
+            <span className="text-[#65676B] italic">Nội dung bài viết...</span>
+          )}
         </div>
       </div>
 
       {/* Media Placeholder */}
       <div className="w-full aspect-4/3 bg-[#f0f2f5] flex flex-col items-center justify-center border-y border-[#e4e6eb] relative overflow-hidden">
         {media.length > 0 ? (
-           media[0].type === 'video' ? (
-             <video src={media[0].url} className="w-full h-full object-contain" />
-           ) : (
-             <img src={media[0].url} className="w-full h-full object-cover" />
-           )
+          media[0].type === "video" ? (
+            <video
+              src={media[0].url}
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <img src={media[0].url} className="w-full h-full object-cover" />
+          )
         ) : (
-           <div className="flex flex-col items-center text-[#65676B]">
-             <span className="text-[24px] mb-1">🖼️</span>
-             <span className="text-[12px] font-bold">{media.length > 0 ? `${media.length} ảnh` : 'Media Area (4:3)'}</span>
-             {media.length === 0 && <span className="text-[11px] opacity-60">Chưa có ảnh/video</span>}
-           </div>
+          <div className="flex flex-col items-center text-[#65676B]">
+            <span className="text-[24px] mb-1">🖼️</span>
+            <span className="text-[12px] font-bold">
+              {media.length > 0 ? `${media.length} ảnh` : "Media Area (4:3)"}
+            </span>
+            {media.length === 0 && (
+              <span className="text-[11px] opacity-60">Chưa có ảnh/video</span>
+            )}
+          </div>
         )}
       </div>
 
@@ -219,17 +285,37 @@ function FacebookMock({ account, content, media }: { account: PlatformAccount; c
   );
 }
 
-function InstagramMock({ account, content, media }: { account: PlatformAccount; content: string; media: MediaFile[] }) {
+function InstagramMock({
+  account,
+  content,
+  media,
+}: {
+  account: PlatformAccount;
+  content: string;
+  media: MediaFile[];
+}) {
   const renderCaption = () => {
-    if (!content) return <span className="text-[#8e8e8e] italic">Nhập caption...</span>;
-    
+    if (!content)
+      return <span className="text-[#8e8e8e] italic">Nhập caption...</span>;
+
     const words = content.split(/(\s+)/);
     return words.map((word, idx) => {
-      if (word.startsWith('#') || word.startsWith('@')) {
-        return <span key={idx} className="text-[#6aadff]">{word}</span>;
+      if (word.startsWith("#") || word.startsWith("@")) {
+        return (
+          <span key={idx} className="text-[#6aadff]">
+            {word}
+          </span>
+        );
       }
       if (/https?:\/\/[^\s]+/.test(word)) {
-        return <span key={idx} className="text-[#f5a623] inline-flex items-center gap-0.5">⚠️ {word}</span>;
+        return (
+          <span
+            key={idx}
+            className="text-[#f5a623] inline-flex items-center gap-0.5"
+          >
+            ⚠️ {word}
+          </span>
+        );
       }
       return <span key={idx}>{word}</span>;
     });
@@ -242,10 +328,19 @@ function InstagramMock({ account, content, media }: { account: PlatformAccount; 
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-full bg-linear-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-bold p-[1.5px]">
             <div className="w-full h-full rounded-full border-2 border-white overflow-hidden flex items-center justify-center bg-[#252836]">
-              {account.avatar_url ? <img src={account.avatar_url} className="w-full h-full object-cover" /> : account.name.charAt(0).toUpperCase()}
+              {account.avatar_url ? (
+                <img
+                  src={account.avatar_url}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                account.name.charAt(0).toUpperCase()
+              )}
             </div>
           </div>
-          <div className="text-[13px] font-bold">{account.username || account.name.replace(/\s/g, '').toLowerCase()}</div>
+          <div className="text-[13px] font-bold">
+            {account.username || account.name.replace(/\s/g, "").toLowerCase()}
+          </div>
         </div>
         <MoreHorizontal size={20} />
       </div>
@@ -253,15 +348,15 @@ function InstagramMock({ account, content, media }: { account: PlatformAccount; 
       {/* Media Area (1:1) */}
       <div className="w-full aspect-square bg-[#f8f8f8] flex items-center justify-center border-y border-[#efefef] relative overflow-hidden">
         {media.length > 0 ? (
-          media[0].type === 'video' ? (
+          media[0].type === "video" ? (
             <video src={media[0].url} className="w-full h-full object-cover" />
           ) : (
             <img src={media[0].url} className="w-full h-full object-cover" />
           )
         ) : (
           <div className="flex flex-col items-center text-[#8e8e8e]">
-             <span className="text-[24px] mb-1">📸</span>
-             <span className="text-[12px] font-bold">Square Media (1:1)</span>
+            <span className="text-[24px] mb-1">📸</span>
+            <span className="text-[12px] font-bold">Square Media (1:1)</span>
           </div>
         )}
       </div>
@@ -270,7 +365,11 @@ function InstagramMock({ account, content, media }: { account: PlatformAccount; 
       <div className="p-3 pb-2 flex justify-between items-center">
         <div className="flex gap-4">
           <Heart size={24} strokeWidth={1.5} />
-          <MessageCircle size={24} strokeWidth={1.5} style={{ transform: 'scaleX(-1)' }} />
+          <MessageCircle
+            size={24}
+            strokeWidth={1.5}
+            style={{ transform: "scaleX(-1)" }}
+          />
           <Send size={24} strokeWidth={1.5} />
         </div>
         <Bookmark size={24} strokeWidth={1.5} />
@@ -279,7 +378,9 @@ function InstagramMock({ account, content, media }: { account: PlatformAccount; 
       {/* Caption Section */}
       <div className="px-3 text-[13px] leading-[1.4]">
         <div className="word-break whitespace-pre-wrap">
-          <span className="font-bold mr-1.5">{account.username || account.name.replace(/\s/g, '').toLowerCase()}</span>
+          <span className="font-bold mr-1.5">
+            {account.username || account.name.replace(/\s/g, "").toLowerCase()}
+          </span>
           {renderCaption()}
         </div>
       </div>
