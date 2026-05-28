@@ -4,6 +4,8 @@ export const LEAD_STAGES: LeadStage[] = [
   { id: 'new', label: 'Tiếp nhận', count: 3, icon: '🔵', color: 'info' },
   { id: 'qualified', label: 'Đủ tiêu chuẩn', count: 0, icon: '🟢', color: 'success' },
   { id: 'converted', label: 'Đã chuyển đổi', count: 0, icon: '🟣', color: 'primary' },
+  { id: 'unqualified', label: 'Không đủ tiêu chuẩn', count: 0, icon: '🔴', color: 'error' },
+  { id: 'lost', label: 'Bị mất đi', count: 0, icon: '⚫', color: 'neutral' },
 ];
 
 export const MOCK_LEADS: Lead[] = [
@@ -14,7 +16,8 @@ export const MOCK_LEADS: Lead[] = [
     stage: 'new', 
     source: 'Tự nhiên', 
     platform: 'messenger',
-    date: '11:35'
+    date: '11:35',
+    unread: true
   },
   { 
     id: '2', 
@@ -23,7 +26,8 @@ export const MOCK_LEADS: Lead[] = [
     stage: 'new', 
     source: 'Tự nhiên', 
     platform: 'messenger',
-    date: '11:35'
+    date: '11:35',
+    unread: false
   },
   { 
     id: '3', 
@@ -32,6 +36,7 @@ export const MOCK_LEADS: Lead[] = [
     stage: 'new', 
     source: 'Tự nhiên', 
     platform: 'messenger',
-    date: '11:35'
+    date: '11:35',
+    unread: true
   },
 ];

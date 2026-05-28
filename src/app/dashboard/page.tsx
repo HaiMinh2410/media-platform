@@ -121,7 +121,7 @@ async function DashboardContent({ workspaceId, workspaceName, activeTab }: Dashb
   return (
     <DashboardTabsLayout activeTab={activeTab} workspaceName={workspaceName}>
       <div className="animate-fade-in w-full">
-        <LeadsCenterTab />
+        <LeadsCenterTab workspaceId={workspaceId} />
       </div>
     </DashboardTabsLayout>
   );
