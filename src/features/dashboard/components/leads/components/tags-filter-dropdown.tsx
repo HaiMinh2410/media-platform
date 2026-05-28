@@ -9,6 +9,7 @@ interface TagsFilterDropdownProps {
   onFilterChange: (key: string, value: string) => void;
   handleTagClick: (name: string) => void;
   parseTag: (tag: string) => { name: string; color: string };
+  triggerClassName?: string;
 }
 
 export function TagsFilterDropdown({
@@ -18,17 +19,14 @@ export function TagsFilterDropdown({
   onFilterChange,
   handleTagClick,
   parseTag,
+  triggerClassName,
 }: TagsFilterDropdownProps) {
   return (
-    <div className="dropdown dropdown-bottom w-full block">
+    <div className="dropdown dropdown-bottom dropdown-end">
       <div
         tabIndex={0}
         role="button"
-        className={cn(
-          "w-full px-3 py-1 bg-base-100 hover:bg-base-200 border border-base-content/10 text-base-content/85 rounded-full text-xs font-semibold transition-all h-8 flex items-center justify-between cursor-pointer shadow-xs hover:-translate-y-0.5 duration-200 active:scale-98 select-none",
-          selectedTags.length > 0 &&
-            "border-primary/30 text-primary bg-primary/5 font-bold shadow-xs shadow-primary/5",
-        )}
+        className={triggerClassName || "btn btn-soft btn-sm hover:bg-base-100"}
       >
         <span className="truncate mr-1 text-left">
           {tagButtonText}

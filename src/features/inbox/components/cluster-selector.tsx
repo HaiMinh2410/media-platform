@@ -34,7 +34,7 @@ export function ClusterSelector({
   selectedGroupId,
   onChangeGroup,
   triggerClassName,
-  dropdownClassName = "bg-base-100 border border-foreground/10 shadow-2xl glass-shadow !p-2",
+  dropdownClassName="bg-soft border border-foreground/10 shadow-2xl glass-shadow !p-2 rounded-lg",
   menuMinWidth = "w-[280px]"
 }: ClusterSelectorProps) {
   const { accountGroups, setAccountGroups } = useInboxStore();
@@ -89,7 +89,7 @@ export function ClusterSelector({
       id: 'all_clusters',
       label: 'Tất cả cụm',
       icon: (
-        <div className="w-6 h-6 flex items-center justify-center bg-background-tertiary rounded-md text-foreground-tertiary">
+        <div className="w-6 h-6 flex items-center justify-center text-base">
           <Users size={14} />
         </div>
       ),
@@ -102,7 +102,7 @@ export function ClusterSelector({
   ], [accountGroups]);
 
   return (
-    <div ref={dropdownRef} className="relative w-full">
+    <div ref={dropdownRef} className="relative">
       <RangeSelector
         value={selectedGroupId || 'all_clusters'}
         onChange={(val) => {
@@ -124,67 +124,65 @@ export function ClusterSelector({
           <span>{isSelectionMode ? `Đã chọn ${selectedIdsForAction.length}` : 'Chọn cụm tài khoản'}</span>
           
           {!isSelectionMode ? (
-            <div className="flex items-center gap-2 relative">
+            <RangeSelector
+              isOpen={showManagementMenu}
+              onOpenChange={setShowManagementMenu}
+              menuAlign="right"
+              dropdownClassName="rounded-lg"
+              customTrigger={
+                <button 
+                  type="button"
+                  className="btn btn-soft btn-sm btn-circle"
+                >
+                  <MoreHorizontal size={14} />
+                </button>
+              }
+            >
               <button 
                 type="button"
-                className="bg-background-tertiary border border-foreground/10 text-foreground-secondary rounded-md w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-background-secondary hover:text-foreground hover:border-foreground/20 transition-all"
+                className="w-full px-2.5 py-2 flex items-center gap-2.5 border-none text-base-content/80 text-sm rounded-lg hover:bg-foreground/5 hover:text-base-content transition-all"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowManagementMenu(!showManagementMenu);
+                  setShowCreateModal(true);
+                  setShowManagementMenu(false);
+                  setIsOpen(false);
                 }}
               >
-                <MoreHorizontal size={14} />
+                <Plus size={16} /> <span className="whitespace-nowrap">Add Cluster</span>
               </button>
-
-              {showManagementMenu && (
-                <div className="absolute top-full right-0 mt-2 bg-base-200 border border-foreground/10 rounded-lg shadow-2xl overflow-hidden z-101 p-2">
-                  <button 
-                    type="button"
-                    className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-md hover:bg-foreground/5 hover:text-foreground transition-all"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowCreateModal(true);
-                      setShowManagementMenu(false);
-                      setIsOpen(false);
-                    }}
-                  >
-                    <Plus size={14} /> <span className="whitespace-nowrap">Add Cluster</span>
-                  </button>
-                  <button 
-                    type="button"
-                    className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-md hover:bg-foreground/5 hover:text-foreground transition-all"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsSelectionMode(true);
-                      setShowManagementMenu(false);
-                    }}
-                  >
-                    <Check size={14} /> <span className="whitespace-nowrap">Cluster management</span>
-                  </button>
-                  <button 
-                    type="button"
-                    className="w-full p-[10px_12px] flex items-center gap-2.5 bg-transparent border-none text-foreground-secondary text-sm font-medium cursor-pointer rounded-md hover:bg-foreground/5 hover:text-foreground transition-all"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm('Bạn có chắc chắn muốn khôi phục về các cụm tài khoản mặc định? Toàn bộ các cụm hiện tại sẽ bị xóa.')) {
-                        resetAccountGroupsAction(workspaceId).then((res) => {
-                          if (res.success) {
-                            fetchCounts();
-                            onChangeGroup(null);
-                          } else {
-                            alert('Khôi phục thất bại: ' + res.error);
-                          }
-                        });
-                        setShowManagementMenu(false);
-                        setIsOpen(false);
+              <button 
+                type="button"
+                className="w-full px-2.5 py-2 flex items-center gap-2.5 border-none text-base-content/80 text-sm rounded-lg hover:bg-foreground/5 hover:text-base-content transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsSelectionMode(true);
+                  setShowManagementMenu(false);
+                }}
+              >
+                <Check size={14} /> <span className="whitespace-nowrap">Cluster management</span>
+              </button>
+              <button 
+                type="button"
+                className="w-full px-2.5 py-2 flex items-center gap-2.5 border-none text-base-content/80 text-sm rounded-lg hover:bg-foreground/5 hover:text-base-content transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm('Bạn có chắc chắn muốn khôi phục về các cụm tài khoản mặc định? Toàn bộ các cụm hiện tại sẽ bị xóa.')) {
+                    resetAccountGroupsAction(workspaceId).then((res) => {
+                      if (res.success) {
+                        fetchCounts();
+                        onChangeGroup(null);
+                      } else {
+                        alert('Khôi phục thất bại: ' + res.error);
                       }
-                    }}
-                  >
-                    <RotateCcw size={14} /> <span className="whitespace-nowrap">Reset to default</span>
-                  </button>
-                </div>
-              )}
-            </div>
+                    });
+                    setShowManagementMenu(false);
+                    setIsOpen(false);
+                  }
+                }}
+              >
+                <RotateCcw size={14} /> <span className="whitespace-nowrap">Reset to default</span>
+              </button>
+            </RangeSelector>
           ) : (
             <div className="flex items-center gap-2 relative">
               <button 

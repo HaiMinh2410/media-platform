@@ -5,6 +5,7 @@ import { cn } from "@shared/lib/utils";
 interface DoubleCalendarPickerProps {
   selectedDate: string;
   onSelectDate: (date: string) => void;
+  triggerClassName?: string;
 }
 
 const datePresets = [
@@ -20,6 +21,7 @@ const datePresets = [
 export function DoubleCalendarPicker({
   selectedDate,
   onSelectDate,
+  triggerClassName,
 }: DoubleCalendarPickerProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [tempDateFilter, setTempDateFilter] = React.useState(selectedDate);
@@ -320,15 +322,15 @@ export function DoubleCalendarPicker({
     <div
       ref={containerRef}
       className={cn(
-        "dropdown dropdown-bottom w-40 justify-self-start block",
+        "dropdown dropdown-bottom dropdown-end",
         isOpen && "dropdown-open",
       )}
     >
       {/* Trigger Button */}
       <div
         role="button"
-        className={cn(
-          "w-full px-3 py-1 bg-base-100 hover:bg-base-200 border border-base-content/10 text-base-content/85 rounded-full text-xs font-semibold transition-all h-8 flex items-center justify-between cursor-pointer shadow-3xs select-none hover:-translate-y-0.5 active:scale-98 duration-200",
+        className={triggerClassName || cn(
+          "btn btn-soft btn-sm hover:bg-base-100",
           selectedDate !== "all" &&
             "border-primary text-primary bg-primary/5 font-bold shadow-3xs shadow-primary/5",
         )}
