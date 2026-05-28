@@ -9,6 +9,9 @@ interface LeadCardProps {
   stages: LeadStage[];
   onChangeStage: (leadId: string, newStageId: string) => void;
   onDeleteLead: (leadId: string) => void;
+  isBulkEditing?: boolean;
+  isSelected?: boolean;
+  onSelect?: (checked: boolean) => void;
 }
 
 // Icon Messenger chính thức cực kỳ đẹp mắt
@@ -18,7 +21,15 @@ const MessengerIcon = () => (
   </svg>
 );
 
-export function LeadCard({ lead, stages, onChangeStage, onDeleteLead }: LeadCardProps) {
+export function LeadCard({ 
+  lead, 
+  stages, 
+  onChangeStage, 
+  onDeleteLead,
+  isBulkEditing = false,
+  isSelected = false,
+  onSelect = () => {},
+}: LeadCardProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -96,11 +107,29 @@ export function LeadCard({ lead, stages, onChangeStage, onDeleteLead }: LeadCard
   return (
     <>
       <div 
-        draggable
-        onDragStart={handleDragStart}
-        className="bg-base-100 rounded-xl p-3 border border-base-200 dark:border-base-800 flex items-center justify-between cursor-grab active:cursor-grabbing transition-all duration-300 hover:shadow-xs hover:border-sky-300 dark:hover:border-sky-850 shadow-3xs group active:scale-[0.98]"
+        draggable={!isBulkEditing}
+        onDragStart={isBulkEditing ? undefined : handleDragStart}
+        onClick={isBulkEditing ? () => onSelect(!isSelected) : undefined}
+        className={cn(
+          "bg-base-100 rounded-xl p-3 border flex items-center justify-between transition-all duration-300 shadow-3xs group select-none h-16.5",
+          isBulkEditing 
+            ? "cursor-pointer hover:border-sky-300 dark:hover:border-sky-850 hover:bg-base-200/25" 
+            : "cursor-grab active:cursor-grabbing hover:shadow-xs hover:border-sky-300 dark:hover:border-sky-850 active:scale-[0.98] border-base-200 dark:border-base-800",
+          isSelected && isBulkEditing && "border-sky-400 bg-sky-50/10 dark:bg-sky-950/5 shadow-xs"
+        )}
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
+          {/* Checkbox chọn hàng loạt bên trái avatar */}
+          {isBulkEditing && (
+            <input 
+              type="checkbox" 
+              checked={isSelected}
+              onChange={(e) => onSelect(e.target.checked)}
+              onClick={(e) => e.stopPropagation()} // Tránh kích hoạt thêm onClick ở thẻ cha
+              className="checkbox checkbox-primary rounded-sm checkbox-xs border-base-300 shrink-0 cursor-pointer"
+            />
+          )}
+
           {/* Avatar có đè Messenger icon ở góc dưới bên phải */}
           <div className="relative shrink-0">
             <div className="w-10 h-10 rounded-full overflow-hidden border border-base-300 bg-linear-to-tr from-sky-100 to-indigo-100 text-sky-700 flex items-center justify-center font-bold text-sm">
@@ -135,19 +164,21 @@ export function LeadCard({ lead, stages, onChangeStage, onDeleteLead }: LeadCard
           </div>
         </div>
   
-        {/* Nút Ba chấm hiển thị dropdown option */}
-        <div className="relative shrink-0 ml-1">
-          <button 
-            ref={buttonRef}
-            onClick={toggleDropdown}
-            className={cn(
-              "btn btn-xs btn-ghost btn-square rounded-lg text-base-content/40 hover:text-base-content/80 hover:bg-base-200 cursor-pointer flex items-center justify-center",
-              isDropdownOpen && "bg-base-200 text-base-content/80"
-            )}
-          >
-            <MoreHorizontal size={14} />
-          </button>
-        </div>
+        {/* Nút Ba chấm hiển thị dropdown option (ẩn đi khi Bulk Edit) */}
+        {!isBulkEditing && (
+          <div className="relative shrink-0 ml-1">
+            <button 
+              ref={buttonRef}
+              onClick={toggleDropdown}
+              className={cn(
+                "btn btn-xs btn-ghost btn-square rounded-lg text-base-content/40 hover:text-base-content/80 hover:bg-base-200 cursor-pointer flex items-center justify-center",
+                isDropdownOpen && "bg-base-200 text-base-content/80"
+              )}
+            >
+              <MoreHorizontal size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Render Dropdown bằng React Portal để tránh lỗi Overflow Clipping và z-index từ Kanban Column */}

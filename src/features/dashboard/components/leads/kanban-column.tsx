@@ -10,9 +10,23 @@ interface KanbanColumnProps {
   stages: LeadStage[];
   onChangeStage: (leadId: string, newStageId: string) => void;
   onDeleteLead: (leadId: string) => void;
+  isBulkEditing?: boolean;
+  selectedLeadIds?: string[];
+  onSelectLead?: (leadId: string, isChecked: boolean) => void;
+  onSelectAllLeadsInStage?: (stageId: string, isSelectAll: boolean) => void;
 }
 
-export function KanbanColumn({ stage, leads, stages, onChangeStage, onDeleteLead }: KanbanColumnProps) {
+export function KanbanColumn({ 
+  stage, 
+  leads, 
+  stages, 
+  onChangeStage, 
+  onDeleteLead,
+  isBulkEditing = false,
+  selectedLeadIds = [],
+  onSelectLead = () => {},
+  onSelectAllLeadsInStage = () => {},
+}: KanbanColumnProps) {
   const [isDragOver, setIsDragOver] = React.useState(false);
 
   // Kéo đè lên cột
@@ -70,10 +84,24 @@ export function KanbanColumn({ stage, leads, stages, onChangeStage, onDeleteLead
           </span>
         </div>
         
-        {/* Nút ba chấm */}
-        <button className="btn btn-xs btn-ghost btn-square rounded-lg text-base-content/50 hover:text-base-content/80 hover:bg-base-200 cursor-pointer">
-          <MoreHorizontal size={14} />
-        </button>
+        {isBulkEditing ? (
+          leads.length > 0 && (
+            <button 
+              onClick={() => {
+                const allSelectedInStage = leads.every(l => selectedLeadIds.includes(l.id));
+                onSelectAllLeadsInStage(stage.id, !allSelectedInStage);
+              }}
+              className="text-2xs font-bold text-[#0064d2] hover:text-[#0052ad] transition-colors shrink-0 cursor-pointer select-none font-brand"
+            >
+              {leads.every(l => selectedLeadIds.includes(l.id)) ? "Bỏ chọn" : "Chọn tất cả"}
+            </button>
+          )
+        ) : (
+          /* Nút ba chấm */
+          <button className="btn btn-xs btn-ghost btn-square rounded-lg text-base-content/50 hover:text-base-content/80 hover:bg-base-200 cursor-pointer">
+            <MoreHorizontal size={14} />
+          </button>
+        )}
       </div>
  
       {/* Lead Cards List */}
@@ -86,6 +114,9 @@ export function KanbanColumn({ stage, leads, stages, onChangeStage, onDeleteLead
               stages={stages} 
               onChangeStage={onChangeStage} 
               onDeleteLead={onDeleteLead}
+              isBulkEditing={isBulkEditing}
+              isSelected={selectedLeadIds.includes(lead.id)}
+              onSelect={(checked) => onSelectLead(lead.id, checked)}
             />
           ))
         ) : (

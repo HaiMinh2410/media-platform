@@ -1,7 +1,7 @@
 'use client';
  
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, ChevronDown } from 'lucide-react';
 import { LeadsStats } from './leads/leads-stats';
 import { LeadsFilters } from './leads/leads-filters';
 import { KanbanColumn } from './leads/kanban-column';
@@ -10,6 +10,8 @@ import { LEAD_STAGES } from './leads/constants';
 import { Lead, LeadStage } from './leads/types';
 import { useInboxStore } from '../../inbox/store/inbox.store';
 import { getLeadsFromDB, updateLeadStageInDB, deleteLeadInDB } from '../actions/dashboard.actions';
+import { LeadsFunnelModal } from './leads/leads-funnel-modal';
+import { LeadsBulkEditSidebar } from './leads/leads-bulk-edit-sidebar';
 
 interface LeadsCenterTabProps {
   workspaceId?: string;
@@ -21,6 +23,8 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
   
   // Quản lý cụm tài khoản hiện tại được lọc
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [isFunnelModalOpen, setIsFunnelModalOpen] = useState(false);
+  const [isBulkEditing, setIsBulkEditing] = useState(false);
 
   // Đọc giá trị đã lưu từ localStorage sau khi mounted để tránh lỗi Hydration Mismatch
   useEffect(() => {
@@ -143,36 +147,9 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
     return matchesSubTab && matchesUnreadOnly && matchesCluster && matchesStageFilter && matchesSource && matchesCampaign && matchesForm && matchesDate;
   });
 
-  // 3. Cơ chế thêm giai đoạn tùy chỉnh (test1, test2...)
-  const handleAddStage = (name?: string) => {
-    const stageName = typeof name === 'string' 
-      ? name 
-      : prompt("Nhập tên giai đoạn tùy chỉnh mới:")?.trim();
-
-    if (!stageName) return;
-
-    // Tránh trùng tên hoặc id
-    const stageId = `custom_${stageName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
-    
-    // Thêm icon mặc định đẹp
-    const icons = ['⚙️', '🎯', '🔥', '💎', '💡'];
-    const randomIcon = icons[Math.floor(Math.random() * icons.length)];
-
-    const newStage: LeadStage = {
-      id: stageId,
-      label: stageName,
-      count: 0,
-      icon: randomIcon,
-      color: 'accent'
-    };
-
-    setStages([...stages, newStage]);
-    
-    setToast({
-      show: true,
-      message: `Đã thêm giai đoạn tùy chỉnh "${stageName}" thành công!`,
-      type: 'success'
-    });
+  // 3. Cơ chế thêm giai đoạn tùy chỉnh (mở Modal Phễu khách hàng tiềm năng)
+  const handleAddStage = () => {
+    setIsFunnelModalOpen(true);
   };
 
   // 4. Cơ chế di chuyển & Cập nhật giai đoạn
@@ -281,6 +258,17 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
     }));
   };
 
+  // Chọn nhanh / bỏ chọn toàn bộ lead của một stage trên Kanban
+  const handleSelectAllLeadsInStage = (stageId: string, isSelectAll: boolean) => {
+    const stageLeadIds = filteredLeads.filter(l => l.stage === stageId).map(l => l.id);
+    
+    if (isSelectAll) {
+      setSelectedLeadIds(prev => Array.from(new Set([...prev, ...stageLeadIds])));
+    } else {
+      setSelectedLeadIds(prev => prev.filter(id => !stageLeadIds.includes(id)));
+    }
+  };
+
   // 6. Lưu trữ & Xuất dữ liệu ra CSV thật
   const handleDownload = () => {
     if (filteredLeads.length === 0) {
@@ -322,6 +310,17 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
     });
   };
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('toggle-bulk-edit', { detail: { isBulkEditing } }));
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('toggle-bulk-edit', { detail: { isBulkEditing: false } }));
+      }
+    };
+  }, [isBulkEditing]);
+
   return (
     <div className="flex flex-col gap-5 h-full text-base-content w-full animate-fade-in relative pb-10">
       {/* Aurora glow effect */}
@@ -349,91 +348,130 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
         workspaceId={workspaceId}
         selectedGroupId={selectedGroupId}
         onChangeGroup={handleGroupChange}
+        isBulkEditing={isBulkEditing}
+        onToggleBulkEditing={() => {
+          setIsBulkEditing(!isBulkEditing);
+          setSelectedLeadIds([]); // Reset khi toggle
+        }}
       />
  
       {/* 2. Thanh đo lường hiệu suất (Bento Stats) */}
       <LeadsStats leads={leads} />
       
       {/* 3. Vùng nội dung chính */}
-      {loading ? (
-        <div className="flex-1 flex items-center justify-center min-h-[400px]">
-          <span className="loading loading-ring loading-lg text-primary"></span>
-        </div>
-      ) : viewMode === 'kanban' ? (
-        <div className="flex gap-4 overflow-x-auto pb-4 flex-1 hide-scrollbar w-full items-start min-h-[500px]">
-          {/* Render các cột Kanban động theo stages */}
-          {stages.map((stage) => {
-            // Ẩn 2 giai đoạn mặc định đặc biệt nếu người dùng không chọn hiển thị
-            if (stage.id === 'lost' && !showLost) return null;
-            if (stage.id === 'unqualified' && !showUnqualified) return null;
-
-            const stageLeads = filteredLeads.filter(l => l.stage === stage.id);
-            return (
-              <KanbanColumn 
-                key={stage.id} 
-                stage={stage} 
-                leads={stageLeads} 
-                stages={stages}
-                onChangeStage={handleChangeStage}
-                onDeleteLead={handleDeleteLead}
-              />
-            );
-          })}
-          
-          {/* Cột 4: Thêm giai đoạn tùy chỉnh */}
-          <div className="min-w-[300px] max-w-[300px] bg-base-100/40 backdrop-blur-xs border border-base-content/5 rounded-2xl p-4 flex flex-col justify-center items-center h-full min-h-[480px] shadow-xs shrink-0 text-center">
-            {/* Hình minh họa các block */}
-            <div className="relative w-28 h-28 mb-4 flex items-center justify-center bg-sky-50 dark:bg-sky-950/10 rounded-2xl border border-sky-100 dark:border-sky-900/20">
-              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Khung block 1 */}
-                <rect x="12" y="10" width="40" height="12" rx="4" fill="#E0F2FE" stroke="#38BDF8" strokeWidth="1.5" />
-                <circle cx="18" cy="16" r="2" fill="#38BDF8" />
-                <rect x="24" y="14" width="16" height="4" rx="1" fill="#38BDF8" opacity="0.5" />
-                
-                {/* Khung block 2 */}
-                <rect x="12" y="26" width="40" height="12" rx="4" fill="#0064D2" fillOpacity="0.08" stroke="#0064D2" strokeWidth="1.5" />
-                <circle cx="18" cy="32" r="2" fill="#0064D2" />
-                <rect x="24" y="30" width="16" height="4" rx="1" fill="#0064D2" opacity="0.5" />
-                
-                {/* Khung block 3 */}
-                <rect x="12" y="42" width="40" height="12" rx="4" fill="#E0F2FE" stroke="#38BDF8" strokeWidth="1.5" />
-                <circle cx="18" cy="48" r="2" fill="#38BDF8" />
-                <rect x="24" y="46" width="16" height="4" rx="1" fill="#38BDF8" opacity="0.5" />
- 
-                {/* Trỏ chuột click */}
-                <path d="M46 36 L52 48 L48 50 L42 42 L38 46 L38 34 L46 36 Z" fill="#374151" stroke="#FFFFFF" strokeWidth="1" strokeLinejoin="round" />
-              </svg>
+      <div className="flex gap-4 w-full items-start">
+        <div className="flex-1 min-w-0">
+          {loading ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <span className="loading loading-ring loading-lg text-primary"></span>
             </div>
-            
-            <h3 className="text-sm font-bold text-base-content/80 mb-2 font-brand">Thêm giai đoạn tùy chỉnh</h3>
-            <p className="text-2xs leading-relaxed max-w-[220px] text-base-content/50 mb-5 font-medium">
-              Bạn có thể tạo giai đoạn tùy chỉnh để theo dõi kết quả quan trọng trước khi chuyển đổi.
-            </p>
-            <button 
-              onClick={() => handleAddStage()}
-              className="btn btn-sm bg-[#0064D2] hover:bg-[#0052AD] text-white font-semibold rounded-lg shadow-2xs px-4 border-0 cursor-pointer transition-all active:scale-95"
-            >
-              Thêm giai đoạn tùy chỉnh
-            </button>
-          </div>
+          ) : viewMode === 'kanban' ? (
+            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar w-full items-start min-h-[500px]">
+              {/* Render các cột Kanban động theo stages */}
+              {stages.map((stage) => {
+                // Ẩn 2 giai đoạn mặc định đặc biệt nếu người dùng không chọn hiển thị
+                if (stage.id === 'lost' && !showLost) return null;
+                if (stage.id === 'unqualified' && !showUnqualified) return null;
+
+                const stageLeads = filteredLeads.filter(l => l.stage === stage.id);
+                return (
+                  <KanbanColumn 
+                    key={stage.id} 
+                    stage={stage} 
+                    leads={stageLeads} 
+                    stages={stages}
+                    onChangeStage={handleChangeStage}
+                    onDeleteLead={handleDeleteLead}
+                    isBulkEditing={isBulkEditing}
+                    selectedLeadIds={selectedLeadIds}
+                    onSelectLead={handleSelectLead}
+                    onSelectAllLeadsInStage={handleSelectAllLeadsInStage}
+                  />
+                );
+              })}
+              
+              {/* Cột 4: Thêm giai đoạn tùy chỉnh */}
+              {!isBulkEditing && (
+                <div className="min-w-[300px] max-w-[300px] bg-base-100/40 backdrop-blur-xs border border-base-content/5 rounded-2xl p-4 flex flex-col justify-center items-center h-full min-h-[480px] shadow-xs shrink-0 text-center">
+                  {/* Hình minh họa các block */}
+                  <div className="relative w-28 h-28 mb-4 flex items-center justify-center bg-sky-50 dark:bg-sky-950/10 rounded-2xl border border-sky-100 dark:border-sky-900/20">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      {/* Khung block 1 */}
+                      <rect x="12" y="10" width="40" height="12" rx="4" fill="#E0F2FE" stroke="#38BDF8" strokeWidth="1.5" />
+                      <circle cx="18" cy="16" r="2" fill="#38BDF8" />
+                      <rect x="24" y="14" width="16" height="4" rx="1" fill="#38BDF8" opacity="0.5" />
+                      
+                      {/* Khung block 2 */}
+                      <rect x="12" y="26" width="40" height="12" rx="4" fill="#0064D2" fillOpacity="0.08" stroke="#0064D2" strokeWidth="1.5" />
+                      <circle cx="18" cy="32" r="2" fill="#0064D2" />
+                      <rect x="24" y="30" width="16" height="4" rx="1" fill="#0064D2" opacity="0.5" />
+                      
+                      {/* Khung block 3 */}
+                      <rect x="12" y="42" width="40" height="12" rx="4" fill="#E0F2FE" stroke="#38BDF8" strokeWidth="1.5" />
+                      <circle cx="18" cy="48" r="2" fill="#38BDF8" />
+                      <rect x="24" y="46" width="16" height="4" rx="1" fill="#38BDF8" opacity="0.5" />
+      
+                      {/* Trỏ chuột click */}
+                      <path d="M46 36 L52 48 L48 50 L42 42 L38 46 L38 34 L46 36 Z" fill="#374151" stroke="#FFFFFF" strokeWidth="1" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  
+                  <h3 className="text-sm font-bold text-base-content/80 mb-2 font-brand">Thêm giai đoạn tùy chỉnh</h3>
+                  <p className="text-2xs leading-relaxed max-w-[220px] text-base-content/50 mb-5 font-medium">
+                    Bạn có thể tạo giai đoạn tùy chỉnh để theo dõi kết quả quan trọng trước khi chuyển đổi.
+                  </p>
+                  <button 
+                    onClick={() => handleAddStage()}
+                    className="btn btn-sm bg-[#0064D2] hover:bg-[#0052AD] text-white font-semibold rounded-lg shadow-2xs px-4 border-0 cursor-pointer transition-all active:scale-95"
+                  >
+                    Thêm giai đoạn tùy chỉnh
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Detailed Table View */
+            <LeadsTable 
+              leads={filteredLeads} 
+              allLeads={leads}
+              stages={stages} 
+              selectedLeadIds={selectedLeadIds}
+              onSelectLead={handleSelectLead}
+              onSelectAllLeads={handleSelectAllLeads}
+              onChangeStage={handleChangeStage}
+              currentSubTab={currentSubTab}
+              onSubTabChange={(tabId) => {
+                setCurrentSubTab(tabId);
+                setSelectedLeadIds([]); // Reset selection when subtab changes
+              }}
+            />
+          )}
         </div>
-      ) : (
-        /* Detailed Table View */
-        <LeadsTable 
-          leads={filteredLeads} 
-          allLeads={leads}
-          stages={stages} 
-          selectedLeadIds={selectedLeadIds}
-          onSelectLead={handleSelectLead}
-          onSelectAllLeads={handleSelectAllLeads}
-          onChangeStage={handleChangeStage}
-          currentSubTab={currentSubTab}
-          onSubTabChange={(tabId) => {
-            setCurrentSubTab(tabId);
-            setSelectedLeadIds([]); // Reset selection when subtab changes
-          }}
-        />
-      )}
+      </div>
+
+      {/* Right Sidebar Chỉnh sửa hàng loạt */}
+      <LeadsBulkEditSidebar
+        isOpen={isBulkEditing}
+        onClose={() => {
+          setIsBulkEditing(false);
+          setSelectedLeadIds([]);
+        }}
+        selectedCount={selectedLeadIds.length}
+        stages={stages}
+        onBulkEdit={(stageId) => {
+          handleBulkEdit(stageId);
+          setIsBulkEditing(false);
+        }}
+        onAssigneeChange={(assignee) => {
+          setToast({
+            show: true,
+            message: `Đã chỉ định hàng loạt ${selectedLeadIds.length} khách hàng cho "${assignee}".`,
+            type: 'success'
+          });
+          setSelectedLeadIds([]); // Reset selection
+          setIsBulkEditing(false);
+        }}
+      />
 
       {/* 4. Giao diện Toast thông báo nổi tuyệt đẹp */}
       {toast.show && (
@@ -450,6 +488,14 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
           </div>
         </div>
       )}
+
+      {/* 5. Popup tùy chỉnh Phễu khách hàng tiềm năng */}
+      <LeadsFunnelModal
+        isOpen={isFunnelModalOpen}
+        onClose={() => setIsFunnelModalOpen(false)}
+        stages={stages}
+        onUpdateStages={setStages}
+      />
     </div>
   );
 }

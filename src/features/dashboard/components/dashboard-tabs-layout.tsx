@@ -18,6 +18,19 @@ export function DashboardTabsLayout({
 }: DashboardTabsLayoutProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isBulkEditing, setIsBulkEditing] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleToggle = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setIsBulkEditing(!!customEvent.detail?.isBulkEditing);
+    };
+
+    window.addEventListener('toggle-bulk-edit', handleToggle);
+    return () => {
+      window.removeEventListener('toggle-bulk-edit', handleToggle);
+    };
+  }, []);
 
   const handleTabChange = (tab: 'overview' | 'leads') => {
     const params = new URLSearchParams(searchParams.toString());
@@ -28,8 +41,8 @@ export function DashboardTabsLayout({
   };
 
   return (
-    <div className="min-h-screen bg-base-200 flex flex-col w-full">
-      <div className="p-6 xl:p-7 pb-12 xl:pb-16 space-y-6 max-w-[1600px] mx-auto w-full flex-1 flex flex-col">
+    <div className={`min-h-screen bg-base-200 flex flex-col w-full transition-all duration-300 ${isBulkEditing ? 'pr-[300px]' : ''}`}>
+      <div className={`p-6 xl:p-7 pb-12 xl:pb-16 space-y-6 w-full flex-1 flex flex-col transition-all duration-300 ${isBulkEditing ? 'max-w-full mx-0 pr-0 xl:pr-0' : 'max-w-[1600px] mx-auto'}`}>
         {/* Dashboard Unified Header with Bento Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-base-content/5 shrink-0">
           <div>

@@ -37,6 +37,8 @@ interface LeadsFiltersProps {
   workspaceId: string;
   selectedGroupId: string | null;
   onChangeGroup: (groupId: string | null) => void;
+  isBulkEditing?: boolean;
+  onToggleBulkEditing?: () => void;
 }
 
 export function LeadsFilters({
@@ -57,6 +59,8 @@ export function LeadsFilters({
   workspaceId,
   selectedGroupId,
   onChangeGroup,
+  isBulkEditing = false,
+  onToggleBulkEditing = () => {},
 }: LeadsFiltersProps) {
   const [showFilters, setShowFilters] = React.useState(true);
 
@@ -123,50 +127,14 @@ export function LeadsFilters({
             </button>
 
             {/* Nút Chỉnh sửa hàng loạt */}
-            <div className="dropdown truncate dropdown-bottom">
+            {!isBulkEditing && (
               <button
-                tabIndex={0}
-                role="button"
-                className={cn(
-                  "px-3 py-1 border text-xs font-semibold rounded-lg transition-all h-8 flex items-center gap-1.5 shadow-3xs cursor-pointer",
-                  selectedCount > 0
-                    ? "bg-sky-50 border-sky-300 text-sky-700 dark:bg-sky-950/20 dark:border-sky-900/30 dark:text-sky-400 font-bold"
-                    : "bg-base-100 border-base-300 text-base-content/40 cursor-not-allowed",
-                )}
-                onClick={() => {
-                  if (selectedCount === 0) {
-                    alert(
-                      "Vui lòng tích chọn các khách hàng trong bảng (chế độ xem bảng) để thực hiện chỉnh sửa hàng loạt!",
-                    );
-                  }
-                }}
+                onClick={onToggleBulkEditing}
+                className="px-3 py-1 bg-base-100 truncate hover:bg-base-200 border border-base-300 text-base-content/75 rounded-lg text-xs font-semibold transition-all h-8 flex items-center shadow-3xs cursor-pointer select-none"
               >
                 Chỉnh sửa hàng loạt {selectedCount > 0 && `(${selectedCount})`}
-                {selectedCount > 0 && <ChevronDown size={11} />}
               </button>
-
-              {selectedCount > 0 && (
-                <ul
-                  tabIndex={0}
-                  className="dropdown-content menu p-2.5 shadow-md bg-base-100 rounded-xl w-52 z-[100] border border-base-200 dark:border-base-800 mt-1 flex flex-col gap-1"
-                >
-                  <li className="menu-title text-[10px] font-bold uppercase text-base-content/40 tracking-wider">
-                    Chuyển sang giai đoạn:
-                  </li>
-                  {stages.map((stage) => (
-                    <li key={stage.id}>
-                      <button
-                        onClick={() => onBulkEdit(stage.id)}
-                        className="text-xs py-1.5 hover:bg-base-200 rounded-lg flex items-center gap-1.5 font-medium text-base-content/80 cursor-pointer"
-                      >
-                        <span className="text-[10px]">{stage.icon}</span>
-                        {stage.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            )}
           </div>
 
           {/* Thanh ngăn dọc */}
