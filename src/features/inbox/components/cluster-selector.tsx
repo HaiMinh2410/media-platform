@@ -159,7 +159,7 @@ export function ClusterSelector({
                   setShowManagementMenu(false);
                 }}
               >
-                <Check size={14} /> <span className="whitespace-nowrap">Cluster management</span>
+                <Check size={16} /> <span className="whitespace-nowrap">Cluster management</span>
               </button>
               <button 
                 type="button"
@@ -180,7 +180,7 @@ export function ClusterSelector({
                   }
                 }}
               >
-                <RotateCcw size={14} /> <span className="whitespace-nowrap">Reset to default</span>
+                <RotateCcw size={16} /> <span className="whitespace-nowrap">Reset to default</span>
               </button>
             </RangeSelector>
           ) : (

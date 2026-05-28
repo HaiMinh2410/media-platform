@@ -10,11 +10,10 @@ interface DoubleCalendarPickerProps {
 
 const datePresets = [
   { value: "Hôm nay", label: "Hôm nay" },
-  { value: "Hôm qua", label: "Hôm qua" },
   { value: "7 ngày qua", label: "7 ngày qua" },
   { value: "14 ngày qua", label: "14 ngày qua" },
   { value: "30 ngày qua", label: "30 ngày qua" },
-  { value: "Tháng này", label: "Tháng này" },
+  { value: "90 ngày qua", label: "90 ngày qua" },
   { value: "Tùy chỉnh", label: "Tùy chỉnh" },
 ];
 
@@ -104,11 +103,6 @@ export function DoubleCalendarPicker({
     if (filterVal === "Hôm nay") {
       return { start: today, end: today };
     }
-    if (filterVal === "Hôm qua") {
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      return { start: yesterday, end: yesterday };
-    }
     if (filterVal === "7 ngày qua") {
       const start = new Date(today);
       start.setDate(today.getDate() - 7);
@@ -130,9 +124,11 @@ export function DoubleCalendarPicker({
       end.setDate(today.getDate() - 1);
       return { start, end };
     }
-    if (filterVal === "Tháng này") {
-      const start = new Date(today.getFullYear(), today.getMonth(), 1);
-      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    if (filterVal === "90 ngày qua") {
+      const start = new Date(today);
+      start.setDate(today.getDate() - 90);
+      const end = new Date(today);
+      end.setDate(today.getDate() - 1);
       return { start, end };
     }
 
@@ -247,11 +243,10 @@ export function DoubleCalendarPicker({
     if (presetValue === "Tùy chỉnh") {
       const standardPresets = [
         "Hôm nay",
-        "Hôm qua",
         "7 ngày qua",
         "14 ngày qua",
         "30 ngày qua",
-        "Tháng này",
+        "90 ngày qua",
       ];
       return !standardPresets.includes(tempDateFilter);
     }
@@ -354,9 +349,9 @@ export function DoubleCalendarPicker({
 
       {/* Dropdown Content */}
       {isOpen && (
-        <div className="dropdown-content p-0 shadow-2xl bg-base-100 rounded-2xl border border-base-content/5 mt-1.5 flex flex-row overflow-hidden z-150 w-[660px] max-w-[95vw] select-none text-left animate-fade-in">
+        <div className="dropdown-content bg-soft rounded-lg border border-base-content/5 mt-2 flex flex-row overflow-hidden z-150 w-[640px] max-w-[95vw] select-none text-left animate-fade-in">
           {/* Cột trái: Presets chọn nhanh */}
-          <div className="w-[180px] shrink-0 border-r border-base-content/5 p-5 flex flex-col gap-3.5 bg-base-200/20 dark:bg-base-300/10">
+          <div className="shrink-0 border-r border-base-content/5 p-2 px-2.5 flex flex-col gap-1.5 bg-base-100/20 justify-center">
             {datePresets.map((preset) => {
               const isActive = isPresetActive(preset.value);
               return (
@@ -370,25 +365,25 @@ export function DoubleCalendarPicker({
                       setTempDateFilter(preset.value);
                     }
                   }}
-                  className="flex items-center gap-3 cursor-pointer group select-none"
+                  className="flex items-center gap-2 px-4 py-1.5 hover:bg-base-100/50 dark:hover:bg-base-800/40 rounded-md cursor-pointer group select-none transition-colors"
                 >
                   <div
                     className={cn(
-                      "w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all duration-200 active:scale-90",
+                      "w-4 h-4 rounded-full border border-base-content/5 flex items-center justify-center shrink-0 transition-all duration-200 active:scale-90",
                       isActive
                         ? "border-primary bg-base-100"
                         : "border-base-content/20 bg-base-100 group-hover:border-base-content/40",
                     )}
                   >
                     {isActive && (
-                      <div className="w-2.5 h-2.5 rounded-full bg-primary animate-scale-up" />
+                      <div className="w-2 h-2 rounded-full bg-primary animate-scale-up" />
                     )}
                   </div>
                   <span
                     className={cn(
-                      "text-xs font-semibold transition-colors duration-200",
+                      "text-sm transition-colors duration-200",
                       isActive
-                        ? "text-primary font-bold"
+                        ? "text-primary"
                         : "text-base-content/70 group-hover:text-base-content",
                     )}
                   >
@@ -400,23 +395,23 @@ export function DoubleCalendarPicker({
           </div>
 
           {/* Cột phải: Lịch đôi (Double Calendar) */}
-          <div className="flex-1 p-5 flex flex-col gap-4 bg-base-100">
+          <div className="flex-1 p-3.5 flex flex-col">
             {/* Header Lịch */}
-            <div className="flex items-center justify-between w-full text-base-content relative mb-1">
+            <div className="flex items-center justify-between w-full text-base-content relative mb-0.5">
               {/* Nút quay lại trái */}
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="p-1.5 hover:bg-base-200 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
+                className="p-1 hover:bg-base-200 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
               >
                 <ChevronLeft
-                  size={16}
+                  size={15}
                   className="text-base-content/50 hover:text-base-content"
                 />
               </button>
 
               {/* Nhãn 2 tháng căn giữa tương ứng trên 2 lịch */}
-              <div className="flex-1 grid grid-cols-2 text-center text-sm font-bold text-base-content font-brand tracking-tight">
+              <div className="flex-1 grid grid-cols-2 text-center text-sm text-base-content">
                 <span>{getMonthLabel(leftMonth, leftYear)}</span>
                 <span>{getMonthLabel(rightMonth, rightYear)}</span>
               </div>
@@ -425,32 +420,32 @@ export function DoubleCalendarPicker({
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1.5 hover:bg-base-200 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
+                className="p-1 hover:bg-base-200 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 shrink-0"
               >
                 <ChevronRight
-                  size={16}
+                  size={15}
                   className="text-base-content/50 hover:text-base-content"
                 />
               </button>
             </div>
 
             {/* Lưới lịch 2 tháng */}
-            <div className="grid grid-cols-2 gap-8 w-full">
+            <div className="grid grid-cols-2 gap-6 w-full">
               {/* Lịch Tháng bên trái */}
               <div className="flex flex-col gap-2">
                 {/* Thứ trong tuần */}
-                <div className="grid grid-cols-7 gap-1 text-center text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono pb-1.5 border-b border-base-content/5">
+                <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-base-content/40 tracking-wide font-mono pb-1 border-b border-base-content/5">
                   {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((d) => (
                     <div
                       key={d}
-                      className="h-6 flex items-center justify-center"
+                      className="h-5 flex items-center justify-center"
                     >
                       {d}
                     </div>
                   ))}
                 </div>
                 {/* Lưới ngày */}
-                <div className="grid grid-cols-7 gap-1 text-center text-[12px] font-medium text-base-content/85">
+                <div className="grid grid-cols-7 gap-1 text-center text-sm font-medium text-base-content/85">
                   {renderCalendarDays(leftMonth, leftYear)}
                 </div>
               </div>
@@ -458,43 +453,43 @@ export function DoubleCalendarPicker({
               {/* Lịch Tháng bên phải */}
               <div className="flex flex-col gap-2">
                 {/* Thứ trong tuần */}
-                <div className="grid grid-cols-7 gap-1 text-center text-2xs font-bold text-base-content/40 uppercase tracking-widest font-mono pb-1.5 border-b border-base-content/5">
+                <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-base-content/40 tracking-wide font-mono pb-1 border-b border-base-content/5">
                   {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((d) => (
                     <div
                       key={d}
-                      className="h-6 flex items-center justify-center"
+                      className="h-5 flex items-center justify-center"
                     >
                       {d}
                     </div>
                   ))}
                 </div>
                 {/* Lưới ngày */}
-                <div className="grid grid-cols-7 gap-1 text-center text-[12px] font-medium text-base-content/85">
+                <div className="grid grid-cols-7 gap-1 text-center text-sm font-medium text-base-content/85">
                   {renderCalendarDays(rightMonth, rightYear)}
                 </div>
               </div>
             </div>
 
             {/* Footer Lịch */}
-            <div className="flex items-center justify-between border-t border-base-content/5 pt-4 mt-2 font-sans">
-              <div className="flex flex-col gap-1 text-left">
+            <div className="flex items-center justify-between border-t border-base-content/5 pt-1.5 mt-1.5 font-sans">
+              <div className="flex flex-col gap-0.5 text-left">
                 {currentRange && (
-                  <span className="text-xs font-bold text-base-content font-brand tracking-tight animate-fade-in">
+                  <span className="text-2xs font-bold text-base-content font-brand tracking-tight animate-fade-in leading-none">
                     {getRangeLabel(currentRange)}
                   </span>
                 )}
-                <span className="text-2xs font-semibold text-base-content/40 leading-none font-mono">
-                  Ngày hiển thị theo Giờ Jakarta
+                <span className="text-xs text-base-content/40 leading-none tracking-wide">
+                  Ngày hiển thị theo Giờ Việt Nam
                 </span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <button
                   type="button"
                   onClick={() => {
                     setTempDateFilter(selectedDate);
                     setIsOpen(false);
                   }}
-                  className="px-5 py-2 border border-base-content/10 bg-base-100 hover:bg-base-200 text-base-content/80 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 h-9 flex items-center justify-center active:scale-95"
+                  className="btn btn-active btn-sm rounded-full"
                 >
                   Hủy
                 </button>
@@ -504,7 +499,7 @@ export function DoubleCalendarPicker({
                     onSelectDate(tempDateFilter);
                     setIsOpen(false);
                   }}
-                  className="px-5 py-2 bg-primary hover:bg-primary/90 text-primary-content rounded-lg text-sm font-bold cursor-pointer transition-all duration-200 h-9 flex items-center justify-center border-0 active:scale-95 shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20"
+                  className="btn btn-active btn-primary btn-sm rounded-full"
                 >
                   Cập nhật
                 </button>

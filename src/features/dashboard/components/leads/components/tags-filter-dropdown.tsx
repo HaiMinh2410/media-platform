@@ -1,6 +1,7 @@
 import React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@shared/lib/utils";
+import { RangeSelector } from "@shared/ui/range-selector";
 
 interface TagsFilterDropdownProps {
   displayedTags: string[];
@@ -22,55 +23,70 @@ export function TagsFilterDropdown({
   triggerClassName,
 }: TagsFilterDropdownProps) {
   return (
-    <div className="dropdown dropdown-bottom dropdown-end">
-      <div
-        tabIndex={0}
-        role="button"
-        className={triggerClassName || "btn btn-soft btn-sm hover:bg-base-100"}
-      >
-        <span className="truncate mr-1 text-left">
-          {tagButtonText}
-        </span>
-        <ChevronDown size={12} className="opacity-60 shrink-0" />
-      </div>
-      <ul
-        tabIndex={0}
-        className="dropdown-content menu p-1.5 shadow-xl bg-base-100 rounded-xl w-52 z-100 border border-base-content/5 mt-1 animate-fade-in max-h-60 overflow-y-auto"
-      >
-        <li>
-          <button
-            onClick={() => onFilterChange("tag", "all")}
-            className={cn(
-              "text-xs py-1.5 font-bold cursor-pointer transition-colors duration-150 flex items-center gap-2",
-              selectedTags.length === 0 ? "text-primary bg-primary/5" : "text-base-content/70 hover:bg-base-200"
-            )}
-          >
-            <div className="w-2.5 h-2.5 rounded-full border border-base-content/30" />
-            Tất cả nhãn
-          </button>
-        </li>
+    <RangeSelector
+      menuAlign="right"
+      menuMinWidth="w-52"
+      dropdownClassName="bg-soft rounded-lg"
+      customTrigger={
+        <button
+          type="button"
+          className={cn(
+            triggerClassName || "btn btn-soft btn-sm hover:bg-base-100",
+            "flex items-center gap-1.5 cursor-pointer"
+          )}
+        >
+          <span className="truncate text-left">
+            {tagButtonText}
+          </span>
+          <ChevronDown size={12} className="opacity-60 shrink-0" />
+        </button>
+      }
+    >
+      <div className="max-h-60 overflow-y-auto flex flex-col gap-0.5">
+        <button
+          type="button"
+          onClick={() => onFilterChange("tag", "all")}
+          className={cn(
+            "text-sm px-2.5 py-1.5 rounded-md cursor-pointer flex items-center gap-2.5 w-full text-left transition-colors duration-150",
+            selectedTags.length === 0 
+              ? "text-primary bg-primary/5 dark:bg-primary/10 font-bold" 
+              : "text-base-content/70 hover:bg-base-200/50 dark:hover:bg-base-800/40"
+          )}
+        >
+          <input
+            type="checkbox"
+            checked={selectedTags.length === 0}
+            readOnly
+            className="checkbox checkbox-primary checkbox-sm pointer-events-none shrink-0"
+          />
+          Tất cả nhãn
+        </button>
         {displayedTags.map((tagStr) => {
           const { name, color } = parseTag(tagStr);
           const isSelected = selectedTags.includes(name);
           return (
-            <li key={name}>
-              <button
-                onClick={() => handleTagClick(name)}
-                className={cn(
-                  "text-xs py-1.5 cursor-pointer transition-colors duration-150 flex items-center gap-2",
-                  isSelected ? "text-primary bg-primary/5 font-bold" : "text-base-content/70 hover:bg-base-200"
-                )}
-              >
-                <div 
-                  className="w-2.5 h-2.5 rounded-full shrink-0 border border-base-content/5" 
-                  style={{ backgroundColor: color }} 
-                />
-                <span className="truncate">{name}</span>
-              </button>
-            </li>
+            <button
+              key={name}
+              type="button"
+              onClick={() => handleTagClick(name)}
+              className={cn(
+                "text-sm px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors duration-150 flex items-center gap-2.5 w-full text-left",
+                isSelected 
+                  ? "text-primary bg-primary/5 dark:bg-primary/10 font-bold" 
+                  : "text-base-content/70 hover:bg-base-200/50 dark:hover:bg-base-800/40"
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={isSelected}
+                readOnly
+                className="checkbox checkbox-primary checkbox-sm pointer-events-none shrink-0"
+              />
+              <span className="truncate">{name}</span>
+            </button>
           );
         })}
-      </ul>
-    </div>
+      </div>
+    </RangeSelector>
   );
 }
