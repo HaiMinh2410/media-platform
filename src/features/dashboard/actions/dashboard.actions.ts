@@ -412,6 +412,7 @@ export async function getLeadsFromDB(workspaceId: string) {
     // Format thời gian hiển thị gọn gàng
     const dateObj = new Date(convo.lastMessageAt);
     const dateStr = dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const fullDateStr = dateObj.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
     // Kiểm tra tin nhắn chưa đọc
     const hasUnread = convo.messages[0] ? !convo.messages[0].is_read && convo.messages[0].senderType === 'user' : false;
@@ -424,6 +425,8 @@ export async function getLeadsFromDB(workspaceId: string) {
       source: 'Tự nhiên',
       platform,
       date: dateStr,
+      fullDate: fullDateStr,
+      tags: convo.tags || [],
       unread: hasUnread,
       accountId: convo.account_id,
     };

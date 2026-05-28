@@ -3,15 +3,16 @@ import {
   Kanban,
   LayoutGrid,
   SlidersHorizontal,
-  Calendar,
   ChevronDown,
   Plus,
   MoreHorizontal,
   Download,
 } from "lucide-react";
 import { cn } from "@shared/lib/utils";
-import { LeadStage } from "./types";
+import { Lead, LeadStage } from "./types";
 import { ClusterSelector } from "@features/inbox/components/cluster-selector";
+import { DoubleCalendarPicker } from "./double-calendar-picker";
+import { useInboxStore } from "@features/inbox/store/inbox.store";
 
 interface LeadsFiltersProps {
   viewMode: "kanban" | "table";
@@ -20,12 +21,14 @@ interface LeadsFiltersProps {
   selectedCount: number;
   onBulkEdit: (stageId: string) => void;
   stages: LeadStage[];
+  leads: Lead[];
   filters: {
     source: string;
     stage: string;
     campaign: string;
     form: string;
     date: string;
+    tag?: string;
   };
   onFilterChange: (key: string, value: string) => void;
   showLost: boolean;
@@ -48,6 +51,7 @@ export function LeadsFilters({
   selectedCount,
   onBulkEdit,
   stages,
+  leads,
   filters,
   onFilterChange,
   showLost,
@@ -63,6 +67,66 @@ export function LeadsFilters({
   onToggleBulkEditing = () => {},
 }: LeadsFiltersProps) {
   const [showFilters, setShowFilters] = React.useState(true);
+  const { availableTags } = useInboxStore();
+
+  const parseTag = (tag: string) => {
+    const [name, color] = tag.split('::');
+    return { name, color: color || '#6366f1' };
+  };
+
+  // Chỉ hiển thị nhãn được gán cho ít nhất 1 khách hàng tiềm năng
+  const displayedTags = availableTags.filter((tagStr) => {
+    const { name } = parseTag(tagStr);
+    return leads.some((lead) =>
+      lead.tags?.some((t) => t.split("::")[0] === name)
+    );
+  });
+
+  const selectedTags = filters.tag && filters.tag !== "all"
+    ? filters.tag.split(",")
+    : [];
+
+  const handleTagClick = (name: string) => {
+    if (!filters.tag || filters.tag === "all") {
+      onFilterChange("tag", name);
+    } else {
+      const tagsArr = filters.tag.split(",");
+      if (tagsArr.includes(name)) {
+        const nextTags = tagsArr.filter((t) => t !== name);
+        onFilterChange("tag", nextTags.length > 0 ? nextTags.join(",") : "all");
+      } else {
+        onFilterChange("tag", [...tagsArr, name].join(","));
+      }
+    }
+  };
+
+  const tagButtonText = selectedTags.length === 0
+    ? "Nhãn"
+    : selectedTags.length === 1
+    ? `Nhãn: ${selectedTags[0]}`
+    : `Đã chọn ${selectedTags.length} lựa chọn`;
+
+  // State & Ref quản lý dropdown Ba chấm (Tránh việc chiếm dụng hitbox DOM khi chưa click)
+  const [isMoreOpen, setIsMoreOpen] = React.useState(false);
+  const moreContainerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    function handleOutsideClick(event: MouseEvent) {
+      if (
+        moreContainerRef.current &&
+        !moreContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsMoreOpen(false);
+      }
+    }
+    if (isMoreOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [isMoreOpen]);
+
 
   return (
     <div className="flex flex-col gap-3.5 w-full bg-base-100 p-4 border border-base-content/5 rounded-2xl shadow-3xs">
@@ -157,168 +221,126 @@ export function LeadsFilters({
                 />
               )}
 
-              {/* Dropdown Chọn ngày */}
-              <div className="dropdown dropdown-bottom w-full block">
-                <div
-                  tabIndex={0}
-                  role="button"
-                  className={cn(
-                    "w-full px-3 py-1 bg-base-100 hover:bg-base-200 border border-base-300 text-base-content/75 rounded-full text-xs font-semibold transition-all h-8 flex items-center justify-between cursor-pointer shadow-3xs",
-                    filters.date !== "all" &&
-                      "border-[#0064d2] text-[#0064d2] bg-blue-50/50 font-bold",
-                  )}
-                >
-                  <div className="flex items-center gap-1.5 truncate">
-                    <Calendar size={13} className="opacity-70 shrink-0" />
-                    <span className="truncate">
-                      {filters.date === "all" ? "Chọn ngày" : filters.date}
-                    </span>
-                  </div>
-                  <ChevronDown size={12} className="opacity-60 shrink-0" />
-                </div>
-                <ul
-                  tabIndex={0}
-                  className="dropdown-content menu p-1.5 shadow-md bg-base-100 rounded-xl w-48 z-100 border border-base-200 dark:border-base-800 mt-1"
-                >
-                  <li>
-                    <button
-                      onClick={() => onFilterChange("date", "all")}
-                      className="text-xs py-1.5 cursor-pointer"
-                    >
-                      Tất cả thời gian
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => onFilterChange("date", "Hôm nay")}
-                      className="text-xs py-1.5 cursor-pointer"
-                    >
-                      Hôm nay
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => onFilterChange("date", "Hôm qua")}
-                      className="text-xs py-1.5 cursor-pointer"
-                    >
-                      Hôm qua
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => onFilterChange("date", "7 ngày qua")}
-                      className="text-xs py-1.5 cursor-pointer"
-                    >
-                      7 ngày qua
-                    </button>
-                  </li>
-                </ul>
-              </div>
+              {/* Bộ lọc Chọn ngày (Double Calendar Picker) */}
+              <DoubleCalendarPicker
+                selectedDate={filters.date}
+                onSelectDate={(date) => onFilterChange("date", date)}
+              />
 
-              {/* Dropdown Trạng thái / Giai đoạn */}
+              {/* Dropdown Nhãn (Tự động thích ứng màu sắc Aurora UI) */}
               <div className="dropdown dropdown-bottom w-full block">
                 <div
                   tabIndex={0}
                   role="button"
                   className={cn(
-                    "w-full px-3 py-1 bg-base-100 hover:bg-base-200 border border-base-300 text-base-content/75 rounded-full text-xs font-semibold transition-all h-8 flex items-center justify-between cursor-pointer shadow-3xs",
-                    filters.stage !== "all" &&
-                      "border-[#0064d2] text-[#0064d2] bg-blue-50/50 font-bold",
+                    "w-full px-3 py-1 bg-base-100 hover:bg-base-200 border border-base-content/10 text-base-content/85 rounded-full text-xs font-semibold transition-all h-8 flex items-center justify-between cursor-pointer shadow-3xs hover:-translate-y-0.5 duration-200 active:scale-98 select-none",
+                    selectedTags.length > 0 &&
+                      "border-primary text-primary bg-primary/5 font-bold shadow-3xs shadow-primary/5",
                   )}
                 >
                   <span className="truncate mr-1 text-left">
-                    Trạng thái:{" "}
-                    {filters.stage === "all"
-                      ? "Tất cả"
-                      : stages.find((s) => s.id === filters.stage)?.label ||
-                        filters.stage}
+                    {tagButtonText}
                   </span>
                   <ChevronDown size={12} className="opacity-60 shrink-0" />
                 </div>
                 <ul
                   tabIndex={0}
-                  className="dropdown-content menu p-1.5 shadow-md bg-base-100 rounded-xl w-48 z-[100] border border-base-200 dark:border-base-800 mt-1"
+                  className="dropdown-content menu p-1.5 shadow-2xl bg-base-100 rounded-xl w-52 z-[100] border border-base-content/5 mt-1 animate-fade-in max-h-60 overflow-y-auto"
                 >
                   <li>
                     <button
-                      onClick={() => onFilterChange("stage", "all")}
-                      className="text-xs py-1.5 font-bold text-sky-600 cursor-pointer"
+                      onClick={() => onFilterChange("tag", "all")}
+                      className={cn(
+                        "text-xs py-1.5 font-bold cursor-pointer transition-colors duration-150 flex items-center gap-2",
+                        selectedTags.length === 0 ? "text-primary bg-primary/5" : "text-base-content/70 hover:bg-base-200"
+                      )}
                     >
-                      Tất cả trạng thái
+                      <div className="w-2.5 h-2.5 rounded-full border border-base-content/30" />
+                      Tất cả nhãn
                     </button>
                   </li>
-                  {stages.map((stage) => (
-                    <li key={stage.id}>
-                      <button
-                        onClick={() => onFilterChange("stage", stage.id)}
-                        className="text-xs py-1.5 flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>{stage.icon}</span>
-                        {stage.label}
-                      </button>
-                    </li>
-                  ))}
+                  {displayedTags.map((tagStr) => {
+                    const { name, color } = parseTag(tagStr);
+                    const isSelected = selectedTags.includes(name);
+                    return (
+                      <li key={name}>
+                        <button
+                          onClick={() => handleTagClick(name)}
+                          className={cn(
+                            "text-xs py-1.5 cursor-pointer transition-colors duration-150 flex items-center gap-2",
+                            isSelected ? "text-primary bg-primary/5 font-bold" : "text-base-content/70 hover:bg-base-200"
+                          )}
+                        >
+                          <div 
+                            className="w-2.5 h-2.5 rounded-full shrink-0 border border-base-content/5" 
+                            style={{ backgroundColor: color }} 
+                          />
+                          <span className="truncate">{name}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
-              </div>
-
-              {/* Dropdown Nhãn */}
-              <div className="w-full px-3 py-1 bg-base-100 hover:bg-base-200 border border-base-300 text-base-content/75 rounded-full text-xs font-semibold transition-all h-8 flex items-center justify-between cursor-pointer shadow-3xs">
-                <span>Nhãn</span>
-                <ChevronDown size={12} className="opacity-60 shrink-0" />
               </div>
             </div>
 
             {/* Nút Ba chấm (chỉ hiển thị ở Kanban view như trong hình) */}
             {viewMode === "kanban" && (
-              <div className="dropdown dropdown-bottom dropdown-end shrink-0">
+              <div 
+                ref={moreContainerRef}
+                className={cn(
+                  "dropdown dropdown-bottom dropdown-end shrink-0",
+                  isMoreOpen && "dropdown-open"
+                )}
+              >
                 <button
-                  tabIndex={0}
-                  role="button"
+                  onClick={() => setIsMoreOpen(!isMoreOpen)}
                   className="w-8 h-8 bg-base-100 hover:bg-base-200 border border-base-300 text-base-content/70 rounded-lg flex items-center justify-center transition-all shadow-3xs cursor-pointer"
                 >
                   <MoreHorizontal size={14} />
                 </button>
 
-                <div
-                  tabIndex={0}
-                  className="dropdown-content p-2 shadow-md bg-base-100 rounded-xl w-72 z-[110] border border-base-200 dark:border-base-800 mt-1.5 flex flex-col gap-1"
-                >
-                  <label className="flex items-center gap-3 px-2.5 py-1.5 hover:bg-base-200 dark:hover:bg-base-800 rounded-lg cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={showUnreadOnly}
-                      onChange={onToggleUnreadOnly}
-                      className="checkbox checkbox-xs checkbox-primary rounded-sm border-base-300 shrink-0"
-                    />
-                    <span className="text-2xs font-semibold text-base-content/85 leading-none">
-                      Chỉ hiển thị khách hàng tiềm năng chưa đọc
-                    </span>
-                  </label>
+                {isMoreOpen && (
+                  <div
+                    className="dropdown-content p-2 shadow-md bg-base-100 rounded-xl w-72 z-[110] border border-base-200 dark:border-base-800 mt-1.5 flex flex-col gap-1"
+                  >
+                    <label className="flex items-center gap-3 px-2.5 py-1.5 hover:bg-base-200 dark:hover:bg-base-800 rounded-lg cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={showUnreadOnly}
+                        onChange={onToggleUnreadOnly}
+                        className="checkbox checkbox-xs checkbox-primary rounded-sm border-base-300 shrink-0"
+                      />
+                      <span className="text-2xs font-semibold text-base-content/85 leading-none">
+                        Chỉ hiển thị khách hàng tiềm năng chưa đọc
+                      </span>
+                    </label>
 
-                  <label className="flex items-center gap-3 px-2.5 py-1.5 hover:bg-base-200 dark:hover:bg-base-800 rounded-lg cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={showLost}
-                      onChange={onToggleLost}
-                      className="checkbox checkbox-xs checkbox-primary rounded-sm border-base-300 shrink-0"
-                    />
-                    <span className="text-2xs font-semibold text-base-content/85 leading-none">
-                      Hiển thị khách hàng tiềm năng Bị mất đi
-                    </span>
-                  </label>
+                    <label className="flex items-center gap-3 px-2.5 py-1.5 hover:bg-base-200 dark:hover:bg-base-800 rounded-lg cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={showLost}
+                        onChange={onToggleLost}
+                        className="checkbox checkbox-xs checkbox-primary rounded-sm border-base-300 shrink-0"
+                      />
+                      <span className="text-2xs font-semibold text-base-content/85 leading-none">
+                        Hiển thị khách hàng tiềm năng Bị mất đi
+                      </span>
+                    </label>
 
-                  <label className="flex items-center gap-3 px-2.5 py-1.5 hover:bg-base-200 dark:hover:bg-base-800 rounded-lg cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={showUnqualified}
-                      onChange={onToggleUnqualified}
-                      className="checkbox checkbox-xs checkbox-primary rounded-sm border-sm border-base-300 shrink-0"
-                    />
-                    <span className="text-2xs font-semibold text-base-content/85 leading-none">
-                      Hiển thị khách hàng tiềm năng Không đủ tiêu chuẩn
-                    </span>
-                  </label>
-                </div>
+                    <label className="flex items-center gap-3 px-2.5 py-1.5 hover:bg-base-200 dark:hover:bg-base-800 rounded-lg cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={showUnqualified}
+                        onChange={onToggleUnqualified}
+                        className="checkbox checkbox-xs checkbox-primary rounded-sm border-sm border-base-300 shrink-0"
+                      />
+                      <span className="text-2xs font-semibold text-base-content/85 leading-none">
+                        Hiển thị khách hàng tiềm năng Không đủ tiêu chuẩn
+                      </span>
+                    </label>
+                  </div>
+                )}
               </div>
             )}
           </div>

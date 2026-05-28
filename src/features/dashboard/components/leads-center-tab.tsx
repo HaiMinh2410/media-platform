@@ -82,7 +82,8 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
     stage: 'all',
     campaign: 'all',
     form: 'all',
-    date: 'all'
+    date: 'all',
+    tag: 'all'
   });
 
   // Trạng thái Toast thông báo
@@ -139,12 +140,61 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
       ? (filters.form === 'Đăng ký nhận báo giá' ? lead.id === '1' : lead.id !== '1')
       : true;
 
-    // Lọc theo ngày (giả lập)
-    const matchesDate = filters.date !== 'all'
-      ? true // Mock data đều hiển thị trong hôm nay
+    // Lọc theo ngày thực tế (Hỗ trợ Presets & Ngày cụ thể chọn từ Double Calendar)
+    let matchesDate = true;
+    if (filters.date !== 'all') {
+      const parseDate = (dStr: string) => {
+        const parts = dStr.split('/');
+        return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      };
+
+      const leadDateObj = lead.fullDate ? parseDate(lead.fullDate) : new Date();
+      leadDateObj.setHours(0, 0, 0, 0);
+
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+
+      // Nếu năm hiện tại chưa đến 2026, ta lấy ngày 28/05/2026 làm ngày "Hôm nay" tham chiếu
+      // để khớp hoàn hảo với mock data của cơ sở dữ liệu mẫu trong dự án.
+      const referenceToday = now.getFullYear() >= 2026 ? now : new Date(2026, 4, 28); 
+
+      if (filters.date === "Hôm nay") {
+        const formattedToday = referenceToday.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        matchesDate = lead.fullDate === formattedToday;
+      } else if (filters.date === "Hôm qua") {
+        const yesterday = new Date(referenceToday);
+        yesterday.setDate(referenceToday.getDate() - 1);
+        const formattedYesterday = yesterday.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        matchesDate = lead.fullDate === formattedYesterday;
+      } else if (filters.date === "7 ngày qua") {
+        const past7Days = new Date(referenceToday);
+        past7Days.setDate(referenceToday.getDate() - 7);
+        matchesDate = leadDateObj >= past7Days && leadDateObj <= referenceToday;
+      } else if (filters.date === "14 ngày qua") {
+        const past14Days = new Date(referenceToday);
+        past14Days.setDate(referenceToday.getDate() - 14);
+        matchesDate = leadDateObj >= past14Days && leadDateObj <= referenceToday;
+      } else if (filters.date === "30 ngày qua") {
+        const past30Days = new Date(referenceToday);
+        past30Days.setDate(referenceToday.getDate() - 30);
+        matchesDate = leadDateObj >= past30Days && leadDateObj <= referenceToday;
+      } else if (filters.date === "Tháng này") {
+        matchesDate = leadDateObj.getMonth() === referenceToday.getMonth() && leadDateObj.getFullYear() === referenceToday.getFullYear();
+      } else {
+        // Lọc theo một ngày cụ thể (ví dụ: "28/05/2026" chọn từ Lịch)
+        matchesDate = lead.fullDate === filters.date;
+      }
+    }
+
+    // Lọc theo nhãn được chọn (Hỗ trợ chọn nhiều nhãn cùng lúc - Khớp ít nhất một nhãn)
+    const matchesTag = filters.tag && filters.tag !== 'all'
+      ? (() => {
+          const selectedTags = filters.tag.split(',');
+          return lead.tags?.some((t) => selectedTags.includes(t.split("::")[0])) ?? false;
+        })()
       : true;
 
-    return matchesSubTab && matchesUnreadOnly && matchesCluster && matchesStageFilter && matchesSource && matchesCampaign && matchesForm && matchesDate;
+    return matchesSubTab && matchesUnreadOnly && matchesCluster && matchesStageFilter && matchesSource && matchesCampaign && matchesForm && matchesDate && matchesTag;
   });
 
   // 3. Cơ chế thêm giai đoạn tùy chỉnh (mở Modal Phễu khách hàng tiềm năng)
@@ -337,6 +387,7 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
         selectedCount={selectedLeadIds.length}
         onBulkEdit={handleBulkEdit}
         stages={stages}
+        leads={leads}
         filters={filters}
         onFilterChange={handleFilterChange}
         showLost={showLost}

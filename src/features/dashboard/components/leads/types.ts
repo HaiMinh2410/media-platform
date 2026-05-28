@@ -6,6 +6,8 @@ export interface Lead {
   source: string;
   platform: string;
   date: string;
+  fullDate?: string;
+  tags?: string[];
   unread?: boolean;
   accountId?: string;
 }
