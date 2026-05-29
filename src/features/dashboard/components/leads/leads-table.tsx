@@ -1,13 +1,10 @@
 import React from "react";
-import {
-  ChevronRight,
-  ChevronDown,
-  ArrowDown,
-  ArrowUpDown,
-  MoreHorizontal,
-} from "lucide-react";
+import { ArrowDown, ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 import { Lead, LeadStage } from "./types";
 import { cn } from "@shared/lib/utils";
+import { Icon, MessengerIcon } from "@shared/ui/icon";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -21,18 +18,230 @@ interface LeadsTableProps {
   onSubTabChange: (tabId: string) => void;
 }
 
-// Icon Messenger chính thức cực kỳ đẹp mắt
-const MessengerIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="12"
-    height="12"
-    fill="currentColor"
-    className="text-messenger shrink-0"
-  >
-    <path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.913 1.448 5.501 3.7 7.208V22l3.39-1.859c.92.256 1.895.395 2.91.395 5.523 0 10-4.146 10-9.243S17.523 2 12 2zm1.26 12.15l-2.48-2.65-4.83 2.65 5.3-5.63 2.53 2.7 4.73-2.7-5.25 5.63z" />
-  </svg>
-);
+// ─── Static Maps ──────────────────────────────────────────────────────────────
+
+const PLATFORM_LABEL: Record<string, string> = {
+  messenger: "Messenger",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  tiktok: "TikTok",
+  whatsapp: "WhatsApp",
+};
+
+// Badge icon hiển thị đè lên avatar — static map để Tailwind compile đúng class
+const PLATFORM_BADGE: Record<string, { icon: React.ReactNode; colorClass: string }> = {
+  messenger: {
+    icon: <MessengerIcon />,
+    colorClass: "text-messenger",
+  },
+  instagram: {
+    icon: <Icon name="instagram-filled" size={10} />,
+    colorClass: "text-instagram",
+  },
+  facebook: {
+    icon: <Icon name="facebook" size={10} />,
+    colorClass: "text-facebook",
+  },
+  tiktok: {
+    icon: <Icon name="tiktok" size={10} />,
+    colorClass: "text-tiktok dark:text-base-content",
+  },
+};
+
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  active: "badge-success badge-soft",
+  inactive: "badge-error badge-soft",
+  pending: "badge-warning badge-soft",
+};
+
+// ─── Sub-tab config (static để Tailwind compile đúng) ─────────────────────────
+
+interface SubTabConfig {
+  id: string;
+  label: string;
+  showCount: boolean;
+  showChevron: boolean;
+}
+
+const SUB_TABS: SubTabConfig[] = [
+  { id: "all", label: "Tất cả", showCount: true, showChevron: false },
+  { id: "new", label: "Tiếp nhận", showCount: true, showChevron: true },
+  { id: "qualified", label: "Đủ tiêu chuẩn", showCount: true, showChevron: true },
+  { id: "converted", label: "Đã chuyển đổi", showCount: true, showChevron: false },
+];
+
+function getSubTabCount(tab: SubTabConfig, allLeads: Lead[], totalCount: number): number {
+  if (tab.id === "all") return totalCount;
+  return allLeads.filter((l) => l.stage === tab.id).length;
+}
+
+// ─── Sub-tab Component ────────────────────────────────────────────────────────
+
+interface SubTabProps {
+  tab: SubTabConfig;
+  count: number;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+function SubTab({ tab, count, isActive, onClick }: SubTabProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-1.5 py-1.5 px-3 rounded-lg transition-all cursor-pointer font-bold text-xs",
+        isActive
+          ? "bg-primary/10 text-primary"
+          : "hover:bg-base-200/60 text-base-content/60",
+      )}
+    >
+      <span>{tab.label}</span>
+      {tab.showCount && (
+        <span
+          className={cn(
+            "w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold font-mono",
+            isActive
+              ? "bg-primary text-primary-content"
+              : "bg-base-200",
+          )}
+        >
+          {count}
+        </span>
+      )}
+      {tab.showChevron && (
+        <ChevronDown size={11} className="opacity-50 shrink-0 -rotate-90" />
+      )}
+    </button>
+  );
+}
+
+// ─── LeadRow Component ────────────────────────────────────────────────────────
+
+interface LeadRowProps {
+  lead: Lead;
+  stages: LeadStage[];
+  isSelected: boolean;
+  onSelectLead: (leadId: string, isChecked: boolean) => void;
+  onChangeStage: (leadId: string, newStageId: string) => void;
+}
+
+function LeadRow({ lead, stages, isSelected, onSelectLead, onChangeStage }: LeadRowProps) {
+  const currentStageLabel = stages.find((s) => s.id === lead.stage)?.label ?? lead.stage;
+
+  return (
+    <tr className="hover:bg-base-200/20 transition-colors text-xs text-base-content/85">
+      {/* Checkbox */}
+      <td className="pl-3 py-2.5">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => onSelectLead(lead.id, e.target.checked)}
+          className="checkbox checkbox-xs checkbox-primary rounded-sm cursor-pointer"
+        />
+      </td>
+
+      {/* Ngày thêm */}
+      <td className="py-2.5 px-3 font-medium text-base-content/55 tabular-nums">
+        {lead.date}
+      </td>
+
+      {/* Tên & Avatar với badge platform */}
+      <td className="py-2.5 px-3">
+        <div className="flex items-center gap-2.5">
+          {/* Avatar daisyUI */}
+          <div className="avatar avatar-placeholder relative shrink-0">
+            <div className="w-8 rounded-full bg-base-300 text-base-content/70 border border-base-content/5">
+              {lead.avatar ? (
+                <img src={lead.avatar} alt={lead.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs font-bold">{lead.name.charAt(0).toUpperCase()}</span>
+              )}
+            </div>
+            {/* Platform badge — hiển thị đầy đủ theo platform */}
+            {PLATFORM_BADGE[lead.platform] && (
+              <div
+                className={cn(
+                  "absolute -bottom-0.5 -right-0.5 bg-base-100 rounded-full p-0.5 shadow-sm border border-base-content/5 flex items-center justify-center",
+                  PLATFORM_BADGE[lead.platform].colorClass,
+                )}
+              >
+                {PLATFORM_BADGE[lead.platform].icon}
+              </div>
+            )}
+          </div>
+
+          <span className="font-semibold text-base-content hover:text-primary cursor-pointer transition-colors">
+            {lead.name}
+          </span>
+        </div>
+      </td>
+
+      {/* Dropdown Giai đoạn */}
+      <td className="py-2.5 px-3">
+        <details className="dropdown dropdown-bottom">
+          <summary className="flex items-center gap-1.5 px-2.5 py-1 bg-base-200 hover:bg-base-300 text-base-content/80 rounded-lg font-semibold cursor-pointer border border-base-content/5 w-fit text-2xs list-none select-none transition-colors">
+            <span>{currentStageLabel}</span>
+            <ChevronDown size={11} className="opacity-50 shrink-0" />
+          </summary>
+          <ul className="dropdown-content menu p-1.5 shadow-lg bg-base-100 rounded-xl w-44 z-50 border border-base-content/10 mt-1">
+            <li className="menu-title text-3xs font-bold uppercase text-base-content/40 tracking-widest">
+              Chuyển sang:
+            </li>
+            {stages.map((stage) => (
+              <li key={stage.id}>
+                <button
+                  onClick={() => onChangeStage(lead.id, stage.id)}
+                  className="text-xs py-1.5 cursor-pointer"
+                >
+                  {stage.icon} {stage.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      </td>
+
+      {/* Badge Nguồn */}
+      <td className="py-2.5 px-3">
+        <span className="badge badge-ghost badge-sm font-semibold text-base-content/70">
+          {lead.source}
+        </span>
+      </td>
+
+      {/* Dropdown Chỉ định cho */}
+      <td className="py-2.5 px-3">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-base-200 hover:bg-base-300 text-base-content/60 rounded-lg font-semibold cursor-pointer border border-base-content/5 w-fit text-2xs transition-colors">
+          <span>Chưa chỉ định</span>
+          <ChevronDown size={11} className="opacity-50 shrink-0" />
+        </div>
+      </td>
+
+      {/* Kênh */}
+      <td className="py-2.5 px-3 text-base-content/60 font-medium">
+        {PLATFORM_LABEL[lead.platform] ?? lead.platform}
+      </td>
+
+      {/* Trạng thái */}
+      <td className="py-2.5 px-3">
+        <span
+          className={cn(
+            "badge badge-xs font-semibold",
+            STATUS_BADGE_CLASS["active"],
+          )}
+        >
+          Hoạt động
+        </span>
+      </td>
+
+      {/* Lời nhắc */}
+      <td className="py-2.5 px-3 pr-3 text-base-content/35 italic text-xs">
+        Không có
+      </td>
+    </tr>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export function LeadsTable({
   leads,
@@ -45,119 +254,41 @@ export function LeadsTable({
   currentSubTab,
   onSubTabChange,
 }: LeadsTableProps) {
-  // Tính count động cho các sub-tabs
   const totalCount = allLeads.length;
-  const newCount = allLeads.filter((l) => l.stage === "new").length;
-  const qualifiedCount = allLeads.filter((l) => l.stage === "qualified").length;
-  const convertedCount = allLeads.filter((l) => l.stage === "converted").length;
-
-  const isAllSelected =
-    leads.length > 0 && leads.every((l) => selectedLeadIds.includes(l.id));
+  const isAllSelected = leads.length > 0 && leads.every((l) => selectedLeadIds.includes(l.id));
 
   return (
-    <div className="flex flex-col gap-4 w-full bg-base-100 p-4 border border-base-content/5 rounded-2xl shadow-3xs animate-fade-in">
-      {/* 1. Thanh tab phân loại (Sub-tabs / Filter Menu) */}
-      <div className="flex items-center justify-between border-b border-base-200 dark:border-base-800 pb-2.5 text-xs font-semibold text-base-content/75 overflow-x-auto w-full">
-        <div className="flex items-center gap-2 md:gap-3.5 shrink-0">
-          {/* Tab: Tất cả */}
-          <button
-            onClick={() => onSubTabChange("all")}
-            className={cn(
-              "py-1.5 px-3 rounded-lg shadow-3xs transition-all cursor-pointer font-bold",
-              currentSubTab === "all"
-                ? "bg-[#e0f2fe] text-[#0064d2] dark:bg-sky-950/30 dark:text-sky-400 font-bold"
-                : "hover:bg-base-200/50 text-base-content/70",
-            )}
-          >
-            Tất cả ({totalCount})
-          </button>
-
-          {/* Vạch phân cách đứng */}
-          <div className="h-4 w-px bg-base-300 dark:bg-base-800" />
-
-          {/* Tab: Tiếp nhận */}
-          <button
-            onClick={() => onSubTabChange("new")}
-            className={cn(
-              "flex items-center gap-1.5 py-1.5 px-3 rounded-lg transition-all cursor-pointer font-bold",
-              currentSubTab === "new"
-                ? "bg-[#e0f2fe] text-[#0064d2] dark:bg-sky-950/30 dark:text-sky-400"
-                : "hover:bg-base-200/50 text-base-content/70",
-            )}
-          >
-            <span>Tiếp nhận</span>
-            <span
-              className={cn(
-                "w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold font-mono",
-                currentSubTab === "new"
-                  ? "bg-[#0064d2] text-white"
-                  : "bg-base-200 dark:bg-base-800",
+    <div className="flex flex-col gap-4 w-full bg-base-100 p-4 border border-base-content/5 rounded-lg shadow-sm">
+      {/* ── 1. Sub-tab Filter Bar ── */}
+      <div className="flex items-center justify-between border-b border-base-content/8 pb-2.5 overflow-x-auto w-full">
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          {SUB_TABS.map((tab, idx) => (
+            <React.Fragment key={tab.id}>
+              <SubTab
+                tab={tab}
+                count={getSubTabCount(tab, allLeads, totalCount)}
+                isActive={currentSubTab === tab.id}
+                onClick={() => onSubTabChange(tab.id)}
+              />
+              {/* Divider sau tab "Tất cả" */}
+              {idx === 0 && (
+                <div className="h-4 w-px bg-base-content/15 shrink-0" />
               )}
-            >
-              {newCount}
-            </span>
-            <ChevronRight size={12} className="opacity-60 shrink-0" />
-          </button>
-
-          {/* Tab: Đủ tiêu chuẩn */}
-          <button
-            onClick={() => onSubTabChange("qualified")}
-            className={cn(
-              "flex items-center gap-1.5 py-1.5 px-3 rounded-lg transition-all cursor-pointer font-bold",
-              currentSubTab === "qualified"
-                ? "bg-[#e0f2fe] text-[#0064d2] dark:bg-sky-950/30 dark:text-sky-400"
-                : "hover:bg-base-200/50 text-base-content/70",
-            )}
-          >
-            <span>Đủ tiêu chuẩn</span>
-            <span
-              className={cn(
-                "w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold font-mono",
-                currentSubTab === "qualified"
-                  ? "bg-[#0064d2] text-white"
-                  : "bg-base-200 dark:bg-base-800",
-              )}
-            >
-              {qualifiedCount}
-            </span>
-            <ChevronRight size={12} className="opacity-60 shrink-0" />
-          </button>
-
-          {/* Tab: Đã chuyển đổi */}
-          <button
-            onClick={() => onSubTabChange("converted")}
-            className={cn(
-              "flex items-center gap-1.5 py-1.5 px-3 rounded-lg transition-all cursor-pointer font-bold",
-              currentSubTab === "converted"
-                ? "bg-[#e0f2fe] text-[#0064d2] dark:bg-sky-950/30 dark:text-sky-400"
-                : "hover:bg-base-200/50 text-base-content/70",
-            )}
-          >
-            <span>Đã chuyển đổi</span>
-            <span
-              className={cn(
-                "w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold font-mono",
-                currentSubTab === "converted"
-                  ? "bg-[#0064d2] text-white"
-                  : "bg-base-200 dark:bg-base-800",
-              )}
-            >
-              {convertedCount}
-            </span>
-          </button>
+            </React.Fragment>
+          ))}
         </div>
 
-        {/* Nút Ba chấm góc phải */}
-        <button className="w-8 h-8 hover:bg-base-200 rounded-lg flex items-center justify-center transition-all text-base-content/50 shrink-0 cursor-pointer">
+        {/* Nút tùy chọn góc phải */}
+        <button className="btn btn-ghost btn-sm btn-square text-base-content/40 shrink-0">
           <MoreHorizontal size={14} />
         </button>
       </div>
 
-      {/* 2. Cấu trúc Bảng dữ liệu chính (Data Table) */}
+      {/* ── 2. Data Table ── */}
       <div className="overflow-x-auto w-full">
-        <table className="table table-zebra w-full text-left border-separate border-spacing-y-0.5">
+        <table className="table table-zebra w-full text-left">
           <thead>
-            <tr className="border-b border-base-200 dark:border-base-800 text-base-content/50 text-[11px] font-semibold uppercase tracking-wider bg-base-200/10">
+            <tr className="text-base-content/40 text-3xs font-bold uppercase tracking-widest font-mono border-b border-base-content/8">
               {/* Checkbox hàng loạt */}
               <th className="w-10 pl-3">
                 <input
@@ -168,195 +299,48 @@ export function LeadsTable({
                 />
               </th>
 
-              {/* Cột Ngày thêm */}
-              <th className="py-3 px-3 cursor-pointer hover:bg-base-200/30 transition-colors">
+              {/* Ngày thêm — cột sort active */}
+              <th className="py-3 px-3 cursor-pointer hover:bg-base-200/30 transition-colors rounded">
                 <div className="flex items-center gap-1">
                   <span>Ngày thêm</span>
-                  <ArrowDown size={12} className="text-[#0064d2]" />
+                  <ArrowDown size={12} className="text-primary shrink-0" />
                 </div>
               </th>
 
-              {/* Cột Tên */}
-              <th className="py-3 px-3 cursor-pointer hover:bg-base-200/30 transition-colors">
-                <div className="flex items-center gap-1">
-                  <span>Tên</span>
-                  <ArrowUpDown size={11} className="opacity-50" />
-                </div>
-              </th>
+              {/* Cột có sort bình thường */}
+              {(["Tên", "Giai đoạn", "Nguồn", "Chỉ định cho", "Kênh", "Trạng thái"] as const).map((col) => (
+                <th key={col} className="py-3 px-3 cursor-pointer hover:bg-base-200/30 transition-colors rounded">
+                  <div className="flex items-center gap-1">
+                    <span>{col}</span>
+                    <ArrowUpDown size={11} className="opacity-40 shrink-0" />
+                  </div>
+                </th>
+              ))}
 
-              {/* Cột Giai đoạn */}
-              <th className="py-3 px-3 cursor-pointer hover:bg-base-200/30 transition-colors">
-                <div className="flex items-center gap-1">
-                  <span>Giai đoạn</span>
-                  <ArrowUpDown size={11} className="opacity-50" />
-                </div>
-              </th>
-
-              {/* Cột Nguồn */}
-              <th className="py-3 px-3 cursor-pointer hover:bg-base-200/30 transition-colors">
-                <div className="flex items-center gap-1">
-                  <span>Nguồn</span>
-                  <ArrowUpDown size={11} className="opacity-50" />
-                </div>
-              </th>
-
-              {/* Cột Chỉ định cho */}
-              <th className="py-3 px-3 cursor-pointer hover:bg-base-200/30 transition-colors">
-                <div className="flex items-center gap-1">
-                  <span>Chỉ định cho</span>
-                  <ArrowUpDown size={11} className="opacity-50" />
-                </div>
-              </th>
-
-              {/* Cột Kênh */}
-              <th className="py-3 px-3 cursor-pointer hover:bg-base-200/30 transition-colors">
-                <div className="flex items-center gap-1">
-                  <span>Kênh</span>
-                  <ArrowUpDown size={11} className="opacity-50" />
-                </div>
-              </th>
-
-              {/* Cột Trạng thái */}
-              <th className="py-3 px-3 cursor-pointer hover:bg-base-200/30 transition-colors">
-                <div className="flex items-center gap-1">
-                  <span>Trạng thái</span>
-                  <ArrowUpDown size={11} className="opacity-50" />
-                </div>
-              </th>
-
-              {/* Cột Lời nhắc */}
+              {/* Cột không sort */}
               <th className="py-3 px-3 pr-3">
                 <span>Lời nhắc</span>
               </th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-base-200 dark:divide-base-800">
+          <tbody className="divide-y divide-base-content/5">
             {leads.length > 0 ? (
               leads.map((lead) => (
-                <tr
+                <LeadRow
                   key={lead.id}
-                  className="hover:bg-base-200/30 transition-colors text-xs text-base-content/85"
-                >
-                  {/* Checkbox */}
-                  <td className="pl-3 py-2.5">
-                    <input
-                      type="checkbox"
-                      checked={selectedLeadIds.includes(lead.id)}
-                      onChange={(e) => onSelectLead(lead.id, e.target.checked)}
-                      className="checkbox checkbox-xs checkbox-primary rounded-sm cursor-pointer"
-                    />
-                  </td>
-
-                  {/* Ngày thêm */}
-                  <td className="py-2.5 px-3 font-medium text-base-content/70">
-                    {lead.date}
-                  </td>
-
-                  {/* Tên & Avatar đè logo Messenger */}
-                  <td className="py-2.5 px-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="relative shrink-0">
-                        <div className="w-8 h-8 rounded-full overflow-hidden border border-base-300 bg-linear-to-tr from-sky-100 to-indigo-100 text-sky-700 flex items-center justify-center font-bold text-xs">
-                          {lead.avatar ? (
-                            <img
-                              src={lead.avatar}
-                              alt={lead.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span>{lead.name.charAt(0).toUpperCase()}</span>
-                          )}
-                        </div>
-                        {/* Logo Messenger đè lên avatar */}
-                        {lead.platform === "messenger" && (
-                          <div className="absolute -bottom-1 -right-1 bg-white dark:bg-base-200 rounded-full p-0.5 shadow-2xs border border-base-100 dark:border-base-900 flex items-center justify-center">
-                            <MessengerIcon />
-                          </div>
-                        )}
-                      </div>
-                      <span className="font-semibold text-base-content hover:text-[#0064d2] cursor-pointer transition-colors text-xs">
-                        {lead.name}
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Dropdown Giai đoạn */}
-                  <td className="py-2.5 px-3">
-                    <div className="dropdown dropdown-bottom">
-                      <div
-                        tabIndex={0}
-                        role="button"
-                        className="flex items-center justify-between gap-1.5 px-2.5 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-semibold cursor-pointer border border-base-200 dark:border-base-800 w-fit text-[11px] shadow-3xs"
-                      >
-                        <span>
-                          {stages.find((s) => s.id === lead.stage)?.label ||
-                            lead.stage}
-                        </span>
-                        <ChevronDown
-                          size={11}
-                          className="opacity-60 shrink-0"
-                        />
-                      </div>
-                      <ul
-                        tabIndex={0}
-                        className="dropdown-content menu p-1.5 shadow-md bg-base-100 rounded-xl w-44 z-100 border border-base-200 dark:border-base-800 mt-1"
-                      >
-                        <li className="menu-title text-3xs font-bold uppercase text-base-content/40">
-                          Chuyển sang:
-                        </li>
-                        {stages.map((stage) => (
-                          <li key={stage.id}>
-                            <button
-                              onClick={() => onChangeStage(lead.id, stage.id)}
-                              className="text-xs py-1.5 cursor-pointer"
-                            >
-                              {stage.icon} {stage.label}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </td>
-
-                  {/* Badge Nguồn */}
-                  <td className="py-2.5 px-3">
-                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 rounded font-semibold text-2xs">
-                      {lead.source}
-                    </span>
-                  </td>
-
-                  {/* Dropdown Chỉ định cho */}
-                  <td className="py-2.5 px-3">
-                    <div className="flex items-center justify-between gap-1.5 px-2.5 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-semibold cursor-pointer border border-base-200 dark:border-base-800 w-fit text-[11px] shadow-3xs">
-                      <span>Chưa chỉ định</span>
-                      <ChevronDown size={11} className="opacity-60 shrink-0" />
-                    </div>
-                  </td>
-
-                  {/* Kênh */}
-                  <td className="py-2.5 px-3 font-medium text-base-content/70">
-                    {lead.platform === "messenger"
-                      ? "Messenger"
-                      : lead.platform}
-                  </td>
-
-                  {/* Trạng thái (Tự động thu thập) */}
-                  <td className="py-2.5 px-3 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
-                    Hoạt động
-                  </td>
-
-                  {/* Lời nhắc */}
-                  <td className="py-2.5 px-3 pr-3 text-base-content/40 italic">
-                    Không có
-                  </td>
-                </tr>
+                  lead={lead}
+                  stages={stages}
+                  isSelected={selectedLeadIds.includes(lead.id)}
+                  onSelectLead={onSelectLead}
+                  onChangeStage={onChangeStage}
+                />
               ))
             ) : (
               <tr>
                 <td
                   colSpan={9}
-                  className="text-center py-8 text-base-content/40 font-semibold"
+                  className="text-center py-12 text-base-content/40 font-medium text-sm"
                 >
                   Không tìm thấy khách hàng tiềm năng nào phù hợp với bộ lọc.
                 </td>

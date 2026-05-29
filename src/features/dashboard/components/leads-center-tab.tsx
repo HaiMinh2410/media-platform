@@ -1,21 +1,23 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { CheckCircle2 } from 'lucide-react';
-import { LeadsStats } from './leads/leads-stats';
-import { LeadsFilters } from './leads/leads-filters';
-import { KanbanColumn } from './leads/kanban-column';
-import { LeadsTable } from './leads/leads-table';
-import { LeadsFunnelModal } from './leads/leads-funnel-modal';
-import { LeadsBulkEditSidebar } from './leads/leads-bulk-edit-sidebar';
-import { useLeads } from './leads/hooks/use-leads';
-import { cn } from '@shared/lib/utils';
+import React from "react";
+import { CheckCircle2 } from "lucide-react";
+import { LeadsStats } from "./leads/leads-stats";
+import { LeadsFilters } from "./leads/leads-filters";
+import { KanbanColumn } from "./leads/kanban-column";
+import { LeadsTable } from "./leads/leads-table";
+import { LeadsFunnelModal } from "./leads/leads-funnel-modal";
+import { LeadsBulkEditSidebar } from "./leads/leads-bulk-edit-sidebar";
+import { useLeads } from "./leads/hooks/use-leads";
+import { cn } from "@shared/lib/utils";
 
 interface LeadsCenterTabProps {
   workspaceId?: string;
 }
 
-export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCenterTabProps) {
+export function LeadsCenterTab({
+  workspaceId = "default-workspace",
+}: LeadsCenterTabProps) {
   const {
     viewMode,
     setViewMode,
@@ -53,8 +55,26 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
     handleSelectAllLeadsInStage,
   } = useLeads(workspaceId);
 
-  const DEFAULT_STAGE_IDS = ["new", "qualified", "converted", "unqualified", "lost"];
-  const [draggedColumnId, setDraggedColumnId] = React.useState<string | null>(null);
+  const DEFAULT_STAGE_IDS = [
+    "new",
+    "qualified",
+    "converted",
+    "unqualified",
+    "lost",
+  ];
+  const [draggedColumnId, setDraggedColumnId] = React.useState<string | null>(
+    null,
+  );
+
+  // Tự động mở/đóng sidebar khi có/không còn leads được chọn
+  React.useEffect(() => {
+    if (selectedLeadIds.length > 0 && !isBulkEditing) {
+      setIsBulkEditing(true);
+    } else if (selectedLeadIds.length === 0 && isBulkEditing) {
+      setIsBulkEditing(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLeadIds.length]);
 
   const handleColumnDragStart = (e: React.DragEvent, stageId: string) => {
     if (DEFAULT_STAGE_IDS.includes(stageId)) {
@@ -79,7 +99,8 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
 
   const handleColumnDrop = (e: React.DragEvent, targetStageId: string) => {
     e.preventDefault();
-    const sourceStageId = e.dataTransfer.getData("text/column-id") || draggedColumnId;
+    const sourceStageId =
+      e.dataTransfer.getData("text/column-id") || draggedColumnId;
     if (
       !sourceStageId ||
       sourceStageId === targetStageId ||
@@ -110,10 +131,10 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
     <div className="flex flex-col gap-5 h-full text-base-content w-full animate-fade-in relative min-h-0 flex-1">
       {/* Aurora glow effect */}
       <div className="absolute -left-12 -top-12 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
- 
+
       {/* 1. Bộ lọc và Chuyển chế độ xem */}
-      <LeadsFilters 
-        viewMode={viewMode} 
+      <LeadsFilters
+        viewMode={viewMode}
         onViewModeChange={(mode) => {
           setViewMode(mode);
           setSelectedLeadIds([]); // Reset lựa chọn khi đổi view
@@ -140,10 +161,10 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
           setSelectedLeadIds([]); // Reset khi toggle
         }}
       />
- 
+
       {/* 2. Thanh đo lường hiệu suất (Bento Stats) */}
       <LeadsStats leads={leads} />
-      
+
       {/* 3. Vùng nội dung chính */}
       <div className="flex gap-4 w-full items-stretch flex-1 min-h-0">
         <div className="flex-1 min-w-0 h-full flex flex-col">
@@ -151,15 +172,17 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
             <div className="flex items-center justify-center min-h-[400px]">
               <span className="loading loading-ring loading-lg text-primary"></span>
             </div>
-          ) : viewMode === 'kanban' ? (
+          ) : viewMode === "kanban" ? (
             <div className="flex gap-2.5 overflow-x-auto w-full items-stretch flex-1 min-h-0 kanban-scrollbar">
               {/* Render các cột Kanban động theo stages */}
               {stages.map((stage) => {
                 // Ẩn 2 giai đoạn mặc định đặc biệt nếu người dùng không chọn hiển thị
-                if (stage.id === 'lost' && !showLost) return null;
-                if (stage.id === 'unqualified' && !showUnqualified) return null;
+                if (stage.id === "lost" && !showLost) return null;
+                if (stage.id === "unqualified" && !showUnqualified) return null;
 
-                const stageLeads = filteredLeads.filter(l => l.stage === stage.id);
+                const stageLeads = filteredLeads.filter(
+                  (l) => l.stage === stage.id,
+                );
                 const isDefault = DEFAULT_STAGE_IDS.includes(stage.id);
                 return (
                   <div
@@ -172,13 +195,18 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
                     className={cn(
                       "transition-all duration-300 rounded-lg",
                       !isDefault && "cursor-grab active:cursor-grabbing",
-                      draggedColumnId === stage.id ? "opacity-35 scale-[0.98]" : "opacity-100",
-                      !isDefault && draggedColumnId && draggedColumnId !== stage.id && "hover:border-dashed hover:border-primary/40 hover:scale-[1.01]"
+                      draggedColumnId === stage.id
+                        ? "opacity-35 scale-[0.98]"
+                        : "opacity-100",
+                      !isDefault &&
+                        draggedColumnId &&
+                        draggedColumnId !== stage.id &&
+                        "hover:border-dashed hover:border-primary/40 hover:scale-[1.01]",
                     )}
                   >
-                    <KanbanColumn 
-                      stage={stage} 
-                      leads={stageLeads} 
+                    <KanbanColumn
+                      stage={stage}
+                      leads={stageLeads}
                       stages={stages}
                       onChangeStage={handleChangeStage}
                       onDeleteLead={handleDeleteLead}
@@ -192,7 +220,7 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
                   </div>
                 );
               })}
-              
+
               {/* Cột Thêm giai đoạn tùy chỉnh */}
               {!isBulkEditing && (
                 <KanbanColumn isAddStageColumn onAddStage={handleAddStage} />
@@ -200,10 +228,10 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
             </div>
           ) : (
             /* Detailed Table View */
-            <LeadsTable 
-              leads={filteredLeads} 
+            <LeadsTable
+              leads={filteredLeads}
               allLeads={leads}
-              stages={stages} 
+              stages={stages}
               selectedLeadIds={selectedLeadIds}
               onSelectLead={handleSelectLead}
               onSelectAllLeads={handleSelectAllLeads}
@@ -236,7 +264,7 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
           setToast({
             show: true,
             message: `Đã xóa ${selectedLeadIds.length} khách hàng tiềm năng.`,
-            type: 'success'
+            type: "success",
           });
           setSelectedLeadIds([]);
           setIsBulkEditing(false);
@@ -246,9 +274,13 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
       {/* 4. Giao diện Toast thông báo nổi tuyệt đẹp */}
       {toast.show && (
         <div className="fixed bottom-5 right-5 z-200 animate-slide-in">
-          <div className={`alert rounded-xl shadow-lg p-3 flex items-center gap-2 border border-base-content/5 text-xs font-bold ${
-            toast.type === 'success' ? 'alert-success text-success-content' : 'alert-info text-info-content'
-          }`}>
+          <div
+            className={`alert rounded-xl shadow-lg p-3 flex items-center gap-2 border border-base-content/5 text-xs font-bold ${
+              toast.type === "success"
+                ? "alert-success text-success-content"
+                : "alert-info text-info-content"
+            }`}
+          >
             <CheckCircle2 size={16} className="shrink-0" />
             <span>{toast.message}</span>
           </div>
