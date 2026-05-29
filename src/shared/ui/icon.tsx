@@ -76,6 +76,42 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(
 
 Icon.displayName = 'Icon';
 
+// ─── Funnel Section Icons ─────────────────────────────────────────────────────
+// Dùng trong LeadsFunnelModal để biểu thị các phần của phễu (Top / Middle / Bottom / Done).
+// Mỗi icon highlight dòng đại diện cho vị trí trong phễu, các dòng còn lại mờ (opacity 0.25).
+
+export const TopFunnelIcon = ({ className }: { className?: string }) => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className={cn("shrink-0 text-base-content/80", className)}>
+    <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    <line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.25" />
+    <line x1="10" y1="18" x2="14" y2="18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.25" />
+  </svg>
+);
+
+export const MiddleFunnelIcon = ({ className }: { className?: string }) => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className={cn("shrink-0 text-base-content/80", className)}>
+    <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.25" />
+    <line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    <line x1="10" y1="18" x2="14" y2="18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.25" />
+  </svg>
+);
+
+export const BottomFunnelIcon = ({ className }: { className?: string }) => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className={cn("shrink-0 text-base-content/80", className)}>
+    <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.25" />
+    <line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.25" />
+    <line x1="10" y1="18" x2="14" y2="18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+  </svg>
+);
+
+export const DoneFunnelIcon = ({ className }: { className?: string }) => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className={cn("shrink-0 text-base-content/80", className)}>
+    <line x1="6" y1="6" x2="18" y2="6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.25" />
+    <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.25" />
+    <path d="M4 14l5 5M9 14l-5 5" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+  </svg>
+);
+
 export const MessengerIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"

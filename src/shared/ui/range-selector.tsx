@@ -11,6 +11,8 @@ export interface RangeOption {
   icon?: React.ReactNode | ((className?: string) => React.ReactNode);
   dropdownLabel?: React.ReactNode;
   iconColorClass?: string;
+  /** Hiển thị line ngăn cách phía trên option này */
+  dividerBefore?: boolean;
 }
 
 interface RangeSelectorProps {
@@ -172,10 +174,10 @@ export const RangeSelector = React.forwardRef<HTMLDivElement, RangeSelectorProps
       return (
         <button
           onClick={() => setOpen(!open)}
-          className={
-            triggerClassName ||
-            `btn btn-soft btn-sm rounded-full ${currentStyle.trigger}`
-          }
+          className={cn(
+            `btn btn-soft btn-sm rounded-full hover:bg-soft/60 ${currentStyle.trigger}`,
+            triggerClassName
+          )}
         >
           <div className="flex items-center gap-2.5 flex-1 text-left overflow-hidden">
             {renderIcon(
@@ -214,42 +216,46 @@ export const RangeSelector = React.forwardRef<HTMLDivElement, RangeSelectorProps
               {children
                 ? children
                 : options?.map((r) => (
-                    <button
-                      key={r.id}
-                      onClick={() => {
-                        onChange?.(r.id);
-                        setOpen(false);
-                      }}
-                      className={`flex items-center transition-all cursor-pointer ${currentStyle.menuItem} ${
-                        value === r.id
-                          ? "text-foreground bg-foreground/10"
-                          : "text-foreground/60 hover:text-foreground hover:bg-foreground/5"
-                      }`}
-                    >
-                      {renderIcon(
-                        r.icon,
-                        null,
-                        `${currentStyle.iconClass} ${r.iconColorClass || ""}`,
+                    <React.Fragment key={r.id}>
+                      {r.dividerBefore && (
+                        <div className="h-px bg-foreground/10 my-1 -mx-1" />
                       )}
-                      <span className="flex-1 text-left">
-                        {r.dropdownLabel || r.label}
-                      </span>
-                      {value === r.id && !r.icon && (
-                        <svg
-                          className={`${currentStyle.iconClass} text-foreground`}
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      )}
-                    </button>
+                      <button
+                        onClick={() => {
+                          onChange?.(r.id);
+                          setOpen(false);
+                        }}
+                        className={`flex items-center transition-all cursor-pointer ${currentStyle.menuItem} ${
+                          value === r.id
+                            ? "text-foreground bg-foreground/10"
+                            : "text-foreground/60 hover:text-foreground hover:bg-foreground/5"
+                        }`}
+                      >
+                        {renderIcon(
+                          r.icon,
+                          null,
+                          `${currentStyle.iconClass} ${r.iconColorClass || ""}`,
+                        )}
+                        <span className="flex-1 text-left">
+                          {r.dropdownLabel || r.label}
+                        </span>
+                        {value === r.id && !r.icon && (
+                          <svg
+                            className={`${currentStyle.iconClass} text-foreground`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    </React.Fragment>
                   ))}
             </motion.div>
           )}

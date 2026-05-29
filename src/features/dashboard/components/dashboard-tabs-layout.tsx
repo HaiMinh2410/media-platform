@@ -47,7 +47,7 @@ export function DashboardTabsLayout({
       className={cn(
         "bg-base-200 flex flex-col w-full transition-all duration-300",
         activeTab === 'leads' ? "h-full overflow-hidden" : "min-h-screen",
-        isBulkEditing && 'pr-[300px]'
+        isBulkEditing && 'pr-[340px]'
       )}
     >
       <div

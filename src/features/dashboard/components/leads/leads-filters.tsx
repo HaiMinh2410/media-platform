@@ -77,7 +77,6 @@ export function LeadsFilters({
   onToggleBulkEditing = () => {},
 }: LeadsFiltersProps) {
   const {
-    showFilters,
     setShowFilters,
     isMoreOpen,
     setIsMoreOpen,

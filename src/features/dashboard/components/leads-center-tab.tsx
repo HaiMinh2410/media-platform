@@ -231,13 +231,14 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
           handleBulkEdit(stageId);
           setIsBulkEditing(false);
         }}
-        onAssigneeChange={(assignee) => {
+        onDeleteSelected={() => {
+          // TODO: gọi API xóa hàng loạt khi có backend
           setToast({
             show: true,
-            message: `Đã chỉ định hàng loạt ${selectedLeadIds.length} khách hàng cho "${assignee}".`,
+            message: `Đã xóa ${selectedLeadIds.length} khách hàng tiềm năng.`,
             type: 'success'
           });
-          setSelectedLeadIds([]); // Reset selection
+          setSelectedLeadIds([]);
           setIsBulkEditing(false);
         }}
       />

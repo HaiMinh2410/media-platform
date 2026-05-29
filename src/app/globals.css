@@ -42,22 +42,11 @@
   --color-tiktok: #000000;
   --color-whatsapp: #25D366;
 
-  /* Radii */
-  --radius-sm: var(--radius-selector, 6px);
-  --radius-md: var(--radius-field, 10px);
-  --radius-lg: var(--radius-box, 16px);
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
-  --radius-3xl: 40px;
-  --radius-full: 9999px;
+  /* Radii — KHÔNG định nghĩa --radius-sm/md/lg/xl/2xl ở đây vì sẽ override rounded-sm/md/lg/xl/2xl utilities.
+     Các radius tokens được dùng như CSS variables thuần túy trong :root bên dưới. */
 
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
+  /* Spacing — KHÔNG định nghĩa --spacing-sm/md/lg/xl/2xl ở đây vì sẽ override max-w-sm/md/lg/xl/2xl utilities.
+     Các spacing tokens được dùng như CSS variables thuần túy trong :root bên dưới. */
 
   /* Animations */
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;

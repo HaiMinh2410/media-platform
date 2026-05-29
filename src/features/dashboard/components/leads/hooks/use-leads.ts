@@ -45,6 +45,27 @@ export function useLeads(workspaceId: string) {
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [currentSubTab, setCurrentSubTab] = useState<string>("all");
 
+  // Khôi phục danh sách giai đoạn từ localStorage khi mounted để lưu trữ bền vững
+  useEffect(() => {
+    if (typeof window !== "undefined" && workspaceId) {
+      const saved = localStorage.getItem(`kanban_stages_${workspaceId}`);
+      if (saved) {
+        try {
+          setStages(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to parse saved stages from localStorage:", e);
+        }
+      }
+    }
+  }, [workspaceId]);
+
+  // Tự động đồng bộ danh sách giai đoạn vào localStorage khi có thay đổi
+  useEffect(() => {
+    if (typeof window !== "undefined" && workspaceId && stages.length > 0) {
+      localStorage.setItem(`kanban_stages_${workspaceId}`, JSON.stringify(stages));
+    }
+  }, [stages, workspaceId]);
+
   // Tải danh sách leads thực tế từ DB khi mounted
   useEffect(() => {
     if (workspaceId) {
