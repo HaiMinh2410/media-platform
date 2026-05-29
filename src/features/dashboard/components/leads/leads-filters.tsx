@@ -19,7 +19,6 @@ interface LeadsFiltersProps {
   stages: LeadStage[];
   leads: Lead[];
   filters: {
-    source: string;
     stage: string;
     campaign: string;
     form: string;
@@ -92,6 +91,7 @@ export function LeadsFilters({
     leads,
     filters,
     onFilterChange,
+    workspaceId,
   });
 
   return (

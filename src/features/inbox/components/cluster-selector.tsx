@@ -34,7 +34,7 @@ export function ClusterSelector({
   selectedGroupId,
   onChangeGroup,
   triggerClassName,
-  dropdownClassName="bg-soft border border-foreground/10 shadow-2xl glass-shadow !p-2 rounded-lg",
+  dropdownClassName="bg-soft border border-foreground/10 glass-shadow !p-2 rounded-lg",
   menuMinWidth = "w-[280px]"
 }: ClusterSelectorProps) {
   const { accountGroups, setAccountGroups } = useInboxStore();

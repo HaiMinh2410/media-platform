@@ -120,7 +120,7 @@ async function DashboardContent({ workspaceId, workspaceName, activeTab }: Dashb
   // Nếu đang ở tab leads, import trực tiếp và render LeadsCenterTab (không fetch thừa dữ liệu Overview)
   return (
     <DashboardTabsLayout activeTab={activeTab} workspaceName={workspaceName}>
-      <div className="animate-fade-in w-full">
+      <div className="animate-fade-in w-full flex-1 flex flex-col min-h-0 h-full">
         <LeadsCenterTab workspaceId={workspaceId} />
       </div>
     </DashboardTabsLayout>

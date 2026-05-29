@@ -204,7 +204,7 @@ export const RangeSelector = React.forwardRef<HTMLDivElement, RangeSelectorProps
               exit={{ opacity: 0, y: 5 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                "absolute top-[120%] shadow-2xl z-50 flex flex-col",
+                "absolute top-[120%] z-50 flex flex-col",
                 menuAlign === "left" ? "left-0" : "right-0",
                 menuMinWidth,
                 `bg-foreground/5 border border-foreground/10 backdrop-blur-xl ${currentStyle.dropdown}`,

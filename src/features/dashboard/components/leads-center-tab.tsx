@@ -9,6 +9,7 @@ import { LeadsTable } from './leads/leads-table';
 import { LeadsFunnelModal } from './leads/leads-funnel-modal';
 import { LeadsBulkEditSidebar } from './leads/leads-bulk-edit-sidebar';
 import { useLeads } from './leads/hooks/use-leads';
+import { cn } from '@shared/lib/utils';
 
 interface LeadsCenterTabProps {
   workspaceId?: string;
@@ -52,8 +53,61 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
     handleSelectAllLeadsInStage,
   } = useLeads(workspaceId);
 
+  const DEFAULT_STAGE_IDS = ["new", "qualified", "converted", "unqualified", "lost"];
+  const [draggedColumnId, setDraggedColumnId] = React.useState<string | null>(null);
+
+  const handleColumnDragStart = (e: React.DragEvent, stageId: string) => {
+    if (DEFAULT_STAGE_IDS.includes(stageId)) {
+      e.preventDefault();
+      return;
+    }
+    setDraggedColumnId(stageId);
+    e.dataTransfer.setData("text/column-id", stageId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleColumnDragOver = (e: React.DragEvent, targetStageId: string) => {
+    if (
+      DEFAULT_STAGE_IDS.includes(targetStageId) ||
+      !draggedColumnId ||
+      draggedColumnId === targetStageId
+    ) {
+      return;
+    }
+    e.preventDefault();
+  };
+
+  const handleColumnDrop = (e: React.DragEvent, targetStageId: string) => {
+    e.preventDefault();
+    const sourceStageId = e.dataTransfer.getData("text/column-id") || draggedColumnId;
+    if (
+      !sourceStageId ||
+      sourceStageId === targetStageId ||
+      DEFAULT_STAGE_IDS.includes(targetStageId) ||
+      DEFAULT_STAGE_IDS.includes(sourceStageId)
+    ) {
+      setDraggedColumnId(null);
+      return;
+    }
+
+    const sourceIndex = stages.findIndex((s) => s.id === sourceStageId);
+    const targetIndex = stages.findIndex((s) => s.id === targetStageId);
+
+    if (sourceIndex !== -1 && targetIndex !== -1) {
+      const updatedStages = [...stages];
+      const [removed] = updatedStages.splice(sourceIndex, 1);
+      updatedStages.splice(targetIndex, 0, removed);
+      setStages(updatedStages);
+    }
+    setDraggedColumnId(null);
+  };
+
+  const handleColumnDragEnd = () => {
+    setDraggedColumnId(null);
+  };
+
   return (
-    <div className="flex flex-col gap-5 h-full text-base-content w-full animate-fade-in relative pb-10">
+    <div className="flex flex-col gap-5 h-full text-base-content w-full animate-fade-in relative min-h-0 flex-1">
       {/* Aurora glow effect */}
       <div className="absolute -left-12 -top-12 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
  
@@ -91,14 +145,14 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
       <LeadsStats leads={leads} />
       
       {/* 3. Vùng nội dung chính */}
-      <div className="flex gap-4 w-full items-start">
-        <div className="flex-1 min-w-0">
+      <div className="flex gap-4 w-full items-stretch flex-1 min-h-0">
+        <div className="flex-1 min-w-0 h-full flex flex-col">
           {loading ? (
             <div className="flex items-center justify-center min-h-[400px]">
               <span className="loading loading-ring loading-lg text-primary"></span>
             </div>
           ) : viewMode === 'kanban' ? (
-            <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar w-full items-start min-h-[500px]">
+            <div className="flex gap-2.5 overflow-x-auto w-full items-stretch flex-1 min-h-0 kanban-scrollbar">
               {/* Render các cột Kanban động theo stages */}
               {stages.map((stage) => {
                 // Ẩn 2 giai đoạn mặc định đặc biệt nếu người dùng không chọn hiển thị
@@ -106,59 +160,42 @@ export function LeadsCenterTab({ workspaceId = "default-workspace" }: LeadsCente
                 if (stage.id === 'unqualified' && !showUnqualified) return null;
 
                 const stageLeads = filteredLeads.filter(l => l.stage === stage.id);
+                const isDefault = DEFAULT_STAGE_IDS.includes(stage.id);
                 return (
-                  <KanbanColumn 
-                    key={stage.id} 
-                    stage={stage} 
-                    leads={stageLeads} 
-                    stages={stages}
-                    onChangeStage={handleChangeStage}
-                    onDeleteLead={handleDeleteLead}
-                    isBulkEditing={isBulkEditing}
-                    selectedLeadIds={selectedLeadIds}
-                    onSelectLead={handleSelectLead}
-                    onSelectAllLeadsInStage={handleSelectAllLeadsInStage}
-                  />
+                  <div
+                    key={stage.id}
+                    draggable={!isDefault}
+                    onDragStart={(e) => handleColumnDragStart(e, stage.id)}
+                    onDragOver={(e) => handleColumnDragOver(e, stage.id)}
+                    onDrop={(e) => handleColumnDrop(e, stage.id)}
+                    onDragEnd={handleColumnDragEnd}
+                    className={cn(
+                      "transition-all duration-300 rounded-lg",
+                      !isDefault && "cursor-grab active:cursor-grabbing",
+                      draggedColumnId === stage.id ? "opacity-35 scale-[0.98]" : "opacity-100",
+                      !isDefault && draggedColumnId && draggedColumnId !== stage.id && "hover:border-dashed hover:border-primary/40 hover:scale-[1.01]"
+                    )}
+                  >
+                    <KanbanColumn 
+                      stage={stage} 
+                      leads={stageLeads} 
+                      stages={stages}
+                      onChangeStage={handleChangeStage}
+                      onDeleteLead={handleDeleteLead}
+                      isBulkEditing={isBulkEditing}
+                      selectedLeadIds={selectedLeadIds}
+                      onSelectLead={handleSelectLead}
+                      onSelectAllLeadsInStage={handleSelectAllLeadsInStage}
+                      onUpdateStages={setStages}
+                      isAllClusters={!selectedGroupId}
+                    />
+                  </div>
                 );
               })}
               
-              {/* Cột 4: Thêm giai đoạn tùy chỉnh */}
+              {/* Cột Thêm giai đoạn tùy chỉnh */}
               {!isBulkEditing && (
-                <div className="min-w-[300px] max-w-[300px] bg-base-100 border border-base-content/5 shadow-xs rounded-2xl p-4 flex flex-col justify-center items-center h-full min-h-[480px] shrink-0 text-center transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:scale-98">
-                  {/* Hình minh họa các block */}
-                  <div className="relative w-28 h-28 mb-4 flex items-center justify-center bg-base-200/50 rounded-2xl border border-base-content/5">
-                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      {/* Khung block 1 */}
-                      <rect x="12" y="10" width="40" height="12" rx="4" className="fill-primary/10 stroke-primary" strokeWidth="1.5" />
-                      <circle cx="18" cy="16" r="2" className="fill-primary" />
-                      <rect x="24" y="14" width="16" height="4" rx="1" className="fill-primary/40" />
-                      
-                      {/* Khung block 2 */}
-                      <rect x="12" y="26" width="40" height="12" rx="4" className="fill-secondary/10 stroke-secondary" strokeWidth="1.5" />
-                      <circle cx="18" cy="32" r="2" className="fill-secondary" />
-                      <rect x="24" y="30" width="16" height="4" rx="1" className="fill-secondary/40" />
-                      
-                      {/* Khung block 3 */}
-                      <rect x="12" y="42" width="40" height="12" rx="4" className="fill-primary/10 stroke-primary" strokeWidth="1.5" />
-                      <circle cx="18" cy="48" r="2" className="fill-primary" />
-                      <rect x="24" y="46" width="16" height="4" rx="1" className="fill-primary/40" />
-      
-                      {/* Trỏ chuột click */}
-                      <path d="M46 36 L52 48 L48 50 L42 42 L38 46 L38 34 L46 36 Z" className="fill-base-content stroke-base-100" strokeWidth="1" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  
-                  <h3 className="text-sm font-bold text-base-content/88 mb-2 font-brand">Thêm giai đoạn tùy chỉnh</h3>
-                  <p className="text-2xs leading-relaxed max-w-[220px] text-base-content/50 mb-5 font-medium">
-                    Bạn có thể tạo giai đoạn tùy chỉnh để theo dõi kết quả quan trọng trước khi chuyển đổi.
-                  </p>
-                  <button 
-                    onClick={() => handleAddStage()}
-                    className="btn btn-sm btn-primary rounded-lg shadow-sm cursor-pointer transition-all active:scale-95 px-4"
-                  >
-                    Thêm giai đoạn tùy chỉnh
-                  </button>
-                </div>
+                <KanbanColumn isAddStageColumn onAddStage={handleAddStage} />
               )}
             </div>
           ) : (

@@ -228,9 +228,38 @@ export function useLeads(workspaceId: string) {
     );
   });
 
-  // 3. Cơ chế thêm giai đoạn tùy chỉnh (mở Modal Phễu khách hàng tiềm năng)
-  const handleAddStage = () => {
-    setIsFunnelModalOpen(true);
+  // 3. Cơ chế thêm giai đoạn tùy chỉnh (hỗ trợ thêm trực tiếp hoặc mở Modal)
+  const handleAddStage = (stageLabel?: string) => {
+    if (stageLabel && stageLabel.trim()) {
+      const trimmed = stageLabel.trim();
+      const stageId = `custom_${trimmed.toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;
+      
+      const randomIcon = "⚙️";
+      const newStage: LeadStage = {
+        id: stageId,
+        label: trimmed,
+        count: 0,
+        icon: randomIcon,
+        color: "accent",
+      };
+
+      const convertedIndex = stages.findIndex((s) => s.id === "converted");
+      const updatedStages = [...stages];
+      if (convertedIndex !== -1) {
+        updatedStages.splice(convertedIndex, 0, newStage);
+      } else {
+        updatedStages.push(newStage);
+      }
+      setStages(updatedStages);
+
+      setToast({
+        show: true,
+        message: `Đã tạo thêm giai đoạn "${trimmed}" thành công!`,
+        type: "success",
+      });
+    } else {
+      setIsFunnelModalOpen(true);
+    }
   };
 
   // 4. Cơ chế di chuyển & Cập nhật giai đoạn

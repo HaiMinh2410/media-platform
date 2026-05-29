@@ -8,17 +8,33 @@ interface UseLeadsFiltersProps {
     tag?: string;
   };
   onFilterChange: (key: string, value: string) => void;
+  workspaceId?: string;
 }
 
 export function useLeadsFilters({
   leads,
   filters,
   onFilterChange,
+  workspaceId,
 }: UseLeadsFiltersProps) {
   const [showFilters, setShowFilters] = React.useState(true);
   const [isMoreOpen, setIsMoreOpen] = React.useState(false);
   const moreContainerRef = React.useRef<HTMLDivElement>(null);
-  const { availableTags } = useInboxStore();
+  const { availableTags, setAvailableTags, refreshCounter } = useInboxStore();
+
+  React.useEffect(() => {
+    if (!workspaceId) return;
+    const fetchTags = async () => {
+      try {
+        const res = await fetch(`/api/tags?workspaceId=${workspaceId}`);
+        const json = await res.json();
+        if (json.data) setAvailableTags(json.data);
+      } catch (err) {
+        console.error("Failed to fetch tags in useLeadsFilters:", err);
+      }
+    };
+    fetchTags();
+  }, [workspaceId, setAvailableTags, refreshCounter]);
 
   const parseTag = React.useCallback((tag: string) => {
     const [name, color] = tag.split('::');

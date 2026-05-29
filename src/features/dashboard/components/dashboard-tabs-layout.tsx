@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { LayoutDashboard, Users } from 'lucide-react';
 import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
+import { cn } from '@shared/lib/utils';
+
 interface DashboardTabsLayoutProps {
   activeTab: 'overview' | 'leads';
   workspaceName: string;
@@ -41,8 +43,20 @@ export function DashboardTabsLayout({
   };
 
   return (
-    <div className={`min-h-screen bg-base-200 flex flex-col w-full transition-all duration-300 ${isBulkEditing ? 'pr-[300px]' : ''}`}>
-      <div className={`p-6 xl:p-7 pb-12 xl:pb-16 space-y-6 w-full flex-1 flex flex-col transition-all duration-300 ${isBulkEditing ? 'max-w-full mx-0 pr-0 xl:pr-0' : 'max-w-[1600px] mx-auto'}`}>
+    <div
+      className={cn(
+        "bg-base-200 flex flex-col w-full transition-all duration-300",
+        activeTab === 'leads' ? "h-full overflow-hidden" : "min-h-screen",
+        isBulkEditing && 'pr-[300px]'
+      )}
+    >
+      <div
+        className={cn(
+          "p-6 xl:p-7 space-y-6 w-full flex-1 flex flex-col transition-all duration-300 min-h-0",
+          activeTab === 'leads' ? "pb-4 xl:pb-6" : "pb-12 xl:pb-16",
+          isBulkEditing ? 'max-w-full mx-0 pr-0 xl:pr-0' : 'max-w-[1600px] mx-auto'
+        )}
+      >
         {/* Dashboard Unified Header with Bento Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-base-content/5 shrink-0">
           <div>
@@ -69,7 +83,7 @@ export function DashboardTabsLayout({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col w-full">
+        <div className="flex-1 flex flex-col w-full min-h-0">
           {children}
         </div>
       </div>

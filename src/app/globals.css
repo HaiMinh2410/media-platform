@@ -215,6 +215,32 @@
     display: none;
   }
 
+  .kanban-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-base-content) 15%, transparent) transparent;
+  }
+
+  .kanban-scrollbar::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .kanban-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .kanban-scrollbar::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-base-content) 15%, transparent);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .kanban-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-base-content) 30%, transparent);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
   @keyframes typing-bounce {
     0%, 100% {
       transform: translateY(0);
