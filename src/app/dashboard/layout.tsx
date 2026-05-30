@@ -1,8 +1,8 @@
 'use client';
 
+import { Sidebar, CommandPalette } from "@shared/components";
+
 import React from 'react';
-import { Sidebar } from '@shared/components/layout/sidebar';
-import { CommandPalette } from '@shared/components/layout/command-palette';
 import { Toaster } from 'sonner';
 import { getCurrentUserWorkspaceAction } from '@features/settings/actions/workspace.actions';
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React, { useState } from 'react';
 import { 
   Sparkles, 
@@ -15,7 +17,6 @@ import {
   ChevronDown, 
   ChevronUp 
 } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 
 interface AiProfileViewerProps {
   fanProfile?: any;

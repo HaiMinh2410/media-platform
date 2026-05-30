@@ -1,10 +1,9 @@
 'use client';
 
+import { Button, Card, Icon } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React from 'react';
-import { Button } from '@shared/ui/button';
-import { Card } from '@shared/ui/card';
-import { Icon } from '@shared/ui/icon';
-import { cn } from '@shared/lib/utils';
 
 type ConnectButtonsProps = {
   workspaceId: string;

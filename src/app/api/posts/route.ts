@@ -1,6 +1,7 @@
+import { enqueuePostPublishing } from "@shared/lib/queue/post-queue";
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getPostRepository } from '@features/posts/repositories/post.repository';
-import { enqueuePostPublishing } from '@shared/lib/queue/post-queue';
 import { z } from 'zod';
 
 const CreatePostSchema = z.object({

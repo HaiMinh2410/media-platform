@@ -1,9 +1,10 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { Reorder, useDragControls } from 'framer-motion';
 import { Check, Edit2, GripVertical } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { AccountGroup } from '@features/settings';
 import { CombinedAvatar } from './combined-avatar';
 

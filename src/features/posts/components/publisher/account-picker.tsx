@@ -1,11 +1,12 @@
-"use client";
+'use client';
+
+import { Icon } from "@shared/ui";
+import { cn } from "@shared/lib";
 
 import React, { useState, useRef, useEffect } from "react";
 import { PlatformAccount } from "@features/settings";
-import { cn } from "@shared/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Search, X, Check, PlusCircle } from "lucide-react";
-import { Icon } from "@shared/ui/icon";
 
 type AccountPickerProps = {
   accounts: PlatformAccount[];

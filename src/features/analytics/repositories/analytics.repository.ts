@@ -1,5 +1,6 @@
+import { db } from "@shared/lib/db";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { db } from '@shared/lib/db';
 import type { AnalyticsSnapshot, UpsertSnapshotInput, AnalyticsFilter, AnalyticsPeriodData, PostAnalytic } from '@features/analytics/types';
 import { subDays } from 'date-fns';
 import { calculatePeriods, calculatePostBreakdown, calculateWeightedFollowersPct } from '../utils/analytics-transformer';

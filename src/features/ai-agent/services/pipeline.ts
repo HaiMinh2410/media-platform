@@ -1,3 +1,5 @@
+import { db } from "@shared/lib/db";
+
 // src/application/ai-agent/index.ts
 //
 // Entry point / Orchestrator chính cho AI DM Agent Pipeline — Phase 2 Hybrid Rule + LLM.
@@ -16,7 +18,6 @@ import { filterBlacklist, calculateDelay, checkLinkRateLimit, checkSafety } from
 import { upsertFanProfile } from '@features/ai-agent/repositories/fan-profile.repository';
 import { generateResponse } from './response-generator';
 import { detectAndHandleObjection } from './objection-handler';
-import { db } from '@shared/lib/db';
 import type { FanProfile, NextAction, ResponseStrategy, ConversationStage, FanType } from '@features/ai-agent/types-agent';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';

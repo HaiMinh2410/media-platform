@@ -1,4 +1,7 @@
-"use client";
+'use client';
+
+import { RangeSelector } from "@shared/ui";
+import { cn } from "@shared/lib";
 
 import React, { useState, useEffect, useTransition, useMemo } from "react";
 import {
@@ -6,8 +9,6 @@ import {
   getInboxMetrics,
 } from "@features/dashboard/actions/dashboard.actions";
 import { AccountHealthData } from "@features/settings";
-import { cn } from "@shared/lib/utils";
-import { RangeSelector } from "@shared/ui/range-selector";
 import { motion } from "framer-motion";
 import {
   Globe,

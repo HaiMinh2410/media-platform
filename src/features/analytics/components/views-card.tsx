@@ -1,9 +1,10 @@
 'use client';
 
+import { SlidingTabs } from "@shared/ui";
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Info } from 'lucide-react';
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
 import { cn, Skeleton, StatBlock } from './primitives';
 
 interface ViewsCardProps {

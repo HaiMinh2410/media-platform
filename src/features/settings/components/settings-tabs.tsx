@@ -1,10 +1,11 @@
 'use client';
 
+import { Icon } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Settings, Terminal, Bot } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
-import { Icon } from '@shared/ui/icon';
 
 export function SettingsTabs() {
   const pathname = usePathname();

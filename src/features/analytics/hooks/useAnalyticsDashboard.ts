@@ -1,3 +1,5 @@
+import { calcSummary, fillDateGaps, getXAxisFormatter } from "@shared/lib";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +8,6 @@ import {
   getFollowerDetailedAnalyticsAction, getPostDeepAnalyticsAction
 } from '@features/analytics/actions/analytics.actions';
 import { AnalyticsPeriodData, AnalyticsRange } from '@features/analytics/types';
-import { calcSummary, fillDateGaps, getXAxisFormatter } from '@shared/lib/analytics-utils';
 import { AlertTriangle, Star, Flame } from 'lucide-react';
 
 interface UseAnalyticsDashboardProps {

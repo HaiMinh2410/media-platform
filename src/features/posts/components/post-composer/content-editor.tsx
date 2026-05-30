@@ -1,9 +1,10 @@
 'use client';
 
+import { cn } from "@shared/lib";
+import { ValidationIssue } from "@shared/lib/validation/validation-engine";
+
 import React, { useRef, useEffect } from 'react';
 import { Image as ImageIcon, Film, Smile, Link as LinkIcon } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
-import { ValidationIssue } from '@shared/lib/validation/validation-engine';
 
 type ContentEditorProps = {
   content: string;

@@ -1,3 +1,5 @@
+import { Icon, SlidingTabs } from "@shared/ui";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import {
@@ -21,9 +23,7 @@ import {
   Search,
   Target,
 } from "lucide-react";
-import { Icon } from "@shared/ui/icon";
 import { motion, AnimatePresence } from "framer-motion";
-import { SlidingTabs } from "@shared/ui/sliding-tabs";
 import { generatePerformanceInsightAction } from "@features/analytics/actions/analytics.actions";
 import {
   PLATFORM_BENCHMARKS,

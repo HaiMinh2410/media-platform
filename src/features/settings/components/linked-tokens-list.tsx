@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import { cn } from "@shared/lib";
 
 import React from "react";
 import {
@@ -12,7 +14,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@shared/lib/utils";
 
 interface TokenInfo {
   id: string;

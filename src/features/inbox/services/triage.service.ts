@@ -1,4 +1,5 @@
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import { ClassifyResult } from '@features/ai-agent/types-pipeline';
 
 /**

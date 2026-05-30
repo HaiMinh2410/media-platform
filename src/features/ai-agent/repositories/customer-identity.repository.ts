@@ -1,5 +1,6 @@
+import { db } from "@shared/lib/db";
+
 // src/infrastructure/repositories/customer-identity.repository.ts
-import { db } from '@shared/lib/db';
 import type {
   DuplicateCheckInput,
   DuplicateCheckResult,

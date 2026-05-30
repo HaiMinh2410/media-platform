@@ -1,8 +1,9 @@
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+import { queueService } from "@shared/lib/queue/queue.service";
+
 import { Prisma } from '@prisma/client';
 import { MetaWebhookPayload } from '@features/inbox/types';
 import { metaParser } from '@features/inbox/services/meta-parser.service';
-import { queueService } from '@shared/lib/queue/queue.service';
 
 /**
  * Service to orchestrate the ingestion of webhook events.

@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import { cn } from "@shared/lib";
 
 import React, { useState } from "react";
 import { usePublishStatus } from "@features/posts/hooks/use-publish-status";
@@ -11,7 +13,6 @@ import {
   Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@shared/lib/utils";
 import { motion } from "framer-motion";
 
 interface BatchPublishTrackerProps {

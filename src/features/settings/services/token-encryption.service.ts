@@ -1,5 +1,6 @@
+import { DecryptResult } from "@shared/types";
+
 import crypto from 'crypto';
-import { DecryptResult } from '@shared/types/crypto';
 
 /**
  * Service to handle AES-256-GCM encryption/decryption for sensitive tokens.

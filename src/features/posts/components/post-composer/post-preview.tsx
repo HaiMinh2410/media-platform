@@ -1,8 +1,9 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React, { useState } from 'react';
 import { Globe, Camera, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { motion } from 'framer-motion';
 
 type PostPreviewProps = {
@@ -23,7 +24,7 @@ export function PostPreview({ content, mediaUrls, platform }: PostPreviewProps) 
         </div>
       </div>
 
-      <div className="relative mx-auto w-full max-w-[360px] aspect-[9/19.5] bg-neutral rounded-[3rem] border-[8px] border-neutral shadow-2xl overflow-hidden ring-1 ring-base-content/10">
+      <div className="relative mx-auto w-full max-w-[360px] aspect-9/19.5 bg-neutral rounded-[3rem] border-8 border-neutral shadow-2xl overflow-hidden ring-1 ring-base-content/10">
         {/* Notch */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-neutral rounded-b-3xl z-50 flex items-center justify-center">
           <div className="w-12 h-1 bg-neutral-focus/30 rounded-full" />
@@ -48,8 +49,8 @@ function InstagramPreview({ content, mediaUrls }: { content: string; mediaUrls: 
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 p-[1.5px]">
-            <div className="w-full h-full rounded-full bg-white p-[1px]">
+          <div className="w-8 h-8 rounded-full bg-linear-to-tr from-yellow-400 via-red-500 to-purple-600 p-[1.5px]">
+            <div className="w-full h-full rounded-full bg-white p-px">
               <div className="w-full h-full rounded-full bg-gray-200" />
             </div>
           </div>

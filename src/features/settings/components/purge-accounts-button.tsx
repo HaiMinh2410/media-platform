@@ -1,10 +1,10 @@
 'use client';
 
+import { Button, Icon } from "@shared/ui";
+
 import { useState } from 'react';
-import { Button } from '@shared/ui/button';
 import { purgeOldAccountsAction } from '@features/settings/actions/platform-account.actions';
 import { Trash2 } from 'lucide-react';
-import { Icon } from '@shared/ui/icon';
 
 export function PurgeAccountsButton({ workspaceId }: { workspaceId: string }) {
   const [loading, setLoading] = useState(false);

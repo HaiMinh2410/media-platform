@@ -1,12 +1,13 @@
-"use client";
+'use client';
+
+import { Icon } from "@shared/ui";
+import { cn } from "@shared/lib";
 
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ConversationWithLastMessage } from "@features/inbox/types";
-import { cn } from "@shared/lib/utils";
 import { Flame, Star, Bot, Users, Pin } from "lucide-react";
-import { Icon } from "@shared/ui/icon";
 import { useInboxStore } from "../store/inbox.store";
 
 export function ThreadCard({

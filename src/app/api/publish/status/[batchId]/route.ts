@@ -1,5 +1,6 @@
+import { db } from "@shared/lib/db";
+
 import { NextRequest } from 'next/server';
-import { db } from '@shared/lib/db';
 
 export const dynamic = 'force-dynamic';
 

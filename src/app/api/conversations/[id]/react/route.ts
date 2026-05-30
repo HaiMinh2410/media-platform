@@ -1,5 +1,6 @@
+import { db } from "@shared/lib/db";
+
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@shared/lib/db';
 import { getConversationWithAccount } from '@features/inbox/repositories/conversation.repository';
 import { metaSendService } from '@features/inbox/services/meta-send.service';
 import type { MessagingPlatform } from '@features/inbox/types';

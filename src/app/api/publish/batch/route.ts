@@ -1,6 +1,7 @@
+import { checkRateLimit } from "@shared/lib/queue/rate-limiter";
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@shared/api/supabase/server';
-import { checkRateLimit } from '@shared/lib/queue/rate-limiter';
 import { batchPublishService } from '@features/posts/services/batch-publish.service';
 
 /**

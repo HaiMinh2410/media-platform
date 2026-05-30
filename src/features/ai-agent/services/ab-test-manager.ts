@@ -1,3 +1,5 @@
+import { db } from "@shared/lib/db";
+
 // src/application/ai-agent/ab-test-manager.ts
 //
 // A/B Test Manager - Phase 3 Autonomous + Learning
@@ -5,7 +7,6 @@
 // Lựa chọn Winner dựa trên số mẫu tối thiểu, tỷ lệ chuyển đổi, chỉ số cảm xúc và an toàn.
 //
 
-import { db } from '@shared/lib/db';
 import * as fs from 'fs';
 import * as path from 'path';
 

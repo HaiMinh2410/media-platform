@@ -1,5 +1,6 @@
+import { RangeSelector } from "@shared/ui";
+
 import React from 'react';
-import { RangeSelector } from '@shared/ui/range-selector';
 import { LayoutGrid, Image, Clapperboard, Layers } from 'lucide-react';
 
 export const MEDIA_FILTERS = [

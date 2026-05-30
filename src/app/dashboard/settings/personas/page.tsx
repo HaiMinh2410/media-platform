@@ -1,7 +1,8 @@
+import { db } from "@shared/lib/db";
+
 import { redirect } from 'next/navigation';
 import { createClient } from '@shared/api/supabase/server';
 import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
-import { db } from '@shared/lib/db';
 import { PersonaList } from '@features/settings/components/personas/persona-list';
 
 export default async function PersonasSettingsPage() {

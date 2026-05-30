@@ -1,3 +1,6 @@
+import { db } from "@shared/lib/db";
+import { redisConnection } from "@shared/lib/queue/bullmq.provider";
+
 // src/application/ai-agent/reply-delay-scheduler.ts
 //
 // AI Reply Delay Scheduler - Phase 2 BullMQ
@@ -6,8 +9,6 @@
 //
 
 import { Queue, Worker, Job } from 'bullmq';
-import { redisConnection } from '@shared/lib/queue/bullmq.provider';
-import { db } from '@shared/lib/db';
 import { metaSendService } from '@features/inbox/services/meta-send.service';
 import { idempotentPersistMessage } from '@features/inbox/repositories/message.repository';
 

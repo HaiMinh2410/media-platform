@@ -1,6 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
+import { cn } from "@shared/lib";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ChatWindow, ChatWindowRef } from './chat-window';
 import { ReplyComposer } from './reply-composer';
@@ -10,7 +12,6 @@ import { useAiSuggestions } from '../hooks/use-ai-suggestions';
 import { useMetadataRealtime, useFanProfileRealtime } from '../hooks/use-inbox-realtime';
 import { MessageWithSender } from '@features/inbox/types';
 import { useInboxStore } from '../store/inbox.store';
-import { cn } from '@shared/lib/utils';
 import { createClient } from '@shared/api/supabase/client';
 
 import { usePresenceAndTyping } from '../hooks/use-presence-typing';

@@ -1,10 +1,11 @@
-"use client";
+'use client';
+
+import { Icon } from "@shared/ui";
 
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Bot, Settings2, User2, MessageCircle } from "lucide-react";
-import { Icon } from "@shared/ui/icon";
 import Image from "next/image";
 
 type AccountWithPersona = {

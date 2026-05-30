@@ -1,6 +1,7 @@
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { FileText, Download } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { motion } from 'framer-motion';
 import { MessageAttachment } from '@features/inbox/types';
 import { useInboxStore } from '../../store/inbox.store';

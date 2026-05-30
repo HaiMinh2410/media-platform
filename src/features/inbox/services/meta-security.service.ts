@@ -1,5 +1,6 @@
+import { VerificationResult } from "@shared/types";
+
 import crypto from 'crypto';
-import { VerificationResult } from '@shared/types/security';
 
 /**
  * Service to handle Meta-specific security operations.

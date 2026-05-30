@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
+import { cn } from "@shared/lib";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import type { AiSuggestion } from '@features/inbox/types';
-import { cn } from '@shared/lib/utils';
 import { createClient } from '@shared/api/supabase/client';
 import { Zap, Info, Loader2 } from 'lucide-react';
 

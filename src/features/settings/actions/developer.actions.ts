@@ -1,6 +1,7 @@
 'use server';
 
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import { getTokenEncryptionService } from '@features/settings/services/token-encryption.service';
 
 interface MetaAccountInput {

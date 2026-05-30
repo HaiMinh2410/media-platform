@@ -1,10 +1,10 @@
+import { StageIllustration, PortalTooltip } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React from "react";
 import { MoreHorizontal, Info } from "lucide-react";
 import { Lead, LeadStage } from "./types";
 import { LeadCard } from "./lead-card";
-import { cn } from "@shared/lib/utils";
-import { StageIllustration } from "@shared/ui/stage-illustration";
-import { PortalTooltip } from "@shared/ui/portal-tooltip";
 
 interface KanbanColumnProps {
   stage?: LeadStage;

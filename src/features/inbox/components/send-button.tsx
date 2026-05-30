@@ -1,8 +1,9 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { Send } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 
 export interface SendButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isSending?: boolean;

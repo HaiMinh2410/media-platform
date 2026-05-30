@@ -1,6 +1,7 @@
+import { cn } from "@shared/lib";
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { getDynamicCornersClass } from './message-bubble-utils';
 
 interface VoiceNotePlayerProps {

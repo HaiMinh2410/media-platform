@@ -1,10 +1,9 @@
 'use client';
 
+import { Button, Input, Label } from "@shared/ui";
+
 import React, { useState } from 'react';
 import { manualConnectAction } from './actions';
-import { Button } from '@shared/ui/button';
-import { Input } from '@shared/ui/input';
-import { Label } from '@shared/ui/label';
 import { useRouter } from 'next/navigation';
 
 export function DebugForm({ workspaceId }: { workspaceId: string }) {

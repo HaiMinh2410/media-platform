@@ -1,7 +1,7 @@
+import { Icon, SlidingTabs } from "@shared/ui";
+
 import React from 'react';
 import { Users, Eye, TrendingUp, Activity } from 'lucide-react';
-import { Icon } from '@shared/ui/icon';
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 export type ChartType = 'performance' | 'followers' | 'post-performance';
 

@@ -1,8 +1,9 @@
 'use client';
 
+import { Icon } from "@shared/ui";
+
 import { useState } from 'react';
 import { Key, Play, CheckCircle2, XCircle, Code, Trash2, ChevronRight, Copy, Check } from 'lucide-react';
-import { Icon } from '@shared/ui/icon';
 import { upsertMetaAccountsFromJsonAction } from '@features/settings/actions/developer.actions';
 
 interface UpsertResult {

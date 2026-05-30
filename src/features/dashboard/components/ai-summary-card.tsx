@@ -1,9 +1,10 @@
-'use client'
+'use client';
+
+import { cn } from "@shared/lib";
 
 import React, { useEffect, useState, useCallback } from 'react';
 
 import { getAISummary, AISummary } from '@features/dashboard/actions/dashboard.actions';
-import { cn } from '@shared/lib/utils';
 import { createClient } from '@shared/api/supabase/client';
 
 

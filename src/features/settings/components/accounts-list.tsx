@@ -1,10 +1,10 @@
 'use client';
 
-import { Card } from '@shared/ui/card';
+import { Card, Button } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import Link from 'next/link';
 import { PlatformAccount } from '../types/platform-account';
-import { cn } from '@shared/lib/utils';
-import { Button } from '@shared/ui/button';
 import { disconnectAccountAction } from '@features/settings/actions/platform-account.actions';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';

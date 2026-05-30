@@ -1,13 +1,14 @@
+import { QueueName, WebhookJobPayload } from "@shared/types";
+import { db } from "@shared/lib/db";
+import { redisConnection } from "@shared/lib/queue/bullmq.provider";
+
 import { Worker, Job } from 'bullmq';
-import { redisConnection } from '@shared/lib/queue/bullmq.provider';
-import { QueueName, WebhookJobPayload } from '@shared/types/queue';
 import { idempotentPersistMessage, markAsRead, markAsDelivered } from '@features/inbox/repositories/message.repository';
 import { classifyService } from '@features/ai-agent/services/classify.service';
 import { generateService } from '@features/ai-agent/services/generate.service';
 import { metaSendService } from '@features/inbox/services/meta-send.service';
 import { metaProfileService } from '@features/settings/services/meta-profile.service';
 import { duplicateDetectionService } from '@features/posts/services/duplicate-detection.service';
-import { db } from '@shared/lib/db';
 import { AI_MODELS } from '@features/ai-agent/types';
 import { selectModel } from '@features/ai-agent/services/model-selector';
 import { triageService } from '@features/inbox/services/triage.service';

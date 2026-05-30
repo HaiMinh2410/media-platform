@@ -1,6 +1,7 @@
-"use server";
+'use server';
 
 import { db } from "@shared/lib/db";
+
 import { getPlatformAccountRepository } from "@features/settings/server";
 
 /**

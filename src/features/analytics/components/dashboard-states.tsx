@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import { Icon } from "@shared/ui";
 
 import React from "react";
 import Link from "next/link";
@@ -12,7 +14,6 @@ import {
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
-import { Icon } from "@shared/ui/icon";
 
 export type ActiveMetric = "reach" | "views" | "engagement" | "followers";
 

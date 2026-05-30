@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import { cn } from "@shared/lib";
 
 import React, { useState } from "react";
 import { toast } from "sonner";
@@ -14,7 +16,6 @@ import {
   ExternalLink,
   ShieldAlert,
 } from "lucide-react";
-import { cn } from "@shared/lib/utils";
 
 type WorkspaceCredentialsProps = {
   workspaceId: string;

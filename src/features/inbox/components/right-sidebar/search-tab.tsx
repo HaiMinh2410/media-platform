@@ -1,7 +1,8 @@
+import { cn } from "@shared/lib";
+
 import React, { useState, useEffect } from 'react';
 import { Search, X, User, MessageSquare, Calendar, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@shared/lib/utils';
 import { MessageWithSender } from '@features/inbox/types';
 
 interface SearchTabProps {

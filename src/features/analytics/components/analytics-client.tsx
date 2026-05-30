@@ -1,11 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client';
 
+import { SlidingTabs, Icon } from "@shared/ui";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { BarChart3, Layers, Bot, Users, Calendar, Globe } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
-import { SlidingTabs } from "@shared/ui/sliding-tabs";
-import { Icon } from "@shared/ui/icon";
 import { AnalyticsPeriodData } from "@features/analytics/types";
 import { ViewsCard } from "@features/analytics/components/views-card";
 import { InteractionsCard } from "@features/analytics/components/interactions-card";

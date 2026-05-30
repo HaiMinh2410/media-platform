@@ -1,10 +1,11 @@
+import { cn } from "@shared/lib";
+
 import * as React from 'react';
 import { 
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell 
 } from 'recharts';
 import { Layers, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@shared/lib/utils';
 import type { PostDeepAnalyticsData } from '@features/analytics/services/post-analytics-engine';
 
 const SafeTooltip = Tooltip as unknown as React.ComponentType<

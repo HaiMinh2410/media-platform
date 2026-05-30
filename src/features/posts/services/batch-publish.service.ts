@@ -1,6 +1,6 @@
-import { db } from '@shared/lib/db';
-import { publishQueue } from '@shared/lib/queue/bullmq.provider';
-import { PublishJobPayload } from '@shared/types/queue';
+import { PublishJobPayload } from "@shared/types";
+import { db } from "@shared/lib/db";
+import { publishQueue } from "@shared/lib/queue/bullmq.provider";
 
 /**
  * Service điều phối quá trình đăng bài đồng thời lên nhiều tài khoản.

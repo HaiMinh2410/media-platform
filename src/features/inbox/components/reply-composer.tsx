@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
+import { Icon } from "@shared/ui";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageWithSender } from '@features/inbox/types';
 import { Loader2 } from 'lucide-react';
-import { Icon } from '@shared/ui/icon';
 import { useInboxStore } from '../store/inbox.store';
 import { createClient } from '@shared/api/supabase/client';
 

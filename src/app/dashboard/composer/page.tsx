@@ -1,3 +1,5 @@
+import { FeatureFlagService, FLAGS } from "@shared/lib";
+
 import React from 'react';
 import { createClient } from '@shared/api/supabase/server';
 import { getAccountSyncService } from '@features/settings/services/account-sync.service';
@@ -6,7 +8,6 @@ import { getPlatformAccountRepository } from '@features/settings/repositories/pl
 import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
 import { PostComposerRoot } from '@features/posts/components/post-composer/post-composer-root';
 import { redirect } from 'next/navigation';
-import { FeatureFlagService, FLAGS } from '@shared/lib/feature-flag.service';
 
 export default async function ComposerPage() {
   const supabase = await createClient();

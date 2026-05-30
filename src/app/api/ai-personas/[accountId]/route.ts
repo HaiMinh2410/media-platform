@@ -1,7 +1,8 @@
+import { db } from "@shared/lib/db";
+
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@shared/api/supabase/server';
-import { db } from '@shared/lib/db';
 
 const aiPersonaSettingsSchema = z.object({
   campaign_objective: z.enum(['lead_generation', 'direct_sale', 'support', 'engagement']).default('lead_generation'),

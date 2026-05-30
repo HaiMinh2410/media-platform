@@ -1,6 +1,7 @@
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { Paperclip } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { MessageWithSender } from '@features/inbox/types';
 
 interface ParentMessageBubbleProps {

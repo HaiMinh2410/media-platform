@@ -1,9 +1,10 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React, { useState } from 'react';
 import { X, Search, Plus, Trash2, ChevronDown, Edit2, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@shared/lib/utils';
 import { useInboxStore } from '../../store/inbox.store';
 
 interface ManageTagsModalProps {

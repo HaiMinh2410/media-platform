@@ -1,11 +1,11 @@
+import { SlidingTabs, FilterGroup } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React from "react";
 import { Kanban, LayoutGrid, Settings2 } from "lucide-react";
-import { cn } from "@shared/lib/utils";
 import { Lead, LeadStage } from "./types";
 import { ClusterSelector } from "@features/inbox/components/cluster-selector";
 import { DoubleCalendarPicker } from "./double-calendar-picker";
-import { SlidingTabs } from "@shared/ui/sliding-tabs";
-import { FilterGroup } from "@shared/ui/filter-group";
 import { useLeadsFilters } from "./hooks/use-leads-filters";
 import { TagsFilterDropdown } from "./components/tags-filter-dropdown";
 import { MoreOptionsDropdown } from "./components/more-options-dropdown";

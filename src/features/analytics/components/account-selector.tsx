@@ -1,9 +1,9 @@
-"use client";
+'use client';
+
+import { Icon, RangeSelector, RangeOption } from "@shared/ui";
 
 import React from "react";
 import { Users } from "lucide-react";
-import { Icon } from "@shared/ui/icon";
-import { RangeSelector, RangeOption } from "@shared/ui/range-selector";
 
 interface Account {
   id: string;

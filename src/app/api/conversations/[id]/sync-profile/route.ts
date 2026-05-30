@@ -1,5 +1,6 @@
+import { db } from "@shared/lib/db";
+
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@shared/lib/db';
 import { metaProfileService } from '@features/settings/services/meta-profile.service';
 
 /**

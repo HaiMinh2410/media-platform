@@ -1,10 +1,11 @@
 'use client';
 
+import { formatChatSeparator } from "@shared/lib";
+
 import React, { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { MessageWithSender } from '@features/inbox/types';
 import { MessageBubble } from './message-bubble';
 import { ChatSkeleton } from './skeletons';
-import { formatChatSeparator } from '@shared/lib/utils';
 import { useInboxStore } from '../store/inbox.store';
 import { TypingUser } from '../hooks/use-presence-typing';
 

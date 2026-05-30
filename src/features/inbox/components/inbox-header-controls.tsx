@@ -1,5 +1,7 @@
 'use client';
 
+import { SlidingTabs } from "@shared/ui";
+
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useInboxStore } from '../store/inbox.store';
@@ -8,7 +10,6 @@ import {
   AccountGroup
 } from '@features/settings';
 import { getUnreadCountsAction, UnreadCounts } from '@features/inbox/actions/unread-counts.actions';
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
 import { ClusterSelector } from './cluster-selector';
 import { useUnreadRealtime } from '../hooks/use-unread-realtime';
 

@@ -1,5 +1,8 @@
 'use client';
 
+import { SlidingTabs } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -10,8 +13,6 @@ import {
   Sparkles,
   Activity
 } from 'lucide-react';
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
-import { cn } from '@shared/lib/utils';
 import type { PostDeepAnalyticsData } from '@features/analytics/services/post-analytics-engine';
 import type { AnalyticsRange } from '@features/analytics/types';
 import { DistributionTab } from './post-charts/DistributionTab';

@@ -1,8 +1,9 @@
-"use client";
+'use client';
+
+import { cn } from "@shared/lib";
 
 import React, { useState, useEffect } from "react";
 import { X, RefreshCcw } from "lucide-react";
-import { cn } from "@shared/lib/utils";
 import { motion } from "framer-motion";
 
 export type AccountPublishState = {

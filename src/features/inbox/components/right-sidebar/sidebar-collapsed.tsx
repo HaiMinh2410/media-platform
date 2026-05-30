@@ -1,7 +1,8 @@
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, X } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 
 interface SidebarCollapsedProps {
   customerName?: string;

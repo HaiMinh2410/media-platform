@@ -1,10 +1,10 @@
-"use client";
+'use client';
+
+import { RangeSelector, ConfirmDialog } from "@shared/ui";
 
 import React, { useState } from "react";
 import { X, Trash2, Check } from "lucide-react";
 import { LeadStage } from "./types";
-import { RangeSelector } from "@shared/ui/range-selector";
-import { ConfirmDialog } from "@shared/ui/confirm-dialog";
 
 interface LeadsBulkEditSidebarProps {
   isOpen: boolean;

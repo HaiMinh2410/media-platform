@@ -1,11 +1,10 @@
+import { Icon, MessengerIcon, RangeSelector, ConfirmDialog } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React from "react";
 import { EllipsisVertical } from "lucide-react";
 import { Lead, LeadStage } from "./types";
-import { cn } from "@shared/lib/utils";
-import { Icon, MessengerIcon } from "@shared/ui/icon";
 import { useInboxStore } from "@features/inbox/store/inbox.store";
-import { RangeSelector } from "@shared/ui/range-selector";
-import { ConfirmDialog } from "@shared/ui/confirm-dialog";
 
 interface LeadCardProps {
   lead: Lead;

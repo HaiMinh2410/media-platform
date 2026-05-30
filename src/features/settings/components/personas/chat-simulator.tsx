@@ -1,9 +1,10 @@
-"use client";
+'use client';
+
+import { Icon } from "@shared/ui";
+import { cn } from "@shared/lib";
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2 } from "lucide-react";
-import { Icon } from "@shared/ui/icon";
-import { cn } from "@shared/lib/utils";
 import { toast } from "sonner";
 
 interface ChatSimulatorProps {

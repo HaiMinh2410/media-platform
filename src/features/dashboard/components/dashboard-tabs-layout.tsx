@@ -1,11 +1,12 @@
 'use client';
 
+import { SlidingTabs } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React, { startTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LayoutDashboard, Users, LineChart } from 'lucide-react';
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
-import { cn } from '@shared/lib/utils';
 
 interface DashboardTabsLayoutProps {
   activeTab: 'overview' | 'leads' | 'insights';

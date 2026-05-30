@@ -1,10 +1,11 @@
+import { db } from "@shared/lib/db";
+
 // src/app/api/ai-agent/ab-test/route.ts
 //
 // API quản lý & phân tích thử nghiệm A/B Testing cho AI Agent - Phase 3 Autonomous + Learning
 //
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@shared/lib/db';
 import { evaluateABTest, promoteWinnerIfAny } from '@features/ai-agent/services/ab-test-manager';
 
 /**

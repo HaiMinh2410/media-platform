@@ -1,5 +1,6 @@
+import { db } from "@shared/lib/db";
+
 import { Prisma } from '@prisma/client';
-import { db } from '@shared/lib/db';
 
 /**
  * Service to handle incoming webhook events from various platforms.

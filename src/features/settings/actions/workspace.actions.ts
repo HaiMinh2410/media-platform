@@ -1,6 +1,7 @@
 'use server';
 
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import { createClient } from '@shared/api/supabase/server';
 
 export async function getCurrentWorkspaceUnreadCountAction(): Promise<{ data: number | null; error: string | null }> {

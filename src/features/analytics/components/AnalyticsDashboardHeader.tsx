@@ -1,8 +1,8 @@
+import { Icon, RangeSelector } from "@shared/ui";
+
 import React from 'react';
 import { RefreshCw, CloudDownload } from 'lucide-react';
-import { Icon } from '@shared/ui/icon';
 import { AccountSelector } from '@features/analytics/components/account-selector';
-import { RangeSelector } from '@shared/ui/range-selector';
 import { AnalyticsRange } from '@features/analytics/types';
 
 interface AnalyticsDashboardHeaderProps {

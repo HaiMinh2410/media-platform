@@ -1,3 +1,5 @@
+import { cn } from "@shared/lib";
+
 import * as React from "react";
 import {
   ResponsiveContainer,
@@ -9,7 +11,6 @@ import {
   Tooltip,
 } from "recharts";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { cn } from "@shared/lib/utils";
 import type { PostDeepAnalyticsData } from "@features/analytics/services/post-analytics-engine";
 
 const SafeTooltip = Tooltip as unknown as React.ComponentType<

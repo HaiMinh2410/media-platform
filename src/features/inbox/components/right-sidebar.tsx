@@ -1,11 +1,12 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React, { useState, useEffect } from 'react';
 import { AiSuggestionPanel } from './ai-suggestion-panel';
 import { ContactEditModal } from './modals/contact-edit-modal';
 import { ManageTagsModal } from './modals/manage-tags-modal';
 import { useInboxStore } from '../store/inbox.store';
-import { cn } from '@shared/lib/utils';
 import { 
   ChevronRight
 } from 'lucide-react';

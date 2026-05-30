@@ -1,8 +1,9 @@
+import { db } from "@shared/lib/db";
+import { redisConnection } from "@shared/lib/queue/bullmq.provider";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getMetaGraphClient } from '@shared/api/meta/graph-api.client';
-import { redisConnection } from '@shared/lib/queue/bullmq.provider';
 import { getTokenEncryptionService } from '@features/settings/server';
-import { db } from '@shared/lib/db';
 import { upsertAnalyticsSnapshot, upsertPostAnalytics } from '@features/analytics/repositories/analytics.repository';
 import type { 
   MetaPageFansResponse, 

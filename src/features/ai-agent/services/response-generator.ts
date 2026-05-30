@@ -1,3 +1,5 @@
+import { db } from "@shared/lib/db";
+
 // src/application/ai-agent/response-generator.ts
 //
 // AI Response Generator - Phase 2 Hybrid Rule + LLM
@@ -15,7 +17,6 @@ import { AIModel } from '@features/ai-agent/types';
 import { groqClient } from '@features/ai-agent/services/groq-client';
 import { responseGeneratorPrompt, buildDynamicSystemPrompt } from './prompts/response-generator.prompt';
 import { getTemplateResponse } from './templates';
-import { db } from '@shared/lib/db';
 
 /**
  * Hàm làm sạch chuỗi JSON thô từ đầu ra của LLM

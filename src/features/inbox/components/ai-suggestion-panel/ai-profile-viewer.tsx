@@ -1,8 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client';
 
+import { cn } from "@shared/lib";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
-import { cn } from "@shared/lib/utils";
 import {
   Sparkles,
   ChevronUp,

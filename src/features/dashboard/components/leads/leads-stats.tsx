@@ -1,10 +1,11 @@
+import { PortalTooltip } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React, { useRef, useState } from "react";
 import { Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Lead } from "./types";
-import { cn } from "@shared/lib/utils";
 import { calculateLeadsDelta } from "@features/dashboard/components/insights/leads-insights-utils";
-import { PortalTooltip } from "@shared/ui/portal-tooltip";
 
 interface LeadsStatsProps {
   leads: Lead[];

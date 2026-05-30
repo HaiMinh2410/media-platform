@@ -1,5 +1,6 @@
+import { db } from "@shared/lib/db";
+
 import React from 'react';
-import { db } from '@shared/lib/db';
 import { notFound } from 'next/navigation';
 import { RightPanel } from '@features/inbox/components/right-panel';
 

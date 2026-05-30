@@ -1,9 +1,10 @@
+import { SlidingTabs } from "@shared/ui";
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Globe, MapPin, Award, Sparkles } from 'lucide-react';
 import { cn } from '../primitives';
 
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 interface DemographicItem {
   name: string;

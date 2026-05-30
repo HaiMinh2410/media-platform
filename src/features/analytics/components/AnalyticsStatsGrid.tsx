@@ -1,6 +1,7 @@
+import { Icon } from "@shared/ui";
+
 import React from 'react';
 import { Users, UserCheck, Link2, TrendingUp } from 'lucide-react';
-import { Icon } from '@shared/ui/icon';
 import { StatsCard, SkeletonStatsCard } from '@features/analytics/components/stats-card';
 
 interface AnalyticsStatsGridProps {

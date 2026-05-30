@@ -1,8 +1,8 @@
 'use client';
 
+import { Input, Button } from "@shared/ui";
+
 import React, { useState } from 'react';
-import { Input } from '@/shared/ui/input';
-import { Button } from '@/shared/ui/button';
 import { updatePassword } from '@/app/auth/actions';
 
 export function UpdatePasswordForm() {

@@ -1,3 +1,6 @@
+import { FilterGroup, PortalTooltip } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React, { useRef, useState } from "react";
 import { Info, HelpCircle } from "lucide-react";
 import {
@@ -9,12 +12,9 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { cn } from "@shared/lib/utils";
-import { FilterGroup } from "@shared/ui/filter-group";
 import { ClusterSelector } from "@features/inbox/components/cluster-selector";
 import { DoubleCalendarPicker } from "../leads/double-calendar-picker";
 import { MetricCard } from "./metric-card";
-import { PortalTooltip } from "@shared/ui/portal-tooltip";
 
 export interface LeadsInsightsProps {
   workspaceId: string;

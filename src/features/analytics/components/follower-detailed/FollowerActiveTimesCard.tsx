@@ -1,8 +1,9 @@
+import { SlidingTabs } from "@shared/ui";
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, BarChart3, Info, Sparkles } from "lucide-react";
 import { cn } from "../primitives";
-import { SlidingTabs } from "@shared/ui/sliding-tabs";
 import {
   ResponsiveContainer,
   AreaChart,

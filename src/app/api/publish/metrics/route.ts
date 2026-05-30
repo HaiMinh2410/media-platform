@@ -1,8 +1,9 @@
+import { FeatureFlagService, FLAGS } from "@shared/lib";
+import { db } from "@shared/lib/db";
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@shared/api/supabase/server';
-import { db } from '@shared/lib/db';
 import { startOfDay, subDays, format } from 'date-fns';
-import { FeatureFlagService, FLAGS } from '@shared/lib/feature-flag.service';
 
 /**
  * GET /api/publish/metrics

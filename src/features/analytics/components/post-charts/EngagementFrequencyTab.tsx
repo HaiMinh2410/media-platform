@@ -1,12 +1,13 @@
 'use client';
 
+import { Icon } from "@shared/ui";
+
 import * as React from 'react';
 import { 
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip as RechartsTooltip, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid 
 } from 'recharts';
 import { BarChart3, Calendar, Sparkles } from 'lucide-react';
-import { Icon } from '@shared/ui/icon';
 import type { PostDeepAnalyticsData } from '@features/analytics/services/post-analytics-engine';
 
 interface EngagementFrequencyTabProps {

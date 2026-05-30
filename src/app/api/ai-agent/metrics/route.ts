@@ -1,10 +1,11 @@
+import { db } from "@shared/lib/db";
+
 // src/app/api/ai-agent/metrics/route.ts
 //
 // API Route tổng hợp dữ liệu đo lường hiệu năng AI Agent (Phân phối Fan, Tỉ lệ chuyển đổi, A/B Testing, Top Scripts)
 //
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@shared/lib/db';
 import { evaluateABTest } from '@features/ai-agent/services/ab-test-manager';
 
 export const dynamic = 'force-dynamic';

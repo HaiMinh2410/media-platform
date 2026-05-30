@@ -1,4 +1,5 @@
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import type { FanProfile, ConversationSummary } from '@features/ai-agent/types-agent';
 import { findByConversationId, upsertFanProfile } from '@features/ai-agent/repositories/fan-profile.repository';
 import { summarizeConversation } from './context-summarizer';

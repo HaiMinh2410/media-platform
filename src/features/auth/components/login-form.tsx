@@ -1,8 +1,8 @@
 'use client';
 
+import { Input, Button } from "@shared/ui";
+
 import React, { useState } from 'react';
-import { Input } from '@/shared/ui/input';
-import { Button } from '@/shared/ui/button';
 import Link from 'next/link';
 import { login } from '@/app/auth/actions';
 

@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import { cn } from "@shared/lib";
 
 import * as React from "react";
 import { format } from "date-fns";
@@ -13,7 +15,6 @@ import {
   Layers,
   Sparkles,
 } from "lucide-react";
-import { cn } from "@shared/lib/utils";
 import type { LeaderboardPostItem } from "@features/analytics/services/post-analytics-engine";
 
 interface TopContentLeaderboardProps {

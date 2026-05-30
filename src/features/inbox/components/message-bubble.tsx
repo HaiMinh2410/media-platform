@@ -1,9 +1,10 @@
-"use client";
+'use client';
+
+import { cn } from "@shared/lib";
 
 import React, { memo, useState, useEffect, useRef } from "react";
 import { MessageWithSender } from "@features/inbox/types";
 import { Pin } from "lucide-react";
-import { cn } from "@shared/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useInboxStore } from "../store/inbox.store";
 import { createPortal } from "react-dom";

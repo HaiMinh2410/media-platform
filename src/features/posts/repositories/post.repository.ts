@@ -1,4 +1,5 @@
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import type { CreatePostInput, Post, PostStatus } from '../types';
 
 export class PostRepository {

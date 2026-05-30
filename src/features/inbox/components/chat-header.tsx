@@ -1,12 +1,13 @@
 'use client';
 
+import { PlatformIcon } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React, { useState, useRef, useEffect } from 'react';
-import { PlatformIcon } from '@shared/ui/inbox-shared';
 import { MoreHorizontal, ShieldAlert, ShieldCheck, Trash2, Search, X } from 'lucide-react';
 import { useInboxStore } from '../store/inbox.store';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { cn } from '@shared/lib/utils';
 
 
 type ChatHeaderProps = {

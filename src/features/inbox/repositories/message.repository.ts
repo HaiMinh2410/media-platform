@@ -1,4 +1,5 @@
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import { randomUUID } from 'crypto';
 import type { PersistMessageInput, PersistMessageResult, MessageWithSender, PaginationParams } from '@features/inbox/types';
 

@@ -1,3 +1,5 @@
+import { WebhookPlatform, WebhookEventType } from "@shared/types";
+
 // src/features/inbox/types.ts
 
 /**
@@ -272,7 +274,6 @@ export interface MetaHubVerification {
   verifyToken: string;
   challenge: string;
 }
-import { WebhookPlatform, WebhookEventType } from '@shared/types/webhooks';
 export type { WebhookPlatform, WebhookEventType };
 
 /**

@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import { cn } from "@shared/lib";
 
 import React from "react";
 import { createPortal } from "react-dom";
@@ -8,7 +10,6 @@ import {
   createAccountGroupAction,
   PlatformAccount,
 } from "@features/settings";
-import { cn } from "@shared/lib/utils";
 
 interface CreateClusterModalProps {
   workspaceId: string;

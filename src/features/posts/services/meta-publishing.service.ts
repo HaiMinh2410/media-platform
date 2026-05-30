@@ -1,6 +1,7 @@
+import { db } from "@shared/lib/db";
+
 import { getPostRepository } from '../repositories/post.repository';
 import { getPlatformAccountRepository } from '@features/settings/server';
-import { db } from '@shared/lib/db';
 
 export class MetaPublishingService {
   private GRAPH_API_URL = 'https://graph.facebook.com/v21.0';

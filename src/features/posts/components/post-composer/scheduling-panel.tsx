@@ -1,9 +1,10 @@
-"use client";
+'use client';
+
+import { DatetimePicker } from "@shared/ui";
+import { cn } from "@shared/lib";
 
 import React from "react";
 import { Calendar, Clock, Send, Zap } from "lucide-react";
-import { cn } from "@shared/lib/utils";
-import { DatetimePicker } from "@shared/ui/datetime-picker";
 
 type SchedulingPanelProps = {
   scheduledAt: Date | null;

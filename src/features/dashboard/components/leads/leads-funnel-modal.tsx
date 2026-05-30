@@ -1,14 +1,9 @@
+import { ConfirmDialog, TopFunnelIcon, MiddleFunnelIcon, BottomFunnelIcon, DoneFunnelIcon } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React, { useState, useRef, useEffect } from "react";
 import { X, Plus, Trash2, Edit2, Check, GripVertical } from "lucide-react";
 import { LeadStage } from "./types";
-import { cn } from "@shared/lib/utils";
-import { ConfirmDialog } from "@shared/ui/confirm-dialog";
-import {
-  TopFunnelIcon,
-  MiddleFunnelIcon,
-  BottomFunnelIcon,
-  DoneFunnelIcon,
-} from "@shared/ui/icon";
 
 interface LeadsFunnelModalProps {
   isOpen: boolean;

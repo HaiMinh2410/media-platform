@@ -1,11 +1,12 @@
 'use client';
 
+import { SlidingTabs } from "@shared/ui";
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Info, Sparkles, Users, Heart } from 'lucide-react';
 import { getFollowerDetailedAnalyticsAction } from '@features/analytics/actions/analytics.actions';
 import { AnalyticsRange } from '@features/analytics/types';
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 const DEMO_TABS = [
   { value: 'followers' as const, label: 'Followers', icon: Users },

@@ -1,16 +1,17 @@
 'use client';
 
+import { SlidingTabs } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React, { useState } from 'react';
 import { Post, PostStatus } from '@features/posts/types';
 import { PostCard } from './post-card';
 import { PostEmptyState } from './post-empty-state';
 import { Search, Loader2, RefreshCw } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 
 import { BatchPublishSummary, BatchPublishCard } from './publisher/batch-publish-card';
 import { createClient } from '@shared/api/supabase/client';
 import { useEffect } from 'react';
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 type PostListProps = {
   initialPosts: Post[];

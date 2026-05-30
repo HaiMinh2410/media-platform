@@ -1,4 +1,5 @@
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import { AccountGroup } from '../types/account-group';
 
 export class AccountGroupRepository {

@@ -1,4 +1,7 @@
-"use client";
+'use client';
+
+import { Icon, RangeSelector } from "@shared/ui";
+import { cn } from "@shared/lib";
 
 import React from "react";
 import { AccountHealthData } from "@features/settings";
@@ -12,11 +15,8 @@ import {
   MessageCircle,
   Zap,
 } from "lucide-react";
-import { Icon } from "@shared/ui/icon";
-import { cn } from "@shared/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { RangeSelector } from "@shared/ui/range-selector";
 import { ErrorBoundary, SectionError } from "./error-boundary";
 
 // ==========================================

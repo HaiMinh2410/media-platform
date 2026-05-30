@@ -1,8 +1,9 @@
+import { RangeSelector } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React from "react";
 import { ArrowDown, ArrowUpDown, ChevronDown, MoreHorizontal, ArrowUp } from "lucide-react";
 import { Lead, LeadStage } from "./types";
-import { cn } from "@shared/lib/utils";
-import { RangeSelector } from "@shared/ui/range-selector";
 
 // Components & Hooks
 import { SubTab } from "./components/sub-tab";

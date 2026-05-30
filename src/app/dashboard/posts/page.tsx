@@ -1,3 +1,6 @@
+import { FeatureFlagService, FLAGS } from "@shared/lib";
+import { db } from "@shared/lib/db";
+
 import React from 'react';
 import { createClient } from '@shared/api/supabase/server';
 import { getPostRepository } from '@features/posts/repositories/post.repository';
@@ -7,9 +10,7 @@ import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { BatchPublishTracker } from '@features/posts/components/publisher/batch-publish-tracker';
-import { FeatureFlagService, FLAGS } from '@shared/lib/feature-flag.service';
 import { BatchPublishCard, BatchPublishSummary } from '@features/posts/components/publisher/batch-publish-card';
-import { db } from '@shared/lib/db';
 
 export default async function PostsPage({ 
   searchParams 

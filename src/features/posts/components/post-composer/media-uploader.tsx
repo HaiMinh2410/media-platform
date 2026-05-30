@@ -1,10 +1,12 @@
 'use client';
 
+import { cn } from "@shared/lib";
+import { ValidationIssue } from "@shared/lib/validation/validation-engine";
+
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Image as ImageIcon, X, UploadCloud, Film, Loader2 } from 'lucide-react';
 import { createClient } from '@shared/api/supabase/client';
-import { cn } from '@shared/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export type MediaFile = {
@@ -17,7 +19,6 @@ export type MediaFile = {
   jobId?: string;
 };
 
-import { ValidationIssue } from '@shared/lib/validation/validation-engine';
 
 type MediaUploaderProps = {
   files: MediaFile[];

@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import { cn } from "@shared/lib";
 
 import React, { useState, useEffect, useRef } from "react";
 import {
@@ -12,7 +14,6 @@ import {
   Send,
   Bookmark,
 } from "lucide-react";
-import { cn } from "@shared/lib/utils";
 import { PlatformAccount } from "@features/settings";
 
 type MediaFile = {

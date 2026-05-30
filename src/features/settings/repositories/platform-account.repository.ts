@@ -1,4 +1,5 @@
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import type { CreatePlatformAccountInput, PlatformAccount, Platform, AccountHealthData } from '../types/platform-account';
 import { getTokenEncryptionService } from '../services/token-encryption.service';
 

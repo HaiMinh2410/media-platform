@@ -1,5 +1,8 @@
 'use server';
 
+import { db } from "@shared/lib/db";
+import { redisConnection } from "@shared/lib/queue/bullmq.provider";
+
 import { 
   getAnalyticsForPeriod, 
   getTopPosts, 
@@ -11,12 +14,10 @@ import {
   mapLiveAnalyticsToPeriodData,
   createSyncLog
 } from '@features/analytics/repositories/analytics.repository';
-import { redisConnection } from '@shared/lib/queue/bullmq.provider';
 import { getPlatformAccountRepository } from '@features/settings/server';
 import { metaAnalyticsService } from '../services/meta-analytics.service';
 import { AnalyticsFilter, AnalyticsRange } from '@features/analytics/types';
 import { subDays, differenceInDays } from 'date-fns';
-import { db } from '@shared/lib/db';
 import { buildDeepAnalytics } from '@features/analytics/services/post-analytics-engine';
 import { groqClient } from '@features/ai-agent/services/groq-client';
 import { AI_AGENT_DEFAULTS } from '@features/ai-agent/types-agent';

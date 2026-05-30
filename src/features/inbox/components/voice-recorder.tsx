@@ -1,8 +1,9 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Square, Play, X, Pause } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { motion } from 'framer-motion';
 import { SendButton } from './send-button';
 

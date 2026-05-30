@@ -1,7 +1,8 @@
+import { RangeSelector } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { Search, Check, TrendingUp, TrendingDown } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
-import { RangeSelector } from '@shared/ui/range-selector';
 
 type PanelHeaderProps = {
   conversationsCount: number;

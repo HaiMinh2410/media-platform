@@ -1,5 +1,6 @@
+import { cn } from "@shared/lib";
+
 import React from 'react';
-import { cn } from '@shared/lib/utils';
 import { MessageWithSender } from '@features/inbox/types';
 import { AttachmentPreview, FileAttachment } from '../../attachment-preview';
 

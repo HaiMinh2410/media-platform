@@ -1,6 +1,7 @@
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { Paperclip, Mic } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { SnippetSelector } from '../SnippetSelector';
 import { SendButton } from '../../send-button';
 

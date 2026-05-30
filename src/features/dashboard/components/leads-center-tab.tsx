@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import { cn } from "@shared/lib";
 
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
@@ -9,7 +11,6 @@ import { LeadsTable } from "./leads/leads-table";
 import { LeadsFunnelModal } from "./leads/leads-funnel-modal";
 import { LeadsBulkEditSidebar } from "./leads/leads-bulk-edit-sidebar";
 import { useLeads } from "./leads/hooks/use-leads";
-import { cn } from "@shared/lib/utils";
 
 interface LeadsCenterTabProps {
   workspaceId?: string;

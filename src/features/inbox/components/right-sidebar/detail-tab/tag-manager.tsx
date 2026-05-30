@@ -1,7 +1,8 @@
+import { cn } from "@shared/lib";
+
 import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Info, X, Plus } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { useInboxStore } from '../../../store/inbox.store';
 
 interface TagManagerProps {

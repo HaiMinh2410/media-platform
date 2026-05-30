@@ -1,4 +1,5 @@
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import { getPlatformAccountRepository } from '@features/settings/repositories/platform-account.repository';
 import { getPublisherAccountRepository } from '@features/posts/repositories/publisher-account.repository';
 import { getPublisherTokenRepository } from '@features/posts/repositories/publisher-token.repository';

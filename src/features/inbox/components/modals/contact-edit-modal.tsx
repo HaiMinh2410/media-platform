@@ -1,8 +1,9 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 
 interface ContactEditModalProps {
   isOpen: boolean;

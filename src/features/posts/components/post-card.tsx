@@ -1,11 +1,12 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React, { useState } from 'react';
 import { Post } from '@features/posts/types';
 import { PostStatusBadge } from './post-status-badge';
 import { MoreVertical, Trash2, Calendar, Eye, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@shared/lib/utils';
 import { toast } from 'sonner';
 type PostCardProps = {
   post: Post;

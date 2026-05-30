@@ -1,10 +1,11 @@
 'use client';
 
+import { SlidingTabs } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { Wand2 } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { ToneMode } from '../../store/inbox.store';
-import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 type ToneSelectorProps = {
   selectedTone: ToneMode;

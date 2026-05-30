@@ -1,5 +1,6 @@
+import { db } from "@shared/lib/db";
+
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@shared/lib/db';
 
 export async function PUT(
   req: NextRequest,

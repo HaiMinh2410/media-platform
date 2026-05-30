@@ -1,6 +1,7 @@
+import { db } from "@shared/lib/db";
+
 import { getTokenEncryptionService } from '@features/settings/services/token-encryption.service';
 import { getMetaGraphClient } from '@shared/api/meta/graph-api.client';
-import { db } from '@shared/lib/db';
 import { duplicateDetectionService } from '@features/posts/services/duplicate-detection.service';
 
 /**

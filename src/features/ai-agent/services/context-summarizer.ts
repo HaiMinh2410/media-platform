@@ -1,4 +1,5 @@
-import { db } from '@shared/lib/db';
+import { db } from "@shared/lib/db";
+
 import { groqClient } from '@features/ai-agent/services/groq-client';
 import { longContextSummaryPrompt } from './prompts/long-context-summary.prompt';
 import type { FanProfile, ConversationSummary } from '@features/ai-agent/types-agent';

@@ -1,5 +1,6 @@
+import { cn } from "@shared/lib";
+
 import { ChevronRight, RefreshCw } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 
 interface CustomerProfileProps {
   customerName?: string;

@@ -1,3 +1,5 @@
+import { Icon } from "@shared/ui";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import {
@@ -18,7 +20,6 @@ import {
   BarChart2,
   Target,
 } from "lucide-react";
-import { Icon } from "@shared/ui/icon";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateFollowersInsightAction } from "@features/analytics/actions/analytics.actions";
 import { PerformanceInsight } from "@features/analytics/types/performanceInsight";

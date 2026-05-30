@@ -1,13 +1,14 @@
 'use client';
 
+import { RangeSelector } from "@shared/ui";
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { 
   Check, Users, Plus, 
   MoreHorizontal, Trash2, RotateCcw
 } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { Reorder } from 'framer-motion';
-import { RangeSelector } from '@shared/ui/range-selector';
 import { 
   getAccountGroupsAction, 
   deleteAccountGroupAction,

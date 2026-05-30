@@ -1,6 +1,7 @@
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { Reply, Pin } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { motion } from 'framer-motion';
 
 interface HoverActionsProps {

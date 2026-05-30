@@ -1,9 +1,10 @@
 'use client';
 
+import { cn } from "@shared/lib";
+
 import React from 'react';
 import { format } from 'date-fns';
 import { Calendar, RefreshCcw, CheckCircle2, XCircle, AlertCircle, Eye } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
 import { toast } from 'sonner';
 
 export type BatchPublishSummary = {
