@@ -32,6 +32,7 @@ export function MoreOptionsDropdown({
       onOpenChange={setIsMoreOpen}
       menuAlign="right"
       menuMinWidth="w-72"
+      dropdownClassName="rounded-lg"
       customTrigger={
         <button className="btn btn-ghost btn-sm bg-transparent hover:bg-base-100/60 border-none rounded-md text-xs font-semibold px-4.5 text-base-content/80">
           <MoreHorizontal size={14} />

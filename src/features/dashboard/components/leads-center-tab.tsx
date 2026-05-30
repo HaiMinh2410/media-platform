@@ -241,6 +241,8 @@ export function LeadsCenterTab({
                 setCurrentSubTab(tabId);
                 setSelectedLeadIds([]); // Reset selection when subtab changes
               }}
+              showUnreadOnly={showUnreadOnly}
+              onToggleUnreadOnly={() => setShowUnreadOnly(!showUnreadOnly)}
             />
           )}
         </div>
