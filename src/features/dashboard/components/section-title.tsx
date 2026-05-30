@@ -12,7 +12,7 @@ export function SectionTitle({ icon, label }: SectionTitleProps) {
       <h2 className="text-xs font-bold uppercase tracking-widest font-mono text-foreground-tertiary whitespace-nowrap">
         {label}
       </h2>
-      <div className="flex-grow h-[1px] bg-foreground/10" />
+      <div className="grow h-px bg-foreground/10" />
     </div>
   );
 }

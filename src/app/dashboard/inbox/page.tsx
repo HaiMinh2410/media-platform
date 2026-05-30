@@ -1,13 +1,11 @@
-import { Icon } from "@shared/ui";
-
 import React from 'react';
 import { Mail } from 'lucide-react';
 
 export default function InboxEmptyState() {
   return (
     <div className="flex flex-col items-center justify-center h-full w-full text-foreground-secondary text-center">
-      <div className="w-16 h-16 mb-6 rounded-full flex items-center justify-center bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/20">
-        <Icon lucide={Mail} size={32} className="text-primary-content" />
+      <div className="w-16 h-16 mb-6 rounded-full flex items-center justify-center bg-linear-to-br from-primary to-secondary shadow-lg shadow-primary/20">
+        <Mail size={32} className="text-primary-content" />
       </div>
       <h3 className="text-2xl font-bold text-foreground mb-2 tracking-tight">Pulse Inbox</h3>
       <p className="text-foreground-secondary text-base max-w-3xl">Your synchronized message hub. Select a conversation to start engaging.</p>

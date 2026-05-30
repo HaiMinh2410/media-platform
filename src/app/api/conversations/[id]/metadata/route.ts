@@ -14,8 +14,21 @@ export async function PUT(
       gender
     } = await req.json();
 
+    const currentConvo = await db.conversation.findUnique({
+      where: { id },
+      select: { priority: true }
+    });
+
     const data: any = {};
-    if (priority !== undefined) data.priority = priority;
+    if (priority !== undefined) {
+      data.priority = priority;
+      
+      const isValidStage = ['new', 'qualified', 'converted', 'lost', 'unqualified'].includes(priority);
+      const isOldNotLead = !currentConvo?.priority || currentConvo.priority === 'none';
+      if (isValidStage && isOldNotLead) {
+        data.createdAt = new Date(); // Đánh dấu chính xác ngày được thêm làm khách hàng tiềm năng!
+      }
+    }
     if (sentiment !== undefined) data.sentiment = sentiment;
     if (status !== undefined) data.status = status;
     if (lead_status !== undefined) data.lead_status = lead_status;

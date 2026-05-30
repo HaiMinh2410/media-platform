@@ -411,7 +411,7 @@ export async function getLeadsFromDB(workspaceId: string) {
     const platform = convo.platform_accounts.platform === 'facebook' ? 'messenger' : convo.platform_accounts.platform;
     
     // Format thời gian hiển thị gọn gàng
-    const dateObj = new Date(convo.lastMessageAt);
+    const dateObj = convo.createdAt ? new Date(convo.createdAt) : new Date(convo.lastMessageAt);
     const dateStr = dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     const fullDateStr = dateObj.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
