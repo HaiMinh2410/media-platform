@@ -103,6 +103,8 @@ model Conversation {
   customer_username          String?
   is_pinned                  Boolean                   @default(false) @map("is_pinned")
   gender                     String?
+  createdAt                  DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  convertedAt                DateTime?                 @map("converted_at") @db.Timestamptz(6)
   notes                      ConversationNote[]
   platform_accounts          PlatformAccount           @relation(fields: [account_id], references: [id], onDelete: Cascade)
   customer_platform_mappings CustomerPlatformMapping[]

@@ -429,6 +429,8 @@ export async function getLeadsFromDB(workspaceId: string) {
       tags: convo.tags || [],
       unread: hasUnread,
       accountId: convo.account_id,
+      createdAt: convo.createdAt,
+      convertedAt: convo.convertedAt,
     };
   });
 }
@@ -437,9 +439,15 @@ export async function getLeadsFromDB(workspaceId: string) {
  * Cập nhật giai đoạn (priority) của khách hàng tiềm năng trong database.
  */
 export async function updateLeadStageInDB(leadId: string, newStageId: string) {
+  const data: any = { priority: newStageId };
+  if (newStageId === 'converted') {
+    data.convertedAt = new Date();
+  } else {
+    data.convertedAt = null;
+  }
   return db.conversation.update({
     where: { id: leadId },
-    data: { priority: newStageId },
+    data,
   });
 }
 

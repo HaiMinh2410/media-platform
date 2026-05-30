@@ -24,12 +24,16 @@ export function InsightsTab({ workspaceId }: { workspaceId: string }) {
     filters,
     onFilterChange,
     loading,
+    totalLeadsCount,
     newLeadsCount,
     convertedLeadsCount,
     unqualifiedLeadsCount,
     lostLeadsCount,
     conversionRate,
     chartData,
+    conversionRateDelta,
+    conversionRateDirection,
+    avgConversionTimeDays,
   } = useInsights(workspaceId);
 
   return (
@@ -57,12 +61,15 @@ export function InsightsTab({ workspaceId }: { workspaceId: string }) {
             filters={filters}
             onFilterChange={onFilterChange}
             loading={loading}
-            newLeadsCount={newLeadsCount}
+            newLeadsCount={totalLeadsCount}
             convertedLeadsCount={convertedLeadsCount}
             unqualifiedLeadsCount={unqualifiedLeadsCount}
             lostLeadsCount={lostLeadsCount}
             conversionRate={conversionRate}
             chartData={chartData}
+            conversionRateDelta={conversionRateDelta}
+            conversionRateDirection={conversionRateDirection}
+            avgConversionTimeDays={avgConversionTimeDays}
           />
         ) : (
           <PendingInsights

@@ -34,7 +34,7 @@ export function MetricCard({ label, value, tooltipText }: MetricCardProps) {
         anchorRef={anchorRef}
         showArrow
         position="top"
-        align="right"
+        align="left"
         offsetY={6}
         className="w-62 text-pretty text-sm rounded-md"
       >

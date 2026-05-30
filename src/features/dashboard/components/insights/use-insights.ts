@@ -3,6 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { useInboxStore } from "@features/inbox/store/inbox.store";
 import { getLeadsFromDB } from "../../actions/dashboard.actions";
 import { Lead } from "../leads/types";
+import { calculateLeadsDelta } from "@features/dashboard/components/insights/leads-insights-utils";
 
 export function useInsights(workspaceId: string) {
   const [activeSidebar, setActiveSidebar] = useState("leads");
@@ -155,6 +156,7 @@ export function useInsights(workspaceId: string) {
   });
 
   // Tính toán các chỉ số kinh doanh động dựa trên filteredLeads
+  const totalLeadsCount = filteredLeads.length;
   const newLeadsCount = filteredLeads.filter((l) => l.stage === "new").length;
   const convertedLeadsCount = filteredLeads.filter(
     (l) => l.stage === "converted",
@@ -168,7 +170,7 @@ export function useInsights(workspaceId: string) {
     (l) => !["new", "converted", "unqualified", "lost"].includes(l.stage),
   ).length;
 
-  // Tỷ lệ chuyển đổi = (Số leads đã chuyển đổi / Tổng số leads) * 100
+  // Tỷ lệ chuyển đổi = (Số leads đã chuyển đổi / Tổng số leads) * 100 (Mô hình phễu)
   const rawConversionRate =
     filteredLeads.length > 0
       ? (convertedLeadsCount / filteredLeads.length) * 100
@@ -177,10 +179,40 @@ export function useInsights(workspaceId: string) {
   // Format tỷ lệ chuyển đổi thành string (ví dụ: "28.6") với tiếng Việt dùng dấu phẩy cho thập phân
   const conversionRate = rawConversionRate.toFixed(1).replace(".", ",");
 
-  // Dữ liệu thực tế cho biểu đồ Recharts
+  // Tính Delta % cho Tỷ lệ chuyển đổi bằng helper dùng chung
+  const { conversionRateDelta, conversionRateDirection } = calculateLeadsDelta(
+    filteredLeads,
+    leads,
+    filters.date,
+    rawConversionRate
+  );
+
+  // Tính thời gian chuyển đổi trung bình thực tế từ Database (createdAt và convertedAt)
+  const convertedLeads = filteredLeads.filter(
+    (l) => l.stage === "converted" && l.createdAt && l.convertedAt
+  );
+  let avgConversionTimeDays = "0,1";
+
+  if (convertedLeads.length > 0) {
+    const totalDiffMs = convertedLeads.reduce((acc, l) => {
+      const created = new Date(l.createdAt!);
+      const converted = new Date(l.convertedAt!);
+      return acc + (converted.getTime() - created.getTime());
+    }, 0);
+    const avgMs = totalDiffMs / convertedLeads.length;
+    // Chuyển đổi mili-giây sang ngày: 1 ngày = 24 * 60 * 60 * 1000 ms
+    const avgDays = avgMs / 86400000;
+    // Hiển thị tối thiểu là 0,1 ngày để tránh 0,0 ngày
+    const displayDays = Math.max(0.1, avgDays);
+    avgConversionTimeDays = displayDays.toFixed(1).replace(".", ",");
+  } else {
+    avgConversionTimeDays = "--";
+  }
+
+  // Dữ liệu thực tế cho biểu đồ Recharts theo mô hình phễu (Funnel Model)
   const chartData = [
-    { name: "Giai đoạn tiếp nhận", value: newLeadsCount },
-    { name: "Đang xử lý", value: processingLeadsCount },
+    { name: "Tiếp nhận", value: totalLeadsCount },
+    { name: "Đủ tiêu chuẩn", value: processingLeadsCount + convertedLeadsCount },
     { name: "Đã chuyển đổi", value: convertedLeadsCount },
   ];
 
@@ -229,11 +261,15 @@ export function useInsights(workspaceId: string) {
     onToggleUnqualified,
     // Trả về các chỉ số động bổ sung
     loading,
+    totalLeadsCount,
     newLeadsCount,
     convertedLeadsCount,
     unqualifiedLeadsCount,
     lostLeadsCount,
     conversionRate,
     chartData,
+    conversionRateDelta,
+    conversionRateDirection,
+    avgConversionTimeDays,
   };
 }

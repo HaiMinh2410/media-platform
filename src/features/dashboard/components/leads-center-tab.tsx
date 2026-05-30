@@ -165,6 +165,7 @@ export function LeadsCenterTab({
       {/* 2. Thanh đo lường hiệu suất (Bento Stats) */}
       <LeadsStats 
         leads={filteredLeads} 
+        allLeads={leads}
         selectedGroupId={selectedGroupId}
         dateFilter={filters.date}
       />

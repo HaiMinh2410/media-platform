@@ -34,6 +34,9 @@ export interface LeadsInsightsProps {
   lostLeadsCount: number;
   conversionRate: string;
   chartData: Array<{ name: string; value: number }>;
+  conversionRateDelta?: number;
+  conversionRateDirection?: "up" | "down" | "flat";
+  avgConversionTimeDays?: string;
 }
 
 export function LeadsInsights({
@@ -49,6 +52,9 @@ export function LeadsInsights({
   lostLeadsCount,
   conversionRate,
   chartData,
+  conversionRateDelta = 0,
+  conversionRateDirection = "flat",
+  avgConversionTimeDays = "0,1",
 }: LeadsInsightsProps) {
   const [isChartTooltipActive, setIsChartTooltipActive] = useState(false);
   const chartTooltipAnchorRef = useRef<HTMLDivElement>(null);
@@ -110,7 +116,7 @@ export function LeadsInsights({
               <MetricCard
                 label="Số khách hàng ở giai đoạn tiếp nhận"
                 value={newLeadsCount}
-                tooltipText="Số khách hàng tiềm năng đã được thu thập ở giai đoạn đầu tiên (tiếp nhận)."
+                tooltipText="Tổng số khách hàng tiềm năng đã được tiếp nhận trong khoảng thời gian đã chọn (mô hình phễu)."
               />
               <MetricCard
                 label="Số khách hàng tiềm năng đã chuyển đổi"
@@ -119,8 +125,8 @@ export function LeadsInsights({
               />
               <MetricCard
                 label="Thời gian trung bình để khách hàng tiềm năng chuyển đổi"
-                value="0,1"
-                tooltipText="Thời gian trung bình tính bằng ngày để một khách hàng tiềm năng chuyển đổi thành công."
+                value={avgConversionTimeDays}
+                tooltipText="Thời gian trung bình tính bằng ngày để một khách hàng tiềm năng chuyển đổi thành công, tính từ lúc tạo đến khi cập nhật trạng thái Đã chuyển đổi."
               />
               <MetricCard
                 label="Số khách hàng tiềm năng đã bỏ lỡ"
@@ -138,7 +144,7 @@ export function LeadsInsights({
           {/* 2. Charts & Conversion Rate (Biểu đồ & Tỷ lệ chuyển đổi) */}
           <div className="grid grid-cols-1 xl:grid-cols-12 divide-x divide-base-content/5 pt-4 border-t border-base-content/5">
             {/* Cột trái: Biểu đồ (70%) */}
-            <div className="xl:col-span-8 pr-5 flex flex-col gap-4 min-h-[400px] w-full">
+            <div className="xl:col-span-8 pr-5 flex flex-col gap-4 min-h-[450px] w-full">
               <h5 className="text-sm font-semibold text-base-content/75 flex items-center gap-1.5">
                 <span>
                   Khách hàng tiềm năng trong Trung tâm khách hàng tiềm năng
@@ -178,7 +184,7 @@ export function LeadsInsights({
                 </div>
               </PortalTooltip>
 
-              <div className="flex-1 w-full h-[260px] text-xs font-medium">
+              <div className="flex-1 w-full h-[300px] text-xs font-medium">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={chartData}
@@ -277,12 +283,19 @@ export function LeadsInsights({
                 </PortalTooltip>
 
                 <div className="flex flex-col gap-1 mt-2">
-                  <div className="text-4xl font-black text-base-content tracking-tight">
-                    {conversionRate}%
-                  </div>
-                  <div className="flex items-center gap-1 text-xs font-bold text-success mt-1">
-                    <span className="text-md">↑</span>
-                    <span>100%</span>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <div className="text-4xl font-black text-base-content tracking-tight">
+                      {conversionRate}%
+                    </div>
+                    {conversionRateDirection !== "flat" && (
+                      <div className={cn(
+                        "flex items-center gap-0.5 text-xs font-bold",
+                        conversionRateDirection === "up" ? "text-success" : "text-error"
+                      )}>
+                        <span className="text-md">{conversionRateDirection === "up" ? "↑" : "↓"}</span>
+                        <span>{conversionRateDelta}%</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

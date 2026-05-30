@@ -10,6 +10,8 @@ export interface Lead {
   tags?: string[];
   unread?: boolean;
   accountId?: string;
+  createdAt?: string | Date;
+  convertedAt?: string | Date | null;
 }
 
 export interface LeadStage {
