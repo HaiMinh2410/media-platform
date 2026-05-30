@@ -218,6 +218,27 @@ export function useLeads(workspaceId: string) {
         matchesDate =
           leadDateObj.getMonth() === referenceToday.getMonth() &&
           leadDateObj.getFullYear() === referenceToday.getFullYear();
+      } else if (filters.date.includes(" - ")) {
+        // Lọc theo khoảng ngày tùy chỉnh từ Lịch đôi (ví dụ: "20/05/2026 - 28/05/2026")
+        const parts = filters.date.split(" - ");
+        const startParts = parts[0].split("/");
+        const endParts = parts[1].split("/");
+        
+        const startDate = new Date(
+          parseInt(startParts[2]),
+          parseInt(startParts[1]) - 1,
+          parseInt(startParts[0])
+        );
+        startDate.setHours(0, 0, 0, 0);
+
+        const endDate = new Date(
+          parseInt(endParts[2]),
+          parseInt(endParts[1]) - 1,
+          parseInt(endParts[0])
+        );
+        endDate.setHours(23, 59, 59, 999);
+
+        matchesDate = leadDateObj >= startDate && leadDateObj <= endDate;
       } else {
         // Lọc theo một ngày cụ thể (ví dụ: "28/05/2026" chọn từ Lịch)
         matchesDate = lead.fullDate === filters.date;

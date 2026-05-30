@@ -39,6 +39,8 @@ export function PortalTooltip({
         
         let baseLeft = rect.left + rect.width / 2 + window.scrollX;
         if (align === 'right') {
+          baseLeft = rect.left + window.scrollX;
+        } else if (align === 'left') {
           baseLeft = rect.right + window.scrollX;
         }
 
@@ -62,7 +64,11 @@ export function PortalTooltip({
 
   if (!active) return null;
 
-  const transformX = align === 'center' ? '-50%' : '0%';
+  const transformX = align === 'center' 
+    ? '-50%' 
+    : align === 'left' 
+      ? '-100%' 
+      : '0%';
   const transformY = position === 'top' ? '-100%' : '0%';
 
   return createPortal(
@@ -82,7 +88,11 @@ export function PortalTooltip({
         <div 
           className={cn(
             "absolute w-2 h-2 bg-base-100 rotate-45 border-base-content/10",
-            align === 'center' ? "left-1/2 -translate-x-1/2" : "left-4",
+            align === 'center' 
+              ? "left-1/2 -translate-x-1/2" 
+              : align === 'left' 
+                ? "right-4" 
+                : "left-4",
             position === 'top' 
               ? "-bottom-1 border-b border-r" 
               : "-top-1 border-t border-l"

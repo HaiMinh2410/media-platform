@@ -17,6 +17,7 @@ import { ErrorBoundary, SectionError } from '@features/dashboard/components/erro
 import { LeadsCenterTab } from '@features/dashboard/components/leads-center-tab';
 import { DashboardTabsLayout } from '@features/dashboard/components/dashboard-tabs-layout';
 import DashboardSkeleton from '@features/dashboard/components/dashboard-skeleton';
+import { InsightsTab } from '@features/dashboard/components/insights-tab';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -53,7 +54,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   const resolvedParams = await searchParams;
-  const activeTab = resolvedParams.tab === 'leads' ? 'leads' : 'overview';
+  const tabParam = resolvedParams.tab;
+  const activeTab = tabParam === 'insights' ? 'insights' : tabParam === 'leads' ? 'leads' : 'overview';
 
   return (
     <Suspense fallback={<DashboardSkeleton />}>
@@ -69,7 +71,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 interface DashboardContentProps {
   workspaceId: string;
   workspaceName: string;
-  activeTab: 'overview' | 'leads';
+  activeTab: 'overview' | 'leads' | 'insights';
 }
 
 async function DashboardContent({ workspaceId, workspaceName, activeTab }: DashboardContentProps) {
@@ -112,6 +114,17 @@ async function DashboardContent({ workspaceId, workspaceName, activeTab }: Dashb
               </ErrorBoundary>
             </div>
           </div>
+        </div>
+      </DashboardTabsLayout>
+    );
+  }
+
+  // Nếu đang ở tab insights, render InsightsTab
+  if (activeTab === 'insights') {
+    return (
+      <DashboardTabsLayout activeTab={activeTab} workspaceName={workspaceName}>
+        <div className="animate-fade-in w-full flex flex-col">
+          <InsightsTab workspaceId={workspaceId} />
         </div>
       </DashboardTabsLayout>
     );

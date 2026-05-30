@@ -1,12 +1,16 @@
 import React from "react";
 import { Info } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Lead } from "./types";
 
 interface LeadsStatsProps {
   leads: Lead[];
+  selectedGroupId?: string | null;
+  dateFilter?: string;
 }
 
-export function LeadsStats({ leads }: LeadsStatsProps) {
+export function LeadsStats({ leads, selectedGroupId, dateFilter }: LeadsStatsProps) {
+  const router = useRouter();
   const totalLeads = leads.length;
   const newLeadsCount = leads.filter((l) => l.stage === "new").length;
   const convertedLeadsCount = leads.filter(
@@ -18,6 +22,18 @@ export function LeadsStats({ leads }: LeadsStatsProps) {
     totalLeads > 0
       ? ((convertedLeadsCount / totalLeads) * 100).toFixed(0) + "%"
       : "--";
+
+  const handleViewAllClick = () => {
+    const params = new URLSearchParams();
+    params.set("tab", "insights");
+    if (selectedGroupId) {
+      params.set("groupId", selectedGroupId);
+    }
+    if (dateFilter && dateFilter !== "all") {
+      params.set("date", dateFilter);
+    }
+    router.push(`/dashboard?${params.toString()}`);
+  };
 
   return (
     <div className="bg-base-100 border border-base-content/5 rounded-md py-3 px-5 flex flex-col md:flex-row justify-between items-center w-full gap-4 shadow-3xs">
@@ -89,7 +105,10 @@ export function LeadsStats({ leads }: LeadsStatsProps) {
       </div>
 
       {/* Nút Xem tất cả bên phải */}
-      <button className="text-info text-xs transition-all shrink-0 hover:underline cursor-pointer">
+      <button 
+        onClick={handleViewAllClick}
+        className="text-info text-xs transition-all shrink-0 hover:underline cursor-pointer"
+      >
         Xem tất cả
       </button>
     </div>

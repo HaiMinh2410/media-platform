@@ -2,13 +2,13 @@
 
 import React, { startTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LayoutDashboard, Users } from 'lucide-react';
+import { LayoutDashboard, Users, LineChart } from 'lucide-react';
 import { SlidingTabs } from '@shared/ui/sliding-tabs';
 
 import { cn } from '@shared/lib/utils';
 
 interface DashboardTabsLayoutProps {
-  activeTab: 'overview' | 'leads';
+  activeTab: 'overview' | 'leads' | 'insights';
   workspaceName: string;
   children: React.ReactNode;
 }
@@ -34,7 +34,7 @@ export function DashboardTabsLayout({
     };
   }, []);
 
-  const handleTabChange = (tab: 'overview' | 'leads') => {
+  const handleTabChange = (tab: 'overview' | 'leads' | 'insights') => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tab);
     startTransition(() => {
@@ -72,7 +72,8 @@ export function DashboardTabsLayout({
           <SlidingTabs
             items={[
               { value: 'overview', label: 'Tổng quan', icon: LayoutDashboard },
-              { value: 'leads', label: 'Khách hàng tiềm năng', icon: Users }
+              { value: 'leads', label: 'Khách hàng tiềm năng', icon: Users },
+              { value: 'insights', label: 'Thông tin chi tiết', icon: LineChart }
             ]}
             activeValue={activeTab}
             onChange={handleTabChange}

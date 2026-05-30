@@ -163,7 +163,11 @@ export function LeadsCenterTab({
       />
 
       {/* 2. Thanh đo lường hiệu suất (Bento Stats) */}
-      <LeadsStats leads={leads} />
+      <LeadsStats 
+        leads={filteredLeads} 
+        selectedGroupId={selectedGroupId}
+        dateFilter={filters.date}
+      />
 
       {/* 3. Vùng nội dung chính */}
       <div className="flex gap-4 w-full items-stretch flex-1 min-h-0">
