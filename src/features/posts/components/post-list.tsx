@@ -212,12 +212,16 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
 
       {/* Grid */}
       {(filteredPosts.length > 0 || filteredHistory.length > 0) ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 [column-fill:balance] animate-in fade-in slide-in-from-bottom-4 duration-500">
           {filteredHistory.map((batch) => (
-            <BatchPublishCard key={batch.batchId} batch={batch} workspaceId={workspaceId} />
+            <div key={batch.batchId} className="break-inside-avoid mb-6 inline-block w-full">
+              <BatchPublishCard batch={batch} workspaceId={workspaceId} />
+            </div>
           ))}
           {filteredPosts.map((post) => (
-            <PostCard key={post.id} post={post} onDelete={handleDelete} />
+            <div key={post.id} className="break-inside-avoid mb-6 inline-block w-full">
+              <PostCard post={post} onDelete={handleDelete} />
+            </div>
           ))}
         </div>
       ) : (

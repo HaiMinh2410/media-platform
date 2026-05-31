@@ -80,12 +80,27 @@ export class MetaConnectionService {
         const ig = page.instagram_business_account;
         console.log(`>>> [MetaService] Found linked Instagram: ${ig.id}`);
 
+        let avatarUrl: string | undefined = undefined;
+        try {
+          const igInfo = await metaClient.request<{ name?: string, username?: string, profile_picture_url?: string }>(
+            ig.id,
+            pageToken,
+            { fields: 'name,username,profile_picture_url' }
+          );
+          if (igInfo.data && igInfo.data.profile_picture_url) {
+            avatarUrl = igInfo.data.profile_picture_url;
+            console.log(`>>> [MetaService] Successfully retrieved Instagram avatar: ${avatarUrl}`);
+          }
+        } catch (err) {
+          console.error('[MetaService] Error fetching Instagram profile info:', err);
+        }
+
         const publisherIg = await this.publisherAccountRepo.upsert({
           profile_id: profileId,
           platform: 'INSTAGRAM',
           platform_id: ig.id,
           name: `${page.name} (Instagram)`,
-          avatar_url: undefined
+          avatar_url: avatarUrl
         });
 
         if (publisherIg.data) {

@@ -55,11 +55,14 @@ export async function GET(req: NextRequest) {
       }
 
       const batch = batchesMap.get(bId);
+      const avatarUrl = job.account.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.account.name)}&background=random&size=150`;
+
       batch.accounts.push({
         id: job.account_id,
         name: job.account.name,
         platform: job.platform,
-        status: job.status === 'COMPLETED' ? 'SUCCESS' : 'FAILED'
+        status: job.status === 'COMPLETED' ? 'SUCCESS' : 'FAILED',
+        avatarUrl: avatarUrl
       });
 
       // Update aggregate status

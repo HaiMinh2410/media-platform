@@ -92,11 +92,14 @@ export default async function PostsPage({
     else if (job.status === 'PENDING' && job.scheduled_at) accountStatus = 'SCHEDULED';
     else if (job.status === 'PENDING' || job.status === 'RUNNING') accountStatus = 'SCHEDULED'; // Treat as scheduled if waiting/running
 
+    const avatarUrl = job.account.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.account.name)}&background=random&size=150`;
+
     batch.accounts.push({
       id: job.account_id,
       name: job.account.name,
       platform: job.platform,
-      status: accountStatus
+      status: accountStatus,
+      avatarUrl: avatarUrl
     });
   });
 
