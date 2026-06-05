@@ -1,15 +1,17 @@
 'use client';
 
-import { SlidingTabs } from "@shared/ui";
+import { SlidingTabs, FilterGroup } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import React, { useState } from 'react';
+import { ClusterSelector } from '@features/inbox/components/cluster-selector';
+import { DoubleCalendarPicker } from '@features/leads/components/double-calendar-picker';
+import { useInboxStore } from '@features/inbox/store/inbox.store';
 import { Post, PostStatus } from '@features/posts/types';
-import { PostCard } from './post-card';
+import { PostCard, BatchPublishSummary } from './post-card';
 import { PostEmptyState } from './post-empty-state';
-import { Search, Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 
-import { BatchPublishSummary, BatchPublishCard } from './publisher/batch-publish-card';
 import { createClient } from '@shared/api/supabase/client';
 import { useEffect } from 'react';
 
@@ -25,7 +27,95 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
   const [filter, setFilter] = useState<PostStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{ date: string }>({ date: 'all' });
+  const { accountGroups } = useInboxStore();
   const supabase = createClient();
+
+  const onChangeGroup = (groupId: string | null) => {
+    setSelectedGroupId(groupId);
+  };
+
+  const onFilterChange = (key: 'date', value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const checkMatchesDate = (dateVal: Date | string | null | undefined) => {
+    if (filters.date === 'all') return true;
+    if (!dateVal) return false;
+
+    const dateObj = new Date(dateVal);
+    if (isNaN(dateObj.getTime())) return false;
+    
+    dateObj.setHours(0, 0, 0, 0);
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const referenceToday = now.getFullYear() >= 2026 ? now : new Date(2026, 4, 28);
+    referenceToday.setHours(0, 0, 0, 0);
+
+    const getFormattedDate = (d: Date) => {
+      return d.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    };
+
+    const dateValFormatted = getFormattedDate(dateObj);
+
+    if (filters.date === 'Hôm nay') {
+      return dateValFormatted === getFormattedDate(referenceToday);
+    } else if (filters.date === 'Hôm qua') {
+      const yesterday = new Date(referenceToday);
+      yesterday.setDate(referenceToday.getDate() - 1);
+      return dateValFormatted === getFormattedDate(yesterday);
+    } else if (filters.date === '7 ngày qua') {
+      const past7Days = new Date(referenceToday);
+      past7Days.setDate(referenceToday.getDate() - 7);
+      return dateObj >= past7Days && dateObj <= referenceToday;
+    } else if (filters.date === '14 ngày qua') {
+      const past14Days = new Date(referenceToday);
+      past14Days.setDate(referenceToday.getDate() - 14);
+      return dateObj >= past14Days && dateObj <= referenceToday;
+    } else if (filters.date === '30 ngày qua') {
+      const past30Days = new Date(referenceToday);
+      past30Days.setDate(referenceToday.getDate() - 30);
+      return dateObj >= past30Days && dateObj <= referenceToday;
+    } else if (filters.date === '90 ngày qua') {
+      const past90Days = new Date(referenceToday);
+      past90Days.setDate(referenceToday.getDate() - 90);
+      return dateObj >= past90Days && dateObj <= referenceToday;
+    } else if (filters.date === 'Tháng này') {
+      return (
+        dateObj.getMonth() === referenceToday.getMonth() &&
+        dateObj.getFullYear() === referenceToday.getFullYear()
+      );
+    } else if (filters.date.includes(' - ')) {
+      const parts = filters.date.split(' - ');
+      const startParts = parts[0].split('/');
+      const endParts = parts[1].split('/');
+      
+      const startDate = new Date(
+        parseInt(startParts[2]),
+        parseInt(startParts[1]) - 1,
+        parseInt(startParts[0])
+      );
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(
+        parseInt(endParts[2]),
+        parseInt(endParts[1]) - 1,
+        parseInt(endParts[0])
+      );
+      endDate.setHours(23, 59, 59, 999);
+
+      return dateObj >= startDate && dateObj <= endDate;
+    } else {
+      return dateValFormatted === filters.date;
+    }
+  };
 
   useEffect(() => {
     // Subscribe to realtime updates for publish_jobs
@@ -150,11 +240,16 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
     }
   };
 
+  const selectedGroup = accountGroups.find((g) => g.id === selectedGroupId);
+  const groupAccountIds = selectedGroup ? selectedGroup.members.map((m) => m.id) : [];
+
   const filteredPosts = posts.filter(post => {
     const matchesStatus = filter === 'all' || post.status === filter;
     const matchesSearch = post.content?.toLowerCase().includes(search.toLowerCase()) || 
                          post.title?.toLowerCase().includes(search.toLowerCase());
-    return matchesStatus && matchesSearch;
+    const matchesCluster = !selectedGroupId || groupAccountIds.includes(post.accountId);
+    const matchesDate = checkMatchesDate(post.createdAt || post.scheduledAt || post.publishedAt);
+    return matchesStatus && matchesSearch && matchesCluster && matchesDate;
   });
 
   const filteredHistory = history.filter(batch => {
@@ -163,7 +258,17 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
                          (filter === 'failed' && (batch.status === 'FAILED' || batch.status === 'PARTIAL')) ||
                          (filter === 'scheduled' && batch.status === 'SCHEDULED');
     const matchesSearch = batch.content?.toLowerCase().includes(search.toLowerCase());
-    return matchesStatus && matchesSearch;
+    
+    const matchesCluster = !selectedGroupId || !selectedGroup || batch.accounts.some(acc => 
+      selectedGroup.members.some(member => 
+        (acc.platformId && member.externalId === acc.platformId && member.platform.toLowerCase() === acc.platform.toLowerCase()) ||
+        (member.name.toLowerCase() === acc.name.toLowerCase() && member.platform.toLowerCase() === acc.platform.toLowerCase()) ||
+        member.id === acc.id
+      )
+    );
+    
+    const matchesDate = checkMatchesDate(batch.createdAt || batch.scheduledAt);
+    return matchesStatus && matchesSearch && matchesCluster && matchesDate;
   });
 
   const handleDelete = (id: string) => {
@@ -188,16 +293,29 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
         />
 
         <div className="flex items-center gap-3">
-          <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={14} />
-            <input 
-              type="text"
-              placeholder="Search posts..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-base-100 border border-base-content/10 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 rounded-xl pl-10 pr-4 py-2 text-sm text-base-content transition-all"
+          <FilterGroup>
+            <ClusterSelector
+              workspaceId={workspaceId}
+              selectedGroupId={selectedGroupId}
+              onChangeGroup={onChangeGroup}
+              triggerClassName={cn(
+                "btn btn-soft btn-sm bg-transparent hover:bg-base-100/60 rounded-sm border-none text-xs text-base-content/80",
+                selectedGroupId &&
+                  "text-primary bg-primary/10 font-bold hover:bg-primary/15",
+              )}
             />
-          </div>
+
+            {/* Bộ lọc Chọn ngày (Double Calendar Picker) */}
+            <DoubleCalendarPicker
+              selectedDate={filters.date}
+              onSelectDate={(date) => onFilterChange("date", date)}
+              triggerClassName={cn(
+                "btn btn-ghost btn-sm bg-transparent hover:bg-base-100/60 rounded-sm border-none text-xs text-base-content/80",
+                filters.date !== "all" &&
+                  "text-primary bg-primary/10 font-bold hover:bg-primary/15",
+              )}
+            />
+          </FilterGroup>
           
           <button 
             onClick={fetchPosts}
@@ -214,19 +332,24 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 [column-fill:balance] animate-in fade-in slide-in-from-bottom-4 duration-500">
           {filteredHistory.map((batch) => (
             <div key={batch.batchId} className="break-inside-avoid mb-6 inline-block w-full">
-              <BatchPublishCard batch={batch} workspaceId={workspaceId} />
+              <PostCard batch={batch} workspaceId={workspaceId} />
             </div>
           ))}
           {filteredPosts.map((post) => (
             <div key={post.id} className="break-inside-avoid mb-6 inline-block w-full">
-              <PostCard post={post} onDelete={handleDelete} />
+              <PostCard post={post} onDelete={handleDelete} workspaceId={workspaceId} />
             </div>
           ))}
         </div>
       ) : (
         <PostEmptyState 
-          hasFilters={filter !== 'all' || search !== ''} 
-          onClear={() => { setFilter('all'); setSearch(''); }} 
+          hasFilters={filter !== 'all' || search !== '' || selectedGroupId !== null || filters.date !== 'all'} 
+          onClear={() => { 
+            setFilter('all'); 
+            setSearch(''); 
+            setSelectedGroupId(null);
+            setFilters({ date: 'all' });
+          }} 
         />
       )}
     </div>

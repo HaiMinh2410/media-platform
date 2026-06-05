@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { BatchPublishTracker } from '@features/posts/components/publisher/batch-publish-tracker';
-import { BatchPublishCard, BatchPublishSummary } from '@features/posts/components/publisher/batch-publish-card';
+import { BatchPublishCard, BatchPublishSummary } from '@features/posts/components/post-card';
 
 export default async function PostsPage({ 
   searchParams 
@@ -99,7 +99,8 @@ export default async function PostsPage({
       name: job.account.name,
       platform: job.platform,
       status: accountStatus,
-      avatarUrl: avatarUrl
+      avatarUrl: avatarUrl,
+      platformId: job.account.platform_id
     });
   });
 

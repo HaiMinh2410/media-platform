@@ -62,7 +62,8 @@ export async function GET(req: NextRequest) {
         name: job.account.name,
         platform: job.platform,
         status: job.status === 'COMPLETED' ? 'SUCCESS' : 'FAILED',
-        avatarUrl: avatarUrl
+        avatarUrl: avatarUrl,
+        platformId: job.account.platform_id
       });
 
       // Update aggregate status
