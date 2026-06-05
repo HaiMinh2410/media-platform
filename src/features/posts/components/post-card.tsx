@@ -15,7 +15,6 @@ import {
   Bookmark,
   Eye,
   Calendar,
-  Clock,
   CheckCircle2,
   XCircle,
   AlertCircle,
@@ -126,11 +125,38 @@ export function PostCard({ post, batch, workspaceId, onDelete }: PostCardProps) 
     }
   };
 
-  const handleDelete = () => {
-    if (isLegacyDraft) {
-      toast.error('Bản nháp cũ không còn được hỗ trợ');
-    } else if (onDelete) {
-      onDelete(id);
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa bài viết này?");
+    if (!confirmDelete) return;
+
+    setIsDeleting(true);
+    toast.loading("Đang xóa bài viết...", { id: "delete-post" });
+
+    try {
+      let response;
+      if (isBatch) {
+        response = await fetch(`/api/publish/history?id=${id}`, {
+          method: 'DELETE',
+        });
+      } else {
+        response = await fetch(`/api/posts/${id}`, {
+          method: 'DELETE',
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || errorData.error || 'Failed to delete');
+      }
+
+      toast.success("Xóa bài viết thành công!", { id: "delete-post" });
+      if (onDelete) {
+        onDelete(id);
+      }
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast.error(error.message || 'Không thể xóa bài viết. Vui lòng thử lại sau.', { id: "delete-post" });
+      setIsDeleting(false);
     }
   };
 
@@ -238,14 +264,14 @@ export function PostCard({ post, batch, workspaceId, onDelete }: PostCardProps) 
                   Xem chi tiết
                 </button>
               </li>
-              {isLegacyDraft && (
+              {onDelete && (
                 <li>
                   <button
                     onClick={handleDelete}
                     className="flex items-center gap-2 text-xs text-error hover:bg-error/10 font-bold py-2 rounded-lg cursor-pointer"
                   >
                     <Trash2 size={14} />
-                    Xóa bài viết
+                    {status === 'published' ? 'Gỡ bài viết (MXH & DB)' : 'Xóa bài viết'}
                   </button>
                 </li>
               )}

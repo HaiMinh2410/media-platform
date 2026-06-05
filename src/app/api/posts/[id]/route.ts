@@ -42,6 +42,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+import { db } from "@shared/lib/db";
+import { getTokenEncryptionService } from "@features/settings/services/token-encryption.service";
+
 /**
  * DELETE /api/posts/[id]
  * Deletes a post.
@@ -50,7 +53,84 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const postRepo = getPostRepository();
+    
+    // 1. Fetch post details first
+    const { data: post, error: findErr } = await postRepo.findById(id);
+    
+    if (findErr || !post) {
+      return NextResponse.json({ error: findErr || 'Post not found' }, { status: 404 });
+    }
+
+    // 2. If the post is published and has a platformPostId, attempt deleting from Meta Graph API
+    if (post.status === 'published' && post.platformPostId) {
+      const account = await db.platformAccount.findUnique({
+        where: { id: post.accountId },
+        include: {
+          meta_tokens: {
+            orderBy: { updated_at: 'desc' },
+            take: 1
+          }
+        }
+      });
+
+      if (account && (account.platform === 'instagram' || account.platform === 'facebook')) {
+        const encryptedToken = account.meta_tokens?.[0]?.encrypted_access_token;
+        if (encryptedToken) {
+          const crypto = getTokenEncryptionService();
+          const decrypted = await crypto.decrypt(encryptedToken);
+          
+          if (decrypted.data) {
+            const accessToken = decrypted.data;
+            const apiVersion = 'v25.0';
+            const url = `https://graph.facebook.com/${apiVersion}/${post.platformPostId}?access_token=${accessToken}`;
+            
+            const apiRes = await fetch(url, {
+              method: 'DELETE'
+            });
+            
+            const apiData = await apiRes.json();
+            
+            if (!apiRes.ok || apiData.error) {
+              const errorMessage = apiData.error?.message || 'Meta API request failed';
+              const errorCode = apiData.error?.code;
+              console.error('[API Post DELETE] Meta Graph API error:', apiData.error);
+              
+              // Check if the post was already deleted from the social network (doesn't exist)
+              const isAlreadyDeleted = 
+                errorCode === 100 && 
+                (errorMessage.toLowerCase().includes('does not exist') || 
+                 errorMessage.toLowerCase().includes('cannot be loaded') ||
+                 errorMessage.toLowerCase().includes('unsupported get request') ||
+                 errorMessage.toLowerCase().includes('not found'));
+
+              if (isAlreadyDeleted) {
+                console.log('[API Post DELETE] Post already deleted from Meta. Proceeding with local DB deletion.');
+              } else {
+                // If it's a media type not supported error
+                if (errorMessage.includes('Media Type Not Supported')) {
+                  return NextResponse.json({ 
+                    error: 'Media Type Not Supported', 
+                    message: 'Bài viết này không được hỗ trợ để xóa qua API.' 
+                  }, { status: 400 });
+                }
+                
+                return NextResponse.json({ 
+                  error: 'PLATFORM_DELETE_FAILED', 
+                  message: `Không thể xóa bài viết trên mạng xã hội: ${errorMessage}` 
+                }, { status: 502 });
+              }
+            }
+            
+            console.log('[API Post DELETE] Successfully deleted media from Meta:', apiData);
+          }
+        }
+      }
+    }
+
+    // 3. Delete from local database
+    console.log('[API Post DELETE] Attempting to delete post from DB with id:', id);
     const { success, error } = await postRepo.deletePost(id);
+    console.log('[API Post DELETE] Local DB delete result:', success, error);
 
     if (error) {
       return NextResponse.json({ error }, { status: 500 });
