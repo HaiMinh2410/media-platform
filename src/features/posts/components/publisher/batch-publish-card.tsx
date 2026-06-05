@@ -41,61 +41,12 @@ type BatchPublishCardProps = {
   workspaceId: string;
 };
 
-// Mock users database for hashing (shared with post-card)
-const MOCK_USERS = [
-  { name: 'Sonya Leena', location: 'Dubai, UAE', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80' },
-  { name: 'Adam Addisin', location: 'Oklahoma, US', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' },
-  { name: 'Andrew Dewitt', location: 'Overland Park, KS', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80' },
-  { name: 'Nicole Segall', location: 'New Delhi, India', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80' },
-  { name: 'Michael Gilmore', location: 'Lawrence, KS', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80' },
-  { name: 'Damian Efron', location: 'Birmingham, UK', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80' },
-];
-
-const MOCK_IMAGES = [
-  'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1472214222541-d510753a49fa?w=600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=600&auto=format&fit=crop&q=80',
-];
-
-// Consistent Hashing Helper
-const getMockData = (id: string) => {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  
-  const userIndex = Math.abs(hash) % MOCK_USERS.length;
-  const imageIndex = Math.abs(hash * 3) % MOCK_IMAGES.length;
-  
-  const user = MOCK_USERS[userIndex];
-  const fallbackImage = MOCK_IMAGES[imageIndex];
-  
-  const likesCount = (Math.abs(hash * 13) % 450) + 12;
-  const otherUsers = MOCK_USERS.filter(u => u.name !== user.name);
-  const likerName = otherUsers[Math.abs(hash * 7) % otherUsers.length].name.split(' ')[0];
-  const likerAvatars = otherUsers.slice(0, 2).map(u => u.avatar);
-  
-  return {
-    user,
-    fallbackImage,
-    likesCount,
-    likerName,
-    likerAvatars
-  };
-};
-
 export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const mock = getMockData(batch.batchId);
   const batchContent = batch.content || '';
   const shouldShowExpand = batchContent.length > 80;
   const failCount = batch.accounts.filter(a => a.status === 'FAILED').length;
@@ -167,7 +118,26 @@ export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) 
           </div>
         </div>
         
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          {(!batch.mediaUrls || batch.mediaUrls.length === 0) && (
+            <div className={cn(
+              "flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-extrabold uppercase tracking-wider border transition-colors shadow-xs",
+              batch.status === 'SUCCESS' && "bg-success/10 text-success border-success/20",
+              batch.status === 'FAILED' && "bg-error/10 text-error border-error/20",
+              batch.status === 'PARTIAL' && "bg-warning/10 text-warning border-warning/20",
+              batch.status === 'SCHEDULED' && "bg-info/10 text-info border-info/20"
+            )}>
+              {batch.status === 'SUCCESS' && <CheckCircle2 size={12} />}
+              {batch.status === 'FAILED' && <XCircle size={12} />}
+              {batch.status === 'PARTIAL' && <AlertCircle size={12} />}
+              {batch.status === 'SCHEDULED' && <Calendar size={12} />}
+              
+              {batch.status === 'SUCCESS' && 'Thành công'}
+              {batch.status === 'FAILED' && 'Thất bại'}
+              {batch.status === 'PARTIAL' && 'Một phần'}
+              {batch.status === 'SCHEDULED' && 'Đã lên lịch'}
+            </div>
+          )}
           <div className="dropdown dropdown-end">
             <div 
               tabIndex={0} 
@@ -195,42 +165,44 @@ export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) 
       </div>
 
       {/* B. Body của Thẻ (Visual Content) */}
-      <div className="px-4 py-2 relative overflow-hidden">
-        <div className="relative rounded-2xl overflow-hidden bg-base-300">
-          <img 
-            src={batch.mediaUrls.length > 0 ? batch.mediaUrls[0] : mock.fallbackImage} 
-            alt="Batch media" 
-            className="w-full h-auto object-cover max-h-[380px] group-hover:scale-102 transition-transform duration-500 rounded-2xl"
-          />
-          
-          {/* Status Badge overlay */}
-          <div className="absolute top-3 left-3">
-            <div className={cn(
-              "flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-extrabold uppercase tracking-wider border backdrop-blur-md transition-colors shadow-xs",
-              batch.status === 'SUCCESS' && "bg-success/20 text-success border-success/30",
-              batch.status === 'FAILED' && "bg-error/20 text-error border-error/30",
-              batch.status === 'PARTIAL' && "bg-warning/20 text-warning border-warning/30",
-              batch.status === 'SCHEDULED' && "bg-info/20 text-info border-info/30"
-            )}>
-              {batch.status === 'SUCCESS' && <CheckCircle2 size={12} />}
-              {batch.status === 'FAILED' && <XCircle size={12} />}
-              {batch.status === 'PARTIAL' && <AlertCircle size={12} />}
-              {batch.status === 'SCHEDULED' && <Calendar size={12} />}
-              
-              {batch.status === 'SUCCESS' && 'Thành công'}
-              {batch.status === 'FAILED' && 'Thất bại'}
-              {batch.status === 'PARTIAL' && 'Một phần'}
-              {batch.status === 'SCHEDULED' && 'Đã lên lịch'}
+      {batch.mediaUrls && batch.mediaUrls.length > 0 && (
+        <div className="px-4 py-2 relative overflow-hidden">
+          <div className="relative rounded-2xl overflow-hidden bg-base-300">
+            <img 
+              src={batch.mediaUrls[0]} 
+              alt="Batch media" 
+              className="w-full h-auto object-cover max-h-[380px] group-hover:scale-102 transition-transform duration-500 rounded-2xl"
+            />
+            
+            {/* Status Badge overlay */}
+            <div className="absolute top-3 left-3">
+              <div className={cn(
+                "flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-extrabold uppercase tracking-wider border backdrop-blur-md transition-colors shadow-xs",
+                batch.status === 'SUCCESS' && "bg-success/20 text-success border-success/30",
+                batch.status === 'FAILED' && "bg-error/20 text-error border-error/30",
+                batch.status === 'PARTIAL' && "bg-warning/20 text-warning border-warning/30",
+                batch.status === 'SCHEDULED' && "bg-info/20 text-info border-info/30"
+              )}>
+                {batch.status === 'SUCCESS' && <CheckCircle2 size={12} />}
+                {batch.status === 'FAILED' && <XCircle size={12} />}
+                {batch.status === 'PARTIAL' && <AlertCircle size={12} />}
+                {batch.status === 'SCHEDULED' && <Calendar size={12} />}
+                
+                {batch.status === 'SUCCESS' && 'Thành công'}
+                {batch.status === 'FAILED' && 'Thất bại'}
+                {batch.status === 'PARTIAL' && 'Một phần'}
+                {batch.status === 'SCHEDULED' && 'Đã lên lịch'}
+              </div>
             </div>
-          </div>
 
-          {batch.mediaUrls.length > 1 && (
-            <div className="absolute bottom-3 right-3 badge badge-sm badge-soft bg-base-300/80 backdrop-blur-md text-base-content font-mono border-none font-bold">
-              +{batch.mediaUrls.length - 1} more
-            </div>
-          )}
+            {batch.mediaUrls.length > 1 && (
+              <div className="absolute bottom-3 right-3 badge badge-sm badge-soft bg-base-300/80 backdrop-blur-md text-base-content font-mono border-none font-bold">
+                +{batch.mediaUrls.length - 1} more
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* C. Gương tương tác (Interaction Bar) */}
       <div className="flex items-center justify-between px-4 py-2 mt-1 shrink-0">
@@ -263,8 +235,7 @@ export function BatchPublishCard({ batch, workspaceId }: BatchPublishCardProps) 
         </button>
       </div>
 
-      {/* D. Footer của Thẻ (Social Proof & Caption) */}
-
+      {/* D. Caption & Footer */}
       <div className="px-4 pb-4 pt-1 space-y-3 grow">
         <p className="text-sm text-base-content/80 leading-relaxed font-medium wrap-break-word">
           {shouldShowExpand ? (

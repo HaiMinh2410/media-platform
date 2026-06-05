@@ -18,7 +18,7 @@ export class PostRepository {
               title: title || null,
               content: content,
               media_urls: mediaUrls,
-              status: scheduledAt ? 'scheduled' : 'draft',
+              status: 'scheduled',
               scheduled_at: scheduledAt ? new Date(scheduledAt) : null,
               metadata: {},
             },
@@ -54,7 +54,7 @@ export class PostRepository {
   /**
    * Fetches posts for a workspace.
    */
-  async findByWorkspaceId(workspaceId: string): Promise<{ data: Post[] | null, error: string | null }> {
+  async findByWorkspaceId(workspaceId: string): Promise<{ data: (Post & { account?: { name: string; platform: string; avatarUrl?: string } })[] | null, error: string | null }> {
     try {
       const results = await db.posts.findMany({
         where: {
@@ -62,25 +62,37 @@ export class PostRepository {
             workspaceId: workspaceId,
           },
         },
+        include: {
+          platform_accounts: true,
+        },
         orderBy: { created_at: 'desc' },
       });
 
       return {
-        data: results.map((r) => ({
-          id: r.id,
-          accountId: r.account_id,
-          title: r.title,
-          content: r.content,
-          mediaUrls: r.media_urls,
-          status: r.status as PostStatus,
-          scheduledAt: r.scheduled_at,
-          publishedAt: r.published_at,
-          errorMessage: r.error_message,
-          metadata: r.metadata as Record<string, unknown>,
-          platformPostId: r.platform_post_id,
-          createdAt: r.created_at,
-          updatedAt: r.updated_at,
-        })),
+        data: results.map((r) => {
+          const meta = r.platform_accounts?.metadata as any;
+          const avatarUrl = meta?.avatar_url || meta?.picture?.data?.url || undefined;
+          return {
+            id: r.id,
+            accountId: r.account_id,
+            title: r.title,
+            content: r.content,
+            mediaUrls: r.media_urls,
+            status: r.status as PostStatus,
+            scheduledAt: r.scheduled_at,
+            publishedAt: r.published_at,
+            errorMessage: r.error_message,
+            metadata: r.metadata as Record<string, unknown>,
+            platformPostId: r.platform_post_id,
+            createdAt: r.created_at,
+            updatedAt: r.updated_at,
+            account: r.platform_accounts ? {
+              name: r.platform_accounts.platform_user_name,
+              platform: r.platform_accounts.platform,
+              avatarUrl: avatarUrl
+            } : undefined
+          };
+        }),
         error: null,
       };
     } catch (error: unknown) {

@@ -14,13 +14,13 @@ import { createClient } from '@shared/api/supabase/client';
 import { useEffect } from 'react';
 
 type PostListProps = {
-  initialPosts: Post[];
+  initialPosts: (Post & { account?: { name: string; platform: string; avatarUrl?: string } })[];
   initialHistory?: BatchPublishSummary[];
   workspaceId: string;
 };
 
 export function PostList({ initialPosts, initialHistory = [], workspaceId }: PostListProps) {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [posts, setPosts] = useState<(Post & { account?: { name: string; platform: string; avatarUrl?: string } })[]>(initialPosts);
   const [history, setHistory] = useState<BatchPublishSummary[]>(initialHistory);
   const [filter, setFilter] = useState<PostStatus | 'all'>('all');
   const [search, setSearch] = useState('');
@@ -180,7 +180,6 @@ export function PostList({ initialPosts, initialHistory = [], workspaceId }: Pos
             { value: 'scheduled', label: 'Scheduled' },
             { value: 'published', label: 'Published' },
             { value: 'failed', label: 'Failed' },
-            { value: 'draft', label: 'Draft' },
           ]}
           activeValue={filter}
           onChange={(val) => setFilter(val as PostStatus | 'all')}

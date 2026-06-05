@@ -4,14 +4,9 @@ import { cn } from "@shared/lib";
 
 import React from 'react';
 import { PostStatus } from '@features/posts/types';
-import { Clock, CheckCircle2, AlertCircle, FileText } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const STATUS_CONFIG = {
-  draft: {
-    label: 'Draft',
-    icon: FileText,
-    className: 'bg-base-200 text-base-content/70 border-base-content/5',
-  },
   scheduled: {
     label: 'Scheduled',
     icon: Clock,
@@ -30,7 +25,12 @@ const STATUS_CONFIG = {
 };
 
 export function PostStatusBadge({ status }: { status: PostStatus }) {
-  const config = STATUS_CONFIG[status] || STATUS_CONFIG.draft;
+  // Nếu trạng thái không nằm trong cấu hình, không hiển thị badge
+  if (!(status in STATUS_CONFIG)) {
+    return null;
+  }
+
+  const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG];
   const Icon = config.icon;
 
   return (

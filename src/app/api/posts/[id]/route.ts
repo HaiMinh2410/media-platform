@@ -6,7 +6,7 @@ const UpdatePostSchema = z.object({
   content: z.string().min(1).optional(),
   title: z.string().optional(),
   scheduledAt: z.string().optional(),
-  status: z.enum(['draft', 'scheduled', 'published', 'failed']).optional(),
+  status: z.enum(['scheduled', 'published', 'failed']).optional(),
 });
 
 type RouteParams = { params: Promise<{ id: string }> };
