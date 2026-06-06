@@ -45,6 +45,11 @@ interface SlidingTabsProps<T extends string> {
    * Optional custom class for the active indicator
    */
   activeIndicatorClassName?: string;
+  /**
+   * Optional custom rounded class (e.g. 'rounded-xl', 'rounded-full').
+   * If provided, overrides default size-based rounding. Inner buttons and indicator will be calculated automatically.
+   */
+  rounded?: string;
 }
 
 export function SlidingTabs<T extends string>({
@@ -56,32 +61,57 @@ export function SlidingTabs<T extends string>({
   className = "",
   fullWidth = false,
   activeIndicatorClassName = "",
+  rounded,
 }: SlidingTabsProps<T>) {
-  // Định nghĩa styles cho từng kích thước
+  // Mặc định rounded cho từng size
+  const defaultRounded = {
+    xs: { container: "rounded-xl", inner: "rounded-lg" },
+    sm: { container: "rounded-xl", inner: "rounded-md" },
+    md: { container: "rounded-2xl", inner: "rounded-xl" },
+    lg: { container: "rounded-2xl", inner: "rounded-2xl" },
+  };
+
+  // Helper tính inner rounded dựa vào container rounded
+  const getInnerRoundedClass = (containerRounded: string): string => {
+    if (containerRounded.includes("rounded-full")) return "rounded-full";
+    if (containerRounded.includes("rounded-3xl")) return "rounded-2xl";
+    if (containerRounded.includes("rounded-2xl")) return "rounded-xl";
+    if (containerRounded.includes("rounded-xl")) return "rounded-lg";
+    if (containerRounded.includes("rounded-lg")) return "rounded-md";
+    if (containerRounded.includes("rounded-md")) return "rounded-sm";
+    if (containerRounded.includes("rounded-sm")) return "rounded-xs";
+    if (containerRounded.includes("rounded-none")) return "rounded-none";
+    return containerRounded; // fallback
+  };
+
+  const containerRoundedClass = rounded || defaultRounded[size]?.container || "rounded-2xl";
+  const innerRoundedClass = rounded ? getInnerRoundedClass(rounded) : (defaultRounded[size]?.inner || "rounded-xl");
+
+  // Định nghĩa styles cho từng kích thước (không chứa rounded- classes)
   const sizeStyles = {
     xs: {
-      container: "p-0.5 rounded-xl gap-0.5",
-      button: "px-2 py-0.5 rounded-lg text-3xs font-bold uppercase gap-1",
-      indicator: "rounded-lg shadow-xs",
+      container: "p-0.5 gap-0.5",
+      button: "px-2 py-0.5 text-3xs font-bold uppercase gap-1",
+      indicator: "shadow-xs",
       icon: 10,
     },
     sm: {
-      container: "p-1 rounded-xl gap-1",
-      button: "px-3 py-1.5 rounded-md text-xs font-bold gap-2",
-      indicator: "rounded-md shadow-xs",
+      container: "p-1 gap-1",
+      button: "px-3 py-1.5 text-xs font-bold gap-2",
+      indicator: "shadow-xs",
       icon: 12,
     },
     md: {
-      container: "p-1 rounded-2xl gap-2",
-      button: "px-3 py-1.5 rounded-xl text-sm font-bold gap-2.5",
-      indicator: "rounded-xl shadow-md",
+      container: "p-1 gap-2",
+      button: "px-3 py-1.5 text-sm font-bold gap-2.5",
+      indicator: "shadow-md",
       icon: 14,
     },
     lg: {
-      container: "p-2 rounded-2xl gap-2",
+      container: "p-2 gap-2",
       button:
-        "px-6 py-3 rounded-2xl text-sm font-extrabold uppercase tracking-widest gap-3",
-      indicator: "rounded-2xl shadow-lg",
+        "px-6 py-3 text-sm font-extrabold uppercase tracking-widest gap-3",
+      indicator: "shadow-lg",
       icon: 16,
     },
   };
@@ -90,9 +120,9 @@ export function SlidingTabs<T extends string>({
 
   return (
     <div
-      className={`flex items-center border border-base-content/5 rounded-2xl select-none shadow-inner relative ${
+      className={`flex items-center border border-base-content/5 select-none shadow-inner relative ${
         fullWidth ? "w-full" : "w-fit"
-      } ${currentStyle.container} ${className}`}
+      } ${containerRoundedClass} ${currentStyle.container} ${className}`}
     >
       {items.map((item) => {
         const isActive = activeValue === item.value;
@@ -105,7 +135,7 @@ export function SlidingTabs<T extends string>({
             onClick={() => onChange(item.value)}
             className={`relative flex items-center transition-all duration-300 cursor-pointer select-none outline-none ${
               fullWidth ? "flex-1 justify-center" : ""
-            } ${currentStyle.button} ${
+            } ${innerRoundedClass} ${currentStyle.button} ${
               isActive
                 ? `${activeText} scale-[1.02]`
                 : "text-base-content/50 hover:text-base-content hover:bg-base-300/10"
@@ -114,7 +144,7 @@ export function SlidingTabs<T extends string>({
             {isActive && (
               <motion.div
                 layoutId={layoutId}
-                className={`absolute inset-0 -z-10 ${currentStyle.indicator} ${activeIndicatorClassName} ${activeBg}`}
+                className={`absolute inset-0 -z-10 ${innerRoundedClass} ${currentStyle.indicator} ${activeIndicatorClassName} ${activeBg}`}
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}

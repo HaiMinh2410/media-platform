@@ -5,7 +5,7 @@ import { ValidationIssue } from "@shared/lib/validation/validation-engine";
 
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Image as ImageIcon, X, UploadCloud, Film, Loader2 } from 'lucide-react';
+import { Image as ImageIcon, X, UploadCloud, Film } from 'lucide-react';
 import { createClient } from '@shared/api/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -195,15 +195,16 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
               
               {file.status === 'uploading' && (
                 <div className="absolute inset-0 bg-base-300/80 flex items-center justify-center flex-col gap-2">
-                  <Loader2 className="text-primary animate-spin" size={20} />
+                  <span className="loading loading-spinner text-primary loading-sm"></span>
                 </div>
               )}
  
               {file.status === 'transcoding' && (
-                <div className="absolute inset-0 bg-base-300/90 flex flex-col items-center justify-center p-3">
-                  <div className="w-full bg-base-100 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-primary h-1.5 rounded-full transition-all duration-300" style={{ width: `${file.transcodeProgress || 0}%` }} />
-                  </div>
+                <div className="absolute inset-0 bg-base-300/90 flex flex-col items-center justify-center p-3 gap-2">
+                  <progress className="progress progress-primary w-full" value={file.transcodeProgress || 0} max="100" />
+                  <span className="text-[10px] text-base-content/60 font-mono font-bold">
+                    {Math.round(file.transcodeProgress || 0)}%
+                  </span>
                 </div>
               )}
  
@@ -220,8 +221,9 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
               )}
  
               <button
+                type="button"
                 onClick={() => removeFile(file.id)}
-                className="absolute top-1.5 right-1.5 p-1 rounded-full bg-base-300/80 text-base-content/70 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error hover:text-error-content cursor-pointer shadow-xs"
+                className="absolute top-1.5 right-1.5 btn btn-circle btn-xs bg-base-300/80 border-0 text-base-content/70 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error hover:text-error-content cursor-pointer shadow-xs"
               >
                 <X size={12} />
               </button>
@@ -236,7 +238,7 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
               "aspect-square rounded-xl border border-dashed transition-all duration-300 cursor-pointer flex flex-col items-center justify-center gap-2",
               isDragActive 
                 ? "border-primary bg-primary/10" 
-                : "border-base-content/10 bg-base-300/40 hover:border-primary/50 hover:bg-base-200/50"
+                : "border-base-content/10 bg-base-300/20 hover:border-primary/50 hover:bg-base-200/50"
             )}
           >
             <input {...getInputProps()} />

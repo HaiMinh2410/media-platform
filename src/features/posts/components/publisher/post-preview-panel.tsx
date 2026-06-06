@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from "@shared/lib";
+import { SlidingTabs } from "@shared/ui";
 
 import React, { useState, useEffect, useRef } from "react";
 import {
@@ -96,41 +97,53 @@ export function PostPreviewPanel({
   const activeAccount = currentAccounts.find((a) => a.id === activeAccountId);
   const doneMedia = mediaFiles.filter((f) => f.status === "done");
 
+  const tabItems = [
+    {
+      value: "facebook" as const,
+      label: (
+        <span className="flex items-center gap-2">
+          Facebook
+          <span className={cn(
+            "badge badge-sm font-mono border-0 transition-colors",
+            activePlatform === "facebook" ? "bg-white/20 text-base-content" : "bg-facebook/10 text-facebook"
+          )}>
+            {fbAccounts.length}
+          </span>
+        </span>
+      ),
+      activeBgClass: "bg-facebook",
+      activeTextClass: "text-white",
+    },
+    {
+      value: "instagram" as const,
+      label: (
+        <span className="flex items-center gap-2">
+          Instagram
+          <span className={cn(
+            "badge badge-sm font-mono border-0 transition-colors",
+            activePlatform === "instagram" ? "bg-white/20  text-base-content" : "bg-instagram/10 text-instagram"
+          )}>
+            {igAccounts.length}
+          </span>
+        </span>
+      ),
+      activeBgClass: "bg-instagram",
+      activeTextClass: "text-base-content",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-5 w-full">
       {/* Level 1: Platform Tabs (Segmented Control) */}
-      <div className="flex items-center bg-base-200/50 border border-base-content/10 rounded-xl p-1 h-[42px]">
-        <button
-          onClick={() => setActivePlatform("facebook")}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all cursor-pointer",
-            activePlatform === "facebook"
-              ? "bg-base-100 text-primary shadow-xs"
-              : "text-base-content/50 hover:text-base-content hover:bg-base-200/40",
-          )}
-        >
-          <div className="w-2 h-2 rounded-full bg-facebook" />
-          Facebook
-          <span className="bg-facebook/10 text-facebook text-2xs px-1.5 py-0.5 rounded-full ml-1 font-mono">
-            {fbAccounts.length}
-          </span>
-        </button>
-        <button
-          onClick={() => setActivePlatform("instagram")}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-2 text-[12px] font-bold h-full rounded-lg transition-all cursor-pointer",
-            activePlatform === "instagram"
-              ? "bg-base-100 text-pink-600 shadow-xs"
-              : "text-base-content/50 hover:text-base-content hover:bg-base-200/40",
-          )}
-        >
-          <div className="w-2 h-2 rounded-full bg-pink-600" />
-          Instagram
-          <span className="bg-pink-600/10 text-pink-600 text-2xs px-1.5 py-0.5 rounded-full ml-1 font-mono">
-            {igAccounts.length}
-          </span>
-        </button>
-      </div>
+      <SlidingTabs
+        items={tabItems}
+        activeValue={activePlatform}
+        onChange={setActivePlatform}
+        fullWidth
+        size="sm"
+        rounded="rounded-full"
+        layoutId="previewPlatformTabs"
+      />
 
       {/* Level 2: Account Sub-tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none min-h-[36px]">

@@ -26,31 +26,33 @@ export function SchedulingPanel({
   return (
     <div className="bg-base-100 border border-base-content/5 shadow-md rounded-2xl p-6 space-y-8">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-base-content/70">
-          Publishing
+        <h3 className="text-xs font-bold uppercase tracking-widest text-base-content/40 font-mono">
+          📅 PHÂN PHỐI
         </h3>
-        <div className="flex bg-base-200 rounded-2xl p-1.5 border border-base-content/10 shadow-inner">
+        <div className="join bg-base-200 p-1 border border-base-content/5 rounded-xl">
           <button
+            type="button"
             onClick={() => onChange(null)}
             className={cn(
-              "px-5 py-2.5 text-2xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 cursor-pointer",
+              "join-item btn btn-sm rounded-lg border-0 transition-all duration-200 cursor-pointer uppercase tracking-wider text-[10px] font-extrabold px-4",
               !isScheduled
-                ? "bg-primary text-primary-content shadow-md shadow-primary/20"
-                : "text-base-content/50 hover:text-base-content",
+                ? "bg-primary text-primary-content hover:bg-primary/95 shadow-xs"
+                : "btn-ghost text-base-content/50 hover:text-base-content",
             )}
           >
-            Now
+            Đăng ngay
           </button>
           <button
+            type="button"
             onClick={() => onChange(new Date(Date.now() + 60 * 60 * 1000))}
             className={cn(
-              "px-5 py-2.5 text-2xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 cursor-pointer",
+              "join-item btn btn-sm rounded-lg border-0 transition-all duration-200 cursor-pointer uppercase tracking-wider text-[10px] font-extrabold px-4",
               isScheduled
-                ? "bg-primary text-primary-content shadow-md shadow-primary/20"
-                : "text-base-content/50 hover:text-base-content",
+                ? "bg-primary text-primary-content hover:bg-primary/95 shadow-xs"
+                : "btn-ghost text-base-content/50 hover:text-base-content",
             )}
           >
-            Schedule
+            Lên lịch
           </button>
         </div>
       </div>
@@ -66,11 +68,12 @@ export function SchedulingPanel({
 
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={onPublish}
           disabled={isSubmitting}
           className={cn(
-            "btn btn-primary rounded-xl flex-1 h-auto py-4 font-bold text-sm shadow-xl shadow-primary/15 hover:-translate-y-0.5 active:scale-98 transition-all cursor-pointer",
-            isSubmitting && "btn-disabled opacity-50 cursor-not-allowed",
+            "btn btn-primary rounded-xl flex-1 h-12 font-bold text-sm shadow-md hover:-translate-y-0.5 transition-all cursor-pointer",
+            isSubmitting && "btn-disabled",
           )}
         >
           {isSubmitting ? (
@@ -99,10 +102,6 @@ export function SchedulingPanel({
               )}
             </>
           )}
-        </button>
-
-        <button className="btn btn-ghost border border-base-content/10 bg-base-200/50 hover:bg-base-200 rounded-xl font-bold text-sm w-32 h-auto py-4 cursor-pointer transition-all">
-          💾 Bản nháp
         </button>
       </div>
     </div>
