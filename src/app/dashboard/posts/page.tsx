@@ -9,7 +9,6 @@ import { PostList } from '@features/posts/components/post-list';
 import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
-import { BatchPublishTracker } from '@features/posts/components/publisher/batch-publish-tracker';
 import { BatchPublishCard, BatchPublishSummary } from '@features/posts/components/post-card';
 
 export default async function PostsPage({ 
@@ -87,10 +86,15 @@ export default async function PostsPage({
     }
     const batch = batchesMap.get(bId);
     
-    let accountStatus: 'SUCCESS' | 'FAILED' | 'SCHEDULED' = 'FAILED';
-    if (job.status === 'COMPLETED') accountStatus = 'SUCCESS';
-    else if (job.status === 'PENDING' && job.scheduled_at) accountStatus = 'SCHEDULED';
-    else if (job.status === 'PENDING' || job.status === 'RUNNING') accountStatus = 'SCHEDULED'; // Treat as scheduled if waiting/running
+    let accountStatus: 'SUCCESS' | 'FAILED' | 'SCHEDULED' | 'PROCESSING' = 'FAILED';
+    if (job.status === 'COMPLETED') {
+      accountStatus = 'SUCCESS';
+    } else if (job.status === 'RUNNING') {
+      accountStatus = 'PROCESSING';
+    } else if (job.status === 'PENDING') {
+      const isFuture = job.scheduled_at && new Date(job.scheduled_at) > new Date();
+      accountStatus = isFuture ? 'SCHEDULED' : 'PROCESSING';
+    }
 
     const avatarUrl = job.account.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.account.name)}&background=random&size=150`;
 
@@ -109,12 +113,20 @@ export default async function PostsPage({
     const total = batch.accounts.length;
     const success = batch.accounts.filter((a: any) => a.status === 'SUCCESS').length;
     const failed = batch.accounts.filter((a: any) => a.status === 'FAILED').length;
+    const processing = batch.accounts.filter((a: any) => a.status === 'PROCESSING').length;
     const scheduled = batch.accounts.filter((a: any) => a.status === 'SCHEDULED').length;
 
-    if (scheduled > 0) batch.status = 'SCHEDULED';
-    else if (success === total) batch.status = 'SUCCESS';
-    else if (failed === total) batch.status = 'FAILED';
-    else batch.status = 'PARTIAL';
+    if (processing > 0) {
+      batch.status = 'PROCESSING';
+    } else if (scheduled > 0) {
+      batch.status = 'SCHEDULED';
+    } else if (success === total) {
+      batch.status = 'SUCCESS';
+    } else if (failed === total) {
+      batch.status = 'FAILED';
+    } else {
+      batch.status = 'PARTIAL';
+    }
 
     return batch;
   });
@@ -136,12 +148,11 @@ export default async function PostsPage({
         </Link>
       </header>
       
-      {batchId && <BatchPublishTracker batchId={batchId} />}
-
       <PostList 
         initialPosts={posts || []} 
         initialHistory={history}
         workspaceId={workspace.id} 
+        batchId={batchId}
       />
     </div>
   );

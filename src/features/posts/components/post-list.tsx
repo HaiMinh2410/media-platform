@@ -9,6 +9,7 @@ import { DoubleCalendarPicker } from "@features/leads/components/double-calendar
 import { useInboxStore } from "@features/inbox/store/inbox.store";
 import { Post, PostStatus } from "@features/posts/types";
 import { PostCard, BatchPublishSummary } from "./post-card";
+import { BatchPublishTracker } from "./publisher/batch-publish-tracker";
 import { PostEmptyState } from "./post-empty-state";
 import { Loader2, RefreshCw, Trash2 } from "lucide-react";
 
@@ -23,12 +24,14 @@ type PostListProps = {
   })[];
   initialHistory?: BatchPublishSummary[];
   workspaceId: string;
+  batchId?: string;
 };
 
 export function PostList({
   initialPosts,
   initialHistory = [],
   workspaceId,
+  batchId,
 }: PostListProps) {
   const router = useRouter();
   const [posts, setPosts] =
@@ -133,33 +136,39 @@ export function PostList({
   };
 
   useEffect(() => {
-    // Subscribe to realtime updates for publish_jobs
+    // Subscribe to realtime updates for publish_jobs and posts
     const channel = supabase
-      .channel("public:publish_jobs")
+      .channel("public:posts_and_jobs_realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "publish_jobs" },
         (payload) => {
           if (payload.eventType === "INSERT") {
             const newJob = payload.new as any;
+            const bId = newJob.batch_id || newJob.batchId || newJob.id;
+            const accountId = newJob.account_id || newJob.accountId;
+            const platform = newJob.platform;
+            const content = newJob.content;
+            const mediaUrls = newJob.media_urls || newJob.mediaUrls || [];
+            const createdAt = newJob.created_at || newJob.createdAt;
+
             setHistory((prev) => {
-              const bId = newJob.batch_id || newJob.id;
               const existingBatch = prev.find((b) => b.batchId === bId);
 
               if (existingBatch) {
                 // If batch exists, just add the account if not already there
                 return prev.map((b) => {
                   if (b.batchId === bId) {
-                    if (b.accounts.some((a) => a.id === newJob.account_id))
+                    if (b.accounts.some((a) => a.id === accountId))
                       return b;
                     return {
                       ...b,
                       accounts: [
                         ...b.accounts,
                         {
-                          id: newJob.account_id,
+                          id: accountId,
                           name: "Loading...", // Temporary until refresh
-                          platform: newJob.platform,
+                          platform: platform,
                           status: "SCHEDULED",
                         },
                       ],
@@ -172,15 +181,15 @@ export function PostList({
                 const newBatch: BatchPublishSummary = {
                   id: newJob.id,
                   batchId: bId,
-                  content: newJob.content || "",
-                  mediaUrls: newJob.media_urls || [],
-                  createdAt: new Date(newJob.created_at),
+                  content: content || "",
+                  mediaUrls: mediaUrls,
+                  createdAt: new Date(createdAt),
                   status: "SCHEDULED",
                   accounts: [
                     {
-                      id: newJob.account_id,
+                      id: accountId,
                       name: "Loading...",
-                      platform: newJob.platform,
+                      platform: platform,
                       status: "SCHEDULED",
                     },
                   ],
@@ -190,31 +199,38 @@ export function PostList({
             });
           } else if (payload.eventType === "UPDATE") {
             const updatedJob = payload.new as any;
+            console.log("[Realtime Update] Received updatedJob:", updatedJob);
+            const targetBatchId = updatedJob.batch_id || updatedJob.batchId || updatedJob.id;
+            const targetAccountId = updatedJob.account_id || updatedJob.accountId;
+            const jobStatus = updatedJob.status;
+            const scheduledAt = updatedJob.scheduled_at || updatedJob.scheduledAt;
 
             setHistory((prev) => {
               return prev.map((batch) => {
-                if (batch.batchId !== (updatedJob.batch_id || updatedJob.id)) {
+                if (batch.batchId !== targetBatchId) {
                   return batch;
                 }
+                console.log("[Realtime Update] Found matching batch:", batch.batchId);
 
                 // Find and update the specific account
                 const updatedAccounts = batch.accounts.map((acc) => {
-                  if (acc.id === updatedJob.account_id) {
-                    let accountStatus: "SUCCESS" | "FAILED" | "SCHEDULED" =
+                  const isMatch = acc.id === targetAccountId;
+                  console.log(`[Realtime Update] Comparing acc.id (${acc.id}) with targetAccountId (${targetAccountId}) -> match: ${isMatch}`);
+                  if (isMatch) {
+                    let accountStatus: "SUCCESS" | "FAILED" | "SCHEDULED" | "PROCESSING" =
                       "FAILED";
-                    if (updatedJob.status === "COMPLETED")
+                    if (jobStatus === "COMPLETED") {
                       accountStatus = "SUCCESS";
-                    else if (
-                      updatedJob.status === "PENDING" &&
-                      updatedJob.scheduled_at
-                    )
-                      accountStatus = "SCHEDULED";
-                    else if (
-                      updatedJob.status === "PENDING" ||
-                      updatedJob.status === "RUNNING"
-                    )
-                      accountStatus = "SCHEDULED";
+                    } else if (jobStatus === "RUNNING") {
+                      accountStatus = "PROCESSING";
+                    } else if (jobStatus === "PENDING") {
+                      const isFuture = scheduledAt && new Date(scheduledAt) > new Date();
+                      accountStatus = isFuture ? "SCHEDULED" : "PROCESSING";
+                    } else if (jobStatus === "FAILED") {
+                      accountStatus = "FAILED";
+                    }
 
+                    console.log(`[Realtime Update] Setting account ${acc.id} status to: ${accountStatus}`);
                     return { ...acc, status: accountStatus };
                   }
                   return acc;
@@ -228,6 +244,9 @@ export function PostList({
                 const failed = updatedAccounts.filter(
                   (a) => a.status === "FAILED",
                 ).length;
+                const processing = updatedAccounts.filter(
+                  (a) => a.status === "PROCESSING",
+                ).length;
                 const scheduled = updatedAccounts.filter(
                   (a) => a.status === "SCHEDULED",
                 ).length;
@@ -236,11 +255,22 @@ export function PostList({
                   | "SUCCESS"
                   | "PARTIAL"
                   | "FAILED"
-                  | "SCHEDULED" = "FAILED";
-                if (scheduled > 0) newBatchStatus = "SCHEDULED";
-                else if (success === total) newBatchStatus = "SUCCESS";
-                else if (failed === total) newBatchStatus = "FAILED";
-                else newBatchStatus = "PARTIAL";
+                  | "SCHEDULED"
+                  | "PROCESSING" = "SCHEDULED";
+                
+                if (processing > 0) {
+                  newBatchStatus = "PROCESSING";
+                } else if (scheduled > 0) {
+                  newBatchStatus = "SCHEDULED";
+                } else if (success === total) {
+                  newBatchStatus = "SUCCESS";
+                } else if (failed === total) {
+                  newBatchStatus = "FAILED";
+                } else {
+                  newBatchStatus = "PARTIAL";
+                }
+
+                console.log(`[Realtime Update] Calculated newBatchStatus: ${newBatchStatus} (total: ${total}, success: ${success}, failed: ${failed}, processing: ${processing}, scheduled: ${scheduled})`);
 
                 return {
                   ...batch,
@@ -251,6 +281,39 @@ export function PostList({
             });
           }
         },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "posts" },
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const updatedPost = payload.new as any;
+            const targetPostId = updatedPost.id;
+            const postStatus = updatedPost.status;
+            const publishedAt = updatedPost.published_at || updatedPost.publishedAt;
+            const errorMessage = updatedPost.error_message || updatedPost.errorMessage;
+            const platformPostId = updatedPost.platform_post_id || updatedPost.platformPostId;
+            const updatedAt = updatedPost.updated_at || updatedPost.updatedAt;
+
+            setPosts((prev) =>
+              prev.map((p) =>
+                p.id === targetPostId
+                  ? {
+                      ...p,
+                      status: postStatus as PostStatus,
+                      publishedAt: publishedAt ? new Date(publishedAt) : null,
+                      errorMessage: errorMessage,
+                      platformPostId: platformPostId,
+                      updatedAt: new Date(updatedAt),
+                    }
+                  : p
+              )
+            );
+          } else if (payload.eventType === "DELETE") {
+            const deletedPost = payload.old as any;
+            setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
+          }
+        }
       )
       .subscribe();
 
@@ -395,6 +458,12 @@ export function PostList({
 
   return (
     <div className="space-y-6">
+      {batchId && (
+        <BatchPublishTracker 
+          batchId={batchId} 
+          onFinished={fetchPosts} 
+        />
+      )}
       {/* Filters Header */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div className="flex items-center gap-4">

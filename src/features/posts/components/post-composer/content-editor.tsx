@@ -60,8 +60,8 @@ export function ContentEditor({
             {charCount} / {maxLength === Infinity ? '∞' : maxLength}
           </span>
           {platformCount > 1 && (
-            <span className="text-2xs text-base-content/40 font-medium italic">
-              * Giới hạn theo nền tảng khắt khe nhất
+            <span className="text-xs text-base-content/40">
+              * Giới hạn theo nền tảng
             </span>
           )}
         </div>
@@ -81,7 +81,7 @@ export function ContentEditor({
               <LinkIcon size={18} />
             </button>
           </div>
-          <div className="text-2xs text-base-content/50 pr-2 font-medium">
+          <div className="text-sm text-base-content/50">
             {hasInstagram ? `${mediaCount}/10 ảnh (IG)` : ''}
           </div>
         </div>

@@ -4,13 +4,18 @@ import { cn } from "@shared/lib";
 
 import React from 'react';
 import { PostStatus } from '@features/posts/types';
-import { Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 const STATUS_CONFIG = {
   scheduled: {
     label: 'Scheduled',
     icon: Clock,
     className: 'bg-info/10 text-info border-info/20',
+  },
+  processing: {
+    label: 'Processing',
+    icon: Loader2,
+    className: 'bg-warning/15 text-warning border-warning/20 animate-pulse',
   },
   published: {
     label: 'Published',

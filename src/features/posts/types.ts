@@ -1,6 +1,6 @@
 import { PlatformAccount } from '@features/settings';
 
-export type PostStatus = 'scheduled' | 'published' | 'failed';
+export type PostStatus = 'scheduled' | 'processing' | 'published' | 'failed';
 
 export type Post = {
   id: string;

@@ -7,7 +7,6 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Globe,
   MoreHorizontal,
-  Play,
   ThumbsUp,
   MessageCircle,
   Share2,
@@ -105,7 +104,7 @@ export function PostPreviewPanel({
           Facebook
           <span className={cn(
             "badge badge-sm font-mono border-0 transition-colors",
-            activePlatform === "facebook" ? "bg-white/20 text-base-content" : "bg-facebook/10 text-facebook"
+            activePlatform === "facebook" ? "bg-white/20 text-white" : "bg-facebook/10 text-facebook"
           )}>
             {fbAccounts.length}
           </span>
@@ -121,14 +120,14 @@ export function PostPreviewPanel({
           Instagram
           <span className={cn(
             "badge badge-sm font-mono border-0 transition-colors",
-            activePlatform === "instagram" ? "bg-white/20  text-base-content" : "bg-instagram/10 text-instagram"
+            activePlatform === "instagram" ? "bg-white/20 text-white" : "bg-instagram/10 text-instagram"
           )}>
             {igAccounts.length}
           </span>
         </span>
       ),
       activeBgClass: "bg-instagram",
-      activeTextClass: "text-base-content",
+      activeTextClass: "text-white",
     },
   ];
 
@@ -146,11 +145,11 @@ export function PostPreviewPanel({
       />
 
       {/* Level 2: Account Sub-tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none min-h-[36px]">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar min-h-9">
         {currentAccounts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 w-full opacity-40">
             <span className="text-2xl mb-1">👆</span>
-            <span className="text-[12px] font-medium text-base-content">
+            <span className="text-xs font-medium text-base-content">
               Chưa có tài khoản{" "}
               {activePlatform === "facebook" ? "Facebook" : "Instagram"}
             </span>
@@ -166,7 +165,7 @@ export function PostPreviewPanel({
                 key={acc.id}
                 onClick={() => setActiveAccountId(acc.id)}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all border shrink-0 cursor-pointer",
+                  "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border shrink-0 cursor-pointer",
                   isActive
                     ? "bg-primary/10 border-primary text-primary"
                     : "bg-transparent border-base-content/10 text-base-content/60 hover:border-primary/50 hover:text-primary",
@@ -224,73 +223,75 @@ function FacebookMock({
   media: MediaFile[];
 }) {
   return (
-    <div className="bg-white text-[#1c1e21]">
+    <div className="text-base-content bg-base-100">
       <div className="p-3 pb-2">
         {/* Header */}
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-10 h-10 rounded-full bg-facebook flex items-center justify-center text-white font-bold text-[18px] overflow-hidden shrink-0">
+          <div className="w-10 h-10 rounded-full bg-facebook flex items-center justify-center text-white font-bold text-lg overflow-hidden shrink-0">
             {account.avatar_url ? (
               <img
                 src={account.avatar_url}
                 className="w-full h-full object-cover"
+                alt=""
               />
             ) : (
               account.name.charAt(0).toUpperCase()
             )}
           </div>
           <div className="flex flex-col">
-            <div className="text-[14px] font-bold leading-tight">
+            <div className="text-sm font-bold leading-tight">
               {account.name}
             </div>
-            <div className="text-[11px] text-[#65676B] flex items-center gap-1 mt-0.5">
-              Vừa xong <span className="text-[8px]">·</span> <Globe size={11} />
+            <div className="text-xs text-base-content/60 flex items-center gap-1 mt-0.5">
+              Vừa xong <span className="text-[10px]">·</span> <Globe size={11} />
             </div>
           </div>
-          <MoreHorizontal size={20} className="text-[#65676B] ml-auto" />
+          <MoreHorizontal size={20} className="text-base-content/60 ml-auto cursor-pointer hover:text-base-content transition-colors" />
         </div>
 
         {/* Content */}
-        <div className="text-[13px] leading-[1.65] mb-3 whitespace-pre-wrap wrap-break-word">
+        <div className="text-sm leading-relaxed mb-3 whitespace-pre-wrap break-words">
           {content || (
-            <span className="text-[#65676B] italic">Nội dung bài viết...</span>
+            <span className="text-base-content/40 italic">Nội dung bài viết...</span>
           )}
         </div>
       </div>
 
       {/* Media Placeholder */}
-      <div className="w-full aspect-4/3 bg-[#f0f2f5] flex flex-col items-center justify-center border-y border-[#e4e6eb] relative overflow-hidden">
+      <div className="w-full aspect-[4/3] bg-base-200 flex flex-col items-center justify-center border-y border-base-content/10 relative overflow-hidden">
         {media.length > 0 ? (
           media[0].type === "video" ? (
             <video
               src={media[0].url}
               className="w-full h-full object-contain"
+              controls
             />
           ) : (
-            <img src={media[0].url} className="w-full h-full object-cover" />
+            <img src={media[0].url} className="w-full h-full object-cover" alt="" />
           )
         ) : (
-          <div className="flex flex-col items-center text-[#65676B]">
-            <span className="text-[24px] mb-1">🖼️</span>
-            <span className="text-[12px] font-bold">
+          <div className="flex flex-col items-center text-base-content/50">
+            <span className="text-2xl mb-1">🖼️</span>
+            <span className="text-xs font-bold">
               {media.length > 0 ? `${media.length} ảnh` : "Media Area (4:3)"}
             </span>
             {media.length === 0 && (
-              <span className="text-[11px] opacity-60">Chưa có ảnh/video</span>
+              <span className="text-xs text-base-content/40 mt-0.5">Chưa có ảnh/video</span>
             )}
           </div>
         )}
       </div>
 
       {/* Action Bar */}
-      <div className="px-3 border-t border-[#e4e6eb] mt-1">
-        <div className="flex justify-between py-2.5">
-          <button className="flex-1 flex items-center justify-center gap-2 text-[13px] font-semibold text-[#65676B]">
+      <div className="px-3 border-t border-base-content/10 mt-1">
+        <div className="flex justify-between py-2">
+          <button className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold text-base-content/60 hover:text-base-content hover:bg-base-200/50 transition-all duration-200 cursor-pointer">
             <ThumbsUp size={18} /> Thích
           </button>
-          <button className="flex-1 flex items-center justify-center gap-2 text-[13px] font-semibold text-[#65676B]">
+          <button className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold text-base-content/60 hover:text-base-content hover:bg-base-200/50 transition-all duration-200 cursor-pointer">
             <MessageCircle size={18} /> Bình luận
           </button>
-          <button className="flex-1 flex items-center justify-center gap-2 text-[13px] font-semibold text-[#65676B]">
+          <button className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold text-base-content/60 hover:text-base-content hover:bg-base-200/50 transition-all duration-200 cursor-pointer">
             <Share2 size={18} /> Chia sẻ
           </button>
         </div>
@@ -310,13 +311,13 @@ function InstagramMock({
 }) {
   const renderCaption = () => {
     if (!content)
-      return <span className="text-[#8e8e8e] italic">Nhập caption...</span>;
+      return <span className="text-base-content/40 italic">Nhập caption...</span>;
 
     const words = content.split(/(\s+)/);
     return words.map((word, idx) => {
       if (word.startsWith("#") || word.startsWith("@")) {
         return (
-          <span key={idx} className="text-[#6aadff]">
+          <span key={idx} className="text-primary font-medium hover:underline cursor-pointer">
             {word}
           </span>
         );
@@ -325,7 +326,7 @@ function InstagramMock({
         return (
           <span
             key={idx}
-            className="text-[#f5a623] inline-flex items-center gap-0.5"
+            className="text-warning font-medium inline-flex items-center gap-0.5"
           >
             ⚠️ {word}
           </span>
@@ -336,62 +337,64 @@ function InstagramMock({
   };
 
   return (
-    <div className="bg-white text-black pb-4">
+    <div className="bg-base-100 text-base-content pb-4">
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-full bg-linear-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white font-bold p-[1.5px]">
-            <div className="w-full h-full rounded-full border-2 border-white overflow-hidden flex items-center justify-center bg-[#252836]">
+            <div className="w-full h-full rounded-full border-2 border-base-100 overflow-hidden flex items-center justify-center bg-base-300">
               {account.avatar_url ? (
                 <img
                   src={account.avatar_url}
                   className="w-full h-full object-cover"
+                  alt=""
                 />
               ) : (
                 account.name.charAt(0).toUpperCase()
               )}
             </div>
           </div>
-          <div className="text-[13px] font-bold">
+          <div className="text-sm font-bold">
             {account.username || account.name.replace(/\s/g, "").toLowerCase()}
           </div>
         </div>
-        <MoreHorizontal size={20} />
+        <MoreHorizontal size={20} className="text-base-content/60 cursor-pointer hover:text-base-content transition-colors" />
       </div>
 
       {/* Media Area (1:1) */}
-      <div className="w-full aspect-square bg-[#f8f8f8] flex items-center justify-center border-y border-[#efefef] relative overflow-hidden">
+      <div className="w-full aspect-square bg-base-200 flex items-center justify-center border-y border-base-content/10 relative overflow-hidden">
         {media.length > 0 ? (
           media[0].type === "video" ? (
-            <video src={media[0].url} className="w-full h-full object-cover" />
+            <video src={media[0].url} className="w-full h-full object-cover" controls />
           ) : (
-            <img src={media[0].url} className="w-full h-full object-cover" />
+            <img src={media[0].url} className="w-full h-full object-cover" alt="" />
           )
         ) : (
-          <div className="flex flex-col items-center text-[#8e8e8e]">
-            <span className="text-[24px] mb-1">📸</span>
-            <span className="text-[12px] font-bold">Square Media (1:1)</span>
+          <div className="flex flex-col items-center text-base-content/50">
+            <span className="text-2xl mb-1">📸</span>
+            <span className="text-xs font-bold">Square Media (1:1)</span>
           </div>
         )}
       </div>
 
       {/* Action Row */}
-      <div className="p-3 pb-2 flex justify-between items-center">
+      <div className="p-3 pb-2 flex justify-between items-center text-base-content">
         <div className="flex gap-4">
-          <Heart size={24} strokeWidth={1.5} />
+          <Heart size={24} strokeWidth={1.5} className="cursor-pointer hover:scale-110 active:scale-95 transition-transform" />
           <MessageCircle
             size={24}
             strokeWidth={1.5}
+            className="cursor-pointer hover:scale-110 active:scale-95 transition-transform"
             style={{ transform: "scaleX(-1)" }}
           />
-          <Send size={24} strokeWidth={1.5} />
+          <Send size={24} strokeWidth={1.5} className="cursor-pointer hover:scale-110 active:scale-95 transition-transform" />
         </div>
-        <Bookmark size={24} strokeWidth={1.5} />
+        <Bookmark size={24} strokeWidth={1.5} className="cursor-pointer hover:scale-110 active:scale-95 transition-transform" />
       </div>
 
       {/* Caption Section */}
-      <div className="px-3 text-[13px] leading-[1.4]">
-        <div className="word-break whitespace-pre-wrap">
+      <div className="px-3 text-sm leading-relaxed">
+        <div className="break-words whitespace-pre-wrap">
           <span className="font-bold mr-1.5">
             {account.username || account.name.replace(/\s/g, "").toLowerCase()}
           </span>

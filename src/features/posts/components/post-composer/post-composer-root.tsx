@@ -280,7 +280,7 @@ export function PostComposerRoot({
             </AnimatePresence>
           </div>
 
-          <div className="bg-base-200 border border-base-content/5 shadow-inner rounded-2xl overflow-hidden flex flex-col">
+          <div className="bg-base-200 border border-base-content/5 shadow-inner rounded-xl overflow-hidden flex flex-col">
             <ContentEditor
               content={content}
               onChange={setContent}

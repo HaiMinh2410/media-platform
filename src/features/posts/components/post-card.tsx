@@ -30,12 +30,12 @@ export type BatchPublishSummary = {
   mediaUrls: string[];
   createdAt: Date;
   scheduledAt?: Date | null;
-  status: 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'SCHEDULED';
+  status: 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'SCHEDULED' | 'PROCESSING';
   accounts: {
     id: string;
     name: string;
     platform: string;
-    status: 'SUCCESS' | 'FAILED' | 'SCHEDULED';
+    status: 'SUCCESS' | 'FAILED' | 'SCHEDULED' | 'PROCESSING';
     avatarUrl?: string;
     platformId?: string;
   }[];
@@ -66,10 +66,28 @@ export function PostCard({ post, batch, workspaceId, onDelete }: PostCardProps) 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const getDisplayStatus = (
+    b: BatchPublishSummary | undefined,
+    p: any
+  ): PostStatus => {
+    if (isBatch && b) {
+      if (b.status === 'PROCESSING') return 'processing';
+      if (b.status === 'SCHEDULED') return 'scheduled';
+      if (b.status === 'SUCCESS') return 'published';
+      return 'failed';
+    } else if (p) {
+      if (p.status === 'published') return 'published';
+      if (p.status === 'failed') return 'failed';
+      if (p.status === 'processing') return 'processing';
+      
+      const isFuture = p.scheduledAt && new Date(p.scheduledAt) > new Date();
+      return isFuture ? 'scheduled' : 'processing';
+    }
+    return 'failed';
+  };
+
   // Lấy dữ liệu gốc ban đầu
-  const initialStatus: PostStatus = isBatch
-    ? (batch.status === 'SCHEDULED' ? 'scheduled' : batch.status === 'SUCCESS' ? 'published' : 'failed')
-    : post!.status;
+  const initialStatus = getDisplayStatus(batch, post);
 
   const initialAccounts = isBatch
     ? batch.accounts
@@ -77,7 +95,11 @@ export function PostCard({ post, batch, workspaceId, onDelete }: PostCardProps) 
         id: post!.accountId,
         name: post!.account?.name || 'Social User',
         platform: post!.account?.platform || 'platform',
-        status: post!.status === 'scheduled' ? 'SCHEDULED' as const : post!.status === 'failed' ? 'FAILED' as const : 'SUCCESS' as const,
+        status: post!.status === 'scheduled' 
+          ? (post!.scheduledAt && new Date(post!.scheduledAt) > new Date() ? 'SCHEDULED' as const : 'PROCESSING' as const)
+          : post!.status === 'failed' 
+          ? 'FAILED' as const 
+          : 'SUCCESS' as const,
         avatarUrl: post!.account?.avatarUrl
       }];
 
@@ -85,16 +107,18 @@ export function PostCard({ post, batch, workspaceId, onDelete }: PostCardProps) 
   const [accounts, setAccounts] = useState(initialAccounts);
 
   useEffect(() => {
-    const updatedStatus: PostStatus = isBatch
-      ? (batch.status === 'SCHEDULED' ? 'scheduled' : batch.status === 'SUCCESS' ? 'published' : 'failed')
-      : post!.status;
+    const updatedStatus = getDisplayStatus(batch, post);
     const updatedAccounts = isBatch
       ? batch.accounts
       : [{
           id: post!.accountId,
           name: post!.account?.name || 'Social User',
           platform: post!.account?.platform || 'platform',
-          status: post!.status === 'scheduled' ? 'SCHEDULED' as const : post!.status === 'failed' ? 'FAILED' as const : 'SUCCESS' as const,
+          status: post!.status === 'scheduled' 
+            ? (post!.scheduledAt && new Date(post!.scheduledAt) > new Date() ? 'SCHEDULED' as const : 'PROCESSING' as const)
+            : post!.status === 'failed' 
+            ? 'FAILED' as const 
+            : 'SUCCESS' as const,
           avatarUrl: post!.account?.avatarUrl
         }];
 

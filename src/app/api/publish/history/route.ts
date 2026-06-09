@@ -50,30 +50,57 @@ export async function GET(req: NextRequest) {
           content: job.content || '',
           mediaUrls: job.media_urls || [],
           createdAt: job.created_at,
-          status: 'SUCCESS', // Default, will update
+          scheduledAt: job.scheduled_at,
+          status: 'SUCCESS', // Default, will recalculate
           accounts: []
         });
       }
 
       const batch = batchesMap.get(bId);
+      
+      let accountStatus: 'SUCCESS' | 'FAILED' | 'SCHEDULED' | 'PROCESSING' = 'FAILED';
+      if (job.status === 'COMPLETED') {
+        accountStatus = 'SUCCESS';
+      } else if (job.status === 'RUNNING') {
+        accountStatus = 'PROCESSING';
+      } else if (job.status === 'PENDING') {
+        const isFuture = job.scheduled_at && new Date(job.scheduled_at) > new Date();
+        accountStatus = isFuture ? 'SCHEDULED' : 'PROCESSING';
+      }
+
       const avatarUrl = job.account.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.account.name)}&background=random&size=150`;
 
       batch.accounts.push({
         id: job.account_id,
         name: job.account.name,
         platform: job.platform,
-        status: job.status === 'COMPLETED' ? 'SUCCESS' : 'FAILED',
+        status: accountStatus,
         avatarUrl: avatarUrl,
         platformId: job.account.platform_id
       });
-
-      // Update aggregate status
-      if (job.status === 'FAILED') {
-        batch.status = 'PARTIAL';
-      }
     });
 
-    const batches = Array.from(batchesMap.values());
+    const batches = Array.from(batchesMap.values()).map((batch: any) => {
+      const total = batch.accounts.length;
+      const success = batch.accounts.filter((a: any) => a.status === 'SUCCESS').length;
+      const failed = batch.accounts.filter((a: any) => a.status === 'FAILED').length;
+      const processing = batch.accounts.filter((a: any) => a.status === 'PROCESSING').length;
+      const scheduled = batch.accounts.filter((a: any) => a.status === 'SCHEDULED').length;
+
+      if (processing > 0) {
+        batch.status = 'PROCESSING';
+      } else if (scheduled > 0) {
+        batch.status = 'SCHEDULED';
+      } else if (success === total) {
+        batch.status = 'SUCCESS';
+      } else if (failed === total) {
+        batch.status = 'FAILED';
+      } else {
+        batch.status = 'PARTIAL';
+      }
+
+      return batch;
+    });
 
     return NextResponse.json({ data: batches });
   } catch (error: any) {

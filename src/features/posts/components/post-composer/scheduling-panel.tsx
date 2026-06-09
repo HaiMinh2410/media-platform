@@ -27,14 +27,14 @@ export function SchedulingPanel({
     <div className="bg-base-100 border border-base-content/5 shadow-md rounded-2xl p-6 space-y-8">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-bold uppercase tracking-widest text-base-content/40 font-mono">
-          📅 PHÂN PHỐI
+           PHÂN PHỐI
         </h3>
         <div className="join bg-base-200 p-1 border border-base-content/5 rounded-xl">
           <button
             type="button"
             onClick={() => onChange(null)}
             className={cn(
-              "join-item btn btn-sm rounded-lg border-0 transition-all duration-200 cursor-pointer uppercase tracking-wider text-[10px] font-extrabold px-4",
+              "join-item btn btn-sm rounded-lg border-0 transition-all duration-200 cursor-pointer uppercase tracking-wider text-2xs font-extrabold px-4",
               !isScheduled
                 ? "bg-primary text-primary-content hover:bg-primary/95 shadow-xs"
                 : "btn-ghost text-base-content/50 hover:text-base-content",
@@ -46,7 +46,7 @@ export function SchedulingPanel({
             type="button"
             onClick={() => onChange(new Date(Date.now() + 60 * 60 * 1000))}
             className={cn(
-              "join-item btn btn-sm rounded-lg border-0 transition-all duration-200 cursor-pointer uppercase tracking-wider text-[10px] font-extrabold px-4",
+              "join-item btn btn-sm rounded-lg border-0 transition-all duration-200 cursor-pointer uppercase tracking-wider text-2xs font-extrabold px-4",
               isScheduled
                 ? "bg-primary text-primary-content hover:bg-primary/95 shadow-xs"
                 : "btn-ghost text-base-content/50 hover:text-base-content",

@@ -19,6 +19,12 @@ export class MetaPublishingService {
       return { success: false, error: postErr || 'Post not found' };
     }
 
+    // Cập nhật trạng thái sang 'processing' để đồng bộ realtime lên UI
+    await db.posts.update({
+      where: { id: postId },
+      data: { status: 'processing' }
+    });
+
     // 2. Fetch account details with tokens
     const account = await db.platformAccount.findUnique({
       where: { id: post.accountId },

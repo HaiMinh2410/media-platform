@@ -202,7 +202,7 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
               {file.status === 'transcoding' && (
                 <div className="absolute inset-0 bg-base-300/90 flex flex-col items-center justify-center p-3 gap-2">
                   <progress className="progress progress-primary w-full" value={file.transcodeProgress || 0} max="100" />
-                  <span className="text-[10px] text-base-content/60 font-mono font-bold">
+                  <span className="text-2xs text-base-content/60 font-mono font-bold">
                     {Math.round(file.transcodeProgress || 0)}%
                   </span>
                 </div>
@@ -242,8 +242,7 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
             )}
           >
             <input {...getInputProps()} />
-            <span className="text-xl text-base-content/50 mb-1">🖼️</span>
-            <span className="text-2xs font-medium text-base-content/50 uppercase tracking-wide">Thêm</span>
+            <span className="text-sm font-medium text-base-content/50 tracking-wide">Tải lên</span>
           </div>
         )}
       </div>
