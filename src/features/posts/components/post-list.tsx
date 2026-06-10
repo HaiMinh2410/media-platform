@@ -1,6 +1,6 @@
 "use client";
 
-import { SlidingTabs, FilterGroup, RangeSelector } from "@shared/ui";
+import { SlidingTabs, FilterGroup, RangeSelector, Pagination } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import React from "react";
@@ -10,8 +10,9 @@ import { Post, PostStatus } from "@features/posts/types";
 import { PostCard, BatchPublishSummary } from "./post-card";
 import { BatchPublishTracker } from "./publisher/batch-publish-tracker";
 import { PostEmptyState } from "./post-empty-state";
-import { Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, LayoutGrid, Table } from "lucide-react";
 import { usePostList } from "../hooks/use-post-list";
+import { PostTable } from "./post-table";
 
 type PostListProps = {
   initialPosts: (Post & {
@@ -58,6 +59,40 @@ export function PostList({
     batchId,
   });
 
+  const [viewMode, setViewMode] = React.useState<"card" | "table">("card");
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(20);
+
+  // Reset page to 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, search, selectedGroupId, filters.date, postTypeFilter, sortOrder]);
+
+  const totalPages = Math.ceil(sortedItems.length / pageSize) || 1;
+  const paginatedItems = sortedItems.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const getCombinedFilterValue = () => {
+    if (filter !== "all") return filter;
+    if (postTypeFilter !== "all") return postTypeFilter;
+    return "all";
+  };
+
+  const handleCombinedFilterChange = (val: string) => {
+    if (val === "all") {
+      setFilter("all");
+      setPostTypeFilter("all");
+    } else if (val === "single" || val === "batch") {
+      setFilter("all");
+      setPostTypeFilter(val);
+    } else {
+      setFilter(val as PostStatus);
+      setPostTypeFilter("all");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Filters Header */}
@@ -65,15 +100,27 @@ export function PostList({
         <div className="flex items-center gap-4">
           <SlidingTabs
             items={[
-              { value: "all", label: "All" },
-              { value: "scheduled", label: "Scheduled" },
-              { value: "published", label: "Published" },
-              { value: "failed", label: "Failed" },
+              {
+                value: "card",
+                label: "Dạng thẻ",
+                icon: LayoutGrid,
+                activeBgClass: "bg-primary/10 border border-primary/15",
+                activeTextClass: "text-primary font-bold",
+              },
+              {
+                value: "table",
+                label: "Dạng bảng",
+                icon: Table,
+                activeBgClass: "bg-primary/10 border border-primary/15",
+                activeTextClass: "text-primary font-bold",
+              },
             ]}
-            activeValue={filter}
-            onChange={(val) => setFilter(val as PostStatus | "all")}
-            size="sm"
-            layoutId="postListFilterTabs"
+            activeValue={viewMode}
+            onChange={(val) => setViewMode(val as "card" | "table")}
+            size="md"
+            layoutId="postListViewModeIndicator"
+            className="bg-base-200/30 shrink-0"
+            rounded="rounded-full"
           />
           {filter === "failed" &&
             (filteredPosts.length > 0 || filteredHistory.length > 0) && (
@@ -118,17 +165,20 @@ export function PostList({
               triggerClassName="btn btn-ghost btn-sm bg-transparent hover:bg-base-100/60 rounded-sm border-none text-xs text-base-content/80"
             />
 
-            {/* Bộ lọc loại bài viết */}
+            {/* Bộ lọc bài viết gộp (Loại & Trạng thái) */}
             <RangeSelector
-              value={postTypeFilter}
-              onChange={(val) => setPostTypeFilter(val as "all" | "single" | "batch")}
+              value={getCombinedFilterValue()}
+              onChange={handleCombinedFilterChange}
               options={[
-                { id: "all", label: "Tất cả loại" },
-                { id: "single", label: "Đăng đơn lẻ" },
+                { id: "all", label: "Tất cả bài viết" },
+                { id: "single", label: "Đăng đơn lẻ", dividerBefore: true },
                 { id: "batch", label: "Đăng loạt" },
+                { id: "scheduled", label: "Scheduled", dividerBefore: true },
+                { id: "published", label: "Published" },
+                { id: "failed", label: "Failed" },
               ]}
               menuAlign="right"
-              menuMinWidth="w-36"
+              menuMinWidth="w-40"
               size="sm"
               hideIcon={true}
               triggerClassName="btn btn-ghost btn-sm bg-transparent hover:bg-base-100/60 rounded-sm border-none text-xs text-base-content/80 font-semibold"
@@ -162,38 +212,63 @@ export function PostList({
       {batchId && (
         <BatchPublishTracker batchId={batchId} onFinished={fetchPosts} />
       )}
-      {/* Grid */}
+      {/* Grid hoặc Table */}
       {sortedItems.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {Array.from({ length: cols }, (_, colIdx) => (
-            <div key={colIdx} className="flex flex-col gap-6">
-              {sortedItems
-                .filter((_, idx) => idx % cols === colIdx)
-                .map((item) => (
-                  <div
-                    key={
-                      item.type === "batch" ? `batch-${item.id}` : `post-${item.id}`
-                    }
-                    className="w-full"
-                  >
-                    {item.type === "batch" ? (
-                      <PostCard
-                        batch={item.data as BatchPublishSummary}
-                        onDelete={handleDelete}
-                        workspaceId={workspaceId}
-                      />
-                    ) : (
-                      <PostCard
-                        post={item.data as any}
-                        onDelete={handleDelete}
-                        workspaceId={workspaceId}
-                      />
-                    )}
-                  </div>
-                ))}
+        <>
+          {viewMode === "card" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {Array.from({ length: cols }, (_, colIdx) => (
+                <div key={colIdx} className="flex flex-col gap-6">
+                  {paginatedItems
+                    .filter((_, idx) => idx % cols === colIdx)
+                    .map((item) => (
+                      <div
+                        key={
+                          item.type === "batch" ? `batch-${item.id}` : `post-${item.id}`
+                        }
+                        className="w-full"
+                      >
+                        {item.type === "batch" ? (
+                          <PostCard
+                            batch={item.data as BatchPublishSummary}
+                            onDelete={handleDelete}
+                            workspaceId={workspaceId}
+                          />
+                        ) : (
+                          <PostCard
+                            post={item.data as any}
+                            onDelete={handleDelete}
+                            workspaceId={workspaceId}
+                          />
+                        )}
+                      </div>
+                    ))}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          ) : (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <PostTable
+                items={paginatedItems}
+                workspaceId={workspaceId}
+                onDelete={handleDelete}
+              />
+            </div>
+          )}
+
+          {/* Pagination Footer */}
+          <Pagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            totalItems={sortedItems.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+            itemLabel="bài viết"
+          />
+        </>
       ) : (
         <PostEmptyState
           hasFilters={

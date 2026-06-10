@@ -53,6 +53,16 @@ export class AccountSyncService {
             const decryptedRes = await this.crypto.decrypt(oldTokenRecord.encrypted_access_token);
             
             if (decryptedRes.data) {
+              // Giải mã User Access Token nếu có trong metadata
+              let userAccessToken: string | undefined = undefined;
+              const metadata = oldAcc.metadata as any;
+              if (metadata && metadata.encrypted_user_access_token) {
+                const decryptedUser = await this.crypto.decrypt(metadata.encrypted_user_access_token);
+                if (decryptedUser.data) {
+                  userAccessToken = decryptedUser.data;
+                }
+              }
+
               // 4. Tạo tài khoản mới ở hệ thống Publisher
               const newAccRes = await this.publisherRepo.upsert({
                 profile_id: profileId,
@@ -66,6 +76,7 @@ export class AccountSyncService {
                 // 5. Lưu Token vào hệ thống Publisher (Repo này sẽ tự mã hóa lại)
                 await this.publisherTokenRepo.saveToken(newAccRes.data.id, {
                   accessToken: decryptedRes.data,
+                  refreshToken: userAccessToken,
                   expiresAt: oldTokenRecord.expires_at
                 });
                 console.log(`[AccountSync] Successfully migrated ${oldAcc.name}`);

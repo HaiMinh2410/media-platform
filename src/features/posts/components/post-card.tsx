@@ -62,7 +62,6 @@ export function PostCard({
     mediaUrls,
     scheduledAt,
     createdAt,
-    publishedAt,
     errorMessage,
     getPublishedDate,
     handleDelete,
@@ -455,7 +454,7 @@ export function PostCard({
             )}
             {isBatch && failCount > 0 && (
               <div className="pt-2 border-t border-base-content/5 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-error/80 uppercase font-mono tracking-wider flex items-center gap-1">
+                <span className="text-xs font-bold text-error/80 tracking-wide flex items-center gap-1">
                   <AlertCircle size={12} />
                   {failCount} nền tảng lỗi
                 </span>

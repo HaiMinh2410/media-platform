@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FileText, Plus, XCircle } from 'lucide-react';
+import { FileText, Plus, CircleOff } from 'lucide-react';
 import Link from 'next/link';
 
 type PostEmptyStateProps = {
@@ -11,10 +11,10 @@ type PostEmptyStateProps = {
 
 export function PostEmptyState({ hasFilters, onClear }: PostEmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 px-6 bg-base-100/50 border border-dashed border-base-content/10 rounded-3xl text-center space-y-6">
-      <div className="w-20 h-20 rounded-3xl bg-base-200 flex items-center justify-center shadow-md border border-base-content/5 ring-4 ring-base-content/5">
+    <div className="flex flex-col items-center justify-center py-20 px-6 text-center space-y-6">
+      <div className="w-20 h-20 rounded-3xl bg-base-200 flex items-center justify-center border border-base-content/10">
         {hasFilters ? (
-          <XCircle className="text-base-content/40" size={32} />
+          <CircleOff className="text-base-content/40" size={32} />
         ) : (
           <FileText className="text-primary" size={32} />
         )}
@@ -34,7 +34,7 @@ export function PostEmptyState({ hasFilters, onClear }: PostEmptyStateProps) {
       {hasFilters ? (
         <button
           onClick={onClear}
-          className="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors cursor-pointer"
+          className="text-lg font-semibold tracking-wide text-primary/80 hover:text-primary transition-colors cursor-pointer"
         >
           Clear all filters
         </button>

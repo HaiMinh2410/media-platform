@@ -68,10 +68,18 @@ export async function GET(req: NextRequest) {
       if (job.status === 'COMPLETED') {
         accountStatus = 'SUCCESS';
       } else if (job.status === 'RUNNING') {
-        accountStatus = 'PROCESSING';
+        const startTime = job.updated_at ? new Date(job.updated_at).getTime() : new Date(job.created_at).getTime();
+        const isTimeout = (new Date().getTime() - startTime) > 15 * 60 * 1000; // 15 minutes timeout
+        accountStatus = isTimeout ? 'FAILED' : 'PROCESSING';
       } else if (job.status === 'PENDING') {
         const isFuture = job.scheduled_at && new Date(job.scheduled_at) > new Date();
-        accountStatus = isFuture ? 'SCHEDULED' : 'PROCESSING';
+        if (isFuture) {
+          accountStatus = 'SCHEDULED';
+        } else {
+          const scheduledTime = job.scheduled_at ? new Date(job.scheduled_at).getTime() : new Date(job.created_at).getTime();
+          const isMissed = (new Date().getTime() - scheduledTime) > 15 * 60 * 1000; // 15 minutes missed window
+          accountStatus = isMissed ? 'FAILED' : 'PROCESSING';
+        }
       }
 
       const avatarUrl = job.account.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.account.name)}&background=random&size=150`;
@@ -159,13 +167,57 @@ export async function DELETE(req: NextRequest) {
 
     // 2. Loop through each job and call Meta Graph API to delete
     for (const job of jobs) {
-      if ((job.platform === 'instagram' || job.platform === 'facebook') && job.platform_post_id) {
+      const platformLower = job.platform.toLowerCase();
+      if ((platformLower === 'instagram' || platformLower === 'facebook') && job.platform_post_id) {
         const encryptedToken = job.account?.token?.access_token;
         if (encryptedToken) {
           try {
             const decrypted = await crypto.decrypt(encryptedToken);
             if (decrypted.data) {
-              const accessToken = decrypted.data;
+              let accessToken = decrypted.data; // Default: Page Access Token
+              let userAccessToken: string | null = null;
+
+              // A. Attempt to get User Access Token from AccountToken refresh_token
+              if (job.account?.token?.refresh_token) {
+                const decryptedUser = await crypto.decrypt(job.account.token.refresh_token);
+                if (decryptedUser.data) {
+                  userAccessToken = decryptedUser.data;
+                }
+              }
+
+              // B. Fallback: Attempt to get from PlatformAccount metadata (old system)
+              if (!userAccessToken) {
+                const platformAccount = await db.platformAccount.findFirst({
+                  where: {
+                    platform: platformLower,
+                    platform_user_id: job.account.platform_id
+                  }
+                });
+                const metadata = platformAccount?.metadata as any;
+                if (metadata && metadata.encrypted_user_access_token) {
+                  const decryptedUser = await crypto.decrypt(metadata.encrypted_user_access_token);
+                  if (decryptedUser.data) {
+                    userAccessToken = decryptedUser.data;
+                  }
+                }
+              }
+
+              // For Instagram, we MUST use Facebook User Access Token
+              if (platformLower === 'instagram') {
+                if (!userAccessToken) {
+                  errors.push({
+                    jobId: job.id,
+                    platform: job.platform,
+                    message: 'Yêu cầu kết nối lại (Re-authenticate) tài khoản Instagram để cấp quyền gỡ bài viết.'
+                  });
+                  continue;
+                }
+                accessToken = userAccessToken;
+              } else if (platformLower === 'facebook' && userAccessToken) {
+                // For Facebook, User Access Token is also fine
+                accessToken = userAccessToken;
+              }
+
               const apiVersion = 'v25.0';
               const url = `https://graph.facebook.com/${apiVersion}/${job.platform_post_id}?access_token=${accessToken}`;
               

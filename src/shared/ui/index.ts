@@ -16,3 +16,4 @@ export * from './sliding-tabs';
 export * from './stage-illustration';
 export * from './theme-switcher';
 export * from './inbox-shared';
+export * from './pagination';

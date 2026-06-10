@@ -46,21 +46,21 @@ export default async function AccountsSettingsPage(props: {
     <div className="flex flex-col gap-6">
       {searchParams.success && (
         <div className="bg-success/10 border border-success/20 text-success p-4 rounded-xl mb-6 flex items-center gap-2.5 font-medium animate-in fade-in slide-in-from-top-2">
-          <Icon lucide={CheckCircle2} size={20} />
+          <CheckCircle2 size={20} className="shrink-0" />
           Account connected successfully!
         </div>
       )}
 
       {searchParams.error && (
         <div className="bg-error/10 border border-error/20 text-error p-4 rounded-xl mb-6 flex items-center gap-2.5 font-medium animate-in fade-in slide-in-from-top-2">
-          <Icon lucide={AlertCircle} size={20} />
+          <AlertCircle size={20} className="shrink-0" />
           Failed to connect account: {searchParams.error}
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
         <div className="flex flex-col gap-6">
-          <section className="p-6 rounded-2xl bg-foreground/[0.02] border border-foreground/10 backdrop-blur-xl">
+          <section className="p-6 rounded-2xl bg-foreground/2 border border-foreground/10 backdrop-blur-xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold m-0">Connected Accounts</h2>
               <span className="bg-foreground/10 px-3 py-1 rounded-full text-sm font-semibold">
@@ -72,7 +72,7 @@ export default async function AccountsSettingsPage(props: {
         </div>
 
         <div className="flex flex-col gap-6">
-          <section className="p-6 rounded-2xl bg-foreground/[0.02] border border-foreground/10 backdrop-blur-xl">
+          <section className="p-6 rounded-2xl bg-foreground/2 border border-foreground/10 backdrop-blur-xl">
             <h2 className="text-xl font-semibold mb-2">Add New Connection</h2>
             <p className="text-foreground-tertiary text-base mb-6 leading-relaxed">
               Connect your professional accounts to enable unified messaging and
@@ -81,7 +81,7 @@ export default async function AccountsSettingsPage(props: {
             <ConnectButtons workspaceId={workspace.id} />
           </section>
 
-          <section className="p-6 rounded-2xl bg-foreground/[0.02] border border-foreground/10 backdrop-blur-xl">
+          <section className="p-6 rounded-2xl bg-foreground/2 border border-foreground/10 backdrop-blur-xl">
             <h2 className="text-xl font-semibold mb-2">Quản lý dữ liệu</h2>
             <p className="text-foreground-tertiary text-sm mb-4 leading-relaxed">
               Hệ thống tự động đồng bộ tài khoản theo Access Token mới nhất. Các

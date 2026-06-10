@@ -42,10 +42,21 @@ export function usePostCard({
     } else if (p) {
       if (p.status === "published") return "published";
       if (p.status === "failed") return "failed";
-      if (p.status === "processing") return "processing";
+      
+      if (p.status === "processing") {
+        const updateTime = p.updatedAt ? new Date(p.updatedAt).getTime() : new Date(p.createdAt).getTime();
+        const isTimeout = (new Date().getTime() - updateTime) > 15 * 60 * 1000; // 15 mins timeout
+        return isTimeout ? "failed" : "processing";
+      }
 
       const isFuture = p.scheduledAt && new Date(p.scheduledAt) > new Date();
-      return isFuture ? "scheduled" : "processing";
+      if (isFuture) {
+        return "scheduled";
+      } else {
+        const scheduledTime = p.scheduledAt ? new Date(p.scheduledAt).getTime() : new Date(p.createdAt).getTime();
+        const isMissed = (new Date().getTime() - scheduledTime) > 15 * 60 * 1000; // 15 mins missed
+        return isMissed ? "failed" : "processing";
+      }
     }
     return "failed";
   };

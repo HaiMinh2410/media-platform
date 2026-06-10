@@ -9,7 +9,7 @@ import { PostList } from '@features/posts/components/post-list';
 import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
-import { BatchPublishCard, BatchPublishSummary } from '@features/posts/components/post-card';
+import { BatchPublishSummary } from '@features/posts/components/post-card';
 
 export default async function PostsPage({ 
   searchParams 
@@ -96,10 +96,18 @@ export default async function PostsPage({
     if (job.status === 'COMPLETED') {
       accountStatus = 'SUCCESS';
     } else if (job.status === 'RUNNING') {
-      accountStatus = 'PROCESSING';
+      const startTime = job.updated_at ? new Date(job.updated_at).getTime() : new Date(job.created_at).getTime();
+      const isTimeout = (new Date().getTime() - startTime) > 15 * 60 * 1000; // 15 minutes timeout
+      accountStatus = isTimeout ? 'FAILED' : 'PROCESSING';
     } else if (job.status === 'PENDING') {
       const isFuture = job.scheduled_at && new Date(job.scheduled_at) > new Date();
-      accountStatus = isFuture ? 'SCHEDULED' : 'PROCESSING';
+      if (isFuture) {
+        accountStatus = 'SCHEDULED';
+      } else {
+        const scheduledTime = job.scheduled_at ? new Date(job.scheduled_at).getTime() : new Date(job.created_at).getTime();
+        const isMissed = (new Date().getTime() - scheduledTime) > 15 * 60 * 1000; // 15 minutes missed window
+        accountStatus = isMissed ? 'FAILED' : 'PROCESSING';
+      }
     }
 
     const avatarUrl = job.account.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.account.name)}&background=random&size=150`;
@@ -147,7 +155,7 @@ export default async function PostsPage({
         
         <Link 
           href="/dashboard/composer"
-          className="btn btn-primary rounded-2xl font-bold text-[15px] px-6 py-3.5 flex items-center gap-2 hover:-translate-y-0.5 shadow-lg shadow-primary/25 transition-all duration-300 active:scale-95 group cursor-pointer"
+          className="btn btn-primary rounded-full font-semibold lg:text-lg px-6 py-3.5 flex items-center gap-2 hover:-translate-y-0.5 transition-all duration-300 active:scale-95 group cursor-pointer"
         >
           <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
           Create Post

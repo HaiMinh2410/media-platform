@@ -247,11 +247,19 @@ export function usePostList({
                     if (jobStatus === "COMPLETED") {
                       accountStatus = "SUCCESS";
                     } else if (jobStatus === "RUNNING") {
-                      accountStatus = "PROCESSING";
+                      const startTime = updatedJob.updated_at || updatedJob.updatedAt || updatedJob.created_at || updatedJob.createdAt;
+                      const isTimeout = startTime && (new Date().getTime() - new Date(startTime).getTime()) > 15 * 60 * 1000; // 15 mins timeout
+                      accountStatus = isTimeout ? "FAILED" : "PROCESSING";
                     } else if (jobStatus === "PENDING") {
                       const isFuture =
                         scheduledAt && new Date(scheduledAt) > new Date();
-                      accountStatus = isFuture ? "SCHEDULED" : "PROCESSING";
+                      if (isFuture) {
+                        accountStatus = "SCHEDULED";
+                      } else {
+                        const scheduledTime = scheduledAt ? new Date(scheduledAt).getTime() : (updatedJob.created_at || updatedJob.createdAt ? new Date(updatedJob.created_at || updatedJob.createdAt).getTime() : new Date().getTime());
+                        const isMissed = (new Date().getTime() - scheduledTime) > 15 * 60 * 1000; // 15 mins missed
+                        accountStatus = isMissed ? "FAILED" : "PROCESSING";
+                      }
                     } else if (jobStatus === "FAILED") {
                       accountStatus = "FAILED";
                     }

@@ -24,17 +24,11 @@ export async function GET(request: Request) {
     'pages_messaging',
     'pages_manage_posts',
     'read_insights',
-    'publish_video',
     'instagram_basic',
     'instagram_manage_messages',
     'instagram_manage_insights',
-    'instagram_business_basic',
-    'instagram_business_content_publish',
     'instagram_content_publish',
-    'facebook_creator_marketplace_discovery',
-    'instagram_creator_marketplace_discovery',
-    'threads_basic',
-    'threads_content_publish',
+    'instagram_manage_contents', // Cần thiết để gỡ/xóa bài viết Instagram
   ].join(',');
 
   const state = crypto.randomUUID();

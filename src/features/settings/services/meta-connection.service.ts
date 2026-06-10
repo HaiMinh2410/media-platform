@@ -69,6 +69,7 @@ export class MetaConnectionService {
       if (publisherFb.data) {
         await this.publisherTokenRepo.saveToken(publisherFb.data.id, {
           accessToken: pageToken,
+          refreshToken: userToken, // Lưu User Access Token
           scopes: userScopes,
           expiresAt: undefined // Page tokens are long-lived and don't expire easily
         });
@@ -106,6 +107,7 @@ export class MetaConnectionService {
         if (publisherIg.data) {
           await this.publisherTokenRepo.saveToken(publisherIg.data.id, {
             accessToken: pageToken,
+            refreshToken: userToken, // Lưu User Access Token
             scopes: userScopes,
             expiresAt: undefined
           });
@@ -115,7 +117,9 @@ export class MetaConnectionService {
 
       // --- LƯU VÀO HỆ THỐNG CŨ (Inbox/Chat) ---
       const encryptedPageToken = await encryption.encrypt(pageToken);
-      if (encryptedPageToken.data) {
+      const encryptedUserToken = await encryption.encrypt(userToken);
+      
+      if (encryptedPageToken.data && encryptedUserToken.data) {
         await repository.upsert({
           profileId,
           workspaceId,
@@ -126,7 +130,8 @@ export class MetaConnectionService {
           expiresAt: null,
           metadata: {
             category: page.category,
-            instagram_id: page.instagram_business_account?.id
+            instagram_id: page.instagram_business_account?.id,
+            encrypted_user_access_token: encryptedUserToken.data
           }
         });
 
@@ -139,7 +144,10 @@ export class MetaConnectionService {
             name: `${page.name} (Instagram)`,
             accessToken: encryptedPageToken.data,
             expiresAt: null,
-            metadata: { facebook_page_id: page.id }
+            metadata: { 
+              facebook_page_id: page.id,
+              encrypted_user_access_token: encryptedUserToken.data
+            }
           });
         }
       }

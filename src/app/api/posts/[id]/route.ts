@@ -80,7 +80,51 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
           const decrypted = await crypto.decrypt(encryptedToken);
           
           if (decrypted.data) {
-            const accessToken = decrypted.data;
+            let accessToken = decrypted.data; // Default: Page Access Token
+            let userAccessToken: string | null = null;
+
+            // A. Attempt to get User Access Token from PlatformAccount metadata
+            const metadata = account.metadata as any;
+            if (metadata && metadata.encrypted_user_access_token) {
+              const decryptedUser = await crypto.decrypt(metadata.encrypted_user_access_token);
+              if (decryptedUser.data) {
+                userAccessToken = decryptedUser.data;
+              }
+            }
+
+            // B. Fallback: Get User Access Token from AccountToken refresh_token (new system)
+            if (!userAccessToken) {
+              const newAccount = await db.account.findFirst({
+                where: {
+                  platform: account.platform.toUpperCase(),
+                  platform_id: account.platform_user_id
+                },
+                include: {
+                  token: true
+                }
+              });
+              if (newAccount && newAccount.token?.refresh_token) {
+                const decryptedUser = await crypto.decrypt(newAccount.token.refresh_token);
+                if (decryptedUser.data) {
+                  userAccessToken = decryptedUser.data;
+                }
+              }
+            }
+
+            // For Instagram, we MUST use Facebook User Access Token
+            if (account.platform === 'instagram') {
+              if (!userAccessToken) {
+                return NextResponse.json({
+                  error: 'REAUTH_REQUIRED',
+                  message: 'Vui lòng kết nối lại (Re-authenticate) tài khoản Instagram của bạn trong mục Cài đặt để kích hoạt quyền gỡ bài viết.'
+                }, { status: 400 });
+              }
+              accessToken = userAccessToken;
+            } else if (account.platform === 'facebook' && userAccessToken) {
+              // For Facebook, Page Access Token is preferred, but User Access Token is also fine
+              accessToken = userAccessToken;
+            }
+
             const apiVersion = 'v25.0';
             const url = `https://graph.facebook.com/${apiVersion}/${post.platformPostId}?access_token=${accessToken}`;
             

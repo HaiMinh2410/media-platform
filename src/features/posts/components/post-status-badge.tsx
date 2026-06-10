@@ -11,21 +11,25 @@ const STATUS_CONFIG = {
     label: 'Scheduled',
     icon: Clock,
     className: 'bg-info/80 text-base-content',
+    iconClassName: '',
   },
   processing: {
     label: 'Processing',
     icon: Loader2,
-    className: 'bg-warning/80 text-base-content animate-pulse',
+    className: 'bg-warning/80 text-base-content',
+    iconClassName: 'animate-spin',
   },
   published: {
     label: 'Published',
     icon: CheckCircle2,
     className: 'bg-success/80 text-base-content',
+    iconClassName: '',
   },
   failed: {
     label: 'Failed',
     icon: AlertCircle,
     className: 'bg-error/80 text-base-content',
+    iconClassName: '',
   },
 };
 
@@ -43,7 +47,7 @@ export function PostStatusBadge({ status }: { status: PostStatus }) {
       "flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-xs font-semibold tracking-wide transition-colors",
       config.className
     )}>
-      <Icon size={13} />
+      <Icon size={13} className={config.iconClassName} />
       {config.label}
     </div>
   );

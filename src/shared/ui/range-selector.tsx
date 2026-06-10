@@ -39,6 +39,9 @@ interface RangeSelectorProps {
   // Layout size of the selector
   size?: "xs" | "sm" | "md" | "lg";
 
+  // Position direction of the dropdown menu
+  position?: "bottom" | "top";
+
   // Custom trigger element to override default button
   customTrigger?: React.ReactNode;
 }
@@ -60,6 +63,7 @@ export const RangeSelector = React.forwardRef<HTMLDivElement, RangeSelectorProps
       dropdownClassName = "",
       children,
       size = "md",
+      position = "bottom",
       customTrigger,
     },
     ref
@@ -201,12 +205,13 @@ export const RangeSelector = React.forwardRef<HTMLDivElement, RangeSelectorProps
         <AnimatePresence>
           {open && (
             <motion.div
-              initial={{ opacity: 0, y: 5 }}
+              initial={{ opacity: 0, y: position === "top" ? -5 : 5 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 5 }}
+              exit={{ opacity: 0, y: position === "top" ? -5 : 5 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                "absolute top-[120%] z-50 flex flex-col",
+                "absolute z-50 flex flex-col",
+                position === "top" ? "bottom-[120%]" : "top-[120%]",
                 menuAlign === "left" ? "left-0" : "right-0",
                 menuMinWidth,
                 `bg-foreground/5 border border-foreground/10 backdrop-blur-xl ${currentStyle.dropdown}`,
