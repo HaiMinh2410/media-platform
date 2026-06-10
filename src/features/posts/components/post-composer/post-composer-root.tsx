@@ -268,7 +268,7 @@ export function PostComposerRoot({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.2 }}
-                  className="alert alert-info bg-info/10 border-info/20 text-info text-xs rounded-xl items-center gap-3 shadow-xs"
+                  className="flex text-info text-xs px-2 items-center gap-3"
                 >
                   <Lock size={15} className="shrink-0" />
                   <div className="flex-1">

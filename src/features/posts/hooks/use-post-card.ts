@@ -155,6 +155,18 @@ export function usePostCard({
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (response.status === 502 && errorData.error === 'PLATFORM_DELETE_FAILED' && errorData.details) {
+          const failedAccountIds = new Set(errorData.details.map((d: any) => d.accountId));
+          setAccounts(prev =>
+            prev.map(acc => {
+              if (!failedAccountIds.has(acc.id)) {
+                return { ...acc, status: 'DELETED' as any };
+              } else {
+                return acc;
+              }
+            })
+          );
+        }
         throw new Error(
           errorData.message || errorData.error || "Failed to delete",
         );

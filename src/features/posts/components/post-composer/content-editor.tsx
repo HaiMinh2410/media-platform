@@ -68,16 +68,16 @@ export function ContentEditor({
 
         <div className="flex items-center justify-between bg-base-300/40 rounded-b-2xl px-2 py-1.5 border-t border-base-content/5 mt-1">
           <div className="flex items-center gap-1">
-            <button type="button" className="btn btn-ghost btn-sm btn-square text-base-content/70 hover:bg-base-content/10 transition-colors cursor-pointer">
+            <button type="button" className="btn btn-ghost btn-sm btn-square text-primary/80 hover:bg-base-content/10 transition-colors cursor-pointer">
               <ImageIcon size={18} />
             </button>
-            <button type="button" className="btn btn-ghost btn-sm btn-square text-base-content/70 hover:bg-base-content/10 transition-colors cursor-pointer">
+            <button type="button" className="btn btn-ghost btn-sm btn-square text-primary/80 hover:bg-base-content/10 transition-colors cursor-pointer">
               <Film size={18} />
             </button>
-            <button type="button" className="btn btn-ghost btn-sm btn-square text-base-content/70 hover:bg-base-content/10 transition-colors cursor-pointer">
+            <button type="button" className="btn btn-ghost btn-sm btn-square text-primary/80 hover:bg-base-content/10 transition-colors cursor-pointer">
               <Smile size={18} />
             </button>
-            <button type="button" className="btn btn-ghost btn-sm btn-square text-base-content/70 hover:bg-base-content/10 transition-colors cursor-pointer">
+            <button type="button" className="btn btn-ghost btn-sm btn-square text-primary/80 hover:bg-base-content/10 transition-colors cursor-pointer">
               <LinkIcon size={18} />
             </button>
           </div>

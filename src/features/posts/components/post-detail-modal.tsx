@@ -1,86 +1,64 @@
 "use client";
 
+import React from "react";
+import { format } from "date-fns";
+import { Calendar, CheckCircle2, XCircle, RefreshCcw, AlertTriangle } from "lucide-react";
 import { cn } from "@shared/lib";
 import { PlatformIcon, RangeSelector } from "@shared/ui";
-
-import React from "react";
-import { Post, BatchPublishSummary } from "@features/posts/types";
-import { PostStatusBadge } from "./post-status-badge";
-import { PostDetailModal } from "./post-detail-modal";
-import {
-  MoreVertical,
-  Trash2,
-  AlertTriangle,
-  Heart,
-  MessageCircle,
-  Send,
-  Bookmark,
-  Eye,
-  Calendar,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  RefreshCcw,
-} from "lucide-react";
-import { format } from "date-fns";
 import { CountdownTimer } from "./countdown-timer";
-import { usePostCard } from "../hooks/use-post-card";
 
-export type { BatchPublishSummary };
-export { PostCard as BatchPublishCard };
-
-type PostCardProps = {
-  post?: Post & {
-    account?: {
-      name: string;
-      platform: string;
-      avatarUrl?: string;
-    };
-  };
-  batch?: BatchPublishSummary;
-  workspaceId: string;
-  onDelete?: (id: string) => void;
+type PostDetailModalProps = {
+  modalId: string;
+  isBatch: boolean;
+  isMultiAccountBatch: boolean;
+  accounts: any[];
+  setAccounts: React.Dispatch<React.SetStateAction<any[]>>;
+  status: string;
+  setStatus: React.Dispatch<React.SetStateAction<any>>;
+  scheduledAt?: string | Date | null;
+  createdAt?: string | Date;
+  errorMessage?: string | null;
+  getPublishedDate: () => Date;
+  handleRetry: (e: React.MouseEvent) => Promise<void>;
+  primaryAccount: any;
+  accountAvatar?: string;
+  failCount: number;
+  isRetrying: boolean;
+  content: string;
+  mediaUrls?: string[] | null;
+  id: string;
+  post?: any;
 };
 
-export function PostCard({
+export function PostDetailModal({
+  modalId,
+  isBatch,
+  isMultiAccountBatch,
+  accounts,
+  setAccounts,
+  status,
+  setStatus,
+  scheduledAt,
+  createdAt,
+  errorMessage,
+  getPublishedDate,
+  handleRetry,
+  primaryAccount,
+  accountAvatar,
+  failCount,
+  isRetrying,
+  content,
+  mediaUrls,
+  id,
   post,
-  batch,
-  workspaceId,
-  onDelete,
-}: PostCardProps) {
-  const {
-    isBatch,
-    isDeleting,
-    isRetrying,
-    isExpanded,
-    setIsExpanded,
-    status,
-    setStatus,
-    accounts,
-    setAccounts,
-    id,
-    content,
-    mediaUrls,
-    scheduledAt,
-    createdAt,
-    errorMessage,
-    getPublishedDate,
-    handleDelete,
-    handleRetry,
-    formatTime,
-    primaryAccount,
-    accountAvatar,
-    shouldShowExpand,
-    failCount,
-    modalId,
-    openModal,
-    isMultiAccountBatch,
-  } = usePostCard({
-    post,
-    batch,
-    workspaceId,
-    onDelete,
-  });
+}: PostDetailModalProps) {
+  const formatTime = (date: any) => {
+    try {
+      return format(new Date(date), "MMM d, yyyy");
+    } catch (e) {
+      return "Recently";
+    }
+  };
 
   const renderSmartBadge = () => {
     if (scheduledAt) {
@@ -115,7 +93,6 @@ export function PostCard({
         </span>
       );
     } else {
-      // Đăng trực tiếp
       if (status === "published") {
         return (
           <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold tracking-wider border bg-success/10 text-success border-success/35">
@@ -151,7 +128,6 @@ export function PostCard({
 
       return (
         <div className="flex items-center gap-3.5">
-          {/* Avatar Stack (Dropdown if in Modal, Static if on Card) */}
           {isModal ? (
             <RangeSelector
               customTrigger={
@@ -227,14 +203,14 @@ export function PostCard({
                               acc.status === "FAILED" && "bg-error/15 text-error",
                               acc.status === "PROCESSING" && "bg-warning/15 text-warning animate-pulse",
                               acc.status === "SCHEDULED" && "bg-info/15 text-info",
-                              (acc.status as string) === "DELETED" && "bg-base-content/10 text-base-content/50",
+                              acc.status === "DELETED" && "bg-base-content/10 text-base-content/50",
                             )}
                           >
                             {acc.status === "SUCCESS" && "Đã đăng"}
                             {acc.status === "FAILED" && "Thất bại"}
                             {acc.status === "PROCESSING" && "Đang xử lý"}
                             {acc.status === "SCHEDULED" && "Lên lịch"}
-                            {(acc.status as string) === "DELETED" && "Đã gỡ"}
+                            {acc.status === "DELETED" && "Đã gỡ"}
                           </span>
                         )}
                       </div>
@@ -274,7 +250,6 @@ export function PostCard({
             </div>
           )}
 
-          {/* Text Title & Subtitle */}
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5 flex-wrap">
               <h4 className="font-semibold text-base-content leading-tight">
@@ -306,7 +281,6 @@ export function PostCard({
       );
     }
 
-    // Default Single Account Header
     return (
       <div className="flex items-center gap-3">
         <div className="relative size-10 shrink-0">
@@ -338,185 +312,127 @@ export function PostCard({
   };
 
   return (
-    <div
-      className={cn(
-        "group bg-base-200 rounded-4xl p-4.5 px-5 gap-4  overflow-hidden hover:-translate-y-1.5 active:scale-[0.99] transition-all duration-300 w-full relative flex flex-col break-inside-avoid",
-        isDeleting && "opacity-50 pointer-events-none",
-      )}
-    >
-      {/* A. Header của Thẻ (User Info) */}
-      <div className="flex items-center justify-between">
-        {renderHeader()}
+    <dialog id={modalId} className="modal modal-bottom sm:modal-middle">
+      <div className="modal-box p-6 border border-base-content/10 bg-base-100 rounded-3xl shadow-2xl max-w-xl text-left">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-base-content/5 pb-4 mb-4">
+          {renderHeader(true)}
 
-        <div className="flex items-center gap-2 shrink-0">
-          {(!mediaUrls || mediaUrls.length === 0) && (
-            <PostStatusBadge status={status} />
-          )}
-          <RangeSelector
-            customTrigger={
-              <button className="btn btn-ghost btn-xs btn-circle text-base-content/50 hover:bg-base-200 hover:text-base-content cursor-pointer flex items-center justify-center">
-                <MoreVertical size={16} />
-              </button>
-            }
-            menuAlign="right"
-            menuMinWidth="w-48"
-            size="sm"
-            dropdownClassName="bg-base-100 border-none rounded-lg p-1"
-          >
-            <button
-              onClick={openModal}
-              className="flex items-center gap-2 text-xs text-base-content/70 hover:bg-base-200 font-bold py-2 px-3 rounded-lg cursor-pointer text-left w-full transition-colors"
-            >
-              <Eye size={14} className="shrink-0" />
-              <span>Xem chi tiết</span>
-            </button>
-            {onDelete && (
-              <button
-                onClick={handleDelete}
-                className="flex items-center gap-2 text-xs text-error hover:bg-error/10 font-bold py-2 px-3 rounded-lg cursor-pointer text-left w-full transition-colors"
-              >
-                <Trash2 size={14} className="shrink-0" />
-                <span className="truncate">
-                  {status === "published"
-                    ? "Gỡ bài viết (MXH & DB)"
-                    : "Xóa bài viết"}
-                </span>
-              </button>
-            )}
-          </RangeSelector>
+          <div className="flex items-center gap-2">
+            {renderSmartBadge()}
+          </div>
         </div>
-      </div>
 
-      {/* B. Body của Thẻ (Visual Content) */}
-      {mediaUrls && mediaUrls.length > 0 && (
-        <div className="relative overflow-hidden">
-          <div className="relative rounded-2xl overflow-hidden bg-base-300">
-            <img
-              src={mediaUrls[0]}
-              alt="Post media"
-              className="w-full h-auto object-cover max-h-[380px] group-hover:scale-102 transition-transform duration-500 rounded-2xl"
-            />
-
-            <div className="absolute top-3 right-3">
-              <PostStatusBadge status={status} />
-            </div>
-
-            {mediaUrls.length > 1 && (
-              <div className="absolute bottom-3 right-3 badge badge-sm badge-soft bg-base-300/80 backdrop-blur-md text-base-content font-mono border-none font-bold">
-                +{mediaUrls.length - 1} more
+        {/* Thông tin xuất bản (Publishing Info) tối giản */}
+        <div className="flex items-center justify-between text-xs text-base-content/60 mb-3">
+          <div className="flex items-center gap-4">
+            {scheduledAt && (
+              <div className="flex items-center gap-1">
+                <span>Lịch đăng:</span>
+                <span className="font-semibold text-info">
+                  {format(new Date(scheduledAt), "HH:mm - dd/MM")}
+                </span>
               </div>
             )}
           </div>
-        </div>
-      )}
 
-      {/* C. Gương tương tác (Interaction Bar) */}
-      <div className="flex items-center justify-between mt-1 shrink-0 select-none">
-        <div className="flex items-center gap-5">
-          <div
-            className="transition-all duration-300 transform hover:scale-110 text-base-content/60 hover:text-error cursor-default"
-          >
-            <Heart size={20} />
-          </div>
-          <div className="text-base-content/60 hover:text-primary transition-all duration-300 hover:scale-110 cursor-default">
-            <MessageCircle size={20} />
-          </div>
-          <div className="text-base-content/60 hover:text-info transition-all duration-300 hover:scale-110 cursor-default">
-            <Send size={20} />
-          </div>
-        </div>
-
-        <div
-          className="transition-all duration-300 transform hover:scale-110 text-base-content/60 hover:text-primary cursor-default"
-        >
-          <Bookmark size={20} />
-        </div>
-      </div>
-
-      {/* D. Caption & Footer */}
-      <div className="space-y-3 grow">
-        <div className="space-y-1">
-          {!isBatch && post?.title && (
-            <h5 className="font-bold text-sm text-base-content leading-tight mb-1">
-              {post.title}
-            </h5>
+          {/* Schedule & Countdown Section tối giản */}
+          {status === "scheduled" && scheduledAt && (
+            <CountdownTimer
+              targetDate={scheduledAt}
+              className="scale-95 origin-right"
+              onComplete={() => {
+                setStatus("published");
+                if (isBatch) {
+                  setAccounts((prev) =>
+                    prev.map((a) => ({ ...a, status: "SUCCESS" })),
+                  );
+                }
+              }}
+            />
           )}
-          <p className="text-sm text-base-content/80 leading-relaxed wrap-break-word">
-            {shouldShowExpand ? (
-              <>
-                {isExpanded ? content : `${content.slice(0, 80)}...`}
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="text-primary hover:underline ml-1 font-bold inline-block cursor-pointer text-xs"
-                >
-                  {isExpanded ? " less" : "more"}
-                </button>
-              </>
-            ) : (
-              content || (
+        </div>
+
+        {/* Modal Body */}
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+          {/* Media Gallery trong Modal */}
+          {mediaUrls && mediaUrls.length > 0 && (
+            <div className="grid grid-cols-1 gap-2 rounded-xl overflow-hidden bg-base-300">
+              {mediaUrls.map((url, idx) => (
+                <img
+                  key={idx}
+                  src={url}
+                  alt={`Media ${idx + 1}`}
+                  className="w-full h-auto object-cover max-h-[300px] mx-auto"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Post Content */}
+          <div className="py-2">
+            {!isBatch && post?.title && (
+              <h5 className="font-bold text-sm text-base-content mb-2">
+                {post.title}
+              </h5>
+            )}
+            <p className="text-sm text-base-content/90 whitespace-pre-wrap leading-relaxed wrap-break-word font-medium">
+              {content || (
                 <span className="text-base-content/30 italic">
                   Không có nội dung
                 </span>
-              )
-            )}
-          </p>
+              )}
+            </p>
+          </div>
+
+          {/* Failed Section */}
+          {status === "failed" && (
+            <div className="space-y-3">
+              {errorMessage && (
+                <div className="bg-error/5 p-4 rounded-2xl border border-error/10 space-y-1">
+                  <span className="text-xs font-bold text-error flex items-center gap-1.5">
+                    <AlertTriangle size={14} className="shrink-0" />
+                    Lỗi đăng bài:
+                  </span>
+                  <p className="text-xs text-error/80 leading-relaxed font-semibold">
+                    {errorMessage}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Failed error or retry inside footer for batch error */}
-        {status === "failed" && (
-          <>
-            {errorMessage && (
-              <div className="mt-2 flex items-center gap-1.5 text-error bg-error/5 p-2 rounded-xl border border-error/10 text-xs font-semibold">
-                <AlertTriangle size={14} className="shrink-0" />
-                <span className="line-clamp-1">{errorMessage}</span>
-              </div>
-            )}
+        {/* Modal Footer Actions */}
+        <div className="modal-action border-t border-base-content/5 pt-4 mt-2 flex justify-between items-center">
+          <span className="text-2xs text-base-content/30 font-mono">
+            {isBatch ? `Batch ID: ${id}` : `ID: ${id}`}
+          </span>
+          <form method="dialog" className="flex gap-2">
+            <button className="btn btn-sm btn-soft px-4 rounded-xl font-semibold">
+              Đóng
+            </button>
             {isBatch && failCount > 0 && (
-              <div className="pt-2 border-t border-base-content/5 flex items-center justify-between">
-                <span className="text-xs font-bold text-error/80 tracking-wide flex items-center gap-1">
-                  <AlertCircle size={12} />
-                  {failCount} nền tảng lỗi
-                </span>
-                <button
-                  onClick={handleRetry}
-                  disabled={isRetrying}
-                  className="btn btn-xs btn-soft btn-error rounded-xl font-bold gap-1 cursor-pointer hover:shadow-xs transition-all h-7 px-2.5"
-                >
-                  <RefreshCcw
-                    size={12}
-                    className={cn(isRetrying && "animate-spin")}
-                  />
-                  {isRetrying ? "Đang gửi..." : "Đăng lại"}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  handleRetry(e);
+                  (
+                    document.getElementById(modalId) as HTMLDialogElement
+                  )?.close();
+                }}
+                disabled={isRetrying}
+                className="btn btn-sm btn-error rounded-xl font-bold"
+              >
+                Đăng lại lỗi
+              </button>
             )}
-          </>
-        )}
+          </form>
+        </div>
       </div>
-
-      {/* Modal Xem chi tiết */}
-      <PostDetailModal
-        modalId={modalId}
-        isBatch={isBatch}
-        isMultiAccountBatch={isMultiAccountBatch}
-        accounts={accounts}
-        setAccounts={setAccounts}
-        status={status}
-        setStatus={setStatus}
-        scheduledAt={scheduledAt}
-        createdAt={createdAt}
-        errorMessage={errorMessage}
-        getPublishedDate={getPublishedDate}
-        handleRetry={handleRetry}
-        primaryAccount={primaryAccount}
-        accountAvatar={accountAvatar}
-        failCount={failCount}
-        isRetrying={isRetrying}
-        content={content}
-        mediaUrls={mediaUrls}
-        id={id}
-        post={post}
-      />
-    </div>
+      <form method="dialog" className="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
   );
 }

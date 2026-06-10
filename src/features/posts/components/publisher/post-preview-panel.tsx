@@ -243,14 +243,14 @@ function FacebookMock({
               {account.name}
             </div>
             <div className="text-xs text-base-content/60 flex items-center gap-1 mt-0.5">
-              Vừa xong <span className="text-[10px]">·</span> <Globe size={11} />
+              Vừa xong <span className="text-2xs">·</span> <Globe size={11} />
             </div>
           </div>
           <MoreHorizontal size={20} className="text-base-content/60 ml-auto cursor-pointer hover:text-base-content transition-colors" />
         </div>
 
         {/* Content */}
-        <div className="text-sm leading-relaxed mb-3 whitespace-pre-wrap break-words">
+        <div className="text-sm leading-relaxed mb-3 whitespace-pre-wrap wrap-break-word">
           {content || (
             <span className="text-base-content/40 italic">Nội dung bài viết...</span>
           )}
@@ -258,7 +258,7 @@ function FacebookMock({
       </div>
 
       {/* Media Placeholder */}
-      <div className="w-full aspect-[4/3] bg-base-200 flex flex-col items-center justify-center border-y border-base-content/10 relative overflow-hidden">
+      <div className="w-full aspect-square bg-base-200 flex flex-col items-center justify-center border-y border-base-content/10 relative overflow-hidden">
         {media.length > 0 ? (
           media[0].type === "video" ? (
             <video
@@ -361,8 +361,8 @@ function InstagramMock({
         <MoreHorizontal size={20} className="text-base-content/60 cursor-pointer hover:text-base-content transition-colors" />
       </div>
 
-      {/* Media Area (1:1) */}
-      <div className="w-full aspect-square bg-base-200 flex items-center justify-center border-y border-base-content/10 relative overflow-hidden">
+      {/* Media Area (4:5) */}
+      <div className="w-full aspect-4/5 bg-base-200 flex items-center justify-center border-y border-base-content/10 relative overflow-hidden">
         {media.length > 0 ? (
           media[0].type === "video" ? (
             <video src={media[0].url} className="w-full h-full object-cover" controls />
@@ -372,7 +372,7 @@ function InstagramMock({
         ) : (
           <div className="flex flex-col items-center text-base-content/50">
             <span className="text-2xl mb-1">📸</span>
-            <span className="text-xs font-bold">Square Media (1:1)</span>
+            <span className="text-xs font-bold">Square Media (4:5)</span>
           </div>
         )}
       </div>
@@ -394,7 +394,7 @@ function InstagramMock({
 
       {/* Caption Section */}
       <div className="px-3 text-sm leading-relaxed">
-        <div className="break-words whitespace-pre-wrap">
+        <div className="wrap-break-word whitespace-pre-wrap">
           <span className="font-bold mr-1.5">
             {account.username || account.name.replace(/\s/g, "").toLowerCase()}
           </span>

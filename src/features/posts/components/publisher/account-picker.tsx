@@ -73,8 +73,8 @@ export function AccountPicker({
   };
 
   const selectedAccounts = accounts.filter((a) => selectedIds.includes(a.id));
-  const visibleChips = selectedAccounts.slice(0, 3);
-  const overflowCount = selectedAccounts.length - 3;
+  const visibleChips = selectedAccounts.slice(0, 4);
+  const overflowCount = selectedAccounts.length - 4;
 
   const filteredAccounts = accounts.filter(
     (a) =>
@@ -108,11 +108,13 @@ export function AccountPicker({
                 return (
                   <div
                     key={acc.id}
-                    className="flex items-center bg-base-300 rounded-full pl-1 pr-2 py-1 border border-base-content/5 gap-2"
+                    className="flex items-center bg-soft rounded-full pl-1 pr-2 py-1 border border-base-content/5 gap-2"
                   >
                     <div
-                      className="relative w-6 h-6 rounded-full flex items-center justify-center text-white text-2xs font-bold"
-                      style={{ backgroundColor: isFb ? "#1877F2" : "#E1306C" }}
+                      className={cn(
+                        "relative size-7 rounded-full flex items-center justify-center text-white text-2xs font-bold",
+                        isFb ? "bg-facebook" : "bg-instagram"
+                      )}
                     >
                       {acc.avatar_url ? (
                         <img
@@ -124,23 +126,21 @@ export function AccountPicker({
                         acc.name.charAt(0).toUpperCase()
                       )}
                       <div
-                        className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full flex items-center justify-center border border-base-200"
-                        style={{
-                          background: isFb
-                            ? "#1877F2"
-                            : "linear-gradient(45deg, #405DE6 0%, #E1306C 100%)",
-                        }}
+                        className={cn(
+                          "absolute -bottom-1 -right-1 size-4 rounded-full flex items-center justify-center border border-base-200",
+                          isFb ? "bg-facebook" : "bg-instagram"
+                        )}
                       >
                         {isFb ? (
                           <Icon
                             name="facebook"
-                            size={6}
+                            size={8}
                             className="text-white"
                           />
                         ) : (
                           <Icon
                             name="instagram"
-                            size={6}
+                            size={8}
                             className="text-white"
                           />
                         )}
@@ -296,8 +296,10 @@ function AccountRow({
       )}
     >
       <div
-        className="relative w-[34px] h-[34px] rounded-full flex items-center justify-center text-white font-bold shrink-0"
-        style={{ backgroundColor: isFb ? "#1877F2" : "#E1306C" }}
+        className={cn(
+          "relative w-[34px] h-[34px] rounded-full flex items-center justify-center text-white font-bold shrink-0",
+          isFb ? "bg-facebook" : "bg-instagram"
+        )}
       >
         {account.avatar_url ? (
           <img
@@ -312,12 +314,8 @@ function AccountRow({
           className={cn(
             "absolute -bottom-1 -right-1 w-[14px] h-[14px] rounded-full flex items-center justify-center border-2",
             isSelected ? "border-primary/20" : "border-base-200",
+            isFb ? "bg-facebook" : "bg-instagram"
           )}
-          style={{
-            background: isFb
-              ? "#1877F2"
-              : "linear-gradient(45deg, #405DE6 0%, #E1306C 100%)",
-          }}
         >
           {isFb ? (
             <Icon name="facebook" size={7} className="text-white" />

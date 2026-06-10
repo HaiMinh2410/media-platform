@@ -3,6 +3,7 @@
 import React from "react";
 import { usePostCard } from "../hooks/use-post-card";
 import { PostStatusBadge } from "./post-status-badge";
+import { PostDetailModal } from "./post-detail-modal";
 import { PlatformIcon, RangeSelector } from "@shared/ui";
 import { cn } from "@shared/lib";
 import {
@@ -57,8 +58,9 @@ function PostTableRow({ item, workspaceId, onDelete }: PostTableRowProps) {
     post: item.type === "post" ? item.data : undefined,
     batch: item.type === "batch" ? item.data : undefined,
     workspaceId,
-    onDelete,
   });
+
+  const post = item.type === "post" ? item.data : undefined;
 
   return (
     <tr
@@ -227,250 +229,29 @@ function PostTableRow({ item, workspaceId, onDelete }: PostTableRowProps) {
           </RangeSelector>
         </div>
 
-        {/* Modal Xem chi tiết (copy từ PostCard) */}
-        <dialog id={modalId} className="modal modal-bottom sm:modal-middle">
-          <div className="modal-box p-6 border border-base-content/10 bg-base-100 rounded-3xl shadow-2xl max-w-xl text-left">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-base-content/5 pb-4 mb-4">
-              {isMultiAccountBatch ? (
-                <div className="flex items-center gap-3.5">
-                  <div className="avatar-group -space-x-5 rtl:space-x-reverse shrink-0">
-                    {accounts.slice(0, 2).map((acc, idx) => {
-                      const avatarUrl =
-                        acc.avatarUrl ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(acc.name)}&background=random&size=80`;
-                      return (
-                        <div
-                          key={acc.id || idx}
-                          className="avatar border border-base-200"
-                        >
-                          <div className="size-8 rounded-full">
-                            <img
-                              src={avatarUrl}
-                              alt={acc.name}
-                              className="object-cover rounded-full"
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {accounts.length > 2 && (
-                      <div className="avatar placeholder border border-base-200">
-                        <div className="bg-soft text-neutral-content size-8 rounded-full flex items-center justify-center text-xs font-bold">
-                          +{accounts.length - 2}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-1.5">
-                    <h4 className="font-semibold text-base-content leading-tight">
-                      Đăng loạt bài viết
-                    </h4>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <p className="text-xs text-base-content/40 leading-none">
-                        {status === "published"
-                          ? format(getPublishedDate(), "HH:mm:ss - dd/MM")
-                          : format(
-                              new Date(scheduledAt || createdAt),
-                              "HH:mm:ss - dd/MM"
-                            )}
-                      </p>
-                      <span className="text-base-content/20 text-2xs leading-none">
-                        •
-                      </span>
-                      <p className="text-xs font-semibold text-primary/80 tracking-wide leading-none">
-                        {Array.from(
-                          new Set(
-                            accounts.map((a) => {
-                              const p = a.platform.toLowerCase();
-                              return p.charAt(0).toUpperCase() + p.slice(1);
-                            })
-                          )
-                        ).join(" & ")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <div className="relative size-10 shrink-0">
-                    <img
-                      src={accountAvatar}
-                      alt={primaryAccount.name}
-                      className="size-10 rounded-full object-cover border border-base-content/10"
-                    />
-                    <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-base-200 flex items-center justify-center">
-                      <PlatformIcon
-                        platform={primaryAccount.platform}
-                        size={12}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-base-content leading-tight">
-                      {primaryAccount.name}
-                    </h4>
-                    <p className="text-xs text-base-content/40 mt-1.5 font-medium leading-none">
-                      {status === "published"
-                        ? format(getPublishedDate(), "HH:mm:ss - dd/MM")
-                        : format(
-                            new Date(scheduledAt || createdAt),
-                            "HH:mm:ss - dd/MM"
-                          )}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2">
-                {scheduledAt ? (
-                  status === "published" ? (
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold tracking-wider border bg-success/15 text-success border-success/35">
-                      <Calendar size={13} className="shrink-0" />
-                      Thành công
-                    </span>
-                  ) : status === "failed" ? (
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold tracking-wider border bg-error/15 text-error border-error/35">
-                      <Calendar size={13} className="shrink-0" />
-                      Thất bại
-                    </span>
-                  ) : status === "processing" ? (
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold tracking-wider border bg-warning/15 text-warning border-warning/35 animate-pulse">
-                      <Calendar size={13} className="shrink-0" />
-                      Đang xử lý
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold tracking-wider border bg-info/15 text-info border-info/35">
-                      <Calendar size={13} className="shrink-0" />
-                      Đã lên lịch
-                    </span>
-                  )
-                ) : status === "published" ? (
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold tracking-wider border bg-success/10 text-success border-success/35">
-                    <CheckCircle2 size={13} className="shrink-0" />
-                    Thành công
-                  </span>
-                ) : status === "failed" ? (
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold tracking-wider border bg-error/15 text-error border-error/35">
-                    <XCircle size={13} className="shrink-0" />
-                    Thất bại
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold tracking-wider border bg-warning/15 text-warning border-warning/35 animate-pulse">
-                    <RefreshCcw size={13} className="animate-spin shrink-0" />
-                    Đang đăng...
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Publishing Info */}
-            <div className="flex items-center justify-between text-xs text-base-content/60 mb-3">
-              <div className="flex items-center gap-4">
-                {scheduledAt && (
-                  <div className="flex items-center gap-1">
-                    <span>Lịch đăng:</span>
-                    <span className="font-semibold text-info">
-                      {format(new Date(scheduledAt), "HH:mm - dd/MM")}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {status === "scheduled" && scheduledAt && (
-                <CountdownTimer
-                  targetDate={scheduledAt}
-                  className="scale-95 origin-right"
-                  onComplete={() => {
-                    setStatus("published");
-                    if (isBatch) {
-                      setAccounts((prev) =>
-                        prev.map((a) => ({ ...a, status: "SUCCESS" }))
-                      );
-                    }
-                  }}
-                />
-              )}
-            </div>
-
-            {/* Modal Body */}
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-              {mediaUrls && mediaUrls.length > 0 && (
-                <div className="grid grid-cols-1 gap-2 rounded-xl overflow-hidden bg-base-300">
-                  {mediaUrls.map((url, idx) => (
-                    <img
-                      key={idx}
-                      src={url}
-                      alt={`Media ${idx + 1}`}
-                      className="w-full h-auto object-cover max-h-[300px] mx-auto"
-                    />
-                  ))}
-                </div>
-              )}
-
-              <div className="py-2">
-                {item.type === "post" && item.data.title && (
-                  <h5 className="font-bold text-sm text-base-content mb-2">
-                    {item.data.title}
-                  </h5>
-                )}
-                <p className="text-sm text-base-content/90 whitespace-pre-wrap leading-relaxed wrap-break-word font-medium">
-                  {content || (
-                    <span className="text-base-content/30 italic">
-                      Không có nội dung
-                    </span>
-                  )}
-                </p>
-              </div>
-
-              {status === "failed" && (
-                <div className="space-y-3">
-                  {errorMessage && (
-                    <div className="bg-error/5 p-4 rounded-2xl border border-error/10 space-y-1">
-                      <span className="text-xs font-bold text-error flex items-center gap-1.5">
-                        <AlertTriangle size={14} className="shrink-0" />
-                        Lỗi đăng bài:
-                      </span>
-                      <p className="text-xs text-error/80 leading-relaxed font-semibold">
-                        {errorMessage}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer Actions */}
-            <div className="modal-action border-t border-base-content/5 pt-4 mt-2 flex justify-between items-center">
-              <span className="text-2xs text-base-content/30 font-mono">
-                {isBatch ? `Batch ID: ${id}` : `ID: ${id}`}
-              </span>
-              <form method="dialog" className="flex gap-2">
-                <button className="btn btn-sm btn-soft px-4 rounded-xl font-semibold">
-                  Đóng
-                </button>
-                {isBatch && failCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      handleRetry(e);
-                      (
-                        document.getElementById(modalId) as HTMLDialogElement
-                      )?.close();
-                    }}
-                    disabled={isRetrying}
-                    className="btn btn-sm btn-error rounded-xl font-bold"
-                  >
-                    Đăng lại lỗi
-                  </button>
-                )}
-              </form>
-            </div>
-          </div>
-          <form method="dialog" className="modal-backdrop">
-            <button>close</button>
-          </form>
-        </dialog>
+        {/* Modal Xem chi tiết */}
+        <PostDetailModal
+          modalId={modalId}
+          isBatch={isBatch}
+          isMultiAccountBatch={isMultiAccountBatch}
+          accounts={accounts}
+          setAccounts={setAccounts}
+          status={status}
+          setStatus={setStatus}
+          scheduledAt={scheduledAt}
+          createdAt={createdAt}
+          errorMessage={errorMessage}
+          getPublishedDate={getPublishedDate}
+          handleRetry={handleRetry}
+          primaryAccount={primaryAccount}
+          accountAvatar={accountAvatar}
+          failCount={failCount}
+          isRetrying={isRetrying}
+          content={content}
+          mediaUrls={mediaUrls}
+          id={id}
+          post={post}
+        />
       </td>
     </tr>
   );

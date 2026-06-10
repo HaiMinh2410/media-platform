@@ -5,7 +5,7 @@ import { ValidationIssue } from "@shared/lib/validation/validation-engine";
 
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Image as ImageIcon, X, UploadCloud, Film } from 'lucide-react';
+import { Image as ImageIcon, X, UploadCloud, Film, Plus } from 'lucide-react';
 import { createClient } from '@shared/api/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -235,14 +235,18 @@ export function MediaUploader({ files, onChange, workspaceId, maxFiles, issues }
           <div
             {...getRootProps()}
             className={cn(
-              "aspect-square rounded-xl border border-dashed transition-all duration-300 cursor-pointer flex flex-col items-center justify-center gap-2",
+              "aspect-square rounded-xl border border-base-content/5 transition-all duration-300 cursor-pointer flex items-center justify-center bg-base-300/20 hover:bg-base-300/40 hover:border-primary/30 group",
               isDragActive 
                 ? "border-primary bg-primary/10" 
-                : "border-base-content/10 bg-base-300/20 hover:border-primary/50 hover:bg-base-200/50"
+                : ""
             )}
           >
             <input {...getInputProps()} />
-            <span className="text-sm font-medium text-base-content/50 tracking-wide">Tải lên</span>
+            <Plus 
+              size={24} 
+              strokeWidth={1.2} 
+              className="text-primary/60 group-hover:text-primary transition-all duration-300 filter drop-shadow-[0_0_4px_currentColor] group-hover:drop-shadow-[0_0_8px_currentColor] group-hover:scale-110" 
+            />
           </div>
         )}
       </div>

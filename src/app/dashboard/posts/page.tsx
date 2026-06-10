@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { BatchPublishSummary } from '@features/posts/components/post-card';
+import { cookies } from 'next/headers';
 
 export default async function PostsPage({ 
   searchParams 
@@ -23,6 +24,9 @@ export default async function PostsPage({
   if (!user) {
     redirect('/auth/login');
   }
+
+  const cookieStore = await cookies();
+  const initialViewMode = (cookieStore.get('postListViewMode')?.value as 'card' | 'table') || 'card';
 
   // Canary Rollout Check
   if (!FeatureFlagService.isEnabled(user.id, FLAGS.SOCIAL_PUBLISHER_PRO, 100)) {
@@ -167,6 +171,7 @@ export default async function PostsPage({
         initialHistory={history}
         workspaceId={workspace.id} 
         batchId={batchId}
+        initialViewMode={initialViewMode}
       />
     </div>
   );

@@ -72,7 +72,7 @@ export function SchedulingPanel({
           onClick={onPublish}
           disabled={isSubmitting}
           className={cn(
-            "btn btn-primary rounded-xl flex-1 h-12 font-bold text-sm shadow-md hover:-translate-y-0.5 transition-all cursor-pointer",
+            "btn btn-primary rounded-xl flex-1 h-12 font-bold text-lg shadow-md hover:-translate-y-0.5 transition-all cursor-pointer",
             isSubmitting && "btn-disabled",
           )}
         >
@@ -86,18 +86,17 @@ export function SchedulingPanel({
               <Clock size={18} />
               Lên lịch đăng
               {selectedAccountCount > 0 && (
-                <span className="bg-primary-content/20 px-2 py-0.5 rounded-full text-[11px]">
-                  [{selectedAccountCount}]
+                <span className="bg-primary-content text-primary size-5 rounded-full flex items-center justify-center text-xs font-bold ml-1.5 shadow-sm">
+                  {selectedAccountCount}
                 </span>
               )}
             </>
           ) : (
             <>
-              <Zap size={18} />
               Đăng ngay
               {selectedAccountCount > 0 && (
-                <span className="bg-primary-content/20 px-2 py-0.5 rounded-full text-[11px]">
-                  [{selectedAccountCount}]
+                <span className="bg-primary-content text-primary size-5 rounded-full flex items-center justify-center text-xs font-bold ml-1.5 shadow-sm">
+                  {selectedAccountCount}
                 </span>
               )}
             </>

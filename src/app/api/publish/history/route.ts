@@ -163,7 +163,7 @@ export async function DELETE(req: NextRequest) {
     });
 
     const crypto = getTokenEncryptionService();
-    const errors: Array<{ jobId: string; platform: string; message: string }> = [];
+    const errors: Array<{ jobId: string; accountId: string; platform: string; message: string }> = [];
 
     // 2. Loop through each job and call Meta Graph API to delete
     for (const job of jobs) {
@@ -207,6 +207,7 @@ export async function DELETE(req: NextRequest) {
                 if (!userAccessToken) {
                   errors.push({
                     jobId: job.id,
+                    accountId: job.account_id,
                     platform: job.platform,
                     message: 'Yêu cầu kết nối lại (Re-authenticate) tài khoản Instagram để cấp quyền gỡ bài viết.'
                   });
@@ -243,6 +244,7 @@ export async function DELETE(req: NextRequest) {
                 } else {
                   errors.push({
                     jobId: job.id,
+                    accountId: job.account_id,
                     platform: job.platform,
                     message: errorMessage
                   });
@@ -254,6 +256,7 @@ export async function DELETE(req: NextRequest) {
               console.error(`[API Publish History DELETE] Failed to decrypt token for job ${job.id}`);
               errors.push({
                 jobId: job.id,
+                accountId: job.account_id,
                 platform: job.platform,
                 message: 'Failed to decrypt access token'
               });
@@ -262,6 +265,7 @@ export async function DELETE(req: NextRequest) {
             console.error(`[API Publish History DELETE] Error processing Meta delete for job ${job.id}:`, decryptErr);
             errors.push({
               jobId: job.id,
+              accountId: job.account_id,
               platform: job.platform,
               message: decryptErr.message || 'Error processing delete'
             });

@@ -21,6 +21,7 @@ type PostListProps = {
   initialHistory?: BatchPublishSummary[];
   workspaceId: string;
   batchId?: string;
+  initialViewMode?: "card" | "table";
 };
 
 export function PostList({
@@ -28,6 +29,7 @@ export function PostList({
   initialHistory = [],
   workspaceId,
   batchId,
+  initialViewMode = "card",
 }: PostListProps) {
   const {
     filter,
@@ -59,9 +61,16 @@ export function PostList({
     batchId,
   });
 
-  const [viewMode, setViewMode] = React.useState<"card" | "table">("card");
+  const [viewMode, setViewMode] = React.useState<"card" | "table">(initialViewMode);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(20);
+
+  const handleViewModeChange = (mode: "card" | "table") => {
+    setViewMode(mode);
+    if (typeof window !== "undefined") {
+      document.cookie = `postListViewMode=${mode}; path=/; max-age=31536000; SameSite=Lax`;
+    }
+  };
 
   // Reset page to 1 when filters change
   React.useEffect(() => {
@@ -116,7 +125,7 @@ export function PostList({
               },
             ]}
             activeValue={viewMode}
-            onChange={(val) => setViewMode(val as "card" | "table")}
+            onChange={(val) => handleViewModeChange(val as "card" | "table")}
             size="md"
             layoutId="postListViewModeIndicator"
             className="bg-base-200/30 shrink-0"
