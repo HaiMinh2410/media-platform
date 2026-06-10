@@ -7,10 +7,10 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="w-full max-w-[1000px] mx-auto p-10 md:py-12">
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-10 space-y-12">
       <header className="mb-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-br from-foreground to-foreground-secondary bg-clip-text text-transparent m-0 mb-2">
+          <h1 className="text-4xl font-extrabold tracking-tight bg-linear-to-br from-foreground to-foreground-secondary bg-clip-text text-transparent m-0 mb-2">
             Settings & Integrations
           </h1>
           <p className="text-foreground-secondary text-lg">

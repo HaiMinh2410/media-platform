@@ -1,28 +1,99 @@
 'use client';
 
-import { Card, Button } from "@shared/ui";
 import { cn } from "@shared/lib";
-
+import { ConfirmDialog, AccountAvatar } from "@shared/ui";
 import Link from 'next/link';
 import { PlatformAccount } from '../types/platform-account';
 import { disconnectAccountAction } from '@features/settings/actions/platform-account.actions';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Unplug, Bot } from 'lucide-react';
 
 type AccountsListProps = {
   accounts: PlatformAccount[];
 };
 
+function getClusters(accounts: PlatformAccount[]): PlatformAccount[][] {
+  const visited = new Set<string>();
+  const clusters: PlatformAccount[][] = [];
+
+  const fbAccounts = accounts.filter(a => a.platform === 'facebook');
+  const igAccounts = accounts.filter(a => a.platform === 'instagram');
+  const otherAccounts = accounts.filter(a => a.platform !== 'facebook' && a.platform !== 'instagram');
+
+  // 1. Ghép cặp Facebook và Instagram
+  for (const fb of fbAccounts) {
+    if (visited.has(fb.id)) continue;
+
+    const fbMeta = fb.metadata as any;
+    const linkedIgId = fbMeta?.instagram_id;
+
+    // Tìm Instagram account tương ứng
+    const matchingIg = igAccounts.find(ig => {
+      if (visited.has(ig.id)) return false;
+      const igMeta = ig.metadata as any;
+      const igLinkedFbId = igMeta?.facebook_page_id;
+
+      return (
+        (linkedIgId && ig.externalId === linkedIgId) ||
+        (igLinkedFbId && fb.externalId === igLinkedFbId)
+      );
+    });
+
+    if (matchingIg) {
+      clusters.push([fb, matchingIg]);
+      visited.add(fb.id);
+      visited.add(matchingIg.id);
+    } else {
+      clusters.push([fb]);
+      visited.add(fb.id);
+    }
+  }
+
+  // 2. Gom các Instagram lẻ loi
+  for (const ig of igAccounts) {
+    if (!visited.has(ig.id)) {
+      clusters.push([ig]);
+      visited.add(ig.id);
+    }
+  }
+
+  // 3. Gom các tài khoản khác (tiktok, etc.)
+  for (const other of otherAccounts) {
+    clusters.push([other]);
+  }
+
+  // Sắp xếp các clusters theo bảng chữ cái của tên tài khoản đầu tiên trong cluster
+  clusters.sort((a, b) => {
+    const nameA = a[0]?.name || '';
+    const nameB = b[0]?.name || '';
+    return nameA.localeCompare(nameB, 'vi');
+  });
+
+  return clusters;
+}
+
 export function AccountsList({ accounts }: AccountsListProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [pendingDisconnectId, setPendingDisconnectId] = useState<string | null>(null);
 
-  const handleDisconnect = async (id: string) => {
-    if (!confirm('Are you sure you want to disconnect this account? It will be moved to inactive state.')) return;
+  const triggerDisconnect = (id: string) => {
+    setPendingDisconnectId(id);
+    if (typeof document !== 'undefined') {
+      const modal = document.getElementById('disconnect-confirm-modal') as HTMLDialogElement;
+      modal?.showModal();
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!pendingDisconnectId) return;
     
+    const id = pendingDisconnectId;
     setLoadingId(id);
     const result = await disconnectAccountAction(id);
     setLoadingId(null);
+    setPendingDisconnectId(null);
 
     if (result.success) {
       router.refresh();
@@ -33,55 +104,72 @@ export function AccountsList({ accounts }: AccountsListProps) {
 
   if (accounts.length === 0) {
     return (
-      <div className="p-12 text-center text-foreground-tertiary bg-foreground/[0.02] border border-dashed border-foreground/10 rounded-2xl">
-        <p>No accounts connected yet.</p>
+      <div className="p-12 text-center text-base-content/50 bg-base-200/30 border border-dashed border-base-content/10 rounded-2xl">
+        <p className="text-sm">No accounts connected yet.</p>
       </div>
     );
   }
 
+  const clusters = getClusters(accounts);
+
   return (
-    <div className="flex flex-col gap-4">
-      {accounts.map((account) => (
-        <Card key={account.id} className="bg-foreground/[0.02] border-foreground/5 p-4 transition-all duration-200 hover:bg-foreground/[0.04] hover:border-foreground/10">
-          <div className="flex items-center gap-4">
-            <div className="shrink-0">
-              {account.platform === 'facebook' && (
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-sm shadow-md bg-gradient-to-br from-facebook to-[#166ada] text-white">FB</div>
+    <div className="flex flex-col gap-2">
+      {clusters.map((cluster, clusterIdx) => (
+        <div key={clusterIdx} className="card rounded-xl bg-base-200/40 border border-base-content/5 overflow-hidden transition-all duration-200 flex flex-col">
+          {cluster.map((account, idx) => (
+            <div 
+              key={account.id} 
+              className={cn(
+                "relative p-4 flex items-center gap-4 transition-colors duration-200 hover:bg-base-200/30",
+                idx > 0 && "border-t border-base-content/5"
               )}
-              {account.platform === 'instagram' && (
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-sm shadow-md bg-gradient-to-br from-[#833ab4] via-[#fd1d1d] to-[#fcb045] text-white">IG</div>
-              )}
-              {account.platform === 'tiktok' && (
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-sm shadow-md bg-neutral border border-foreground/10 text-neutral-content">TT</div>
-              )}
-            </div>
-            <div className="flex-1">
-              <h4 className="text-base font-semibold m-0 text-foreground leading-snug">{account.name}</h4>
-              <p className="text-sm text-foreground-tertiary m-0 capitalize leading-tight">{account.platform}</p>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase tracking-wider">Active</span>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleDisconnect(account.id)}
-                  isLoading={loadingId === account.id}
-                  className="text-xs font-semibold h-8"
+            >
+              <AccountAvatar
+                avatarUrl={account.avatar_url}
+                name={account.name}
+                platform={account.platform}
+                size="lg"
+              />
+              <div className="flex-1">
+                <h4 className="font-semibold text-base-content leading-snug">{account.name}</h4>
+                <p className="text-sm text-base-content/50 mt-1 capitalize">{account.platform}</p>
+              </div>
+              <div className="flex">
+                <button 
+                  onClick={() => triggerDisconnect(account.id)}
+                  disabled={loadingId === account.id}
+                  className="btn btn-xs btn-ghost text-error shadow-none rounded-full size-8 p-0 flex items-center justify-center"
+                  title="Ngắt kết nối"
                 >
-                  Disconnect
-                </Button>
+                  {loadingId === account.id ? (
+                    <span className="loading loading-spinner loading-xs"></span>
+                  ) : (
+                    <Unplug size={16} />
+                  )}
+                </button>
                 <Link 
                   href={`/dashboard/settings/accounts/${account.id}/bot`} 
-                  className="inline-flex items-center justify-center text-xs font-bold text-primary no-underline px-3 h-8 rounded-lg bg-primary/10 border border-primary/20 transition-all hover:bg-primary/20 hover:border-primary/30"
+                  className="btn btn-xs btn-ghost text-primary shadow-none rounded-full size-8 p-0 flex items-center justify-center no-underline"
+                  title="Cấu hình Bot AI"
                 >
-                  Bot Settings
+                  <Bot size={20} />
                 </Link>
               </div>
             </div>
-          </div>
-        </Card>
+          ))}
+        </div>
       ))}
+
+      <ConfirmDialog 
+        id="disconnect-confirm-modal"
+        title="Ngắt kết nối tài khoản"
+        description="Bạn có chắc chắn muốn ngắt kết nối tài khoản này? Trạng thái tài khoản sẽ chuyển sang ngắt hoạt động và không thể tiếp tục nhận tin nhắn."
+        confirmText="Ngắt kết nối"
+        cancelText="Hủy"
+        confirmBtnClass="btn-error"
+        onConfirm={handleDisconnect}
+      />
     </div>
   );
 }
+

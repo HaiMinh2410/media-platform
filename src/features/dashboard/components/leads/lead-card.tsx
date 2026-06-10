@@ -1,4 +1,4 @@
-import { Icon, MessengerIcon, RangeSelector, ConfirmDialog } from "@shared/ui";
+import { RangeSelector, ConfirmDialog, AccountAvatar } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import React from "react";
@@ -72,36 +72,13 @@ export function LeadCard({
             />
           )}
 
-          {/* Avatar có đè Messenger icon ở góc dưới bên phải */}
-          <div className="relative shrink-0">
-            <div className="size-9 rounded-full overflow-hidden border border-base-300 bg-linear-to-tr from-sky-100 to-indigo-100 text-sky-700 flex items-center justify-center font-bold text-sm">
-              {lead.avatar ? (
-                <img
-                  src={lead.avatar}
-                  alt={lead.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span>{lead.name.charAt(0).toUpperCase()}</span>
-              )}
-            </div>
-            {/* Huy hiệu Nền tảng (Platform Badge) */}
-            {lead.platform && (
-              <div className="absolute -bottom-1 -right-1 bg-white dark:bg-base-200 rounded-full p-0.5 shadow-2xs border border-base-200 dark:border-base-800 flex items-center justify-center">
-                {lead.platform === "messenger" ? (
-                  <MessengerIcon />
-                ) : lead.platform === "instagram" ? (
-                  <Icon name="instagram-filled" size={10} className="text-instagram shrink-0" />
-                ) : lead.platform === "facebook" ? (
-                  <Icon name="facebook" size={10} className="text-facebook shrink-0" />
-                ) : lead.platform === "tiktok" ? (
-                  <Icon name="tiktok" size={10} className="text-base-content shrink-0" />
-                ) : (
-                  <Icon name={lead.platform as any} size={10} className="shrink-0" />
-                )}
-              </div>
-            )}
-          </div>
+          {/* Avatar có đè platform icon ở góc dưới bên phải */}
+          <AccountAvatar
+            avatarUrl={lead.avatar || undefined}
+            name={lead.name}
+            platform={lead.platform || ""}
+            showPlatformIcon={!!lead.platform}
+          />
 
           {/* Thông tin khách hàng */}
           <div className="flex flex-col gap-0.75 min-w-0 flex-1 justify-center">

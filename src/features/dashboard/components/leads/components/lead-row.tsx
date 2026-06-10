@@ -1,4 +1,4 @@
-import { Icon, MessengerIcon, RangeSelector } from "@shared/ui";
+import { Icon, MessengerIcon, RangeSelector, AccountAvatar } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import React from "react";
@@ -108,27 +108,13 @@ export function LeadRow({ lead, stages, isSelected, onSelectLead, onChangeStage 
       {/* Tên & Avatar với badge platform */}
       <td className="py-2.5 px-3">
         <div className="flex items-center gap-2.5">
-          {/* Avatar daisyUI */}
-          <div className="avatar avatar-placeholder relative shrink-0">
-            <div className="w-8 rounded-full bg-base-300 text-base-content/70 border border-base-content/5">
-              {lead.avatar ? (
-                <img src={lead.avatar} alt={lead.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-xs font-bold">{lead.name.charAt(0).toUpperCase()}</span>
-              )}
-            </div>
-            {/* Platform badge — hiển thị đầy đủ theo platform */}
-            {PLATFORM_BADGE[lead.platform] && (
-              <div
-                className={cn(
-                  "absolute -bottom-0.5 -right-0.5 bg-base-100 rounded-full p-0.5 shadow-sm border border-base-content/5 flex items-center justify-center",
-                  PLATFORM_BADGE[lead.platform].colorClass,
-                )}
-              >
-                {PLATFORM_BADGE[lead.platform].icon}
-              </div>
-            )}
-          </div>
+          <AccountAvatar
+            avatarUrl={lead.avatar || undefined}
+            name={lead.name}
+            platform={lead.platform || ""}
+            size="sm"
+            showPlatformIcon={!!lead.platform}
+          />
 
           <span className="font-semibold text-base-content hover:text-primary cursor-pointer transition-colors">
             {lead.name}

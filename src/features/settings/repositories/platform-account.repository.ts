@@ -104,6 +104,9 @@ export class PlatformAccountRepository {
         return account;
       });
 
+      const meta = (result.metadata || {}) as any;
+      const avatarUrl = meta?.avatar_url || meta?.picture?.data?.url || undefined;
+
       return {
         data: {
           id: result.id,
@@ -112,6 +115,7 @@ export class PlatformAccountRepository {
           externalId: result.platform_user_id,
           name: result.platform_user_name,
           metadata: result.metadata,
+          avatar_url: avatarUrl,
         },
         error: null
       };
@@ -181,6 +185,9 @@ export class PlatformAccountRepository {
       });
       if (!account) return { data: null, error: 'Account not found' };
 
+      const meta = (account.metadata || {}) as any;
+      const avatarUrl = meta?.avatar_url || meta?.picture?.data?.url || undefined;
+
       return { 
         data: {
           id: account.id,
@@ -191,6 +198,7 @@ export class PlatformAccountRepository {
           metadata: account.metadata,
           needs_reauth: account.needs_reauth,
           token_expires_at: account.token_expires_at,
+          avatar_url: avatarUrl,
         }, 
         error: null 
       };
@@ -222,16 +230,22 @@ export class PlatformAccountRepository {
         },
       });
 
-      const mappedAccounts: PlatformAccount[] = accounts.map(acc => ({
-        id: acc.id,
-        workspaceId: acc.workspaceId,
-        platform: acc.platform as any,
-        externalId: acc.platform_user_id,
-        name: acc.platform_user_name,
-        metadata: acc.metadata,
-        needs_reauth: acc.needs_reauth,
-        token_expires_at: acc.token_expires_at,
-      }));
+      const mappedAccounts: PlatformAccount[] = accounts.map(acc => {
+        const meta = (acc.metadata || {}) as any;
+        const avatarUrl = meta?.avatar_url || meta?.picture?.data?.url || undefined;
+
+        return {
+          id: acc.id,
+          workspaceId: acc.workspaceId,
+          platform: acc.platform as any,
+          externalId: acc.platform_user_id,
+          name: acc.platform_user_name,
+          metadata: acc.metadata,
+          needs_reauth: acc.needs_reauth,
+          token_expires_at: acc.token_expires_at,
+          avatar_url: avatarUrl,
+        };
+      });
 
       return { data: mappedAccounts, error: null };
     } catch (error) {

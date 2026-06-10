@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@shared/api/supabase/server';
 import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
 import { PersonaList } from '@features/settings/components/personas/persona-list';
+import { AlertCircle } from "lucide-react";
 
 export default async function PersonasSettingsPage() {
   const supabase = await createClient();
@@ -19,8 +20,9 @@ export default async function PersonasSettingsPage() {
 
   if (wsError || !workspace) {
     return (
-      <div className="p-8 text-center bg-error/5 border border-error/10 rounded-2xl">
-        <p className="text-foreground-secondary">No workspace found.</p>
+      <div className="alert alert-error max-w-2xl mx-auto shadow-sm">
+        <AlertCircle size={20} className="shrink-0" />
+        <span>No workspace found.</span>
       </div>
     );
   }
@@ -40,8 +42,8 @@ export default async function PersonasSettingsPage() {
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-between items-center mb-2">
         <div>
-          <h2 className="text-xl font-semibold m-0 mb-1">AI Personas</h2>
-          <p className="text-foreground-secondary text-sm">
+          <h2 className="text-lg font-bold tracking-tight text-base-content m-0 mb-1">AI Personas</h2>
+          <p className="text-base-content/70 text-sm">
             Quản lý tính cách, tông giọng và chiến dịch chốt sale cho từng tài khoản mạng xã hội.
           </p>
         </div>
@@ -51,3 +53,4 @@ export default async function PersonasSettingsPage() {
     </div>
   );
 }
+

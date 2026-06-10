@@ -56,6 +56,7 @@ export class MetaConnectionService {
       console.log(`>>> [MetaService] Syncing page: ${page.name} (${page.id})`);
       
       const pageToken = page.access_token;
+      let igAvatarUrl: string | undefined = undefined;
       
       // --- LƯU VÀO HỆ THỐNG MỚI (Social Publisher Pro) ---
       const publisherFb = await this.publisherAccountRepo.upsert({
@@ -77,20 +78,23 @@ export class MetaConnectionService {
       }
 
       // Instagram Account if linked
+      let igName = page.name;
       if (page.instagram_business_account) {
         const ig = page.instagram_business_account;
         console.log(`>>> [MetaService] Found linked Instagram: ${ig.id}`);
 
-        let avatarUrl: string | undefined = undefined;
         try {
           const igInfo = await metaClient.request<{ name?: string, username?: string, profile_picture_url?: string }>(
             ig.id,
             pageToken,
             { fields: 'name,username,profile_picture_url' }
           );
-          if (igInfo.data && igInfo.data.profile_picture_url) {
-            avatarUrl = igInfo.data.profile_picture_url;
-            console.log(`>>> [MetaService] Successfully retrieved Instagram avatar: ${avatarUrl}`);
+          if (igInfo.data) {
+            if (igInfo.data.profile_picture_url) {
+              igAvatarUrl = igInfo.data.profile_picture_url;
+              console.log(`>>> [MetaService] Successfully retrieved Instagram avatar: ${igAvatarUrl}`);
+            }
+            igName = igInfo.data.username || igInfo.data.name || page.name;
           }
         } catch (err) {
           console.error('[MetaService] Error fetching Instagram profile info:', err);
@@ -100,8 +104,8 @@ export class MetaConnectionService {
           profile_id: profileId,
           platform: 'INSTAGRAM',
           platform_id: ig.id,
-          name: `${page.name} (Instagram)`,
-          avatar_url: avatarUrl
+          name: igName,
+          avatar_url: igAvatarUrl
         });
 
         if (publisherIg.data) {
@@ -131,7 +135,8 @@ export class MetaConnectionService {
           metadata: {
             category: page.category,
             instagram_id: page.instagram_business_account?.id,
-            encrypted_user_access_token: encryptedUserToken.data
+            encrypted_user_access_token: encryptedUserToken.data,
+            avatar_url: `https://graph.facebook.com/${page.id}/picture?type=normal`
           }
         });
 
@@ -141,12 +146,13 @@ export class MetaConnectionService {
             workspaceId,
             platform: 'instagram' as Platform,
             externalId: page.instagram_business_account.id,
-            name: `${page.name} (Instagram)`,
+            name: igName,
             accessToken: encryptedPageToken.data,
             expiresAt: null,
             metadata: { 
               facebook_page_id: page.id,
-              encrypted_user_access_token: encryptedUserToken.data
+              encrypted_user_access_token: encryptedUserToken.data,
+              avatar_url: igAvatarUrl
             }
           });
         }

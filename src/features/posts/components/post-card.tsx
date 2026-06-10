@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@shared/lib";
-import { PlatformIcon, RangeSelector } from "@shared/ui";
+import { RangeSelector, AccountAvatar } from "@shared/ui";
 
 import React from "react";
 import { Post, BatchPublishSummary } from "@features/posts/types";
@@ -23,7 +23,6 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import { format } from "date-fns";
-import { CountdownTimer } from "./countdown-timer";
 import { usePostCard } from "../hooks/use-post-card";
 
 export type { BatchPublishSummary };
@@ -156,25 +155,17 @@ export function PostCard({
             <RangeSelector
               customTrigger={
                 <div className="avatar-group -space-x-5 rtl:space-x-reverse cursor-pointer flex items-center shrink-0">
-                  {visibleAccounts.map((acc, index) => {
-                    const avatarUrl =
-                      acc.avatarUrl ||
-                      `https://ui-avatars.com/api/?name=${encodeURIComponent(acc.name)}&background=random&size=80`;
-                    return (
-                      <div
-                        key={acc.id || index}
-                        className="avatar border-3 border-base-200"
-                      >
-                        <div className="size-8 rounded-full">
-                          <img
-                            src={avatarUrl}
-                            alt={acc.name}
-                            className="object-cover rounded-full"
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {visibleAccounts.map((acc, index) => (
+                    <AccountAvatar
+                      key={acc.id || index}
+                      avatarUrl={acc.avatarUrl}
+                      name={acc.name}
+                      platform={acc.platform}
+                      size={8}
+                      showPlatformIcon={false}
+                      className="border-3 border-base-200 rounded-full"
+                    />
+                  ))}
                   {extraCount > 0 && (
                     <div className="avatar placeholder border-3 border-base-200">
                       <div className="bg-soft text-neutral-content size-8 rounded-full flex items-center justify-center text-xs font-bold">
@@ -193,27 +184,20 @@ export function PostCard({
                   Danh sách tài khoản ({accounts.length})
                 </h5>
                 <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
-                  {accounts.map((acc) => {
-                    const avatar =
-                      acc.avatarUrl ||
-                      `https://ui-avatars.com/api/?name=${encodeURIComponent(acc.name)}&background=random&size=100`;
-                    return (
-                      <div
-                        key={acc.id}
-                        className="flex items-center justify-between p-1.5 hover:bg-base-100/50 rounded-lg gap-3"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="relative size-8 shrink-0">
-                            <img
-                              src={avatar}
-                              alt={acc.name}
-                              className="size-8 rounded-full object-cover border border-base-content/10"
-                            />
-                            <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-base-200 flex items-center justify-center border border-base-content/5 shadow-xs">
-                              <PlatformIcon platform={acc.platform} size={12} />
-                            </div>
-                          </div>
-                          <div className="min-w-0">
+                  {accounts.map((acc) => (
+                    <div
+                      key={acc.id}
+                      className="flex items-center justify-between p-1.5 hover:bg-base-100/50 rounded-lg gap-3"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <AccountAvatar
+                          avatarUrl={acc.avatarUrl}
+                          name={acc.name}
+                          platform={acc.platform}
+                          size={10}
+                          showPlatformIcon={true}
+                        />
+                        <div className="min-w-0">
                             <h6 className="font-bold text-xs text-base-content leading-tight truncate">
                               {acc.name}
                             </h6>
@@ -238,35 +222,27 @@ export function PostCard({
                           </span>
                         )}
                       </div>
-                    );
-                  })}
+                    )
+                  )}
                 </div>
               </div>
             </RangeSelector>
           ) : (
             <div className="avatar-group -space-x-5 rtl:space-x-reverse shrink-0">
-              {visibleAccounts.map((acc, index) => {
-                const avatarUrl =
-                  acc.avatarUrl ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(acc.name)}&background=random&size=80`;
-                return (
-                  <div
-                    key={acc.id || index}
-                    className="avatar border-3 border-base-200"
-                  >
-                    <div className="size-8 rounded-full">
-                      <img
-                        src={avatarUrl}
-                        alt={acc.name}
-                        className="object-cover rounded-full"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+              {visibleAccounts.map((acc, index) => (
+                <AccountAvatar
+                  key={acc.id || index}
+                  avatarUrl={acc.avatarUrl}
+                  name={acc.name}
+                  platform={acc.platform}
+                  size={10}
+                  showPlatformIcon={false}
+                  className="border-3 border-base-200 rounded-full"
+                />
+              ))}
               {extraCount > 0 && (
                 <div className="avatar placeholder border-3 border-base-200">
-                  <div className="bg-soft text-neutral-content size-8 rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="bg-soft text-neutral-content size-10 rounded-full flex items-center justify-center text-xs font-bold">
                     +{extraCount}
                   </div>
                 </div>
@@ -309,18 +285,13 @@ export function PostCard({
     // Default Single Account Header
     return (
       <div className="flex items-center gap-3">
-        <div className="relative size-10 shrink-0">
-          <img
-            src={accountAvatar}
-            alt={primaryAccount.name}
-            className="size-10 rounded-full object-cover border border-base-content/10"
-          />
-          {accounts.length === 1 && (
-            <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-base-200 flex items-center justify-center">
-              <PlatformIcon platform={primaryAccount.platform} size={12} />
-            </div>
-          )}
-        </div>
+        <AccountAvatar
+          avatarUrl={accountAvatar}
+          name={primaryAccount.name}
+          platform={primaryAccount.platform}
+          size={10}
+          showPlatformIcon={accounts.length === 1}
+        />
         <div>
           <div className="flex items-center gap-1.5">
             <h4 className="font-semibold text-base-content leading-tight">

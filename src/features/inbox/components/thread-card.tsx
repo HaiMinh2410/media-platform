@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon } from "@shared/ui";
+import { AccountAvatar } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import React from "react";
@@ -107,24 +107,11 @@ export function ThreadCard({
       )}
       style={style}
     >
-      <div className="w-11 h-11 rounded-full bg-base-300 flex items-center justify-center text-base font-semibold text-base-content/70 shrink-0 relative border border-base-content/10 overflow-visible">
-        {conversation.customer_avatar ? (
-          <img
-            src={conversation.customer_avatar}
-            alt={conversation.sender_name}
-            className="w-full h-full rounded-full object-cover"
-          />
-        ) : (
-          getInitials(conversation.sender_name)
-        )}
-        <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] rounded-full bg-background flex items-center justify-center p-0.5 shadow-lg border-[1.5px] border-background z-10">
-          {conversation.platform === "instagram" ? (
-            <Icon name="instagram" size="100%" className="text-instagram" />
-          ) : (
-            <Icon name="facebook" size="100%" className="text-facebook" />
-          )}
-        </div>
-      </div>
+      <AccountAvatar
+        avatarUrl={conversation.customer_avatar || undefined}
+        name={conversation.sender_name}
+        platform={conversation.platform}
+      />
 
       <div className="flex-1 min-w-0 flex flex-col justify-center">
         <div className="flex justify-between items-baseline mb-0.5">

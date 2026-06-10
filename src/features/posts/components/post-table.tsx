@@ -4,20 +4,14 @@ import React from "react";
 import { usePostCard } from "../hooks/use-post-card";
 import { PostStatusBadge } from "./post-status-badge";
 import { PostDetailModal } from "./post-detail-modal";
-import { PlatformIcon, RangeSelector } from "@shared/ui";
+import { RangeSelector, AccountAvatar } from "@shared/ui";
 import { cn } from "@shared/lib";
 import {
   MoreVertical,
   Trash2,
-  AlertTriangle,
   Eye,
-  Calendar,
-  CheckCircle2,
-  XCircle,
-  RefreshCcw,
 } from "lucide-react";
 import { format } from "date-fns";
-import { CountdownTimer } from "./countdown-timer";
 
 type PostTableRowProps = {
   item: {
@@ -74,25 +68,17 @@ function PostTableRow({ item, workspaceId, onDelete }: PostTableRowProps) {
         {isMultiAccountBatch ? (
           <div className="flex items-center gap-2.5">
             <div className="avatar-group -space-x-4 rtl:space-x-reverse shrink-0">
-              {accounts.slice(0, 2).map((acc, index) => {
-                const avatarUrl =
-                  acc.avatarUrl ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(acc.name)}&background=random&size=80`;
-                return (
-                  <div
-                    key={acc.id || index}
-                    className="avatar border border-base-200"
-                  >
-                    <div className="size-8 rounded-full">
-                      <img
-                        src={avatarUrl}
-                        alt={acc.name}
-                        className="object-cover"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+              {accounts.slice(0, 2).map((acc, index) => (
+                <AccountAvatar
+                  key={acc.id || index}
+                  avatarUrl={acc.avatarUrl}
+                  name={acc.name}
+                  platform={acc.platform}
+                  size={8}
+                  showPlatformIcon={false}
+                  className="border border-base-200 rounded-full"
+                />
+              ))}
               {accounts.length > 2 && (
                 <div className="avatar placeholder border border-base-200">
                   <div className="bg-soft text-neutral-content size-8 rounded-full flex items-center justify-center text-xs font-bold">
@@ -120,16 +106,14 @@ function PostTableRow({ item, workspaceId, onDelete }: PostTableRowProps) {
           </div>
         ) : (
           <div className="flex items-center gap-2.5">
-            <div className="relative size-10 shrink-0">
-              <img
-                src={accountAvatar}
-                alt={primaryAccount.name}
-                className="size-10 rounded-full object-cover border border-base-content/10"
-              />
-              <div className="absolute -bottom-1 -right-1 size-5 rounded-full bg-base-200 flex items-center justify-center border border-base-content/5">
-                <PlatformIcon platform={primaryAccount.platform} size={13} />
-              </div>
-            </div>
+            <AccountAvatar
+              avatarUrl={accountAvatar}
+              name={primaryAccount.name}
+              platform={primaryAccount.platform}
+              size={10}
+              showPlatformIcon={true}
+              platformIconSize={13}
+            />
             <div className="min-w-0">
               <h5 className="font-semibold text-sm text-base-content leading-tight truncate">
                 {primaryAccount.name}

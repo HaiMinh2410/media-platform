@@ -2,6 +2,7 @@
 
 // src/shared/ui/index.ts
 
+export * from './account-avatar';
 export * from './button';
 export * from './card';
 export * from './confirm-dialog';

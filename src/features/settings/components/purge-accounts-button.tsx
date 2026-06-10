@@ -1,7 +1,6 @@
 'use client';
 
-import { Button, Icon } from "@shared/ui";
-
+import { ConfirmDialog } from "@shared/ui";
 import { useState } from 'react';
 import { purgeOldAccountsAction } from '@features/settings/actions/platform-account.actions';
 import { Trash2 } from 'lucide-react';
@@ -9,9 +8,14 @@ import { Trash2 } from 'lucide-react';
 export function PurgeAccountsButton({ workspaceId }: { workspaceId: string }) {
   const [loading, setLoading] = useState(false);
 
-  const handlePurge = async () => {
-    if (!confirm('Dọn dẹp sẽ xóa vĩnh viễn các tài khoản đã ngắt kết nối hơn 30 ngày. Bạn có chắc chắn?')) return;
+  const triggerPurge = () => {
+    if (typeof document !== 'undefined') {
+      const modal = document.getElementById('purge-confirm-modal') as HTMLDialogElement;
+      modal?.showModal();
+    }
+  };
 
+  const handlePurge = async () => {
     setLoading(true);
     const result = await purgeOldAccountsAction(workspaceId);
     setLoading(false);
@@ -24,14 +28,30 @@ export function PurgeAccountsButton({ workspaceId }: { workspaceId: string }) {
   };
 
   return (
-    <Button 
-      variant="outline" 
-      onClick={handlePurge} 
-      isLoading={loading}
-      className="w-full text-error border-error/20 hover:bg-error/5 hover:border-error/40 flex items-center justify-center gap-2"
-    >
-      <Icon lucide={Trash2} size={16} />
-      Dọn dẹp dữ liệu cũ ({'>'}30 ngày)
-    </Button>
+    <>
+      <button 
+        onClick={triggerPurge} 
+        disabled={loading}
+        className="btn btn-soft btn-error rounded-full w-full gap-2 font-bold h-10 min-h-0"
+      >
+        {loading ? (
+          <span className="loading loading-spinner loading-xs"></span>
+        ) : (
+          <Trash2 size={16} />
+        )}
+        Dọn dẹp dữ liệu cũ ({' > '}30 ngày)
+      </button>
+
+      <ConfirmDialog 
+        id="purge-confirm-modal"
+        title="Dọn dẹp dữ liệu cũ"
+        description="Dọn dẹp sẽ xóa vĩnh viễn các tài khoản đã ngắt kết nối hơn 30 ngày. Toàn bộ dữ liệu hội thoại của tài khoản bị xóa sẽ không thể phục hồi. Bạn có chắc chắn muốn thực hiện?"
+        confirmText="Dọn dẹp vĩnh viễn"
+        cancelText="Hủy"
+        confirmBtnClass="btn-error"
+        onConfirm={handlePurge}
+      />
+    </>
   );
 }
+

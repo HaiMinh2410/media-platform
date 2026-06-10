@@ -100,12 +100,14 @@ export async function upsertMetaAccountsFromJsonAction(jsonString: string): Prom
 
         // Tra cứu linked Instagram account ID qua Graph API
         let instagramId: string | null = null;
+        let instagramName: string | null = null;
         try {
-          const igUrl = `https://graph.facebook.com/v25.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`;
+          const igUrl = `https://graph.facebook.com/v25.0/${page.id}?fields=instagram_business_account{id,name,username}&access_token=${page.access_token}`;
           const igRes = await fetch(igUrl, { signal: AbortSignal.timeout(10000) });
           if (igRes.ok) {
             const igJson = await igRes.json() as any;
             instagramId = igJson.instagram_business_account?.id || null;
+            instagramName = igJson.instagram_business_account?.username || igJson.instagram_business_account?.name || null;
           }
         } catch (igErr) {
           console.warn(`[DeveloperAction] Không thể lấy thông tin Instagram cho page ${page.id}:`, igErr);
@@ -180,7 +182,7 @@ export async function upsertMetaAccountsFromJsonAction(jsonString: string): Prom
                 },
               },
               update: {
-                platform_user_name: `${page.name} (Instagram)`,
+                platform_user_name: instagramName || page.name,
                 workspaceId: workspace.id,
                 disconnected_at: null,
                 metadata: {
@@ -193,7 +195,7 @@ export async function upsertMetaAccountsFromJsonAction(jsonString: string): Prom
                 profile_id: profileId,
                 platform: 'instagram',
                 platform_user_id: instagramId,
-                platform_user_name: `${page.name} (Instagram)`,
+                platform_user_name: instagramName || page.name,
                 metadata: {
                   facebook_page_id: page.id,
                   category: page.category || 'N/A'
