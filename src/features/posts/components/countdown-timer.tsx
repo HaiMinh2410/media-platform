@@ -68,27 +68,26 @@ export function CountdownTimer({ targetDate, className = '', onComplete }: Count
   }
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <Clock size={14} className="text-primary/70 animate-pulse shrink-0" />
-      <span className="text-2xs text-base-content/50 font-bold uppercase tracking-wider">Còn lại:</span>
-      <div className="flex items-center gap-1 bg-base-300/40 px-2 py-0.5 rounded-lg border border-base-content/5">
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <Clock size={16} className="text-info shrink-0" />
+      <div className="flex items-center gap-1 underline underline-offset-2">
         {timeLeft.days > 0 && (
           <>
-            <span className="font-mono font-bold text-xs text-primary">{timeLeft.days}</span>
+            <span className="font-mono font-bold text-xs">{timeLeft.days}</span>
             <span className="text-2xs text-base-content/50 mr-1">nngày</span>
           </>
         )}
         {(timeLeft.days > 0 || timeLeft.hours > 0) && (
           <>
-            <span className="font-mono font-bold text-xs text-primary">{timeLeft.hours.toString().padStart(2, '0')}</span>
+            <span className="font-mono font-bold text-xs">{timeLeft.hours.toString().padStart(2, '0')}</span>
             <span className="text-2xs text-base-content/50 mr-1">giờ</span>
           </>
         )}
-        <span className="font-mono font-bold text-xs text-primary">{timeLeft.minutes.toString().padStart(2, '0')}</span>
-        <span className="text-2xs text-base-content/50 mr-1">phút</span>
+        <span className="font-mono font-bold text-sm">{timeLeft.minutes.toString().padStart(2, '0')}</span>
+        <span className="text-xs text-base-content/50 mr-1">phút</span>
         
-        <span className="font-mono font-bold text-xs text-secondary">{timeLeft.seconds.toString().padStart(2, '0')}</span>
-        <span className="text-2xs text-base-content/50">giây</span>
+        <span className="font-mono font-bold text-sm">{timeLeft.seconds.toString().padStart(2, '0')}</span>
+        <span className="text-xs text-base-content/50">giây</span>
       </div>
     </div>
   );

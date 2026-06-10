@@ -1,6 +1,6 @@
 "use client";
 
-import { SlidingTabs, FilterGroup } from "@shared/ui";
+import { SlidingTabs, FilterGroup, RangeSelector } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import React, { useState } from "react";
@@ -34,20 +34,37 @@ export function PostList({
   batchId,
 }: PostListProps) {
   const router = useRouter();
-  const [posts, setPosts] =
-    useState<
-      (Post & {
-        account?: { name: string; platform: string; avatarUrl?: string };
-      })[]
-    >(initialPosts);
+  const [posts, setPosts] = useState<
+    (Post & {
+      account?: { name: string; platform: string; avatarUrl?: string };
+    })[]
+  >(initialPosts);
   const [history, setHistory] = useState<BatchPublishSummary[]>(initialHistory);
   const [filter, setFilter] = useState<PostStatus | "all">("all");
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [filters, setFilters] = useState<{ date: string }>({ date: "all" });
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [postTypeFilter, setPostTypeFilter] = useState<"all" | "single" | "batch">("all");
+  const [cols, setCols] = useState(3);
   const { accountGroups } = useInboxStore();
   const supabase = createClient();
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setCols(1);
+      } else if (window.innerWidth < 1024) {
+        setCols(2);
+      } else {
+        setCols(3);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const onChangeGroup = (groupId: string | null) => {
     setSelectedGroupId(groupId);
@@ -159,8 +176,7 @@ export function PostList({
                 // If batch exists, just add the account if not already there
                 return prev.map((b) => {
                   if (b.batchId === bId) {
-                    if (b.accounts.some((a) => a.id === accountId))
-                      return b;
+                    if (b.accounts.some((a) => a.id === accountId)) return b;
                     return {
                       ...b,
                       accounts: [
@@ -184,6 +200,14 @@ export function PostList({
                   content: content || "",
                   mediaUrls: mediaUrls,
                   createdAt: new Date(createdAt),
+                  scheduledAt:
+                    newJob.scheduled_at || newJob.scheduledAt
+                      ? new Date(newJob.scheduled_at || newJob.scheduledAt)
+                      : null,
+                  publishedAt:
+                    newJob.published_at || newJob.publishedAt
+                      ? new Date(newJob.published_at || newJob.publishedAt)
+                      : null,
                   status: "SCHEDULED",
                   accounts: [
                     {
@@ -200,37 +224,51 @@ export function PostList({
           } else if (payload.eventType === "UPDATE") {
             const updatedJob = payload.new as any;
             console.log("[Realtime Update] Received updatedJob:", updatedJob);
-            const targetBatchId = updatedJob.batch_id || updatedJob.batchId || updatedJob.id;
-            const targetAccountId = updatedJob.account_id || updatedJob.accountId;
+            const targetBatchId =
+              updatedJob.batch_id || updatedJob.batchId || updatedJob.id;
+            const targetAccountId =
+              updatedJob.account_id || updatedJob.accountId;
             const jobStatus = updatedJob.status;
-            const scheduledAt = updatedJob.scheduled_at || updatedJob.scheduledAt;
+            const scheduledAt =
+              updatedJob.scheduled_at || updatedJob.scheduledAt;
 
             setHistory((prev) => {
               return prev.map((batch) => {
                 if (batch.batchId !== targetBatchId) {
                   return batch;
                 }
-                console.log("[Realtime Update] Found matching batch:", batch.batchId);
+                console.log(
+                  "[Realtime Update] Found matching batch:",
+                  batch.batchId,
+                );
 
                 // Find and update the specific account
                 const updatedAccounts = batch.accounts.map((acc) => {
                   const isMatch = acc.id === targetAccountId;
-                  console.log(`[Realtime Update] Comparing acc.id (${acc.id}) with targetAccountId (${targetAccountId}) -> match: ${isMatch}`);
+                  console.log(
+                    `[Realtime Update] Comparing acc.id (${acc.id}) with targetAccountId (${targetAccountId}) -> match: ${isMatch}`,
+                  );
                   if (isMatch) {
-                    let accountStatus: "SUCCESS" | "FAILED" | "SCHEDULED" | "PROCESSING" =
-                      "FAILED";
+                    let accountStatus:
+                      | "SUCCESS"
+                      | "FAILED"
+                      | "SCHEDULED"
+                      | "PROCESSING" = "FAILED";
                     if (jobStatus === "COMPLETED") {
                       accountStatus = "SUCCESS";
                     } else if (jobStatus === "RUNNING") {
                       accountStatus = "PROCESSING";
                     } else if (jobStatus === "PENDING") {
-                      const isFuture = scheduledAt && new Date(scheduledAt) > new Date();
+                      const isFuture =
+                        scheduledAt && new Date(scheduledAt) > new Date();
                       accountStatus = isFuture ? "SCHEDULED" : "PROCESSING";
                     } else if (jobStatus === "FAILED") {
                       accountStatus = "FAILED";
                     }
 
-                    console.log(`[Realtime Update] Setting account ${acc.id} status to: ${accountStatus}`);
+                    console.log(
+                      `[Realtime Update] Setting account ${acc.id} status to: ${accountStatus}`,
+                    );
                     return { ...acc, status: accountStatus };
                   }
                   return acc;
@@ -257,7 +295,7 @@ export function PostList({
                   | "FAILED"
                   | "SCHEDULED"
                   | "PROCESSING" = "SCHEDULED";
-                
+
                 if (processing > 0) {
                   newBatchStatus = "PROCESSING";
                 } else if (scheduled > 0) {
@@ -270,11 +308,19 @@ export function PostList({
                   newBatchStatus = "PARTIAL";
                 }
 
-                console.log(`[Realtime Update] Calculated newBatchStatus: ${newBatchStatus} (total: ${total}, success: ${success}, failed: ${failed}, processing: ${processing}, scheduled: ${scheduled})`);
+                console.log(
+                  `[Realtime Update] Calculated newBatchStatus: ${newBatchStatus} (total: ${total}, success: ${success}, failed: ${failed}, processing: ${processing}, scheduled: ${scheduled})`,
+                );
 
                 return {
                   ...batch,
                   status: newBatchStatus,
+                  publishedAt:
+                    updatedJob.published_at || updatedJob.publishedAt
+                      ? new Date(
+                          updatedJob.published_at || updatedJob.publishedAt,
+                        )
+                      : batch.publishedAt,
                   accounts: updatedAccounts,
                 };
               });
@@ -290,9 +336,12 @@ export function PostList({
             const updatedPost = payload.new as any;
             const targetPostId = updatedPost.id;
             const postStatus = updatedPost.status;
-            const publishedAt = updatedPost.published_at || updatedPost.publishedAt;
-            const errorMessage = updatedPost.error_message || updatedPost.errorMessage;
-            const platformPostId = updatedPost.platform_post_id || updatedPost.platformPostId;
+            const publishedAt =
+              updatedPost.published_at || updatedPost.publishedAt;
+            const errorMessage =
+              updatedPost.error_message || updatedPost.errorMessage;
+            const platformPostId =
+              updatedPost.platform_post_id || updatedPost.platformPostId;
             const updatedAt = updatedPost.updated_at || updatedPost.updatedAt;
 
             setPosts((prev) =>
@@ -306,14 +355,14 @@ export function PostList({
                       platformPostId: platformPostId,
                       updatedAt: new Date(updatedAt),
                     }
-                  : p
-              )
+                  : p,
+              ),
             );
           } else if (payload.eventType === "DELETE") {
             const deletedPost = payload.old as any;
             setPosts((prev) => prev.filter((p) => p.id !== deletedPost.id));
           }
-        }
+        },
       )
       .subscribe();
 
@@ -352,6 +401,8 @@ export function PostList({
     : [];
 
   const filteredPosts = posts.filter((post) => {
+    if (postTypeFilter === "batch") return false;
+
     const matchesStatus = filter === "all" || post.status === filter;
     const matchesSearch =
       post.content?.toLowerCase().includes(search.toLowerCase()) ||
@@ -365,6 +416,10 @@ export function PostList({
   });
 
   const filteredHistory = history.filter((batch) => {
+    const isMultiAccount = batch.accounts.length > 1;
+    if (postTypeFilter === "single" && isMultiAccount) return false;
+    if (postTypeFilter === "batch" && !isMultiAccount) return false;
+
     const matchesStatus =
       filter === "all" ||
       (filter === "published" && batch.status === "SUCCESS") ||
@@ -456,14 +511,36 @@ export function PostList({
     }
   };
 
+  // Trộn và sắp xếp bài viết theo thời gian tạo (createdAt) và loại bài viết (đơn lẻ / loạt)
+  const mergedItems = [
+    // Lấy các bài viết từ lịch sử (history)
+    ...filteredHistory.map((batch) => ({
+      type: "batch" as const,
+      id: batch.batchId,
+      date: new Date(batch.createdAt),
+      data: batch,
+    })),
+
+    // Lấy các bài viết đơn lẻ từ bảng posts
+    ...filteredPosts.map((post) => ({
+      type: "post" as const,
+      id: post.id,
+      date: new Date(post.createdAt),
+      data: post,
+    })),
+  ];
+
+  const sortedItems = mergedItems.sort((a, b) => {
+    if (sortOrder === "desc") {
+      return b.date.getTime() - a.date.getTime();
+    } else {
+      return a.date.getTime() - b.date.getTime();
+    }
+  });
+
   return (
     <div className="space-y-6">
-      {batchId && (
-        <BatchPublishTracker 
-          batchId={batchId} 
-          onFinished={fetchPosts} 
-        />
-      )}
+
       {/* Filters Header */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
@@ -519,41 +596,82 @@ export function PostList({
             <DoubleCalendarPicker
               selectedDate={filters.date}
               onSelectDate={(date) => onFilterChange("date", date)}
-              triggerClassName={cn(
-                "btn btn-ghost btn-sm bg-transparent hover:bg-base-100/60 rounded-sm border-none text-xs text-base-content/80",
-                filters.date !== "all" &&
-                  "text-primary bg-primary/10 font-bold hover:bg-primary/15",
-              )}
+              triggerClassName="btn btn-ghost btn-sm bg-transparent hover:bg-base-100/60 rounded-sm border-none text-xs text-base-content/80"
+            />
+
+            {/* Bộ lọc loại bài viết */}
+            <RangeSelector
+              value={postTypeFilter}
+              onChange={(val) => setPostTypeFilter(val as "all" | "single" | "batch")}
+              options={[
+                { id: "all", label: "Tất cả loại" },
+                { id: "single", label: "Đăng đơn lẻ" },
+                { id: "batch", label: "Đăng loạt" },
+              ]}
+              menuAlign="right"
+              menuMinWidth="w-36"
+              size="sm"
+              hideIcon={true}
+              triggerClassName="btn btn-ghost btn-sm bg-transparent hover:bg-base-100/60 rounded-sm border-none text-xs text-base-content/80 font-semibold"
+              dropdownClassName="bg-soft mt-0.5"
+            />
+
+            {/* Bộ sắp xếp theo thời gian tạo */}
+            <RangeSelector
+              value={sortOrder}
+              onChange={(val) => setSortOrder(val as "desc" | "asc")}
+              options={[
+                {
+                  id: "desc",
+                  label: "Mới nhất",
+                },
+                {
+                  id: "asc",
+                  label: "Cũ nhất",
+                },
+              ]}
+              menuAlign="right"
+              menuMinWidth="w-32"
+              size="sm"
+              hideIcon={true}
+              triggerClassName="btn btn-ghost btn-sm bg-transparent hover:bg-base-100/60 rounded-sm border-none text-xs text-base-content/80 font-semibold"
+              dropdownClassName="bg-soft mt-0.5"
             />
           </FilterGroup>
         </div>
       </div>
-
+      {batchId && (
+        <BatchPublishTracker batchId={batchId} onFinished={fetchPosts} />
+      )}
       {/* Grid */}
-      {filteredPosts.length > 0 || filteredHistory.length > 0 ? (
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 [column-fill:balance] animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {filteredHistory.map((batch) => (
-            <div
-              key={batch.batchId}
-              className="break-inside-avoid mb-6 inline-block w-full"
-            >
-              <PostCard
-                batch={batch}
-                onDelete={handleDelete}
-                workspaceId={workspaceId}
-              />
-            </div>
-          ))}
-          {filteredPosts.map((post) => (
-            <div
-              key={post.id}
-              className="break-inside-avoid mb-6 inline-block w-full"
-            >
-              <PostCard
-                post={post}
-                onDelete={handleDelete}
-                workspaceId={workspaceId}
-              />
+      {sortedItems.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {Array.from({ length: cols }, (_, colIdx) => (
+            <div key={colIdx} className="flex flex-col gap-6">
+              {sortedItems
+                .filter((_, idx) => idx % cols === colIdx)
+                .map((item) => (
+                  <div
+                    key={
+                      item.type === "batch" ? `batch-${item.id}` : `post-${item.id}`
+                    }
+                    className="w-full"
+                  >
+                    {item.type === "batch" ? (
+                      <PostCard
+                        batch={item.data as BatchPublishSummary}
+                        onDelete={handleDelete}
+                        workspaceId={workspaceId}
+                      />
+                    ) : (
+                      <PostCard
+                        post={item.data as any}
+                        onDelete={handleDelete}
+                        workspaceId={workspaceId}
+                      />
+                    )}
+                  </div>
+                ))}
             </div>
           ))}
         </div>
@@ -563,13 +681,15 @@ export function PostList({
             filter !== "all" ||
             search !== "" ||
             selectedGroupId !== null ||
-            filters.date !== "all"
+            filters.date !== "all" ||
+            postTypeFilter !== "all"
           }
           onClear={() => {
             setFilter("all");
             setSearch("");
             setSelectedGroupId(null);
             setFilters({ date: "all" });
+            setPostTypeFilter("all");
           }}
         />
       )}

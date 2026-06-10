@@ -51,9 +51,15 @@ export async function GET(req: NextRequest) {
           mediaUrls: job.media_urls || [],
           createdAt: job.created_at,
           scheduledAt: job.scheduled_at,
+          publishedAt: job.published_at,
           status: 'SUCCESS', // Default, will recalculate
           accounts: []
         });
+      } else {
+        const batch = batchesMap.get(bId);
+        if (job.published_at && (!batch.publishedAt || new Date(job.published_at) > new Date(batch.publishedAt))) {
+          batch.publishedAt = job.published_at;
+        }
       }
 
       const batch = batchesMap.get(bId);
