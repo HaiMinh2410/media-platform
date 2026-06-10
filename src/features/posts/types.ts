@@ -35,3 +35,23 @@ export type CreatePostResult = {
   data: Post[] | null;
   error: string | null;
 };
+
+export type BatchPublishSummary = {
+  id: string;
+  batchId: string;
+  content: string;
+  mediaUrls: string[];
+  createdAt: Date;
+  scheduledAt?: Date | null;
+  publishedAt?: Date | null;
+  status: "SUCCESS" | "PARTIAL" | "FAILED" | "SCHEDULED" | "PROCESSING";
+  accounts: {
+    id: string;
+    name: string;
+    platform: string;
+    status: "SUCCESS" | "FAILED" | "SCHEDULED" | "PROCESSING";
+    avatarUrl?: string;
+    platformId?: string;
+  }[];
+};
+
