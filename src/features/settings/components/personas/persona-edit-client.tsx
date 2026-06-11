@@ -23,30 +23,69 @@ import { toast } from "sonner";
 interface PersonaEditClientProps {
   account: any;
   initialPersona: any;
+  initialTab?: string;
 }
 
 export function PersonaEditClient({
   account,
   initialPersona,
+  initialTab,
 }: PersonaEditClientProps) {
   const [persona, setPersona] = useState(initialPersona);
   const [isSaving, setIsSaving] = useState(false);
+  const [botConfig, setBotConfig] = useState<any | null>(null);
+  const [isLoadingBot, setIsLoadingBot] = useState(true);
+
+  React.useEffect(() => {
+    async function fetchBotConfig() {
+      try {
+        const res = await fetch(`/api/accounts/${account.id}/bot`);
+        if (!res.ok) throw new Error("Failed to fetch bot config");
+        const json = await res.json();
+        setBotConfig({
+          ...json.data,
+          auto_reply_priorities: json.data.auto_reply_priorities || [],
+          auto_reply_sentiments: json.data.auto_reply_sentiments || [],
+        });
+      } catch (err) {
+        console.error(err);
+        toast.error("Không thể tải cấu hình Bot AI");
+      } finally {
+        setIsLoadingBot(false);
+      }
+    }
+    fetchBotConfig();
+  }, [account.id]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`/api/ai-personas/${account.id}`, {
+      const personaPromise = fetch(`/api/ai-personas/${account.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(persona),
       });
 
-      if (!res.ok) throw new Error("Failed to save persona");
+      const botPromise = botConfig
+        ? fetch(`/api/accounts/${account.id}/bot`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(botConfig),
+          })
+        : Promise.resolve(null);
 
-      toast.success("Lưu cấu hình Persona thành công!");
+      const [resPersona, resBot] = await Promise.all([
+        personaPromise,
+        botPromise,
+      ]);
+
+      if (!resPersona.ok) throw new Error("Failed to save persona");
+      if (resBot && !resBot.ok) throw new Error("Failed to save bot config");
+
+      toast.success("Lưu cấu hình Persona & Bot AI thành công!");
     } catch (error) {
       console.error(error);
-      toast.error("Có lỗi xảy ra khi lưu Persona");
+      toast.error("Có lỗi xảy ra khi lưu cấu hình");
     } finally {
       setIsSaving(false);
     }
@@ -60,7 +99,11 @@ export function PersonaEditClient({
   ] as const;
 
   const [activeTab, setActiveTab] =
-    useState<(typeof tabItems)[number]["value"]>("basic");
+    useState<(typeof tabItems)[number]["value"]>(
+      (initialTab && tabItems.some((t) => t.value === initialTab))
+        ? (initialTab as (typeof tabItems)[number]["value"])
+        : "basic"
+    );
 
   return (
     <div className="flex flex-col">
@@ -103,6 +146,11 @@ export function PersonaEditClient({
               onChange={(updates: any) =>
                 setPersona({ ...persona, ...updates })
               }
+              botConfig={botConfig}
+              onChangeBotConfig={(updates: any) =>
+                setBotConfig((prev: any) => prev ? { ...prev, ...updates } : null)
+              }
+              isLoadingBot={isLoadingBot}
             />
           </div>
 

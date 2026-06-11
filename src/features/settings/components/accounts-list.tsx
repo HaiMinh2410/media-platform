@@ -148,7 +148,7 @@ export function AccountsList({ accounts }: AccountsListProps) {
                   )}
                 </button>
                 <Link 
-                  href={`/dashboard/settings/accounts/${account.id}/bot`} 
+                  href={`/dashboard/settings/personas/${account.id}?tab=safety`} 
                   className="btn btn-xs btn-ghost text-primary shadow-none rounded-full size-8 p-0 flex items-center justify-center no-underline"
                   title="Cấu hình Bot AI"
                 >

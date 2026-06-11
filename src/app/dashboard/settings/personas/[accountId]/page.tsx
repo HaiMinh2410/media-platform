@@ -4,9 +4,14 @@ import { redirect, notFound } from 'next/navigation';
 import { createClient } from '@shared/api/supabase/server';
 import { PersonaEditClient } from '@features/settings/components/personas/persona-edit-client';
 
-export default async function PersonaEditPage(props: { params: Promise<{ accountId: string }> }) {
+export default async function PersonaEditPage(props: { 
+  params: Promise<{ accountId: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const params = await props.params;
+  const searchParams = await props.searchParams;
   const { accountId } = params;
+  const initialTab = searchParams.tab;
 
   const supabase = createClient();
   const { data: { user } } = await (await supabase).auth.getUser();
@@ -70,7 +75,7 @@ export default async function PersonaEditPage(props: { params: Promise<{ account
 
   return (
     <div className="flex flex-col gap-6 h-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <PersonaEditClient account={account} initialPersona={persona} />
+      <PersonaEditClient account={account} initialPersona={persona} initialTab={initialTab} />
     </div>
   );
 }

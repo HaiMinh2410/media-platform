@@ -9,6 +9,9 @@ interface PersonaFormTabsProps {
   persona: any;
   account: any;
   onChange: (updates: any) => void;
+  botConfig: any;
+  onChangeBotConfig: (updates: any) => void;
+  isLoadingBot: boolean;
 }
 
 export function PersonaFormTabs({
@@ -16,6 +19,9 @@ export function PersonaFormTabs({
   persona,
   account,
   onChange,
+  botConfig,
+  onChangeBotConfig,
+  isLoadingBot,
 }: PersonaFormTabsProps) {
   switch (activeTab) {
     case "basic":
@@ -25,7 +31,15 @@ export function PersonaFormTabs({
     case "advanced":
       return <AdvancedTab persona={persona} onChange={onChange} />;
     case "safety":
-      return <SafetyTab persona={persona} onChange={onChange} />;
+      return (
+        <SafetyTab
+          persona={persona}
+          onChange={onChange}
+          botConfig={botConfig}
+          onChangeBotConfig={onChangeBotConfig}
+          isLoadingBot={isLoadingBot}
+        />
+      );
     default:
       return null;
   }

@@ -6,7 +6,9 @@ import {
   RotateCw,
   Undo2,
   Loader2,
+  HelpCircle,
 } from "lucide-react";
+import { PortalTooltip, SlidingTabs } from "@shared/ui";
 
 interface AutoResizingTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   maxHeight?: number;
@@ -40,7 +42,7 @@ function AutoResizingTextarea({
       value={value}
       onChange={onChange}
       className={cn(
-        "textarea textarea-bordered w-full overflow-y-auto resize-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20",
+        "textarea textarea-bordered w-full rounded-md text-sm bg-base-200 border-base-content/5 focus:bg-base-200/50 focus:border-primary/60 outline-none transition-all placeholder:text-base-content/30 overflow-y-auto resize-none",
         className
       )}
       style={{ maxHeight: `${maxHeight}px` }}
@@ -67,6 +69,13 @@ interface CampaignTabProps {
   onChange: (updates: any) => void;
 }
 
+const CAMPAIGN_OBJECTIVE_TABS = [
+  { value: "lead_generation", label: "Thu thập Lead" },
+  { value: "direct_sale", label: "Chốt Sale" },
+  { value: "support", label: "Hỗ trợ khách" },
+  { value: "engagement", label: "Tăng tương tác" },
+] as const;
+
 export function CampaignTab({ persona, onChange }: CampaignTabProps) {
   const updateSettings = (key: string, value: any) => {
     onChange({ settings: { ...persona.settings, [key]: value } });
@@ -82,6 +91,10 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
     scarcityMessage: string;
   } | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
+
+  // Help tooltip for Campaign Objective
+  const [isObjectiveHelpActive, setIsObjectiveHelpActive] = React.useState(false);
+  const objectiveHelpRef = React.useRef<HTMLDivElement>(null);
 
   // Debounce trigger cho Campaign Name & Objective
   const [debouncedCampaign, setDebouncedCampaign] = React.useState({
@@ -192,35 +205,63 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-      <div className="space-y-2">
-        <label className="text-sm font-bold text-base-content/80">
+      {/* Tên Chiến dịch */}
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm text-base-content/60">
           Tên Chiến dịch
         </label>
         <input
           type="text"
           value={persona.campaign_name || ""}
           onChange={(e) => onChange({ campaign_name: e.target.value })}
-          className="input input-bordered w-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+          className="input input-bordered w-full rounded-md text-sm bg-base-200 border-base-content/5 focus:bg-base-200/50 focus:border-primary/60 outline-none transition-all placeholder:text-base-content/30"
           placeholder="VD: Sale Cuối Tháng 5"
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-bold text-base-content/80">
-          Mục tiêu chiến dịch (Objective)
-        </label>
-        <select
-          value={persona.settings?.campaign_objective || "lead_generation"}
-          onChange={(e) =>
-            updateSettings("campaign_objective", e.target.value)
-          }
-          className="select select-bordered w-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-        >
-          <option value="lead_generation">Thu thập Lead (SĐT/Email)</option>
-          <option value="direct_sale">Chốt Sale Trực tiếp (Gửi Link)</option>
-          <option value="support">Chăm sóc Khách hàng (Support)</option>
-          <option value="engagement">Tăng tương tác (Engagement)</option>
-        </select>
+      {/* Mục tiêu chiến dịch */}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex justify-between items-center">
+          <label className="text-sm text-base-content/60 flex items-center gap-2">
+            Mục tiêu chiến dịch (Objective)
+            <div
+              ref={objectiveHelpRef}
+              onMouseEnter={() => setIsObjectiveHelpActive(true)}
+              onMouseLeave={() => setIsObjectiveHelpActive(false)}
+              className="cursor-help text-base-content/40 hover:text-base-content/70 transition-colors"
+            >
+              <HelpCircle size={14} />
+            </div>
+            <PortalTooltip
+              active={isObjectiveHelpActive}
+              anchorRef={objectiveHelpRef}
+              showArrow
+              position="top"
+              align="left"
+              className="w-80 text-xs font-normal leading-relaxed"
+            >
+              <div className="space-y-1.5">
+                <p className="font-semibold text-base-content">Chi tiết mục tiêu:</p>
+                <ul className="list-disc pl-4 space-y-1 text-base-content/70">
+                  <li><span className="font-semibold text-base-content/85">Thu thập Lead:</span> Tập trung thu thập SĐT, Email để telesale hoặc gửi ưu đãi.</li>
+                  <li><span className="font-semibold text-base-content/85">Chốt Sale:</span> Thuyết phục khách mua hàng và gửi link thanh toán/chốt đơn.</li>
+                  <li><span className="font-semibold text-base-content/85">Hỗ trợ khách:</span> Giải đáp thắc mắc về sản phẩm/dịch vụ, tư vấn khách hàng.</li>
+                  <li><span className="font-semibold text-base-content/85">Tăng tương tác:</span> Trò chuyện thân thiện, giữ tương tác tích cực với khách.</li>
+                </ul>
+              </div>
+            </PortalTooltip>
+          </label>
+        </div>
+        <SlidingTabs
+          items={CAMPAIGN_OBJECTIVE_TABS}
+          activeValue={persona.settings?.campaign_objective || "lead_generation"}
+          onChange={(val) => updateSettings("campaign_objective", val)}
+          size="sm"
+          fullWidth
+          rounded="rounded-full"
+          layoutId="campaignObjectiveTabs"
+          className="bg-base-200"
+        />
       </div>
 
       {/* AI Proposal Action and Info Bars */}
@@ -233,8 +274,7 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
                 AI đang phân tích và viết đề xuất...
               </span>
               <span className="text-xs text-base-content/60">
-                Đang tối ưu hóa Lời chào hàng & Thông điệp khan hiếm tối ưu
-                cho chiến dịch
+                Đang tối ưu hóa Lời chào hàng & Thông điệp khan hiếm tối ưu cho chiến dịch
               </span>
             </div>
           </div>
@@ -253,8 +293,7 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
                 ✨ AI đề xuất phương án tối ưu!
               </span>
               <span className="text-xs text-base-content/60">
-                Đã tự động điền. Hãy điều chỉnh trực tiếp hoặc đồng ý/viết lại
-                ở đây nhen.
+                Đã tự động điền. Hãy điều chỉnh trực tiếp hoặc đồng ý/viết lại ở đây nhen.
               </span>
             </div>
           </div>
@@ -295,9 +334,10 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
         </div>
       )}
 
-      <div className="space-y-2">
+      {/* Lời chào hàng */}
+      <div className="flex flex-col gap-1.5">
         <div className="flex justify-between items-center">
-          <label className="text-sm font-bold text-base-content/80">
+          <label className="text-sm text-base-content/60">
             Lời chào hàng hiện tại (Current Offer)
           </label>
           {aiProposal && (
@@ -313,7 +353,7 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
           className={cn(
             "w-full",
             aiProposal
-              ? "textarea-secondary bg-secondary/5 ring-2 ring-secondary/10 shadow-[0_0_15px_rgba(var(--color-secondary),0.1)] border-secondary/40"
+              ? "textarea-secondary bg-secondary/5 ring-2 ring-secondary/20 border-secondary/40 shadow-xs"
               : "",
           )}
           placeholder="VD: Giảm giá 50% cho 100 khách hàng đầu tiên mua combo X..."
@@ -321,9 +361,10 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
         />
       </div>
 
-      <div className="space-y-2">
+      {/* Thông điệp khan hiếm */}
+      <div className="flex flex-col gap-1.5">
         <div className="flex justify-between items-center">
-          <label className="text-sm font-bold text-base-content/80">
+          <label className="text-sm text-base-content/60">
             Thông điệp khan hiếm (Scarcity)
           </label>
           {aiProposal && (
@@ -339,7 +380,7 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
           className={cn(
             "w-full",
             aiProposal
-              ? "textarea-secondary bg-secondary/5 ring-2 ring-secondary/10 shadow-[0_0_15px_rgba(var(--color-secondary),0.1)] border-secondary/40"
+              ? "textarea-secondary bg-secondary/5 ring-2 ring-secondary/20 border-secondary/40 shadow-xs"
               : "",
           )}
           placeholder="VD: Chỉ còn duy nhất 2 suất áp dụng mã giảm giá này thôi ạ..."
