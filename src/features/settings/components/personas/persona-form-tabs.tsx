@@ -7,17 +7,19 @@ import { SafetyTab } from "./tabs/safety-tab";
 interface PersonaFormTabsProps {
   activeTab: string;
   persona: any;
+  account: any;
   onChange: (updates: any) => void;
 }
 
 export function PersonaFormTabs({
   activeTab,
   persona,
+  account,
   onChange,
 }: PersonaFormTabsProps) {
   switch (activeTab) {
     case "basic":
-      return <BasicTab persona={persona} onChange={onChange} />;
+      return <BasicTab persona={persona} account={account} onChange={onChange} />;
     case "campaign":
       return <CampaignTab persona={persona} onChange={onChange} />;
     case "advanced":

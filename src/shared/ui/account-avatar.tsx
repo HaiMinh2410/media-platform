@@ -52,6 +52,8 @@ export function AccountAvatar({
     12: 'size-12',
     14: 'size-14',
     16: 'size-16',
+    18: 'size-18',
+    20: 'size-20',
   };
 
   // Define static size mapping for emblem container to allow Tailwind compilation

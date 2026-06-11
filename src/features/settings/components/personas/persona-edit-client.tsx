@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Icon, SlidingTabs } from "@shared/ui";
 
@@ -59,13 +59,13 @@ export function PersonaEditClient({
     { value: "safety", label: "An toàn & Tham số", icon: ShieldAlert },
   ] as const;
 
-
-  const [activeTab, setActiveTab] = useState<typeof tabItems[number]['value']>("basic");
+  const [activeTab, setActiveTab] =
+    useState<(typeof tabItems)[number]["value"]>("basic");
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
+    <div className="flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 border-b border-base-content/5 pb-4">
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard/settings/personas"
@@ -79,54 +79,62 @@ export function PersonaEditClient({
             </h2>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="btn btn-primary rounded-full shadow-none"
-          >
-            {isSaving ? (
-              <Icon lucide={Loader2} className="animate-spin" size={18} />
-            ) : (
-              <Icon lucide={Save} size={18} />
-            )}
-            Lưu
-          </button>
-        </div>
+
+        {/* Tabs ở cùng hàng với Header, căn phải */}
+        <SlidingTabs
+          items={tabItems}
+          activeValue={activeTab}
+          onChange={setActiveTab}
+          size="sm"
+          rounded="rounded-full"
+        />
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 items-start">
         {/* Left Panel: Form */}
-        <div className="card card-bordered bg-base-100 border-base-content/5 shadow-sm rounded-2xl flex flex-col overflow-hidden">
-          {/* Tabs */}
-          <div className="p-2 border-b border-base-content/5 overflow-x-auto scrollbar-hide">
-            <SlidingTabs
-              items={tabItems}
-              activeValue={activeTab}
-              onChange={setActiveTab}
-              size="sm"
-              rounded="rounded-full"
-            />
-          </div>
-
+        <div className="card card-border bg-base-100 border-base-content/5 rounded-2xl flex flex-col">
           {/* Form Content */}
-          <div className="flex-1 overflow-y-auto p-6 scrollbar-custom">
+          <div className="p-6">
             <PersonaFormTabs
               activeTab={activeTab}
               persona={persona}
+              account={account}
               onChange={(updates: any) =>
                 setPersona({ ...persona, ...updates })
               }
             />
           </div>
+
+          {/* Form Footer Action Bar */}
+          <div className="p-5 border-t border-base-content/5 bg-base-200/10 rounded-b-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <p className="text-xs text-base-content/50">
+              Hãy lưu lại cấu hình sau khi hoàn tất chỉnh sửa.
+            </p>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="btn btn-primary px-6 rounded-full shadow-none font-bold min-w-[120px]"
+            >
+              {isSaving ? (
+                <Icon lucide={Loader2} className="animate-spin" size={18} />
+              ) : (
+                <Icon lucide={Save} size={18} />
+              )}
+              Lưu
+            </button>
+          </div>
         </div>
 
         {/* Right Panel: Simulator */}
-        <div className="card card-bordered bg-base-100 border-base-content/5 shadow-sm rounded-2xl flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-base-content/5 bg-base-200/20 flex justify-between items-center">
+        <div className="card card-bordered bg-base-100 border-base-content/5 shadow-sm rounded-2xl flex flex-col overflow-hidden lg:sticky lg:top-6 lg:h-[calc(100vh-120px)]">
+          <div className="p-4 border-b border-base-content/5 bg-base-200/20 flex justify-between items-center shrink-0">
             <h3 className="font-bold text-base flex items-center gap-2 text-base-content">
-              <Icon lucide={Play} size={16} className="text-primary animate-pulse" />
+              <Icon
+                lucide={Play}
+                size={16}
+                className="text-primary animate-pulse"
+              />
               Live Simulator
             </h3>
             <span className="badge badge-primary badge-soft font-bold text-2xs uppercase tracking-wider">
@@ -145,4 +153,3 @@ export function PersonaEditClient({
     </div>
   );
 }
-

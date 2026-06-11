@@ -48,7 +48,7 @@ export default async function PersonaEditPage(props: { params: Promise<{ account
     gender: 'female',
     age: 22,
     personality: '',
-    tone: 'Professional, polite, and concise.',
+    tone: 'Chuyên nghiệp, lịch sự và ngắn gọn.',
     speaking_style: '',
     signature_emojis: [],
     custom_instructions: '',
@@ -63,7 +63,7 @@ export default async function PersonaEditPage(props: { params: Promise<{ account
       link_rate_limit: 3,
       blacklist_keywords: [],
     },
-    tone_instructions: 'Be professional, polite, and concise.',
+    tone_instructions: 'Giao tiếp chuyên nghiệp, lịch sự và ngắn gọn.',
     emoji_usage: 'minimal',
     language_preference: 'vi',
   };
