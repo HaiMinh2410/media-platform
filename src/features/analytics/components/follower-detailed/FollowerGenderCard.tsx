@@ -52,41 +52,45 @@ export function FollowerGenderCard({
         color,
       };
     })
-    .filter((g) => g.value > 0);
+    .filter((g) => g.value > 0)
+    .sort((a, b) => {
+      const order: Record<string, number> = { Nam: 1, Nữ: 2, Khác: 3 };
+      return (order[a.name] || 4) - (order[b.name] || 4);
+    });
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md flex flex-col justify-between min-h-[360px]"
+      className="bg-base-100 border border-base-content/5 rounded-3xl p-6 transition-all duration-300 flex flex-col justify-between min-h-[360px] h-full"
     >
       <div>
         <div className="flex items-center gap-2 mb-6">
           <Users size={18} className="text-secondary animate-pulse" />
-          <h4 className="font-bold text-base-content tracking-tight">
+          <h4 className="text-lg font-bold text-base-content tracking-tight">
             Tỷ lệ Giới tính
           </h4>
         </div>
 
         {genderData.length === 0 ? (
           <div className="h-[220px] flex items-center justify-center">
-            <span className="text-base-content/20 text-xs font-semibold">
+            <span className="text-base-content/40 italic">
               Không có dữ liệu giới tính
             </span>
           </div>
         ) : (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
             {/* Donut Chart container */}
-            <div className="w-[150px] h-[150px] relative shrink-0">
+            <div className="size-50 relative shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={genderData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={45}
-                    outerRadius={65}
+                    innerRadius={55}
+                    outerRadius={80}
                     paddingAngle={4}
                     dataKey="value"
                     stroke="var(--color-base-100)"
@@ -101,39 +105,39 @@ export function FollowerGenderCard({
 
               {/* Inside Center label */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xs text-base-content/40 font-bold uppercase tracking-wider font-mono">
+                <span className="text-xs text-base-content/40 font-bold tracking-wide font-mono">
                   Giới tính
                 </span>
-                <span className="text-sm font-black text-base-content">
+                <span className="text-lg font-bold tracking-wide text-base-content">
                   {genderData[0]?.name || "N/A"}
                 </span>
               </div>
             </div>
 
             {/* Custom Legend list */}
-            <div className="flex-1 space-y-3.5 w-full">
+            <div className="flex-1 divide-y divide-base-content/5 w-full">
               {genderData.map((gender, idx) => (
                 <div
                   key={idx}
-                  className="flex justify-between items-center bg-base-200/50 border border-base-content/5 p-2.5 rounded-xl group hover:bg-base-300/30 transition-all shadow-xs"
+                  className="flex justify-between items-center py-4 group"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <div
-                      className="w-2.5 h-2.5 rounded-full shadow-md"
+                      className="size-3 rounded-full shadow-xs"
                       style={{
                         backgroundColor: gender.color,
                         boxShadow: `0 0 8px color-mix(in srgb, ${gender.color} 25%, transparent)`,
                       }}
                     />
-                    <span className="text-xs font-semibold text-base-content/70 group-hover:text-base-content transition-colors">
+                    <span className="text-base-content/80 group-hover:text-base-content transition-colors">
                       {gender.name}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-bold text-base-content font-mono">
+                    <span className="font-bold text-base-content font-mono">
                       {gender.percentage}%
                     </span>
-                    <span className="block text-[8px] text-base-content/40 font-medium font-mono">
+                    <span className="block text-xs text-base-content/40 font-medium font-mono">
                       ({gender.value.toLocaleString()})
                     </span>
                   </div>
@@ -144,10 +148,12 @@ export function FollowerGenderCard({
         )}
       </div>
 
-      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-xs text-base-content/40 font-semibold uppercase tracking-wider font-mono">
-        <Info size={14} className="text-secondary/50" />
+      <div className="mt-5 pt-4 border-t border-base-content/5 flex items-center gap-2 text-sm text-base-content/60 tracking-wider">
+        <Info size={14} className="text-secondary/60" />
         <span>
-          Cân bằng giới tính: {genderData[0]?.name || "N/A"} chiếm ưu thế
+          Cân bằng giới tính:{" "}
+          <span className="text-secondary">{genderData[0]?.name || "N/A"}</span>{" "}
+          chiếm ưu thế
         </span>
       </div>
     </motion.div>

@@ -65,14 +65,14 @@ export function FollowerPersonaCard({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-base-100 border border-base-content/5 shadow-sm rounded-3xl p-6 transition-all duration-300 hover:shadow-md lg:col-span-10 w-full"
+      className="bg-base-100 border border-base-content/5 rounded-3xl p-6 transition-all duration-300 lg:col-span-10 w-full"
     >
       {/* 1. HIỂN THỊ CẢNH BÁO SAMPLE NHỎ (FALLBACK) */}
       {followersCount < 100 && (
         <div className="mb-6 p-4 bg-warning/10 border border-warning/20 text-warning rounded-2xl text-xs font-semibold leading-relaxed flex items-start gap-3">
           <AlertTriangle size={18} className="shrink-0 mt-0.5" />
           <div>
-            <span className="font-black uppercase tracking-wider block text-2xs mb-1">
+            <span className="font-bold uppercase tracking-wider block text-2xs mb-1">
               Cảnh báo quy mô dữ liệu
             </span>
             Quy mô người theo dõi hiện tại ({followersCount} followers) còn
@@ -89,9 +89,9 @@ export function FollowerPersonaCard({
           <div className="flex items-center gap-2 mb-4 self-start">
             {/* Confidence Score Badge */}
             <div
-              className={`flex items-center gap-1.5 text-xs font-bold font-mono ${confidenceColor}`}
+              className={`flex items-center gap-1.5 text-sm tracking-wide ${confidenceColor}`}
             >
-              <ShieldCheck size={12} className="shrink-0" />
+              <ShieldCheck size={16} className="shrink-0" />
               Độ tin cậy: {confidenceScore}% ({confidenceLevel})
             </div>
           </div>
@@ -187,14 +187,14 @@ export function FollowerPersonaCard({
         {/* RIGHT SIDE: AUDIENCE PERSONA HIGHLIGHTS (8/12 columns) */}
         <div className="w-full lg:col-span-8 flex flex-col justify-between self-stretch">
           <div>
-            <h3 className="text-xl lg:text-2xl font-black text-base-content tracking-tight mb-5 leading-tight">
+            <h3 className="text-xl lg:text-2xl font-bold text-base-content tracking-tight mb-5 leading-tight">
               {personaHeadline}
             </h3>
           </div>
 
           {/* Persona Strategic Insight - Actionable Bullet Points style with Highlighted Stats */}
           <div className="p-5 bg-primary/5 border-l-4 border-primary/80 rounded-r-2xl text-sm text-base-content/80 font-medium shadow-inner flex flex-col gap-3">
-            <span className="font-black text-primary flex items-center gap-1.5 uppercase tracking-wider text-xs">
+            <span className="font-bold text-primary flex items-center gap-1.5 uppercase tracking-wider text-xs">
               <Target size={14} className="stroke-[2.5]" /> Khuyến nghị truyền
               thông chiến lược
             </span>
@@ -203,7 +203,7 @@ export function FollowerPersonaCard({
             <div className="text-sm leading-relaxed text-base-content/85 bg-base-200/40 px-3.5 py-2.5 rounded-lg border border-base-content/5 flex items-start gap-2.5">
               <Lightbulb size={15} className="text-accent shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold tracking-wider text-sm text-accent mr-1">
+                <span className="font-semibold tracking-wider text-sm text-accent mr-1">
                   Hiểu thấu (Insight):
                 </span>{" "}
                 {insightText}

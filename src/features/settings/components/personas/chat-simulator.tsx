@@ -122,10 +122,10 @@ export function ChatSimulator({
   return (
     <div className="flex flex-col h-full bg-base-100 relative">
       <div
-        className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-custom"
+        className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-custom"
         ref={scrollRef}
       >
-        <div className="text-center text-xs text-foreground-tertiary my-4">
+        <div className="text-center text-xs text-base-content/40 font-bold uppercase tracking-wider my-4">
           Bắt đầu phiên giả lập với {personaDraft.name || "Persona"}
         </div>
 
@@ -133,44 +133,46 @@ export function ChatSimulator({
           <div
             key={msg.id}
             className={cn(
-              "flex flex-col max-w-[85%]",
-              msg.role === "user" ? "ml-auto items-end" : "mr-auto items-start",
+              "chat",
+              msg.role === "user" ? "chat-end" : "chat-start"
             )}
           >
-            <div className="flex items-end gap-2">
-              {msg.role === "assistant" && (
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mb-1">
-                  <Icon lucide={Bot} size={12} className="text-primary" />
+            {msg.role === "assistant" && (
+              <div className="chat-image avatar">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-xs">
+                  <Icon lucide={Bot} size={14} className="text-primary" />
                 </div>
-              )}
-
-              <div
-                className={cn(
-                  "px-4 py-2.5 rounded-2xl text-sm",
-                  msg.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-foreground/5 text-foreground rounded-bl-sm",
-                )}
-              >
-                {msg.content}
               </div>
+            )}
+
+            <div
+              className={cn(
+                "chat-bubble text-sm shadow-xs",
+                msg.role === "user"
+                  ? "chat-bubble-primary"
+                  : "bg-base-200 text-base-content border border-base-content/5"
+              )}
+            >
+              {msg.content}
             </div>
 
             {/* Debug Info for Assistant messages */}
             {msg.role === "assistant" && msg.debug && (
-              <div className="mt-1.5 ml-8 p-2 rounded-lg bg-success/10 border border-success/20 text-2xs text-success max-w-full overflow-hidden">
-                <div className="font-semibold mb-0.5">⚡ Debug Info:</div>
-                <div className="truncate">Action: {msg.debug.action}</div>
-                {msg.debug.confidence && (
-                  <div>
-                    Confidence: {(msg.debug.confidence * 100).toFixed(1)}%
+              <div className="chat-footer opacity-90 mt-1.5">
+                <div className="p-2.5 rounded-xl bg-success/15 border border-success/10 text-2xs text-success max-w-xs shadow-xs">
+                  <div className="font-bold mb-1">⚡ Debug Info:</div>
+                  <div className="truncate">Action: {msg.debug.action}</div>
+                  {msg.debug.confidence && (
+                    <div className="mb-0.5">
+                      Confidence: {(msg.debug.confidence * 100).toFixed(1)}%
+                    </div>
+                  )}
+                  <div
+                    className="truncate text-ellipsis"
+                    title={msg.debug.reasoning}
+                  >
+                    Reason: {msg.debug.reasoning}
                   </div>
-                )}
-                <div
-                  className="truncate text-ellipsis"
-                  title={msg.debug.reasoning}
-                >
-                  Reason: {msg.debug.reasoning}
                 </div>
               </div>
             )}
@@ -178,31 +180,20 @@ export function ChatSimulator({
         ))}
 
         {isTyping && (
-          <div className="flex flex-col max-w-[85%] mr-auto items-start">
-            <div className="flex items-end gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mb-1">
-                <Icon lucide={Bot} size={12} className="text-primary" />
+          <div className="chat chat-start">
+            <div className="chat-image avatar">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-xs">
+                <Icon lucide={Bot} size={14} className="text-primary" />
               </div>
-              <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-foreground/5 text-foreground flex items-center gap-1.5">
-                <div
-                  className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-bounce"
-                  style={{ animationDelay: "0ms" }}
-                />
-                <div
-                  className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-bounce"
-                  style={{ animationDelay: "150ms" }}
-                />
-                <div
-                  className="w-1.5 h-1.5 rounded-full bg-foreground/40 animate-bounce"
-                  style={{ animationDelay: "300ms" }}
-                />
-              </div>
+            </div>
+            <div className="chat-bubble bg-base-200 text-base-content border border-base-content/5 flex items-center justify-center h-9 px-4">
+              <span className="loading loading-dots loading-xs text-base-content/60"></span>
             </div>
           </div>
         )}
       </div>
 
-      <div className="p-4 border-t border-foreground/10 bg-background/50 backdrop-blur-md">
+      <div className="p-4 border-t border-base-content/5 bg-base-100/50 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -210,12 +201,12 @@ export function ChatSimulator({
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Nhập tin nhắn test giả lập..."
-            className="flex-1 bg-foreground/5 border border-foreground/10 rounded-full px-4 py-2.5 outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all text-sm"
+            className="input input-bordered flex-1 rounded-full text-sm bg-base-200/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
           />
           <button
             onClick={handleSend}
             disabled={!inputValue.trim() || isTyping}
-            className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            className="btn btn-circle btn-primary btn-md shrink-0"
           >
             <Icon lucide={Send} size={16} className="-ml-0.5 mt-0.5" />
           </button>
@@ -224,3 +215,4 @@ export function ChatSimulator({
     </div>
   );
 }
+

@@ -1,11 +1,11 @@
 'use client';
 
-import { Icon } from "@shared/ui";
+import { AccountAvatar, Icon } from "@shared/ui";
 
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Bot, Settings2, User2, MessageCircle } from "lucide-react";
+import { Bot, User2, MessageCircle, ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 type AccountWithPersona = {
@@ -40,51 +40,27 @@ export function PersonaList({ accounts }: PersonaListProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {accounts.map((account) => {
         const persona = account.ai_personas;
-        const avatarUrl =
-          account.metadata?.profile_picture_url || "/default-avatar.png";
-        const isInstagram = account.platform === "instagram";
+        const meta = (account.metadata || {}) as any;
+        const avatarUrl = meta?.avatar_url || meta?.profile_picture_url || meta?.picture?.data?.url || undefined;
 
         return (
           <Link
             key={account.id}
             href={`/dashboard/settings/personas/${account.id}`}
-            className="group flex flex-col p-6 bg-foreground/2 hover:bg-foreground/4 border border-foreground/10 hover:border-primary/30 rounded-2xl transition-all duration-300 no-underline relative overflow-hidden backdrop-blur-xl"
+            className="group flex flex-col p-6 bg-foreground/2 hover:bg-foreground/4 border border-foreground/10 hover:border-foreground/20 rounded-4xl transition-all duration-200 no-underline relative overflow-hidden backdrop-blur-xl"
           >
             {/* Glassmorphism shine effect */}
-            <div className="absolute inset-0 bg-linear-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 bg-linear-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-60 transition-opacity duration-200 pointer-events-none" />
 
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border border-foreground/10 relative group-hover:scale-105 transition-transform duration-300">
-                    <img
-                      src={avatarUrl}
-                      alt={account.platform_user_name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "https://ui-avatars.com/api/?name=" +
-                          account.platform_user_name +
-                          "&background=random";
-                      }}
-                    />
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background rounded-full flex items-center justify-center shadow-sm">
-                    {isInstagram ? (
-                      <div className="w-4 h-4 rounded-full bg-linear-to-tr from-yellow-400 via-red-500 to-fuchsia-500 flex items-center justify-center">
-                        <span className="text-[8px] text-white font-bold tracking-tighter">
-                          ig
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
-                        <span className="text-3xs text-white font-bold font-serif">
-                          f
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <AccountAvatar
+                  avatarUrl={avatarUrl}
+                  name={account.platform_user_name}
+                  platform={account.platform}
+                  size="lg"
+                  className="group-hover:scale-105 transition-transform duration-200"
+                />
                 <div>
                   <h3 className="font-semibold text-base text-foreground m-0 group-hover:text-primary transition-colors">
                     {account.platform_user_name}
@@ -96,16 +72,12 @@ export function PersonaList({ accounts }: PersonaListProps) {
                   </p>
                 </div>
               </div>
-
-              <div className="w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                <Icon lucide={Settings2} size={16} />
-              </div>
             </div>
 
             <div className="flex-1 space-y-4">
               <div className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2 text-foreground-secondary">
-                  <Icon lucide={Bot} size={14} className="text-primary/70" />
+                  <Icon lucide={Bot} size={16} className="group-hover:text-primary" />
                   <span>Persona:</span>
                 </div>
                 <span className="font-medium text-foreground">
@@ -117,8 +89,8 @@ export function PersonaList({ accounts }: PersonaListProps) {
                 <div className="flex items-center gap-2 text-foreground-secondary">
                   <Icon
                     lucide={MessageCircle}
-                    size={14}
-                    className="text-emerald-500/70"
+                    size={16}
+                    className="group-hover:text-primary"
                   />
                   <span>Chiến dịch:</span>
                 </div>
@@ -132,7 +104,7 @@ export function PersonaList({ accounts }: PersonaListProps) {
 
               <div className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2 text-foreground-secondary">
-                  <Icon lucide={User2} size={14} className="text-blue-500/70" />
+                  <Icon lucide={User2} size={16} className="group-hover:text-primary " />
                   <span>Conversion:</span>
                 </div>
                 <span className="font-medium text-foreground">
@@ -143,7 +115,7 @@ export function PersonaList({ accounts }: PersonaListProps) {
             </div>
 
             <div className="mt-6 pt-4 border-t border-foreground/10 flex items-center justify-between">
-              <span className="text-xs text-foreground-tertiary">
+              <span className="text-sm font-thin text-foreground-tertiary">
                 Cập nhật:{" "}
                 {persona?.updated_at
                   ? formatDistanceToNow(new Date(persona.updated_at), {
@@ -152,8 +124,8 @@ export function PersonaList({ accounts }: PersonaListProps) {
                     })
                   : "Chưa có dữ liệu"}
               </span>
-              <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 duration-300">
-                Cấu hình →
+              <span className="text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 duration-200 flex items-center gap-1">
+                Cấu hình <Icon lucide={ArrowRight} size={14} />
               </span>
             </div>
           </Link>

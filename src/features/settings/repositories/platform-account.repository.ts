@@ -407,11 +407,16 @@ export class PlatformAccountRepository {
           return !latest || c.lastMessageAt > latest ? c.lastMessageAt : latest;
         }, null as Date | null);
 
+        const meta = (acc.metadata || {}) as any;
+        const avatarUrl = meta?.avatar_url || meta?.picture?.data?.url || undefined;
+
         return {
           id: acc.id,
           platform: acc.platform as any,
           platform_user_name: acc.platform_user_name,
           platform_user_id: acc.platform_user_id,
+          avatarUrl,
+          avatar_url: avatarUrl,
           status,
           responseRate,
           pendingCount,

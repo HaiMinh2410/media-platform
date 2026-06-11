@@ -151,7 +151,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
               activeTimes={latestWithActiveTimes?.activeTimes || null}
             />
           ) : (
-            <div className="w-full h-[400px] flex flex-col items-center justify-center bg-base-100 border border-base-content/5 shadow-xs rounded-3xl p-6 text-center gap-4">
+            <div className="w-full h-[400px] flex flex-col items-center justify-center p-6 text-center gap-4">
               <div className="p-4 bg-info/10 border border-info/20 rounded-full text-info shrink-0">
                 <Icon lucide={Users} size={28} />
               </div>
@@ -159,7 +159,7 @@ export function AnalyticsDashboardClient({ initialData, accounts }: Props) {
                 <h3 className="text-base-content font-bold text-lg">
                   Phân tích Đối tượng chi tiết
                 </h3>
-                <p className="text-base-content/50 text-sm font-medium leading-relaxed">
+                <p className="text-base-content/50 max-w-3xl text-sm font-medium leading-relaxed">
                   Tính năng phân tích đối tượng chi tiết hiện tại chỉ được hỗ
                   trợ dành cho tài khoản Instagram Connect. Vui lòng chuyển đổi
                   sang tài khoản Instagram để xem thông tin chi tiết.

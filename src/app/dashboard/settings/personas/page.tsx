@@ -40,15 +40,6 @@ export default async function PersonasSettingsPage() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-center mb-2">
-        <div>
-          <h2 className="text-lg font-bold tracking-tight text-base-content m-0 mb-1">AI Personas</h2>
-          <p className="text-base-content/70 text-sm">
-            Quản lý tính cách, tông giọng và chiến dịch chốt sale cho từng tài khoản mạng xã hội.
-          </p>
-        </div>
-      </div>
-
       <PersonaList accounts={accounts} />
     </div>
   );

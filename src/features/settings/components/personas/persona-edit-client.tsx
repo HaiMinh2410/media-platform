@@ -1,7 +1,6 @@
 'use client';
 
-import { Icon } from "@shared/ui";
-import { cn } from "@shared/lib";
+import { Icon, SlidingTabs } from "@shared/ui";
 
 // Persona edit client component
 import { useState } from "react";
@@ -11,10 +10,8 @@ import {
   ArrowLeft,
   Save,
   Play,
-  Bot,
   User2,
   MessageCircle,
-  Settings2,
   ShieldAlert,
   Sparkles,
   Loader2,
@@ -32,7 +29,6 @@ export function PersonaEditClient({
   account,
   initialPersona,
 }: PersonaEditClientProps) {
-  const [activeTab, setActiveTab] = useState("basic");
   const [persona, setPersona] = useState(initialPersona);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -56,47 +52,45 @@ export function PersonaEditClient({
     }
   };
 
-  const tabs = [
-    { id: "basic", label: "Cơ bản", icon: User2 },
-    { id: "character", label: "Tính cách & Giọng điệu", icon: Bot },
-    { id: "campaign", label: "Chiến dịch (Sales)", icon: MessageCircle },
-    { id: "advanced", label: "Prompt nâng cao", icon: Sparkles },
-    { id: "safety", label: "An toàn & Tham số", icon: ShieldAlert },
-  ];
+  const tabItems = [
+    { value: "basic", label: "Cơ bản", icon: User2 },
+    { value: "campaign", label: "Chiến dịch (Sales)", icon: MessageCircle },
+    { value: "advanced", label: "Prompt nâng cao", icon: Sparkles },
+    { value: "safety", label: "An toàn & Tham số", icon: ShieldAlert },
+  ] as const;
+
+
+  const [activeTab, setActiveTab] = useState<typeof tabItems[number]['value']>("basic");
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)]">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard/settings/personas"
-            className="p-2 hover:bg-foreground/5 rounded-full transition-colors"
+            className="btn btn-circle btn-ghost btn-sm"
           >
             <Icon lucide={ArrowLeft} size={20} />
           </Link>
           <div>
-            <h2 className="text-xl font-semibold m-0 flex items-center gap-2">
+            <h2 className="text-xl font-extrabold tracking-tight text-base-content m-0 flex items-center gap-2">
               Cấu hình Persona: {account.platform_user_name}
             </h2>
-            <p className="text-sm text-foreground-tertiary">
-              Tùy chỉnh AI Agent cho tài khoản{" "}
-              {account.platform === "instagram" ? "Instagram" : "Facebook"}
-            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+            className="btn btn-primary rounded-full shadow-none"
           >
             {isSaving ? (
               <Icon lucide={Loader2} className="animate-spin" size={18} />
             ) : (
               <Icon lucide={Save} size={18} />
             )}
-            Lưu thay đổi
+            Lưu
           </button>
         </div>
       </div>
@@ -104,24 +98,16 @@ export function PersonaEditClient({
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 flex-1 min-h-0">
         {/* Left Panel: Form */}
-        <div className="flex flex-col bg-foreground/[0.02] border border-foreground/10 rounded-2xl overflow-hidden backdrop-blur-xl">
+        <div className="card card-bordered bg-base-100 border-base-content/5 shadow-sm rounded-2xl flex flex-col overflow-hidden">
           {/* Tabs */}
-          <div className="flex overflow-x-auto border-b border-foreground/10 px-2 scrollbar-hide">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-4 text-sm font-medium border-b-2 transition-all whitespace-nowrap",
-                  activeTab === tab.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-foreground-tertiary hover:text-foreground-secondary hover:bg-foreground/5",
-                )}
-              >
-                <Icon lucide={tab.icon} size={16} />
-                {tab.label}
-              </button>
-            ))}
+          <div className="p-2 border-b border-base-content/5 overflow-x-auto scrollbar-hide">
+            <SlidingTabs
+              items={tabItems}
+              activeValue={activeTab}
+              onChange={setActiveTab}
+              size="sm"
+              rounded="rounded-full"
+            />
           </div>
 
           {/* Form Content */}
@@ -137,13 +123,13 @@ export function PersonaEditClient({
         </div>
 
         {/* Right Panel: Simulator */}
-        <div className="flex flex-col bg-foreground/[0.02] border border-foreground/10 rounded-2xl overflow-hidden backdrop-blur-xl">
-          <div className="p-4 border-b border-foreground/10 bg-foreground/[0.01] flex justify-between items-center">
-            <h3 className="font-semibold text-base flex items-center gap-2">
-              <Icon lucide={Play} size={16} className="text-primary" />
+        <div className="card card-bordered bg-base-100 border-base-content/5 shadow-sm rounded-2xl flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-base-content/5 bg-base-200/20 flex justify-between items-center">
+            <h3 className="font-bold text-base flex items-center gap-2 text-base-content">
+              <Icon lucide={Play} size={16} className="text-primary animate-pulse" />
               Live Simulator
             </h3>
-            <span className="text-2xs uppercase font-bold tracking-wider px-2 py-1 bg-primary/10 text-primary rounded-full">
+            <span className="badge badge-primary badge-soft font-bold text-2xs uppercase tracking-wider">
               Test Mode
             </span>
           </div>
@@ -159,3 +145,4 @@ export function PersonaEditClient({
     </div>
   );
 }
+

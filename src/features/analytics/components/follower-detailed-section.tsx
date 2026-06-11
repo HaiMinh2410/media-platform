@@ -114,6 +114,7 @@ export function FollowerDetailedSection({
           activeValue={demoType}
           onChange={setDemoType}
           size="sm"
+          rounded="rounded-full"
           layoutId="demoTypeTabs"
           className="self-start sm:self-auto"
         />

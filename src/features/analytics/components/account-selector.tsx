@@ -50,9 +50,6 @@ export function AccountSelector({
       dropdownLabel: (
         <div className="flex flex-col items-start overflow-hidden leading-tight">
           <span className="text-xs font-bold truncate w-full">{acc.name}</span>
-          <span className="text-3xs uppercase tracking-widest font-mono opacity-50">
-            {acc.platform}
-          </span>
         </div>
       ),
     };

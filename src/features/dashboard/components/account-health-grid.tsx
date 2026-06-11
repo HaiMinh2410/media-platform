@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon, RangeSelector } from "@shared/ui";
+import { AccountAvatar, Icon, RangeSelector } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import React from "react";
@@ -187,7 +187,6 @@ interface AccountHealthRowProps {
 function AccountHealthRow({ account }: AccountHealthRowProps) {
   const isError = account.status === "error";
   const hasPending = account.pendingCount > 0;
-  const firstChar = account.platform_user_name?.charAt(0).toUpperCase() || "A";
 
   const rateColor =
     account.responseRate >= 80
@@ -215,21 +214,12 @@ function AccountHealthRow({ account }: AccountHealthRowProps) {
     <div className={rowClass}>
       {/* Cột 1: Avatar + Tên tài khoản */}
       <div className="col-span-6 flex items-center gap-3 min-w-0">
-        <div className="relative w-10 h-10 rounded-full bg-linear-to-tr from-primary/10 to-secondary/15 flex items-center justify-center font-bold text-base-content text-sm border border-base-content/5 shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-300">
-          {firstChar}
-          <span
-            className={cn(
-              "absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full flex items-center justify-center text-2xs text-white border-2 border-base-100 shadow-xs shrink-0",
-              account.platform === "facebook" ? "bg-facebook" : "bg-instagram",
-            )}
-          >
-            {account.platform === "facebook" ? (
-              <Icon name="facebook" size={8} />
-            ) : (
-              <Icon name="instagram" size={8} />
-            )}
-          </span>
-        </div>
+        <AccountAvatar
+          avatarUrl={account.avatarUrl || account.avatar_url}
+          name={account.platform_user_name}
+          platform={account.platform}
+          className="group-hover:scale-105 transition-transform duration-300"
+        />
         <div className="flex flex-col min-w-0">
           <h4 className="font-bold text-sm leading-tight text-base-content/95 truncate">
             {account.platform_user_name}

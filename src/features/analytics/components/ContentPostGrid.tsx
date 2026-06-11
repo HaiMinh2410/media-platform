@@ -85,7 +85,7 @@ export function ContentPostGrid({
 
                 {/* Format icon */}
                 {post.mediaType === "CAROUSEL_ALBUM" ? (
-                  <div className="absolute top-3 right-3 bg-neutral/80 backdrop-blur-md rounded-lg p-1.5 border border-neutral-content/10 shadow-lg flex items-center justify-center text-neutral-content">
+                  <div className="absolute top-3 right-3 backdrop-blur-md rounded-lg p-1.5 flex items-center justify-center text-base-content">
                     <svg
                       className="w-3.5 h-3.5"
                       viewBox="0 0 24 24"
@@ -100,7 +100,7 @@ export function ContentPostGrid({
                     </svg>
                   </div>
                 ) : post.mediaType === "VIDEO" || post.mediaType === "REELS" ? (
-                  <div className="absolute top-3 right-3 bg-neutral/80 backdrop-blur-md rounded-lg p-1.5 border border-neutral-content/10 shadow-lg flex items-center justify-center text-neutral-content">
+                  <div className="absolute top-3 right-3 backdrop-blur-md rounded-lg p-1.5 flex items-center justify-center text-base-content">
                     <svg
                       className="w-3.5 h-3.5 fill-current"
                       viewBox="0 0 24 24"
@@ -111,7 +111,7 @@ export function ContentPostGrid({
                 ) : null}
 
                 {/* White transparent pill badge (Image 2 style) */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-base-100/90 hover:bg-base-100 text-base-content backdrop-blur-md font-extrabold text-xs px-3.5 py-1.5 rounded-full shadow-lg border border-foreground/10 select-none min-w-[55px] text-center transition-all duration-300">
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-base-content backdrop-blur-sm font-extrabold text-xs px-3.5 py-1.5 rounded-md select-none min-w-[55px] text-center transition-all duration-300">
                   {formatMetricValue(value)}
                 </div>
               </motion.div>

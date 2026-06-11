@@ -30,6 +30,8 @@ export interface AccountHealthData {
   platform: string;
   platform_user_name: string;
   platform_user_id: string;
+  avatarUrl?: string;
+  avatar_url?: string;
   status: 'connected' | 'error' | 'warning';
   responseRate: number;
   pendingCount: number;

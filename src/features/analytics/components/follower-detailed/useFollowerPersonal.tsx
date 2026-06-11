@@ -243,25 +243,25 @@ export function useFollowerPersonal({
   if (malePct > 65) {
     genderTag = (
       <span>
-        cộng đồng <strong className="text-base-content font-black">nam giới chiếm ưu thế tuyệt đối</strong> trên Instagram
+        cộng đồng <strong className="text-base-content font-bold">nam giới chiếm ưu thế tuyệt đối</strong> trên Instagram
       </span>
     );
   } else if (malePct >= 50 && malePct <= 65) {
     genderTag = (
       <span>
-        cộng đồng thiên về <strong className="text-base-content font-black">nam giới</strong> (tín hiệu nổi bật trên IG)
+        cộng đồng thiên về <strong className="text-base-content font-bold">nam giới</strong> (tín hiệu nổi bật trên IG)
       </span>
     );
   } else if (femalePct > 65) {
     genderTag = (
       <span>
-        cộng đồng <strong className="text-base-content font-black">nữ giới chiếm ưu thế tuyệt đối</strong> trên Instagram
+        cộng đồng <strong className="text-base-content font-bold">nữ giới chiếm ưu thế tuyệt đối</strong> trên Instagram
       </span>
     );
   } else if (femalePct >= 50 && femalePct <= 65) {
     genderTag = (
       <span>
-        cộng đồng thiên về <strong className="text-base-content font-black">nữ giới</strong> (bám sát baseline IG)
+        cộng đồng thiên về <strong className="text-base-content font-bold">nữ giới</strong> (bám sát baseline IG)
       </span>
     );
   } else {
@@ -274,14 +274,14 @@ export function useFollowerPersonal({
   if (otherPct > 40) {
     otherTag = (
       <span>
-        Cảnh báo: Dữ liệu giới tính bị loãng nghiêm trọng (tài khoản không khai báo giới tính chiếm tới <strong className="text-base-content font-black">{otherPct}%</strong>).
+        Cảnh báo: Dữ liệu giới tính bị loãng nghiêm trọng (tài khoản không khai báo giới tính chiếm tới <strong className="text-base-content font-bold">{otherPct}%</strong>).
       </span>
     );
     isGenderDataReliable = false;
   } else if (otherPct > 20) {
     otherTag = (
       <span>
-        Có sự hiện diện đáng kể của <strong className="text-base-content font-black">tài khoản Business</strong> hoặc người dùng quốc tế ẩn giới tính (<strong className="text-base-content font-black">{otherPct}%</strong>).
+        Có sự hiện diện đáng kể của <strong className="text-base-content font-bold">tài khoản Business</strong> hoặc người dùng quốc tế ẩn giới tính (<strong className="text-base-content font-bold">{otherPct}%</strong>).
       </span>
     );
   }
@@ -291,13 +291,13 @@ export function useFollowerPersonal({
   if (isGenZInstagram) {
     ageTag = (
       <span>
-        tệp <strong className="text-base-content font-black">Gen Z thuần Instagram</strong> (nhóm <strong className="text-base-content font-black">18-24</strong> chiếm tỷ lệ cực kỳ lớn &gt;40%)
+        tệp <strong className="text-base-content font-bold">Gen Z thuần Instagram</strong> (nhóm <strong className="text-base-content font-bold">18-24</strong> chiếm tỷ lệ cực kỳ lớn &gt;40%)
       </span>
     );
   } else if (isAdultAudience) {
     ageTag = (
       <span>
-        tập khách hàng trưởng thành, đi làm, có thu nhập ổn định (<strong className="text-base-content font-black">25-44 tuổi</strong>)
+        tập khách hàng trưởng thành, đi làm, có thu nhập ổn định (<strong className="text-base-content font-bold">25-44 tuổi</strong>)
       </span>
     );
   } else {
@@ -313,7 +313,7 @@ export function useFollowerPersonal({
     } else {
       ageTag = (
         <span>
-          tập trung vào phân khúc khán giả thuộc nhóm tuổi <strong className="text-base-content font-black">{top1Age} &amp; {top2Age}</strong>
+          tập trung vào phân khúc khán giả thuộc nhóm tuổi <strong className="text-base-content font-bold">{top1Age} &amp; {top2Age}</strong>
         </span>
       );
     }
@@ -357,11 +357,11 @@ export function useFollowerPersonal({
       Kênh sở hữu tệp khán giả có chân dung sắc nét: {genderTag}. Về độ tuổi, kênh tập trung chủ yếu vào {ageTag}.{" "}
       {isMultiNational ? (
         <span>
-          Địa lý thuộc nhóm <strong className="text-base-content font-black">{geoClassification}</strong> khi quốc gia dẫn đầu chiếm dưới 55% và 4 quốc gia tiếp theo cộng lại đạt <strong className="text-base-content font-black">{nextCountriesPct}%</strong>.{" "}
+          Địa lý thuộc nhóm <strong className="text-base-content font-bold">{geoClassification}</strong> khi quốc gia dẫn đầu chiếm dưới 55% và 4 quốc gia tiếp theo cộng lại đạt <strong className="text-base-content font-bold">{nextCountriesPct}%</strong>.{" "}
         </span>
       ) : (
         <span>
-          Địa lý thuộc nhóm <strong className="text-base-content font-black">{geoClassification}</strong> (<strong className="text-base-content font-black">{countryLabel}</strong> chiếm <strong className="text-base-content font-black">{topCountryPct}%</strong>).{" "}
+          Địa lý thuộc nhóm <strong className="text-base-content font-bold">{geoClassification}</strong> (<strong className="text-base-content font-bold">{countryLabel}</strong> chiếm <strong className="text-base-content font-bold">{topCountryPct}%</strong>).{" "}
         </span>
       )}
       {otherTag && (
@@ -421,11 +421,11 @@ export function useFollowerPersonal({
     if (topCountryLabelIsVN(countryLabel)) {
       actionItems.push(
         <span key="lang-rule">
-          <strong className="text-accent font-black">
+          <strong className="text-accent font-bold">
             Caption song ngữ & Auto-Translate:
           </strong>{" "}
           Do tệp quốc tế phân tán chiếm tới{" "}
-          <strong className="text-accent font-black">
+          <strong className="text-accent font-bold">
             {100 - topCountryPct}%
           </strong>
           , hãy giữ ngôn ngữ chính là Tiếng Việt, đồng thời bổ sung thêm một
@@ -436,12 +436,12 @@ export function useFollowerPersonal({
     } else {
       actionItems.push(
         <span key="lang-rule">
-          <strong className="text-accent font-black">
+          <strong className="text-accent font-bold">
             Chiến lược đa ngôn ngữ toàn cầu:
           </strong>{" "}
           Cân nhắc sử dụng Tiếng Anh làm ngôn ngữ chính cho Caption và nội dung
           chữ trong ảnh, đi kèm phụ đề song ngữ cho Reels để khai thác triệt để{" "}
-          <strong className="text-accent font-black">
+          <strong className="text-accent font-bold">
             {100 - topCountryPct}%
           </strong>{" "}
           tệp khán giả ngoài thị trường nội địa.
@@ -451,7 +451,7 @@ export function useFollowerPersonal({
   } else {
     actionItems.push(
       <span key="lang-rule">
-        <strong className="text-accent font-black">
+        <strong className="text-accent font-bold">
           Bản địa hóa & Tương tác sâu sắc:
         </strong>{" "}
         Dành 100% tài nguyên tối ưu hoá tiếng Việt bản địa, lồng ghép các thuật
@@ -470,7 +470,7 @@ export function useFollowerPersonal({
 
     actionItems.push(
       <span key="time-rule">
-        <strong className="text-accent font-black">
+        <strong className="text-accent font-bold">
           Lịch đăng 2 pha (Tận dụng hai đỉnh sóng thực tế):
         </strong>{" "}
         Khán giả phân bố tương tác mạnh vào cả hai khung giờ đỉnh:{" "}
@@ -480,11 +480,11 @@ export function useFollowerPersonal({
           <li>
             <strong className="text-info font-bold">Story (Real-time):</strong>{" "}
             Chia làm 2 đợt đăng đúng giờ đỉnh lúc{" "}
-            <strong className="text-primary font-semibold">
+            <strong className="text-info font-semibold">
               {peakHourLabel} 
             </strong>{" "}
             và{" "}
-            <strong className="text-primary font-semibold">
+            <strong className="text-info font-semibold">
               {secondPeakHourLabel}
             </strong>.
           </li>
@@ -493,11 +493,11 @@ export function useFollowerPersonal({
               Reels / Feed Post (Tập trung đón đầu):
             </strong>{" "}
             Đăng trước mốc đỉnh 45 phút để thuật toán kịp phân phối: đợt 1 lúc{" "}
-            <strong className="text-primary font-semibold">
+            <strong className="text-info font-semibold">
               {postTime1}
             </strong>{" "}
             hoặc đợt 2 lúc{" "}
-            <strong className="text-primary font-semibold">
+            <strong className="text-info font-semibold">
               {postTime2}
             </strong>.
           </li>
@@ -507,11 +507,11 @@ export function useFollowerPersonal({
   } else if (isNightOwl) {
     actionItems.push(
       <span key="time-rule">
-        <strong className="text-accent font-black">
+        <strong className="text-accent font-bold">
           Lịch đăng Cú Đêm (Phân tách theo định dạng IG):
         </strong>{" "}
         Khán giả hoạt động mạnh mẽ xuyên đêm (
-        <strong className="text-secondary font-black">00:00 - 06:00</strong>).
+        <strong className="text-secondary font-bold">00:00 - 06:00</strong>).
         <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-sm text-base-content/80">
           <li>
             <strong className="text-info font-bold">
@@ -555,7 +555,7 @@ export function useFollowerPersonal({
   } else {
     actionItems.push(
       <span key="time-rule">
-        <strong className="text-info font-black">
+        <strong className="text-info font-bold">
           Lịch đăng Giờ Vàng (Phân tách theo định dạng IG):
         </strong>
         <ul className="list-disc pl-5 mt-1.5 space-y-1.5 text-sm text-base-content/80">
@@ -598,7 +598,7 @@ export function useFollowerPersonal({
   if (isGenZInstagram || isNightOwl) {
     actionItems.push(
       <span key="format-rule">
-        <strong className="text-primary font-black flex items-center gap-1.5">
+        <strong className="text-primary font-bold flex items-center gap-1.5">
           <AlertTriangle size={14} className="text-primary shrink-0 mt-0.5" />
           Instagram Algorithm Priority:
         </strong>{" "}

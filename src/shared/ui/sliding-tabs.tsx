@@ -90,8 +90,8 @@ export function SlidingTabs<T extends string>({
   // Định nghĩa styles cho từng kích thước (không chứa rounded- classes)
   const sizeStyles = {
     xs: {
-      container: "p-0.5 gap-0.5",
-      button: "px-2 py-0.5 text-3xs font-bold uppercase gap-1",
+      container: "p-1 gap-1",
+      button: "px-2 py-0.5 text-2xs font-bold gap-1",
       indicator: "shadow-xs",
       icon: 10,
     },
