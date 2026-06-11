@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Icon } from "@shared/ui";
 import { cn } from "@shared/lib";
@@ -24,11 +24,7 @@ type Message = {
   };
 };
 
-export function ChatSimulator({
-  accountId,
-  accountName,
-  personaDraft,
-}: ChatSimulatorProps) {
+export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -125,7 +121,7 @@ export function ChatSimulator({
         className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-custom"
         ref={scrollRef}
       >
-        <div className="text-center text-xs text-base-content/40 font-bold uppercase tracking-wider my-4">
+        <div className="text-center text-sm text-base-content/40  mb-4">
           Bắt đầu phiên giả lập với {personaDraft.name || "Persona"}
         </div>
 
@@ -134,14 +130,12 @@ export function ChatSimulator({
             key={msg.id}
             className={cn(
               "chat",
-              msg.role === "user" ? "chat-end" : "chat-start"
+              msg.role === "user" ? "chat-end" : "chat-start",
             )}
           >
             {msg.role === "assistant" && (
               <div className="chat-image avatar">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-xs">
-                  <Icon lucide={Bot} size={14} className="text-primary" />
-                </div>
+                <Icon lucide={Bot} size={16} className="text-base-content" />
               </div>
             )}
 
@@ -150,7 +144,7 @@ export function ChatSimulator({
                 "chat-bubble text-sm shadow-xs",
                 msg.role === "user"
                   ? "chat-bubble-primary"
-                  : "bg-base-200 text-base-content border border-base-content/5"
+                  : "bg-base-200 text-base-content border border-base-content/5",
               )}
             >
               {msg.content}
@@ -159,18 +153,14 @@ export function ChatSimulator({
             {/* Debug Info for Assistant messages */}
             {msg.role === "assistant" && msg.debug && (
               <div className="chat-footer opacity-90 mt-1.5">
-                <div className="p-2.5 rounded-xl bg-success/15 border border-success/10 text-2xs text-success max-w-xs shadow-xs">
-                  <div className="font-bold mb-1">⚡ Debug Info:</div>
-                  <div className="truncate">Action: {msg.debug.action}</div>
+                <div className="p-2.5 rounded-lg bg-success/15 border border-success/10 text-xs text-success">
+                  <div>Action: {msg.debug.action}</div>
                   {msg.debug.confidence && (
                     <div className="mb-0.5">
                       Confidence: {(msg.debug.confidence * 100).toFixed(1)}%
                     </div>
                   )}
-                  <div
-                    className="truncate text-ellipsis"
-                    title={msg.debug.reasoning}
-                  >
+                  <div title={msg.debug.reasoning}>
                     Reason: {msg.debug.reasoning}
                   </div>
                 </div>
@@ -182,9 +172,7 @@ export function ChatSimulator({
         {isTyping && (
           <div className="chat chat-start">
             <div className="chat-image avatar">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-xs">
-                <Icon lucide={Bot} size={14} className="text-primary" />
-              </div>
+              <Icon lucide={Bot} size={16} className="text-base-content" />
             </div>
             <div className="chat-bubble bg-base-200 text-base-content border border-base-content/5 flex items-center justify-center h-9 px-4">
               <span className="loading loading-dots loading-xs text-base-content/60"></span>
@@ -193,7 +181,7 @@ export function ChatSimulator({
         )}
       </div>
 
-      <div className="p-4 border-t border-base-content/5 bg-base-100/50 backdrop-blur-md">
+      <div className="p-4 pb-6 border-t border-base-content/5 bg-base-200">
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -215,4 +203,3 @@ export function ChatSimulator({
     </div>
   );
 }
-

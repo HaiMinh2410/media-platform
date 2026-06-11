@@ -281,6 +281,18 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
   const signatureEmojis = Array.isArray(persona?.signature_emojis) && persona.signature_emojis.length > 0
     ? persona.signature_emojis.join(' ')
     : (isAgentMale ? '✨ 😉 🤝' : '🥺 ❤️ ✨');
+
+  // Calculate Response Length Guidance based on persona settings
+  const responseLength = persona?.settings?.response_length || 'medium';
+  let responseLengthPhrase = '2-3 sentences max';
+  let responseLengthGuidance = 'Keep it brief, conversational, and natural. Your reply MUST be only 2-3 sentences max. Never write long essays.';
+  if (responseLength === 'short') {
+    responseLengthPhrase = '1-2 short sentences maximum';
+    responseLengthGuidance = 'Keep it extremely short and concise. Your reply MUST be only 1-2 short sentences maximum. Avoid any unnecessary words.';
+  } else if (responseLength === 'detailed') {
+    responseLengthPhrase = '3-4 sentences';
+    responseLengthGuidance = 'Provide a detailed and thorough response. Your reply can be 3-4 sentences, sharing more information, feelings, or details to build deeper engagement.';
+  }
   
   const customInstructions = persona?.custom_instructions
     ? `\n- Custom Guidance: ${persona.custom_instructions}`
@@ -294,6 +306,7 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
 - Tone: ${tone}
 - Speaking Style: ${speakingStyle}
 - Signature Emojis: ${signatureEmojis} (Use these signature emojis naturally and consistently, but avoid spamming)
+- Response Length Preference: ${responseLength.toUpperCase()} - ${responseLengthGuidance}
 - Legacy Guidance (for compatibility):
   * Tone instruction: ${persona?.tone_instructions || 'Be professional, polite, and concise.'}
   * Emoji usage preference: ${persona?.emoji_usage || 'minimal'}
@@ -323,7 +336,7 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
 - You must reply with a valid JSON object ONLY. Do NOT wrap it in \`\`\`json or any formatting. Return raw JSON text.
 - JSON structure:
   {
-    "reply": "string (the actual DM reply in Vietnamese, 2-3 sentences max, natural, including emojis appropriately)",
+    "reply": "string (the actual DM reply in Vietnamese, ${responseLengthPhrase}, natural, including emojis appropriately)",
     "action": "continue" | "send_link" | "soft_exit" | "hard_exit" | "escalate_to_human" | "wait",
     "link": "string | null",
     "update_fan_type": "Luy" | "Cool" | "Whale" | "Drainer" | null,

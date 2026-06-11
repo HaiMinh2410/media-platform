@@ -19,6 +19,7 @@ const ClassifyResultSchema = z.object({
   priority: z.enum(['low', 'medium', 'high']),
   category: z.enum(['sales', 'support', 'feedback', 'other']),
   sentiment: z.enum(['positive', 'neutral', 'negative', 'frustrated']),
+  matched_label: z.string().nullable().optional(),
 });
 
 /**
@@ -32,7 +33,16 @@ export const classifyService = {
    * Classifies a single message text into an intent + metadata.
    */
   async classify(input: ClassifyInput): Promise<ClassifyServiceResult> {
-    const { text, platform } = input;
+    const { text, platform, triggerLabels = [] } = input;
+
+    let systemContent = PROMPTS.CLASSIFY_MESSAGE.system;
+    if (triggerLabels.length > 0) {
+      systemContent += `\n\nCRITICAL Business Intent Routing Requirement:
+Analyze the message and identify if it matches one of these business intent labels: ${JSON.stringify(triggerLabels)}.
+If it matches one, return the matched label EXACTLY in the "matched_label" field of the JSON. If it does not match any of these labels, set "matched_label" to null.
+Ensure the returned JSON structure contains:
+  "matched_label": string | null`;
+    }
 
     const template = PROMPTS.CLASSIFY_MESSAGE;
 
@@ -42,7 +52,7 @@ export const classifyService = {
       : template.user({ text });
 
     const messages = [
-      { role: 'system' as const, content: template.system },
+      { role: 'system' as const, content: systemContent },
       { role: 'user' as const, content: userContent },
     ];
 

@@ -15,7 +15,7 @@ import { KEYWORD_REPLACEMENTS, AI_AGENT_DEFAULTS } from '@features/ai-agent/type
  * @param text Văn bản phản hồi cần lọc
  * @returns Văn bản đã được làm sạch và thay thế an toàn
  */
-export function filterBlacklist(text: string): string {
+export function filterBlacklist(text: string, persona?: any): string {
   if (!text) {
     return '';
   }
@@ -29,6 +29,15 @@ export function filterBlacklist(text: string): string {
     sanitized = sanitized.replace(regex, replacement);
   }
 
+  // Lọc các từ khóa cấm tự định nghĩa bởi user (blacklist_keywords)
+  const userBlacklist = persona?.settings?.blacklist_keywords || [];
+  for (const keyword of userBlacklist) {
+    if (keyword && keyword.trim()) {
+      const regex = new RegExp(keyword.trim(), 'gi');
+      sanitized = sanitized.replace(regex, '[censored]');
+    }
+  }
+
   return sanitized;
 }
 
@@ -37,9 +46,10 @@ export function filterBlacklist(text: string): string {
  * Đánh giá xem có vi phạm từ khóa nhạy cảm nào không và sinh kết quả an toàn tương ứng.
  *
  * @param text Văn bản phản hồi của Agent
+ * @param persona Cấu hình Persona chứa blacklist_keywords
  * @returns Đối tượng kết quả kiểm tra an toàn SafetyCheckResult
  */
-export function checkSafety(text: string): SafetyCheckResult {
+export function checkSafety(text: string, persona?: any): SafetyCheckResult {
   if (!text) {
     return {
       isSafe: true,
@@ -48,7 +58,7 @@ export function checkSafety(text: string): SafetyCheckResult {
     };
   }
 
-  const sanitizedReply = filterBlacklist(text);
+  const sanitizedReply = filterBlacklist(text, persona);
   const violations: SafetyViolation[] = [];
 
   // So sánh văn bản gốc và văn bản sau khi làm sạch để phát hiện vi phạm từ khóa cấm
@@ -61,14 +71,25 @@ export function checkSafety(text: string): SafetyCheckResult {
       }
     }
 
+    // Quét thêm blacklist của user
+    const userBlacklist = persona?.settings?.blacklist_keywords || [];
+    const triggeredUserKeywords: string[] = [];
+    for (const keyword of userBlacklist) {
+      if (keyword && keyword.trim() && new RegExp(keyword.trim(), 'i').test(text)) {
+        triggeredUserKeywords.push(keyword.trim());
+      }
+    }
+
+    const allTriggered = [...triggeredKeywords, ...triggeredUserKeywords];
+
     violations.push({
       type: 'blacklist_keyword',
-      detail: `Phát hiện từ khóa nhạy cảm bị cấm: [${triggeredKeywords.join(', ')}]`,
+      detail: `Phát hiện từ khóa nhạy cảm bị cấm: [${allTriggered.join(', ')}]`,
       severity: 'warn' // 'warn': Tự động rewrite làm sạch nội dung chứ không block hoàn toàn cuộc chat
     });
 
     console.warn(
-      `🔒 [SafetyChecker] Blacklist violation resolved. Triggered: [${triggeredKeywords.join(
+      `🔒 [SafetyChecker] Blacklist violation resolved. Triggered: [${allTriggered.join(
         ', '
       )}]. Output rewritten.`
     );
@@ -130,7 +151,20 @@ export function calculateDelay(profile: FanProfile, persona?: any): number {
  * @param profile FanProfile hiện tại của khách hàng
  * @returns Kết quả kiểm tra bao gồm trạng thái isSafe và chi tiết vi phạm nếu có
  */
-export function checkLinkRateLimit(profile: FanProfile): { isSafe: boolean; violation?: SafetyViolation } {
+export function checkLinkRateLimit(profile: FanProfile, persona?: any): { isSafe: boolean; violation?: SafetyViolation } {
+  // 1. Kiểm tra số lần gửi link tối đa (link_rate_limit) từ thiết lập của Persona
+  const limit = persona?.settings?.link_rate_limit ?? 3;
+  if (profile.linkSentCount >= limit) {
+    return {
+      isSafe: false,
+      violation: {
+        type: 'link_rate_exceeded',
+        detail: `Số lần gửi link đã đạt giới hạn tối đa (${profile.linkSentCount}/${limit}) của cuộc hội thoại này.`,
+        severity: 'warn'
+      }
+    };
+  }
+
   if (!profile.lastLinkSentAt) {
     return { isSafe: true };
   }

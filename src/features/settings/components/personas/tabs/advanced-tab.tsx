@@ -1,5 +1,7 @@
 import * as React from "react";
 import { HelpCircle } from "lucide-react";
+import { ROLE_TEMPLATES } from "@features/ai-agent/services/role-templates";
+import { toast } from "sonner";
 
 interface AdvancedTabProps {
   persona: {
@@ -41,7 +43,8 @@ export function AdvancedTab({ persona, onChange }: AdvancedTabProps) {
             type="button"
             onClick={() =>
               onChange({
-                system_prompt_override: "Bạn là một trợ lý ảo siêu cấp...",
+                system_prompt_override: `You are "Em" - a beautiful, sweet, extremely charming, and subtle girl building a genuine relationship with your fan via Instagram/Facebook DM.
+You strictly adhere to the "DM Script Playbook 2.0" to transition fans from strangers into premium VIP supporters.`,
               })
             }
             className="text-xs text-primary font-bold hover:underline cursor-pointer"
@@ -49,6 +52,28 @@ export function AdvancedTab({ persona, onChange }: AdvancedTabProps) {
             Load Default Playbook 2.0
           </button>
         </div>
+        
+        <select
+          className="select select-bordered select-sm w-full focus:outline-none focus:border-primary text-sm my-1"
+          onChange={(e) => {
+            const template = ROLE_TEMPLATES.find((t) => t.id === e.target.value);
+            if (template) {
+              onChange({ system_prompt_override: template.prompt });
+              toast.info(`Áp dụng mẫu prompt: ${template.name}`);
+            }
+          }}
+          defaultValue=""
+        >
+          <option value="" disabled>
+            ✨ Chọn prompt mẫu để áp dụng nhanh...
+          </option>
+          {ROLE_TEMPLATES.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name} — {t.description}
+            </option>
+          ))}
+        </select>
+
         <textarea
           value={persona.system_prompt_override || ""}
           onChange={(e) =>

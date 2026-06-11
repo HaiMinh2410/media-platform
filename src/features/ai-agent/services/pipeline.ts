@@ -18,6 +18,7 @@ import { filterBlacklist, calculateDelay, checkLinkRateLimit, checkSafety } from
 import { upsertFanProfile } from '@features/ai-agent/repositories/fan-profile.repository';
 import { generateResponse } from './response-generator';
 import { detectAndHandleObjection } from './objection-handler';
+import { classifyService } from './classify.service';
 import type { FanProfile, NextAction, ResponseStrategy, ConversationStage, FanType } from '@features/ai-agent/types-agent';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -34,6 +35,7 @@ export type AgentResponse = {
   delay: number;               // Thời gian trì hoãn phản hồi tính bằng miliseconds (ms)
   updatedProfile: FanProfile;  // Trạng thái profile khách hàng sau khi đã cập nhật hoàn chỉnh trong DB
   aiLogId: string;             // ID của bản ghi log trong bảng ai_reply_logs
+  disableAutoSend?: boolean;   // Đè cờ auto_send nếu không thỏa mãn bộ lọc sắc thái hoặc độ ưu tiên
 };
 
 /**
@@ -106,8 +108,10 @@ export async function processIncomingMessage(params: {
     const context = await retrieveContext(params.conversationId);
     const { fanProfile, recentMessages, gender } = context;
 
-    // 1.2 Nạp cấu hình Persona của tài khoản liên kết với cuộc hội thoại
+    // 1.2 Nạp cấu hình Persona và Bot Configuration của tài khoản liên kết với cuộc hội thoại
     let persona: any = null;
+    let botConfig: any = null;
+    let platform: string | undefined = undefined;
     try {
       const conversation = await db.conversation.findUnique({
         where: { id: params.conversationId },
@@ -115,16 +119,22 @@ export async function processIncomingMessage(params: {
           platform_accounts: {
             include: {
               ai_personas: true,
+              bot_configurations: true,
             },
           },
         },
       });
       persona = conversation?.platform_accounts?.ai_personas || null;
+      botConfig = conversation?.platform_accounts?.bot_configurations || null;
+      platform = conversation?.platform_accounts?.platform || undefined;
       if (persona) {
         console.log(`👤 [Orchestrator] Successfully loaded custom AIPersona: "${persona.name}" for conversation: ${params.conversationId}`);
       }
+      if (botConfig) {
+        console.log(`⚙️ [Orchestrator] Successfully loaded Bot Configuration for account: ${conversation?.platform_accounts?.id}`);
+      }
     } catch (err) {
-      console.error('⚠️ [Orchestrator] Failed to load AIPersona from database:', err);
+      console.error('⚠️ [Orchestrator] Failed to load AIPersona/BotConfig from database:', err);
     }
 
     // Xác định phiên bản thử nghiệm A/B nhất quán cho cuộc hội thoại này (A/B Test Routing)
@@ -168,6 +178,51 @@ export async function processIncomingMessage(params: {
     ];
 
     const emotionScoreBefore = fanProfile.emotionScore;
+
+    // --- Bổ sung phân loại để Intent Routing, Priority, Sentiment ---
+    let classificationResult: any = null;
+    let disableAutoSend = false;
+    let isIntentAllowed = true;
+
+    if (botConfig?.is_active) {
+      console.log(`🔍 [Orchestrator] Running message intent and metadata classification...`);
+      const classifyRes = await classifyService.classify({
+        text: params.messageText,
+        platform: platform,
+        triggerLabels: botConfig.trigger_labels || [],
+      });
+      
+      if (classifyRes.data) {
+        classificationResult = classifyRes.data;
+        const { sentiment, priority, matched_label } = classificationResult;
+        console.log(`📊 [Orchestrator] Classification: sentiment=${sentiment}, priority=${priority}, matched_label=${matched_label}`);
+
+        // 1. Kiểm tra Bộ lọc Sắc thái (Sentiment Filter)
+        const allowedSentiments = botConfig.auto_reply_sentiments || [];
+        if (allowedSentiments.length > 0 && !allowedSentiments.includes(sentiment)) {
+          disableAutoSend = true;
+          console.log(`🚫 [Orchestrator] Sentiment '${sentiment}' is not in auto_reply_sentiments whitelist ${JSON.stringify(allowedSentiments)}. Disabling auto-send.`);
+        }
+
+        // 2. Kiểm tra Bộ lọc Độ ưu tiên (Priority Filter)
+        const allowedPriorities = botConfig.auto_reply_priorities || [];
+        if (allowedPriorities.length > 0 && !allowedPriorities.includes(priority)) {
+          disableAutoSend = true;
+          console.log(`🚫 [Orchestrator] Priority '${priority}' is not in auto_reply_priorities whitelist ${JSON.stringify(allowedPriorities)}. Disabling auto-send.`);
+        }
+
+        // 3. Kiểm tra Bộ lọc Ý định (Intent Routing - trigger_labels)
+        const whitelistLabels = botConfig.trigger_labels || [];
+        if (whitelistLabels.length > 0) {
+          if (!matched_label || !whitelistLabels.includes(matched_label)) {
+            isIntentAllowed = false;
+            console.log(`🚫 [Orchestrator] Intent '${matched_label || 'unknown'}' is not in trigger_labels whitelist. Routing to human (escalate).`);
+          }
+        }
+      } else {
+        console.warn(`⚠️ [Orchestrator] Classification failed: ${classifyRes.error}`);
+      }
+    }
 
     await sendStatus('AI đang phân tích tâm trạng & cảm xúc...');
     // Chấm điểm cảm xúc thời gian thực (Sentiment Analysis - T157)
@@ -275,6 +330,68 @@ export async function processIncomingMessage(params: {
       };
     }
 
+    // Early Short-circuit if Intent is not allowed (Escalate-to-human due to Intent Routing)
+    if (!isIntentAllowed) {
+      console.warn(`🚨 [Orchestrator] Intent is not in trigger_labels whitelist! Escalating immediately to human.`);
+      tempProfile.nextAction = 'escalate_to_human';
+      
+      const savedProfile = await upsertFanProfile({
+        conversationId: params.conversationId,
+        workspaceId: params.workspaceId,
+        platformUserId: params.platformUserId,
+        fanType: tempProfile.fanType,
+        fanTypeConfidence: tempProfile.fanTypeConfidence,
+        stage: tempProfile.stage,
+        riskLevel: tempProfile.riskLevel,
+        nextAction: 'escalate_to_human',
+        messageCount: tempProfile.messageCount + 1, // Tăng message count
+        linkSentCount: tempProfile.linkSentCount,
+        lastLinkSentAt: tempProfile.lastLinkSentAt,
+        emotionScore: tempProfile.emotionScore,
+        emotionTrend: tempProfile.emotionTrend,
+        flirtLevel: tempProfile.flirtLevel,
+        keyInsights: tempProfile.keyInsights as string[],
+        objectionsSeen: tempProfile.objectionsSeen as string[],
+        lastSummary: tempProfile.lastSummary ?? undefined,
+      });
+
+      if (!savedProfile) {
+        throw new Error(`[Orchestrator] Failed to save updated FanProfile in database for conversation: ${params.conversationId}`);
+      }
+
+      const promptSummary = `Escalated due to Intent Routing. Classified as: "${classificationResult?.matched_label || 'Khác'}" | Incoming: "${params.messageText}"`;
+      const log = await db.aIReplyLog.create({
+        data: {
+          messageId: params.messageId,
+          prompt: promptSummary,
+          response: '',
+          model: 'Intent-Routing-Short-Circuit',
+          status: 'suggested',
+          fanType: tempProfile.fanType,
+          stage: tempProfile.stage,
+          strategy: 'GracefulExit',
+          action: 'escalate_to_human',
+          emotionScoreBefore: tempProfile.emotionScore,
+          emotionScoreAfter: tempProfile.emotionScore,
+          riskLevel: tempProfile.riskLevel,
+          safetyViolations: ['INTENT_ROUTING_ESCALATION'] as any,
+          promptTokens: 0,
+          completionTokens: 0,
+          latencyMs: Date.now() - pipelineStart,
+          abTestVariant,
+        }
+      });
+
+      return {
+        reply: '',
+        action: 'escalate_to_human',
+        link: null,
+        delay: 0,
+        updatedProfile: savedProfile,
+        aiLogId: log.id,
+      };
+    }
+
     // 3. Phân loại đối tượng Fan (Fan Classification) hoặc Phân loại lại nếu hành vi thay đổi rõ rệt (T159)
     const isUnknown = tempProfile.fanType === 'Unknown';
     const needsReclassify = shouldReclassifyFan(tempProfile, updatedMessages);
@@ -323,7 +440,7 @@ export async function processIncomingMessage(params: {
     // 4.5 Áp dụng Link Rate Limiter (Bộ kiểm soát tần suất gửi link bảo vệ tài khoản)
     let link: string | null = null;
     if (action === 'send_link') {
-      const linkSafety = checkLinkRateLimit(tempProfile);
+      const linkSafety = checkLinkRateLimit(tempProfile, persona);
       if (!linkSafety.isSafe) {
         console.warn(`⚠️ [Orchestrator] Link rate limit exceeded. Demoting 'send_link' to 'continue'. Reason: ${linkSafety.violation?.detail}`);
         action = 'continue';
@@ -417,7 +534,7 @@ export async function processIncomingMessage(params: {
 
     await sendStatus('AI đang kiểm duyệt nội dung an toàn & tuân thủ...');
     // 7. Kiểm tra và lọc từ khóa nhạy cảm qua Safety & Compliance Checker
-    const safetyCheck = checkSafety(rawReply);
+    const safetyCheck = checkSafety(rawReply, persona);
     const reply = safetyCheck.sanitizedReply;
     const safetyViolations = safetyCheck.violations;
 
@@ -496,6 +613,7 @@ export async function processIncomingMessage(params: {
       delay,
       updatedProfile: savedProfile,
       aiLogId,
+      disableAutoSend,
     };
   } catch (error) {
     console.error('❌ [Orchestrator] Error occurred in AI Agent Pipeline Orchestrator:', error);

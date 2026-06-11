@@ -25,6 +25,7 @@ export type ClassifyResult = {
   priority: MessagePriority;
   category: MessageCategory;
   sentiment: MessageSentiment;
+  matched_label?: string | null;
 };
 
 /**
@@ -33,6 +34,7 @@ export type ClassifyResult = {
 export type ClassifyInput = {
   text: string;       // Raw message text to classify
   platform?: string;  // Optional context: 'facebook' | 'instagram' | 'messenger'
+  triggerLabels?: string[]; // Business intent routing labels
 };
 
 /**

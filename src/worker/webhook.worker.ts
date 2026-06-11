@@ -294,7 +294,7 @@ function createWebhookWorker() {
 
         // --- 3. AI Agent Phase 2 Hybrid Rule + LLM Pipeline ---
         console.log(`[Worker] [${job.id}] Running Phase 2 Hybrid Rule + LLM Pipeline...`);
-        const { reply, action, link, delay, updatedProfile, aiLogId } = await processIncomingMessage({
+        const { reply, action, link, delay, updatedProfile, aiLogId, disableAutoSend } = await processIncomingMessage({
           conversationId: persistResult.conversationId,
           messageText,
           workspaceId: account.workspaceId,
@@ -317,13 +317,13 @@ function createWebhookWorker() {
         }
 
         // --- 5. Auto-Send via Platform API (delayed asynchronously) ---
-        if (!botConfig.auto_send) {
-          console.log(`[Worker] [${job.id}] Auto-send is OFF. Stopping after suggestion.`);
+        if (!botConfig.auto_send || disableAutoSend) {
+          console.log(`[Worker] [${job.id}] Auto-send is OFF or disabled by filters (disableAutoSend=${disableAutoSend}). Stopping after suggestion.`);
           return {
             status: 'success_suggestion_only',
             eventId: webhookEventId,
             suggestionId: aiLogId,
-            reason: 'Auto-send is OFF'
+            reason: disableAutoSend ? 'Auto-send disabled by Sentiment/Priority filter' : 'Auto-send is OFF'
           };
         }
 
