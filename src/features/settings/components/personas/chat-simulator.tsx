@@ -4,13 +4,19 @@ import { Icon } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2 } from "lucide-react";
+import { Send, Bot, X, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface ChatSimulatorProps {
   accountId: string;
   accountName: string;
-  personaDraft: any;
+  personaDraft: {
+    name?: string;
+    gender?: string;
+    custom_instructions?: string;
+    system_prompt_override?: string;
+    [key: string]: unknown;
+  };
 }
 
 type Message = {
@@ -21,6 +27,8 @@ type Message = {
     action?: string;
     reasoning?: string;
     confidence?: number;
+    systemPrompt?: string;
+    userPrompt?: string;
   };
 };
 
@@ -36,11 +44,45 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const [activeInspectTab, setActiveInspectTab] = useState<"system" | "user">("system");
+  const [selectedDebugData, setSelectedDebugData] = useState<{
+    systemPrompt?: string;
+    userPrompt?: string;
+  } | null>(null);
+  const [isInspectCopied, setIsInspectCopied] = useState(false);
+  const inspectDialogRef = useRef<HTMLDialogElement>(null);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
+
+  const handleInspectPrompt = (debug: NonNullable<Message["debug"]>) => {
+    setSelectedDebugData(debug);
+    setActiveInspectTab("system");
+    setIsInspectCopied(false);
+    inspectDialogRef.current?.showModal();
+  };
+
+  const handleCopyInspect = async () => {
+    if (!selectedDebugData) return;
+    const textToCopy =
+      activeInspectTab === "system"
+        ? selectedDebugData.systemPrompt
+        : selectedDebugData.userPrompt;
+    
+    if (!textToCopy) return;
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setIsInspectCopied(true);
+      toast.success("Đã sao chép prompt!");
+      setTimeout(() => setIsInspectCopied(false), 2000);
+    } catch {
+      toast.error("Không thể sao chép prompt.");
+    }
+  };
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
@@ -74,7 +116,6 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
       });
 
       if (!res.ok) {
-        // Fallback for when T168 is not yet implemented or error
         throw new Error(`API Error ${res.status}`);
       }
 
@@ -88,6 +129,8 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
           action: data.action,
           reasoning: data.reasoning,
           confidence: data.confidence,
+          systemPrompt: data.systemPrompt,
+          userPrompt: data.userPrompt,
         },
       };
 
@@ -109,7 +152,7 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
         setMessages((prev) => [...prev, fallbackMsg]);
         setIsTyping(false);
       }, 1500);
-      return; // Return here to prevent setIsTyping(false) running twice immediately
+      return;
     }
 
     setIsTyping(false);
@@ -152,7 +195,7 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
 
             {/* Debug Info for Assistant messages */}
             {msg.role === "assistant" && msg.debug && (
-              <div className="chat-footer opacity-90 mt-1.5">
+              <div className="chat-footer opacity-90 mt-1.5 w-full max-w-[85%]">
                 <div className="p-2.5 rounded-lg bg-success/15 border border-success/10 text-xs text-success">
                   <div>Action: {msg.debug.action}</div>
                   {msg.debug.confidence && (
@@ -163,6 +206,15 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
                   <div title={msg.debug.reasoning}>
                     Reason: {msg.debug.reasoning}
                   </div>
+                  {(msg.debug.systemPrompt || msg.debug.userPrompt) && (
+                    <button
+                      type="button"
+                      onClick={() => handleInspectPrompt(msg.debug!)}
+                      className="mt-2 text-success hover:underline font-bold flex items-center gap-1 cursor-pointer w-fit"
+                    >
+                      🔍 Inspect Prompt
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -200,6 +252,72 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
           </button>
         </div>
       </div>
+
+      {/* Modal Inspect Prompt */}
+      <dialog ref={inspectDialogRef} className="modal modal-bottom sm:modal-middle">
+        <div className="modal-box max-w-4xl bg-base-100 border border-base-content/10 flex flex-col max-h-[80vh] p-6 rounded-2xl">
+          <div className="flex justify-between items-center border-b border-base-content/5 pb-3">
+            <h3 className="font-extrabold text-lg text-primary flex items-center gap-2">
+              🔍 Inspect Prompt
+            </h3>
+            <button
+              type="button"
+              onClick={() => inspectDialogRef.current?.close()}
+              className="btn btn-sm btn-circle btn-ghost"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Tabs: System Prompt vs User Prompt */}
+          <div className="tabs tabs-boxed my-3 bg-base-200">
+            <button
+              type="button"
+              onClick={() => setActiveInspectTab("system")}
+              className={cn("tab tab-sm flex-1 font-bold", activeInspectTab === "system" && "tab-active bg-primary text-primary-content")}
+            >
+              System Prompt
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveInspectTab("user")}
+              className={cn("tab tab-sm flex-1 font-bold", activeInspectTab === "user" && "tab-active bg-primary text-primary-content")}
+            >
+              User Context & History
+            </button>
+          </div>
+
+          <div className="flex justify-end mb-2">
+            <button
+              type="button"
+              onClick={handleCopyInspect}
+              className="btn btn-xs btn-outline btn-neutral flex items-center gap-1 rounded-full"
+            >
+              {isInspectCopied ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+              {isInspectCopied ? "Đã sao chép" : "Sao chép"}
+            </button>
+          </div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto bg-base-300 rounded-xl p-4 border border-base-content/5">
+            <pre className="font-mono text-[10px] whitespace-pre-wrap select-all leading-relaxed text-base-content">
+              {activeInspectTab === "system"
+                ? selectedDebugData?.systemPrompt || "Không có dữ liệu System Prompt."
+                : selectedDebugData?.userPrompt || "Không có dữ liệu User Context."}
+            </pre>
+          </div>
+
+          <div className="modal-action mt-4 pt-3 border-t border-base-content/5">
+            <button
+              type="button"
+              onClick={() => inspectDialogRef.current?.close()}
+              className="btn btn-sm btn-ghost rounded-full"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }
+

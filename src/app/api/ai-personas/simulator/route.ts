@@ -15,7 +15,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { accountId, persona, incomingMessage, history = [] } = await req.json();
+    const { persona, incomingMessage, history = [] } = await req.json() as {
+      persona: Record<string, unknown>;
+      incomingMessage: string;
+      history?: { role: string; content: string }[];
+    };
 
     if (!incomingMessage || !persona) {
       return NextResponse.json({ error: 'Missing incomingMessage or persona' }, { status: 400 });
@@ -26,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Map history and create full messages array
     // Map 'you'/'assistant' -> 'assistant' and 'fan'/'user' -> 'user'
-    const mappedHistory = history.map((m: any) => {
+    const mappedHistory = history.map((m: { role: string; content: string }) => {
       let role: 'user' | 'assistant' = 'user';
       if (m.role === 'assistant' || m.role === 'you') {
         role = 'assistant';
@@ -38,13 +42,13 @@ export async function POST(req: NextRequest) {
     });
 
     const messages = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system' as const, content: systemPrompt },
       ...mappedHistory,
-      { role: 'user', content: incomingMessage }
+      { role: 'user' as const, content: incomingMessage }
     ];
 
     // 3. Complete using Groq client with JSON Mode
-    const { data: completion, error: groqError } = await groqClient.complete(messages as any, {
+    const { data: completion, error: groqError } = await groqClient.complete(messages, {
       model: AI_MODELS.GENERATE, // Default to llama-3.3-70b-versatile
       temperature: 0.7,
       jsonMode: true
@@ -62,20 +66,24 @@ export async function POST(req: NextRequest) {
         reply: parsedData.reply || 'Dạ vâng ạ.',
         action: parsedData.action || 'continue',
         reasoning: parsedData.notes_for_next || 'Hội thoại tiếp tục bình thường.',
-        confidence: parsedData.update_emotion_score || 0.8
+        confidence: parsedData.update_emotion_score || 0.8,
+        systemPrompt,
+        userPrompt: JSON.stringify(messages.slice(1), null, 2),
       });
-    } catch (parseError) {
+    } catch {
       console.warn('[Simulator] JSON parse error on completion content:', completion.content);
       // Fallback response if LLM outputs invalid JSON even with JSON Mode
       return NextResponse.json({
         reply: completion.content,
         action: 'continue',
         reasoning: 'Không thể phân tích dữ liệu JSON từ LLM.',
-        confidence: 0.5
+        confidence: 0.5,
+        systemPrompt,
+        userPrompt: JSON.stringify(messages.slice(1), null, 2),
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('[API Persona Simulator] Unexpected error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal Server Error' }, { status: 500 });
   }
 }
