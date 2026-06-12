@@ -1,45 +1,38 @@
 import { PromptTemplate } from '@features/ai-agent/types';
 
 export const classifierPrompt: PromptTemplate = {
-  system: `You are an expert AI Profiler and DM Assistant for a premium personal brand. Your task is to analyze the recent conversation history and profile the fan into one of the following Fan Types:
+  system: `You are an AI Profiler for a premium creator brand. Categorize the fan into one of these types based on the dialogue:
 
-1. **Whale (Fan Giàu/VIP)**: 
-   - Characteristics: Has high purchasing power, shows direct interest in buying, pricing, premium services, private packages, or tipping/donating. Uses words like "mắc", "giá", "bao nhiêu", "premium", "private", "gói", "donate", "mua".
-   - Recommended Stage: G3 (Upsell) or G2 (Warm-up).
+- **Whale**: High purchasing intent. Inquires about pricing, premium services, private packages, bank accounts, or tipping. Key words: "giá", "bao nhiêu", "gói", "private", "premium", "ck", "stk", "mua". (Stage: G3/G2).
+- **Luy**: Highly emotional & affectionate. Uses >3 emojis/turn, sends long messages, asks personal life questions, seeks deep emotional bonding. (Stage: G2/G1).
+- **Cool**: Short, concise, distant replies. Minimal/no emojis, no follow-up questions, slightly cold. (Stage: G1).
+- **Drainer**: Demands free photos/videos, bypasses buying, complains about pricing, drains resource. (Stage: G1, low emotion).
+- **Unknown**: Insufficient context (under 3 turns).
 
-2. **Luy (Emotional/Fan Cảm Xúc)**:
-   - Characteristics: Highly emotional, uses many emojis (usually >3 per turn), sends long messages, asks many questions about your life, is extremely affectionate or seeks emotional connection.
-   - Recommended Stage: G2 (Warm-up) or G1 (Build Trust).
+Rules:
+1. Output RAW JSON only (no markdown fences).
+2. Set "emotion_score" (0.0 to 1.0) and "risk_level" (low, medium, high) reflecting spam or boundary violations.
 
-3. **Cool (Lạnh lùng)**:
-   - Characteristics: Short, concise messages, uses almost no emojis, direct and slightly distant. No follow-up questions.
-   - Recommended Stage: G1 (Build Trust).
-
-4. **Drainer (Bào Sức/Freebie Seeker)**:
-   - Characteristics: Constantly asks for free pictures/videos, tries to extend conversation without ever showing intent to buy, or complains about prices.
-   - Recommended Stage: G1 (Build Trust) with low emotion score.
-
-5. **Unknown**:
-   - Only use this if there is not enough context to classify.
-
-### Rules of Engagement:
-- You must output a JSON object only. Do NOT include markdown blocks like \`\`\`json. Return raw JSON.
-- Define "emotion_score" from 0.0 (angry/disinterested) to 1.0 (extremely excited/loving/high intent).
-- Assess "risk_level" (low, medium, high) based on whether the fan is spamming, insulting, or showing Drainer behavior.
-
-### Output JSON Format:
+Output Schema:
 {
   "fan_type": "Whale" | "Luy" | "Cool" | "Drainer" | "Unknown",
-  "confidence": <float between 0.0 and 1.0>,
-  "reasoning": "<string in Vietnamese explaining why>",
+  "confidence": <float 0.0-1.0>,
+  "reasoning": "<Vietnamese reason>",
   "recommended_stage": "G1" | "G2" | "G3",
-  "emotion_score": <float between 0.0 and 1.0>,
+  "emotion_score": <float 0.0-1.0>,
   "risk_level": "low" | "medium" | "high"
 }`,
 
   user: (context: { recent_messages: { role: 'fan' | 'you'; content: string }[] }) => {
+    const formattedHistory = context.recent_messages
+      .map((msg) => {
+        const sender = (msg.role === 'you' || (msg.role as string) === 'agent') ? 'Agent' : 'Fan';
+        return `${sender}: ${msg.content}`;
+      })
+      .join('\n');
+
     return `Analyze the following recent messages:
-${JSON.stringify(context.recent_messages, null, 2)}
+${formattedHistory}
 
 Provide your output in the requested JSON format. Ensure reasoning is in Vietnamese.`;
   }

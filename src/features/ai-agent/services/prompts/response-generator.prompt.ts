@@ -150,6 +150,13 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
     link_to_send: string | null;
     context_summary?: string | null;
   }) => {
+    const formattedHistory = context.recent_messages
+      .map((msg) => {
+        const sender = (msg.role === 'you' || (msg.role as string) === 'agent') ? 'Agent' : 'Fan';
+        return `${sender}: ${msg.content}`;
+      })
+      .join('\n');
+
     return `FAN PROFILE CONTEXT:
 - Fan Type: ${context.fan_type}
 - Stage: ${context.stage}
@@ -161,7 +168,7 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
 ${context.context_summary ? `- Context Summary: ${context.context_summary}` : ''}
 
 RECENT CONVERSATION HISTORY:
-${JSON.stringify(context.recent_messages, null, 2)}
+${formattedHistory}
 
 INCOMING MESSAGE FROM FAN:
 "${context.incoming_message}"
@@ -234,7 +241,8 @@ export function getDynamicPronouns(persona: any, customerGender: string | null =
 export function buildDynamicSystemPrompt(
   persona: any, 
   customerGender: string | null = null,
-  promptOverride?: string | null
+  promptOverride?: string | null,
+  strategy?: string | null
 ): string {
   const cleanGender = sanitizeGender(customerGender);
   // 0. Xác định Giới tính của Persona và Giới tính của khách hàng để xây dựng quy tắc xưng hô tối ưu
@@ -277,15 +285,6 @@ ${pronounRule}
 - KHÔNG BAO GIỜ được sử dụng các câu chào hỏi kiểu tổng đài, chăm sóc khách hàng như: "Xin chào, mình là Em...", "Mình có thể giúp gì cho bạn?", "Cảm ơn bạn đã liên hệ...".
 - Bạn là một creator thực sự, cuộc trò chuyện này là không gian riêng tư vu vơ, ngọt ngào giữa hai người. 
 - Hãy bắt đầu bằng cách gọi thẳng tên xưng hô động đã được tính toán: xưng "${agentPronoun}" và gọi fan là "${fanPronoun}".`;
-
-  // 1. Nếu có ghi đè toàn diện từ người dùng/A/B Test, ưu tiên sử dụng ngay lập tức nhưng vẫn đính kèm quy tắc xưng hô và chống bot
-  if (promptOverride) {
-    return `${promptOverride}${pronounBlock}${antiBotBlock}`;
-  }
-
-  if (persona?.system_prompt_override) {
-    return `${persona.system_prompt_override}${pronounBlock}${antiBotBlock}`;
-  }
 
   // 2. Định nghĩa Playbook Base Prompt (Các quy tắc cốt lõi thay đổi theo giới tính Persona)
   const basePrompt = isAgentMale
@@ -349,8 +348,6 @@ ${pronounRule}
     ? `\n- Custom Guidance: ${persona.custom_instructions}`
     : '';
 
-
-
   const personaBlock = `### YOUR PERSONA CONFIGURATION:
 - Name: ${name}
 - Gender: ${gender}
@@ -358,7 +355,7 @@ ${pronounRule}
 - Personality/Vibe: ${personality}
 - Tone: ${tone}
 - Speaking Style: ${speakingStyle}
-- Signature Emojis: ${signatureEmojis} (Use these signature emojis naturally and consistently, but avoid spamming)
+- Signature Emojis: ${speakingStyle} (Use these signature emojis naturally and consistently, but avoid spamming)
 - Response Length Preference: ${responseLength.toUpperCase()} - ${responseLengthGuidance}
 - Legacy Guidance (for compatibility):
   * Tone instruction: ${persona?.tone_instructions || 'Be professional, polite, and concise.'}
@@ -384,22 +381,9 @@ ${pronounRule}
 - Guidelines: Weave these campaign details naturally if the fan is in Stage G3 or asks for your premium/private links. Never sound pushy; always present the offer as a special privilege.`;
   }
 
-  // 5. Kết hợp các phần lại thành System Prompt hoàn chỉnh
-  const outputInstructions = `\n\n### INSTRUCTIONS FOR OUTPUT FIELDS:
-- You must reply with a valid JSON object ONLY. Do NOT wrap it in \`\`\`json or any formatting. Return raw JSON text.
-- JSON structure:
-  {
-    "reply": "string (the actual DM reply in Vietnamese, ${responseLengthPhrase}, natural, including emojis appropriately)",
-    "action": "continue" | "send_link" | "soft_exit" | "hard_exit" | "escalate_to_human" | "wait",
-    "link": "string | null",
-    "update_fan_type": "Luy" | "Cool" | "Whale" | "Drainer" | null,
-    "update_emotion_score": <float between 0.0 and 1.0 representing the new emotion score after this interaction>,
-    "notes_for_next": "string (brief context notes in Vietnamese for the next turn. YOU MUST ONLY use neutral terms 'Creator' and 'Fan' here, e.g., 'Fan đang chờ rep', 'Creator đã gửi link', 'Fan ngại'. NEVER use pronouns like 'anh', 'em', 'chị', 'bạn', 'mình' in this notes field to avoid pronoun context pollution in future turns)"
-  }
-
-### FEW-SHOT EXAMPLES (5 MẪU HỘI THOẠI CHUẨN PLAYBOOK 2.0):
-
-#### EXAMPLE 1: Fan Luy (Emotional) - Stage G2 (Warm-up) - Strategy: EmotionalBanking
+  // Định nghĩa các Few-shot tương ứng dưới dạng map
+  const fewShotExamples: Record<string, string> = {
+    EmotionalBanking: `#### EXAMPLE: Fan Luy (Emotional) - Stage G2 (Warm-up) - Strategy: EmotionalBanking
 - INPUT:
   - Fan type: "Luy"
   - Stage: "G2"
@@ -414,9 +398,9 @@ ${pronounRule}
     "update_fan_type": null,
     "update_emotion_score": 0.78,
     "notes_for_next": "fan mệt mỏi, vừa động viên ngọt ngào, cảm xúc đang tăng"
-  }
+  }`,
 
-#### EXAMPLE 2: Fan Cool (Lạnh lùng) - Stage G2 (Warm-up) - Strategy: TeaseWithdraw
+    TeaseWithdraw: `#### EXAMPLE: Fan Cool (Lạnh lùng) - Stage G2 (Warm-up) - Strategy: TeaseWithdraw
 - INPUT:
   - Fan type: "Cool"
   - Stage: "G2"
@@ -431,9 +415,9 @@ ${pronounRule}
     "update_fan_type": null,
     "update_emotion_score": 0.52,
     "notes_for_next": "chủ động rút lui (withdraw) để kích thích tò mò"
-  }
+  }`,
 
-#### EXAMPLE 3: Fan Whale (Fan Giàu/VIP) - Stage G3 (Upsell) - Strategy: StraightVIP (Send Link)
+    StraightVIP: `#### EXAMPLE: Fan Whale (Fan Giàu/VIP) - Stage G3 (Upsell) - Strategy: StraightVIP (Send Link)
 - INPUT:
   - Fan type: "Whale"
   - Stage: "G3"
@@ -448,9 +432,9 @@ ${pronounRule}
     "update_fan_type": null,
     "update_emotion_score": 0.90,
     "notes_for_next": "đã gửi link VIP, fan chuẩn bị mua hàng, tiếp đón lịch sự đẳng cấp"
-  }
+  }`,
 
-#### EXAMPLE 4: Fan Drainer (Bào Sức) - Stage G2 (Warm-up) - Strategy: GracefulExit
+    GracefulExit: `#### EXAMPLE: Fan Drainer (Bào Sức) - Stage G2 (Warm-up) - Strategy: GracefulExit
 - INPUT:
   - Fan type: "Drainer"
   - Stage: "G2"
@@ -465,9 +449,9 @@ ${pronounRule}
     "update_fan_type": null,
     "update_emotion_score": 0.30,
     "notes_for_next": "từ chối khéo xin ảnh miễn phí, giữ ranh giới, chuẩn bị dừng hội thoại"
-  }
+  }`,
 
-#### EXAMPLE 5: Fan Whale (Fan Giàu/VIP) - Stage G1 (Trust) - Strategy: TrustBuilding
+    TrustBuilding: `#### EXAMPLE: Fan Whale (Fan Giàu/VIP) - Stage G1 (Trust) - Strategy: TrustBuilding
 - INPUT:
   - Fan type: "Whale"
   - Stage: "G1"
@@ -482,7 +466,42 @@ ${pronounRule}
     "update_fan_type": "Whale",
     "update_emotion_score": 0.65,
     "notes_for_next": "vừa chào hỏi lịch thiệp, fan rất sang trọng, giữ khoảng cách lịch sự"
-  }`;
+  }`
+  };
 
-  return `${basePrompt}\n\n${personaBlock}${pronounBlock}${principlesBlock}${campaignBlock}${outputInstructions}`;
+  // Chọn lọc ví dụ dựa trên strategy hiện tại, mặc định thêm TrustBuilding để làm mẫu đối chiếu cấu trúc JSON
+  let dynamicFewShot = '';
+  if (strategy && fewShotExamples[strategy]) {
+    dynamicFewShot = `### FEW-SHOT EXAMPLES (SELECTED FOR '${strategy}'):\n\n` + fewShotExamples[strategy];
+    // Nếu chiến lược hiện tại không phải TrustBuilding, đính kèm thêm TrustBuilding để đa dạng hóa ngữ cảnh mẫu
+    if (strategy !== 'TrustBuilding') {
+      dynamicFewShot += '\n\n' + fewShotExamples['TrustBuilding'];
+    }
+  } else {
+    // Fallback nếu không truyền hoặc không khớp strategy: chỉ nạp 2 ví dụ đại diện
+    dynamicFewShot = `### FEW-SHOT EXAMPLES:\n\n` + fewShotExamples['TrustBuilding'] + '\n\n' + fewShotExamples['EmotionalBanking'];
+  }
+
+  // 5. Kết hợp các phần lại thành System Prompt hoàn chỉnh
+  const outputInstructions = `\n\n### INSTRUCTIONS FOR OUTPUT FIELDS:
+- You must reply with a valid JSON object ONLY. Do NOT wrap it in \`\`\`json or any formatting. Return raw JSON text.
+- JSON structure:
+  {
+    "reply": "string (the actual DM reply in Vietnamese, ${responseLengthPhrase}, natural, including emojis appropriately)",
+    "action": "continue" | "send_link" | "soft_exit" | "hard_exit" | "escalate_to_human" | "wait",
+    "link": "string | null",
+    "update_fan_type": "Luy" | "Cool" | "Whale" | "Drainer" | null,
+    "update_emotion_score": <float between 0.0 and 1.0 representing the new emotion score after this interaction>,
+    "notes_for_next": "string (brief context notes in Vietnamese for the next turn. ONLY use neutral terms 'Creator' and 'Fan' here. NEVER use pronouns like 'anh', 'em', 'chị', 'bạn', 'mình' in this notes field to avoid pronoun context pollution in future turns)"
+  }
+
+${dynamicFewShot}`;
+
+  // 6. Xác định baseContextPrompt (chọn prompt override nếu có, ngược lại dùng basePrompt kết hợp personaBlock)
+  const baseContextPrompt = promptOverride 
+    ? promptOverride 
+    : (persona?.system_prompt_override ? persona.system_prompt_override : `${basePrompt}\n\n${personaBlock}`);
+
+  return `${baseContextPrompt}${pronounBlock}${principlesBlock}${campaignBlock}${outputInstructions}`;
 }
+

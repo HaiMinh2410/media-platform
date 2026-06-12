@@ -5,7 +5,7 @@ import type { FanProfile, EmotionTrend } from '@features/ai-agent/types-agent';
 /**
  * System prompt cho Sentiment Analysis sử dụng llama-3.1-8b-instant.
  */
-const EMOTION_SCORER_SYSTEM_PROMPT = `Bạn là một AI chuyên phân tích tình cảm và tâm lý khách hàng bám sát "DM Script Playbook 2.0".
+export const EMOTION_SCORER_SYSTEM_PROMPT = `Bạn là một AI chuyên phân tích tình cảm và tâm lý khách hàng bám sát "DM Script Playbook 2.0".
 Nhiệm vụ của bạn là đánh giá tin nhắn mới nhất của Fan (khách hàng) kết hợp với bối cảnh trò chuyện gần đây để chấm điểm độ thiện cảm (emotion_score) của họ dành cho Agent (người mẫu/thương hiệu).
 
 Hãy chấm điểm "emotion_score" dưới dạng một số thực từ 0.0 đến 1.0 theo thang đo sau:

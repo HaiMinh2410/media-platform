@@ -17,7 +17,8 @@ import {
   Lock, 
   Timer,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  Route
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -43,6 +44,32 @@ interface PipelineStep {
 export function AiPipelineDetail() {
   const [activeStepId, setActiveStepId] = useState<number>(1);
   const [copiedField, setCopiedField] = useState<'system' | 'user' | null>(null);
+  const [prompts, setPrompts] = useState<any>({
+    summarizer: {},
+    classify: {},
+    sentimentScorer: {},
+    hybridClassifier: {},
+    objectionHandler: {},
+    responseGenerator: {}
+  });
+  const [isPromptsLoading, setIsPromptsLoading] = useState(true);
+
+  React.useEffect(() => {
+    async function fetchPrompts() {
+      try {
+        const res = await fetch('/api/ai-agent/pipeline-prompts');
+        if (res.ok) {
+          const data = await res.json();
+          setPrompts(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch pipeline prompts:', err);
+      } finally {
+        setIsPromptsLoading(false);
+      }
+    }
+    fetchPrompts();
+  }, []);
 
   // List of steps in AI Agent Pipeline
   const steps: PipelineStep[] = [
@@ -79,8 +106,8 @@ export function AiPipelineDetail() {
       promptType: 'both',
       customizableFields: ["recent_messages", "persona.name"],
       promptData: {
-        system: `You are an expert AI Summarizer. Your job is to summarize the conversation history between a Creator (named {{persona.name}}) and a Fan. Keep the summary under 150 words in Vietnamese, focusing on Fan's purchase intent, main objections, emotional status, and Creator's offer. Do not include signature emojis or conversational filler in the summary. Strictly use gender-neutral nouns "Creator" and "Fan" to describe the parties, never use gendered pronouns like "anh", "em", "chị", "cô", "gì".`,
-        user: `Analyze the following recent messages:
+        system: prompts.summarizer?.system || `You are an expert AI Summarizer. Your job is to summarize the conversation history between a Creator (named {{persona.name}}) and a Fan. Keep the summary under 150 words in Vietnamese, focusing on Fan's purchase intent, main objections, emotional status, and Creator's offer. Do not include signature emojis or conversational filler in the summary. Strictly use gender-neutral nouns "Creator" and "Fan" to describe the parties, never use gendered pronouns like "anh", "em", "chị", "cô", "gì".`,
+        user: prompts.summarizer?.user || `Analyze the following recent messages:
 {{recent_messages}}
 
 Provide a concise summary in Vietnamese.`
@@ -88,7 +115,49 @@ Provide a concise summary in Vietnamese.`
     },
     {
       id: 3,
-      title: "3. Sentiment Scorer",
+      title: "3. Auto-Reply Validation & Intent Routing",
+      shortDesc: "Định tuyến ý định, bộ lọc sắc thái & độ ưu tiên",
+      description: "Phân tích nhanh tin nhắn mới để phát hiện ý định (Intent), sắc thái (Sentiment) và độ ưu tiên (Priority). Sau đó đối chiếu với cấu hình tự động trả lời của Creator để quyết định: Tiếp tục gửi tự động, chuyển sang tạo nháp (Pending Suggestion), hay ngắt sớm chuyển cho người thật (escalate_to_human).",
+      icon: Route,
+      howItWorks: [
+        "Gọi mô hình LLM Llama 8B Instant phân loại tin nhắn đầu vào.",
+        "Bộ lọc Ý định (Intent Routing): Đối chiếu thẻ ý định (matched_label) với Trigger Labels đã thiết lập. Nếu có Trigger Labels và tin nhắn không khớp, hệ thống ngắt sớm pipeline và đổi trạng thái cuộc trò chuyện thành escalate_to_human.",
+        "Bộ lọc Tự động (Sentiment & Priority Filter): So sánh Sentiment và Priority của tin nhắn với Whitelists cấu hình (ví dụ: chỉ tự động trả lời khi sắc thái là tích cực hoặc bình thường). Nếu không khớp, hệ thống đặt cờ disableAutoSend = true để chuyển phản hồi thành dạng nháp.",
+        "Kiểm tra Ngưỡng tin cậy (Confidence Threshold): So sánh điểm số tự tin của mô hình với ngưỡng cài đặt trên giao diện (mặc định 0.75). Nếu thấp hơn, hệ thống cũng chuyển sang lưu thư nháp để đảm bảo an toàn."
+      ],
+      conditions: "Khi AI Assistant hoạt động (is_active = true) và cờ Tự động nhắn tin được bật (auto_send = true).",
+      fallback: "Nếu mô hình phân loại lỗi, hệ thống mặc định đi tiếp nhưng hạ cấp xuống tạo thư nháp (Pending Suggestion) trên Inbox để nhân viên kiểm duyệt.",
+      hasPrompt: true,
+      promptType: 'both',
+      customizableFields: ["incoming_message", "botConfig.trigger_labels"],
+      promptData: {
+        system: prompts.classify?.system || `You are an AI Messaging Assistant for a social media management platform.
+Your task is to classify incoming messages into one of the following intents:
+- AUTO_REPLY: Simple inquiries (greeting, business hours, location, price list) that can be handled automatically.
+- SUGGESTION: Complex inquiries or feedback where a draft reply should be suggested to a human agent.
+- ESCALATE: Urgent issues, complaints, or complex requests requiring immediate human attention.
+- NO_ACTION: Spam, bot messages, or messages that don't require any response.
+
+Return a JSON object with:
+{
+  "intent": "AUTO_REPLY" | "SUGGESTION" | "ESCALATE" | "NO_ACTION",
+  "reason": "Brief explanation",
+  "priority": "low" | "medium" | "high",
+  "category": "sales" | "support" | "feedback" | "other",
+  "sentiment": "positive" | "neutral" | "negative" | "frustrated"
+}
+
+Note: If sentiment is 'frustrated', you SHOULD prioritize 'ESCALATE' intent.
+
+CRITICAL Business Intent Routing Requirement:
+Analyze the message and identify if it matches one of these business intent labels: {{botConfig.trigger_labels}}.
+If it matches one, return the matched label EXACTLY in the "matched_label" field of the JSON. If it does not match any of these labels, set "matched_label" to null.`,
+        user: prompts.classify?.user || `Message: "{{incoming_message}}"`
+      }
+    },
+    {
+      id: 4,
+      title: "4. Sentiment Scorer",
       shortDesc: "Phân tích cảm xúc & xu hướng fan",
       description: "Phân tích nội dung tin nhắn đến để chấm điểm thiện cảm và xác định xu hướng cảm xúc của Fan ngay lập tức.",
       icon: Cpu,
@@ -100,49 +169,30 @@ Provide a concise summary in Vietnamese.`
       conditions: "Chạy trên mỗi tin nhắn đến của Fan.",
       fallback: "Nếu LLM chấm điểm cảm xúc bị lỗi, hệ thống sẽ tự động giữ nguyên điểm số emotionScore từ lượt tin nhắn trước đó.",
       hasPrompt: true,
-      promptType: 'both',
+      promptType: 'system',
       customizableFields: ["incoming_message"],
       promptData: {
-        system: `You are an expert AI Sentiment Scorer. Your task is to analyze the user message and estimate their emotion score from 0.0 (angry/disinterested) to 1.0 (loving/extremely excited/high buying intent). Output a JSON object only.
-JSON format:
-{
-  "emotion_score": <float between 0.0 and 1.0>,
-  "trend": "up" | "down" | "stable"
-}`,
-        user: `Analyze the emotional tone of the incoming message:
-"{{incoming_message}}"`
+        system: prompts.sentimentScorer?.system || `Bạn là một AI chuyên phân tích tình cảm và tâm lý khách hàng bám sát "DM Script Playbook 2.0".`
       }
     },
     {
-      id: 4,
-      title: "4. Risk Assessment",
+      id: 5,
+      title: "5. Risk Assessment",
       shortDesc: "Đánh giá rủi ro & Ngắt sớm",
       description: "Đánh giá tin nhắn của Fan có chứa các rủi ro bảo mật, spam, lăng mạ hoặc các từ khóa đe dọa trực tuyến hay không.",
       icon: ShieldAlert,
       howItWorks: [
-        "Quét nhanh bằng Regex và chạy mô hình phân tích rủi ro ngôn từ.",
+        "Quét nhanh bằng Regex và chạy bộ lọc rủi ro từ khóa nhạy cảm.",
         "Phân loại mức độ rủi ro thành: Low, Medium, High.",
         "Ngắt pipeline sớm: Nếu rủi ro được đánh giá là 'High', hệ thống ngay lập tức bỏ qua các bước sau, dừng tự động chat, gắn thẻ cuộc hội thoại và chuyển sang 'escalate_to_human' để nhân viên vận hành xử lý trực tiếp."
       ],
       conditions: "Chạy trên mỗi tin nhắn mới.",
       fallback: "Nếu có lỗi xảy ra ở bước này, hệ thống mặc định rủi ro ở mức Low để tiếp tục chạy, nhưng sẽ gắn nhãn cảnh báo 'warning_on_evaluation'.",
-      hasPrompt: true,
-      promptType: 'both',
-      customizableFields: ["incoming_message"],
-      promptData: {
-        system: `You are an expert AI Risk Assessor. Analyze the incoming message for severe violations, harassment, insults, or automated bot spam. Output a JSON object only.
-JSON format:
-{
-  "risk_level": "low" | "medium" | "high",
-  "threat_type": "none" | "abuse" | "spam" | "harassment" | "other"
-}`,
-        user: `Analyze this message:
-"{{incoming_message}}"`
-      }
+      hasPrompt: false
     },
     {
-      id: 5,
-      title: "5. Hybrid Fan Classifier",
+      id: 6,
+      title: "6. Hybrid Fan Classifier",
       shortDesc: "Phân loại đối tượng Whale, Luy, Cool, Drainer",
       description: "Xác định chân dung Fan dựa trên mô hình lai (Heuristics Rules kết hợp LLM) nhằm đưa ra chiến lược phản hồi phù hợp với tính cách và túi tiền của họ.",
       icon: Shuffle,
@@ -157,7 +207,7 @@ JSON format:
       promptType: 'both',
       customizableFields: ["recent_messages"],
       promptData: {
-        system: `You are an expert AI Profiler and DM Assistant for a premium personal brand. Your task is to analyze the recent conversation history and profile the fan into one of the following Fan Types:
+        system: prompts.hybridClassifier?.system || `You are an expert AI Profiler and DM Assistant for a premium personal brand. Your task is to analyze the recent conversation history and profile the fan into one of the following Fan Types:
 
 1. **Whale (Fan Giàu/VIP)**: 
    - Characteristics: Has high purchasing power, shows direct interest in buying, pricing, premium services, private packages, or tipping/donating. Uses words like "mắc", "giá", "bao nhiêu", "premium", "private", "gói", "donate", "mua".
@@ -192,30 +242,30 @@ JSON format:
   "emotion_score": <float between 0.0 and 1.0>,
   "risk_level": "low" | "medium" | "high"
 }`,
-        user: `Analyze the following recent messages:
+        user: prompts.hybridClassifier?.user || `Analyze the following recent messages:
 {{recent_messages}}
 
 Provide your output in the requested JSON format. Ensure reasoning is in Vietnamese.`
       }
     },
     {
-      id: 6,
-      title: "6. Decision Engine & Link Filter",
+      id: 7,
+      title: "7. Decision Engine & Link Filter",
       shortDesc: "Ma trận quyết định & Giới hạn gửi link",
       description: "Quyết định hành động tiếp theo dựa trên ma trận trạng thái (Fan Type x Stage) và kiểm tra tính an toàn của liên kết gửi đi.",
       icon: ArrowRight,
       howItWorks: [
         "Quyết định hành động: G1 (Build Trust) chỉ trò chuyện thân thiện; G2 (Warmup) cho phép thả thính nhẹ; G3 (Upsell) hỗ trợ chốt đơn và gửi link. Drainer sẽ bị ngắt hội thoại sớm (soft_exit) để tránh lãng phí tài nguyên.",
-        "Chặn tần suất gửi link (Link Rate Limiter): Trước khi gửi link, hệ thống kiểm tra trường lastLinkSentAt. Khoảng cách giữa 2 lần gửi link phải cách nhau tối thiểu 7 ngày. Nếu vi phạm, hành động gửi link bị ép hạ cấp xuống 'continue' (chỉ chat thường, không gửi link) để tránh bị Meta quét khóa tài khoản."
+        "Chặn tần suất gửi link (Link Rate Limiter): Trước khi gửi link, hệ thống kiểm tra trường lastLinkSentAt và số lần gửi tối đa (link_rate_limit từ thiết lập Persona). Khoảng cách giữa 2 lần gửi link phải cách nhau tối thiểu 7 ngày. Nếu vi phạm hoặc số lần gửi link vượt quá giới hạn tối đa, hành động gửi link bị ép hạ cấp xuống 'continue' (chỉ chat thường, không gửi link) để tránh bị Meta quét khóa tài khoản."
       ],
       conditions: "Chạy tự động cho mỗi phản hồi trước khi sinh câu trả lời.",
       fallback: "Nếu có lỗi logic, hệ thống hạ cấp hành động về 'continue' để đảm bảo an toàn tối đa cho tài khoản.",
       hasPrompt: false
     },
     {
-      id: 7,
-      title: "7. Objection Handler",
-      shortDesc: "Nhận diện & xử lý phản đối",
+      id: 8,
+      title: "8. Objection Handler",
+      shortDesc: "Nhận diện & Xử lý phản đối",
       description: "Khi Fan đưa ra các phản đối như chê sản phẩm quá đắt, đòi xem ảnh miễn phí, sợ bị lừa đảo... hệ thống sẽ kích hoạt bộ xử lý phản đối để gỡ rối một cách khéo léo.",
       icon: AlertTriangle,
       howItWorks: [
@@ -228,17 +278,17 @@ Provide your output in the requested JSON format. Ensure reasoning is in Vietnam
       promptType: 'both',
       customizableFields: ["incoming_message", "objection_type"],
       promptData: {
-        system: `You are handling a customer objection of type: {{objection_type}} (e.g. want_free, too_expensive, not_trusted, privacy_concern).
+        system: prompts.objectionHandler?.system || `You are handling a customer objection of type: {{objection_type}} (e.g. want_free, too_expensive, not_trusted, privacy_concern).
 Your goal is to address the objection gracefully and steer the conversation back to the Playbook script without being defensive. Keep the response under 2-3 sentences in Vietnamese, maintain a warm, polite and premium brand tone.
 Additionally, when writing notes_for_next, strictly use gender-neutral nouns "Creator" and "Fan" and never use gendered pronouns like "anh", "em", "chị" to avoid context pollution.`,
-        user: `Handle the objection in this incoming message:
+        user: prompts.objectionHandler?.user || `Handle the objection in this incoming message:
 "{{incoming_message}}"`
       }
     },
     {
-      id: 8,
-      title: "8. Response Generator",
-      shortDesc: "Sinh câu trả lời & Xưng xô động",
+      id: 9,
+      title: "9. Response Generator",
+      shortDesc: "Sinh câu trả lời & Xưng hô động",
       description: "Trái tim của hệ thống. Lắp ráp các chỉ dẫn Persona, quy tắc xưng hô động và gọi LLM phù hợp để tạo ra phản hồi ngọt ngào, tự nhiên nhất.",
       icon: BookOpen,
       howItWorks: [
@@ -247,7 +297,7 @@ Additionally, when writing notes_for_next, strictly use gender-neutral nouns "Cr
         "Bộ lọc Runtime (validatePronounConsistency) & Link Safety: Đầu ra của LLM được đưa qua bộ kiểm duyệt runtime tự động để quét và sửa đổi xưng hô đồng nhất. Bộ lọc này chạy độc lập trên trường 'reply' thô (chứa placeholder '{{link}}' tĩnh) trước khi hệ thống thực hiện thay thế '{{link}}' bằng URL thật, tránh làm biến dạng cấu trúc URL VIP gửi đi.",
         "Lắp ráp Prompt & Ghi chú trung tính: Gộp các chỉ dẫn Persona và Chiến dịch active cùng các quy tắc xưng hô động và chống bot bắt buộc. Trường 'notes_for_next' bắt buộc chỉ dùng danh từ trung tính 'Creator' và 'Fan', cấm dùng 'anh', 'em', 'chị' để tránh ô nhiễm ngữ cảnh.",
         "Thắt chặt kiểm tra JSON/Text thuần: Khi LLM (đặc biệt là Llama 8B ở cuối chuỗi) trả về text thuần thay vì JSON hoặc JSON bị thiếu thuộc tính 'reply' hợp lệ, parser sẽ chủ động ném lỗi để tiếp tục thử model tiếp theo hoặc hạ cấp tức thì về Rule-based template (getTemplateResponse) thay vì để crash hệ thống.",
-        "Model Routing & Cascading Fallback: Fan Whale dùng GPT-oss-120B để giao tiếp đẳng cấp; Luy/Cool dùng Llama 70B bay bổng; Drainer/Unknown dùng Llama 8B tối ưu chi phí. Nếu model ưu tiên lỗi (timeout/rate-limit), hệ thống tự động thử model kế tiếp (120B -> 70B -> 8B). Nếu tất cả đều lỗi, tự động hạ cấp về kịch bản cứng (Rule-based templates) đã động hóa đại từ."
+        "Model Routing & Cascading Fallback: Nếu Creator cấu hình cứng một Model AI (như Llama 70B, Llama 8B, Qwen 32B, GPT-OSS 120B...), model đó sẽ được ưu tiên chạy trước. Nếu Creator chọn tự động định tuyến (Model Routing): Fan Whale dùng GPT-oss-120B để giao tiếp đẳng cấp; Luy/Cool dùng Llama 70B bay bổng; Drainer/Unknown dùng Llama 8B tối ưu chi phí. Nếu model ưu tiên lỗi (timeout/rate-limit), hệ thống tự động thử model kế tiếp (120B -> 70B -> 8B). Nếu tất cả đều lỗi, tự động hạ cấp về kịch bản cứng (Rule-based templates) đã động hóa đại từ."
       ],
       conditions: "Luôn chạy khi cần tạo tin nhắn phản hồi cho Fan.",
       fallback: "Tự động hạ cấp xuống hệ thống Rule-based Template dự phòng (đã động hóa đại từ xưng hô).",
@@ -274,7 +324,7 @@ Additionally, when writing notes_for_next, strictly use gender-neutral nouns "Cr
         "incoming_message"
       ],
       promptData: {
-        system: `You are "{{persona.name}}" (configured as {{persona.gender}}, {{persona.age}}). You are {{persona.personality}}. Tone: {{persona.tone}}. Speaking style: {{persona.speaking_style}}.
+        system: prompts.responseGenerator?.system || `You are "{{persona.name}}" (configured as {{persona.gender}}, {{persona.age}}). You are {{persona.personality}}. Tone: {{persona.tone}}. Speaking style: {{persona.speaking_style}}.
 You strictly adhere to the "DM Script Playbook 2.0" to transition fans from strangers into premium VIP supporters.
 
 ### PRONOUNS & ADDRESSING RULES (CRITICAL):
@@ -316,7 +366,6 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
   "update_emotion_score": <float>,
   "notes_for_next": "string (strictly use gender-neutral nouns 'Creator' and 'Fan', never use 'anh', 'em', 'chị' to describe the parties)"
 }`,
-
         user: `FAN PROFILE CONTEXT:
 - Fan Type: {{fan_type}}
 - Stage: {{stage}}
@@ -336,15 +385,15 @@ Provide your output in the requested JSON format. Ensure reply and notes_for_nex
       }
     },
     {
-      id: 9,
-      title: "9. Safety Checker & Delay",
+      id: 10,
+      title: "10. Safety Checker & Delay",
       shortDesc: "Bộ lọc an toàn & Trì hoãn gửi tin",
       description: "Kiểm tra mức độ an toàn của văn bản trước khi gửi đến fan và tạo độ trễ gửi ngẫu nhiên để giống như người thật chat.",
       icon: Timer,
       howItWorks: [
         "Lọc từ khóa Blacklist: Quét câu trả lời của AI, tự động thay các từ nhạy cảm có nguy cơ bị Meta quét khóa tài khoản (như nude, sex, clip nóng) bằng các từ nói giảm nói tránh an toàn đã cấu hình sẵn.",
         "Boot-up Unit Test của Safety Checker: Hệ thống tự động chạy kiểm tra khi boot-up server, quét qua bộ từ khóa thay thế 'KEYWORD_REPLACEMENTS' và chủ động ném lỗi (throw Error) nếu phát hiện bất kỳ từ thế nào bị viết cứng đại từ xưng hô, bảo vệ an toàn từ tầng biên dịch cấu hình.",
-        "Tính toán Delay ngẫu nhiên: Tránh gửi tin nhắn lập tức như bot. Whale delay 15 phút, Luy delay 15-30 phút, các nhóm khác delay 15-60 phút. Hệ thống sử dụng hàng đợi BullMQ trì hoãn tin nhắn thay vì setTimeout để đảm bảo bền vững kể cả khi restart server.",
+        "Tính toán Delay ngẫu nhiên: Tránh gửi tin nhắn lập tức như bot. Hệ thống ưu tiên lấy khoảng thời gian delay_min và delay_max từ thiết lập Persona. Nếu không có, mặc định: Whale delay 15 phút, Luy delay 15-30 phút, các nhóm khác delay 15-60 phút. Hệ thống sử dụng hàng đợi BullMQ trì hoãn tin nhắn thay vì setTimeout để đảm bảo bền vững kể cả khi restart server.",
         "Cơ chế Debounce Cửa sổ trượt (Sliding Window): Khi Fan liên tục gửi tin nhắn mới, lịch hẹn gửi tin được lùi lại (Math.max) để đợi fan hoàn thành chuỗi suy nghĩ, nhưng giới hạn thời gian trì hoãn tối đa (Max Delay Cap - ví dụ không quá 45 phút kể từ tin nhắn đầu tiên) để vừa chống spam vừa đảm bảo fan không phải đợi quá lâu."
       ],
       conditions: "Tất cả các tin nhắn do AI tự động sinh ra trước khi gửi thực tế đến fan.",

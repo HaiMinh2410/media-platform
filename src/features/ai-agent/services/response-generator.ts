@@ -135,7 +135,7 @@ export async function generateResponse(
   let modelsToTry: AIModel[] = [];
 
   // Tải cấu hình A/B Testing hoặc sinh Prompt động dựa trên Persona của tài khoản
-  let systemPrompt = buildDynamicSystemPrompt(persona, input.gender);
+  let systemPrompt = buildDynamicSystemPrompt(persona, input.gender, null, input.strategy);
   let modelOverride: AIModel | null = null;
 
   try {
@@ -150,7 +150,7 @@ export async function generateResponse(
     if (abTest && abTest.enabled) {
       if (input.abTestVariant === 'B') {
         if (abTest.variant_b_prompt) {
-          systemPrompt = buildDynamicSystemPrompt(persona, input.gender, abTest.variant_b_prompt);
+          systemPrompt = buildDynamicSystemPrompt(persona, input.gender, abTest.variant_b_prompt, input.strategy);
           console.log(`📊 [ResponseGenerator] Applying A/B Test Variant B custom system prompt (dynamized).`);
         }
         if (abTest.variant_b_model) {
@@ -159,7 +159,7 @@ export async function generateResponse(
         }
       } else {
         if (abTest.variant_a_prompt) {
-          systemPrompt = buildDynamicSystemPrompt(persona, input.gender, abTest.variant_a_prompt);
+          systemPrompt = buildDynamicSystemPrompt(persona, input.gender, abTest.variant_a_prompt, input.strategy);
           console.log(`📊 [ResponseGenerator] Applying A/B Test Variant A custom system prompt (dynamized).`);
         }
       }

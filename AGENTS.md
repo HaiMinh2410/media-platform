@@ -13,7 +13,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # 🤖 Quy chuẩn đồng bộ thông tin AI Pipeline trong Cài đặt
 
-*   **QUY TẮC BẮT BUỘC**: Mỗi khi bạn **chỉnh sửa hoặc thêm mới** bất kỳ thành phần logic, prompt hay kịch bản hoạt động nào trong thư mục [src/features/ai-agent/](file:///e:/My'sProjects/media-platform/src/features/ai-agent) hoặc thay đổi cấu trúc/trường thông tin trong các tab cấu hình Persona tại [src/features/settings/components/personas/persona-form-tabs.tsx](file:///e:/My'sProjects/media-platform/src/features/settings/components/personas/persona-form-tabs.tsx), bạn **bắt buộc** phải cập nhật lại thông tin tương ứng trong component hiển thị chi tiết [src/features/settings/components/ai-pipeline-detail.tsx](file:///e:/My'sProjects/media-platform/src/features/settings/components/ai-pipeline-detail.tsx).
+*   **ĐỒNG BỘ TỰ ĐỘNG**: Các cấu trúc Prompt của hệ thống AI (Summarizer, Classifier, Sentiment Scorer, Objection Handler, Response Generator) trong giao diện chi tiết [src/features/settings/components/ai-pipeline-detail.tsx](file:///e:/My'sProjects/media-platform/src/features/settings/components/ai-pipeline-detail.tsx) đã được đồng bộ tự động thời gian thực từ backend thông qua API Route `/api/ai-agent/pipeline-prompts`. Bạn **không cần** sửa đổi thủ công các prompt này trong file UI nữa khi cập nhật backend.
+*   **QUY TẮC BẮT BUỘC**: Bạn chỉ **bắt buộc** phải chỉnh sửa thủ công tệp [ai-pipeline-detail.tsx](file:///e:/My'sProjects/media-platform/src/features/settings/components/ai-pipeline-detail.tsx) khi:
+    1. **Thêm mới hoặc loại bỏ** hẳn một bước xử lý trong vòng lặp AI Agent Pipeline (lúc đó cần cập nhật danh sách `steps`, điều chỉnh lại số thứ tự `id` và biểu tượng `icon`).
+    2. **Thay đổi điều kiện kích hoạt (conditions), cơ chế dự phòng (fallback), hoặc mô tả chung (description)** của một bước xử lý logic thuần không dùng LLM.
 *   **Mục tiêu**: Đảm bảo sơ đồ timeline, phần mô tả cách hoạt động, điều kiện kích hoạt, cơ chế fallback và nội dung Prompt Preview được hiển thị trực quan cho người dùng luôn chính xác và đồng bộ 100% với logic thực tế chạy ở backend.
 
 
