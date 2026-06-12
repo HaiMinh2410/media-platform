@@ -15,7 +15,7 @@ import type {
 } from '@features/ai-agent/types-agent';
 import { AIModel } from '@features/ai-agent/types';
 import { groqClient } from '@features/ai-agent/services/groq-client';
-import { responseGeneratorPrompt, buildDynamicSystemPrompt } from './prompts/response-generator.prompt';
+import { responseGeneratorPrompt, buildDynamicSystemPrompt, getDynamicPronouns } from './prompts/response-generator.prompt';
 import { getTemplateResponse } from './templates';
 
 /**
@@ -36,6 +36,62 @@ function sanitizeJsonContent(content: string): string {
   }
   
   return clean.trim();
+}
+
+/**
+ * Post-process kiểm tra xưng hô sau khi LLM sinh ra reply.
+ * Phát hiện các pattern xưng hô sai phổ biến và tự correct.
+ */
+function validatePronounConsistency(
+  reply: string,
+  agentPronoun: string,
+  fanPronoun: string,
+  incomingMessage: string,
+  stage: string = 'G1'
+): { correctedReply: string; wasFixed: boolean; issueDetected: string | null } {
+  
+  // Detect: Khách gọi creator là "anh/chị" nhưng AI vẫn xưng "em" gọi "anh"
+  const customerCallsAgentAnh = /\banh\s+ơi\b|\bbên\s+anh\b|\banh\s+có\b/i.test(incomingMessage);
+  const customerCallsAgentChi = /\bchị\s+ơi\b|\bbên\s+chị\b|\bchị\s+có\b/i.test(incomingMessage);
+  
+  // FLIRT OVER RULES: Chỉ áp dụng Pronoun Reversal Rule ở giai đoạn G1 (Build Trust)
+  // Nếu ở G2 (Warm-up) hoặc G3 (Upsell), kiên quyết giữ xưng hô thân mật ban đầu.
+  if ((customerCallsAgentAnh || customerCallsAgentChi) && agentPronoun === 'em' && stage === 'G1') {
+    // Pronoun Reversal Rule bị vi phạm - LLM quên đổi sang mình/bạn
+    const fixed = reply
+      .replace(/\bem\s+chào\s+anh\b/gi, 'mình chào bạn')
+      .replace(/\banh\s+ơi\b/gi, 'bạn ơi')
+      .replace(/\bxưng\s+em\b/gi, 'xưng mình')
+      // Pattern: "Em là [tên]" → "Mình là [tên]"
+      .replace(/\bem\s+là\b/gi, 'mình là')
+      // Pattern: "em có thể" → "mình có thể"
+      .replace(/\bem\s+có\s+thể\b/gi, 'mình có thể');
+    
+    return { correctedReply: fixed, wasFixed: fixed !== reply, issueDetected: 'pronoun_reversal_missed' };
+  }
+  
+  // Detect: "xin chào, mình là Em" pattern - AI tự giới thiệu tên sai cách
+  const selfIntroPattern = /xin\s+chào[,.]?\s+mình\s+là\s+em/i;
+  if (selfIntroPattern.test(reply)) {
+    const agentCaps = agentPronoun.charAt(0).toUpperCase() + agentPronoun.slice(1);
+    const fixed = reply.replace(
+      selfIntroPattern,
+      `${agentCaps} chào ${fanPronoun} ạ`
+    );
+    return { correctedReply: fixed, wasFixed: true, issueDetected: 'wrong_self_intro' };
+  }
+  
+  // Detect: Reply xưng sai pronoun hoàn toàn (agent là "anh" nhưng reply xưng "em")
+  if (agentPronoun === 'anh') {
+    // Persona là NAM nhưng xưng "em" ở đầu câu
+    const wrongPronounPattern = /^"?em\s+chào/i;
+    if (wrongPronounPattern.test(reply.trim())) {
+      const fixed = reply.replace(/^"?em\s+chào/i, `Anh chào`);
+      return { correctedReply: fixed, wasFixed: true, issueDetected: 'agent_pronoun_wrong' };
+    }
+  }
+  
+  return { correctedReply: reply, wasFixed: false, issueDetected: null };
 }
 
 /**
@@ -94,8 +150,8 @@ export async function generateResponse(
     if (abTest && abTest.enabled) {
       if (input.abTestVariant === 'B') {
         if (abTest.variant_b_prompt) {
-          systemPrompt = abTest.variant_b_prompt;
-          console.log(`📊 [ResponseGenerator] Applying A/B Test Variant B custom system prompt.`);
+          systemPrompt = buildDynamicSystemPrompt(persona, input.gender, abTest.variant_b_prompt);
+          console.log(`📊 [ResponseGenerator] Applying A/B Test Variant B custom system prompt (dynamized).`);
         }
         if (abTest.variant_b_model) {
           modelOverride = abTest.variant_b_model as AIModel;
@@ -103,8 +159,8 @@ export async function generateResponse(
         }
       } else {
         if (abTest.variant_a_prompt) {
-          systemPrompt = abTest.variant_a_prompt;
-          console.log(`📊 [ResponseGenerator] Applying A/B Test Variant A custom system prompt.`);
+          systemPrompt = buildDynamicSystemPrompt(persona, input.gender, abTest.variant_a_prompt);
+          console.log(`📊 [ResponseGenerator] Applying A/B Test Variant A custom system prompt (dynamized).`);
         }
       }
     }
@@ -186,11 +242,26 @@ export async function generateResponse(
       const cleanContent = sanitizeJsonContent(response.data.content);
       const data = JSON.parse(cleanContent);
 
+      // POST-PROCESS: Validate và correct xưng hô trước khi validation chính thức
+      const { agentPronoun, fanPronoun } = getDynamicPronouns(persona, input.gender);
+      const { correctedReply, wasFixed, issueDetected } = validatePronounConsistency(
+        data.reply || '',
+        agentPronoun,
+        fanPronoun,
+        input.incomingMessage,
+        input.fanProfile.stage // Truyền stage vào để áp dụng Flirt Over Rules
+      );
+
+      if (wasFixed) {
+        console.warn(`⚠️ [ResponseGenerator] Pronoun auto-corrected. Issue: ${issueDetected} | Original: "${data.reply}" | Corrected: "${correctedReply}"`);
+        data.reply = correctedReply;
+      }
+
       // Validate và định hình dữ liệu đầu ra để đảm bảo khớp tuyệt đối kiểu dữ liệu AgentResponse
       const finalResponse: AgentResponse = {
         reply: typeof data.reply === 'string' && data.reply.trim() !== '' 
           ? data.reply.trim() 
-          : getTemplateResponse(input.fanProfile.fanType, input.fanProfile.stage, input.decision.linkToSend),
+          : getTemplateResponse(input.fanProfile.fanType, input.fanProfile.stage, input.decision.linkToSend, agentPronoun, fanPronoun),
         
         action: (['continue', 'send_link', 'soft_exit', 'hard_exit', 'escalate_to_human', 'wait'].includes(data.action)
           ? data.action
@@ -214,6 +285,14 @@ export async function generateResponse(
       // Đảm bảo có link nếu hành động là gửi link
       if (finalResponse.action === 'send_link' && !finalResponse.link) {
         finalResponse.link = input.decision.linkToSend;
+      }
+
+      // Thay thế placeholder liên kết {{link}} bằng link thực tế trong finalResponse.reply
+      // Việc này chạy sau validatePronounConsistency để tránh sửa nhầm các ký tự xưng hô có thể có trong URL thật.
+      if (finalResponse.link) {
+        finalResponse.reply = finalResponse.reply.replace(/\{\{link\}\}/g, finalResponse.link);
+      } else {
+        finalResponse.reply = finalResponse.reply.replace(/\{\{link\}\}/g, '').trim();
       }
 
       console.log(`✅ [ResponseGenerator] Successful generation using model: '${currentModel}'`);
@@ -240,10 +319,13 @@ export async function generateResponse(
   console.warn(`🚨 [ResponseGenerator] All LLM models failed! Falling back to Rule-based templates.`);
   
   try {
+    const { agentPronoun, fanPronoun } = getDynamicPronouns(persona, input.gender);
     const fallbackReply = getTemplateResponse(
       input.fanProfile.fanType,
       input.fanProfile.stage,
-      input.decision.linkToSend
+      input.decision.linkToSend,
+      agentPronoun,
+      fanPronoun
     );
 
     const fallbackResponse: AgentResponse = {

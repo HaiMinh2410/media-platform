@@ -9,18 +9,55 @@ import { fanCoolTemplates } from './fan-cool.templates';
 import { fanWhaleTemplates } from './fan-whale.templates';
 import { fanDrainerTemplates } from './fan-drainer.templates';
 
+function capitalizeFirstLetter(val: string): string {
+  if (!val) return '';
+  return val.charAt(0).toUpperCase() + val.slice(1);
+}
+
+/**
+ * Thay thế đại từ tĩnh "em"/"anh" trong template bằng đại từ động tương ứng.
+ * Sử dụng placeholder trung gian để tránh đè chéo khi đảo xưng hô.
+ */
+export function replaceTemplatePronouns(
+  text: string,
+  agentPronoun: string,
+  fanPronoun: string
+): string {
+  let processed = text;
+  
+  // Thay thế "Em" / "em" đứng độc lập
+  processed = processed.replace(/\bEm\b/g, '__AGENT_CAP__');
+  processed = processed.replace(/\bem\b/g, '__AGENT_LOWER__');
+  
+  // Thay thế "Anh" / "anh" đứng độc lập
+  processed = processed.replace(/\bAnh\b/g, '__FAN_CAP__');
+  processed = processed.replace(/\banh\b/g, '__FAN_LOWER__');
+  
+  // Thay thế các placeholder bằng đại từ động thực tế
+  processed = processed.replace(/__AGENT_CAP__/g, capitalizeFirstLetter(agentPronoun));
+  processed = processed.replace(/__AGENT_LOWER__/g, agentPronoun);
+  processed = processed.replace(/__FAN_CAP__/g, capitalizeFirstLetter(fanPronoun));
+  processed = processed.replace(/__FAN_LOWER__/g, fanPronoun);
+  
+  return processed;
+}
+
 /**
  * Lấy một câu thoại mẫu ngẫu nhiên từ ngân hàng mẫu tương ứng với loại fan và giai đoạn hội thoại.
  *
  * @param fanType Loại fan ('Luy' | 'Cool' | 'Whale' | 'Drainer' | 'Unknown')
  * @param stage Giai đoạn hội thoại ('G1' | 'G2' | 'G3')
  * @param link Liên kết sản phẩm/kênh riêng tư để thay thế placeholder {{link}} (nếu có)
+ * @param agentPronoun Đại từ nhân vật AI xưng hô (mặc định 'em')
+ * @param fanPronoun Đại từ xưng hô với fan (mặc định 'anh')
  * @returns Câu trả lời mẫu đã được điền liên kết (nếu có) và chọn ngẫu nhiên
  */
 export function getTemplateResponse(
   fanType: FanType,
   stage: ConversationStage,
-  link?: string | null
+  link?: string | null,
+  agentPronoun: string = 'em',
+  fanPronoun: string = 'anh'
 ): string {
   let templateArray: readonly string[];
 
@@ -57,7 +94,10 @@ export function getTemplateResponse(
   const randomIndex = Math.floor(Math.random() * templateArray.length);
   let selectedTemplate = templateArray[randomIndex];
 
-  // 4. Thay thế placeholder {{link}} bằng link thực tế nếu được cung cấp
+  // 4. Động hóa đại từ xưng hô trong template
+  selectedTemplate = replaceTemplatePronouns(selectedTemplate, agentPronoun, fanPronoun);
+
+  // 5. Thay thế placeholder {{link}} bằng link thực tế nếu được cung cấp
   if (link) {
     selectedTemplate = selectedTemplate.replace(/\{\{link\}\}/g, link);
   } else {

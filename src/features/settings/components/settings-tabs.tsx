@@ -2,7 +2,7 @@
 
 import { SlidingTabs } from "@shared/ui";
 import { useRouter, usePathname } from 'next/navigation';
-import { Settings, Terminal, Bot } from 'lucide-react';
+import { Settings, Terminal, Bot, Workflow } from 'lucide-react';
 
 export function SettingsTabs() {
   const pathname = usePathname();
@@ -20,6 +20,11 @@ export function SettingsTabs() {
       icon: Bot,
     },
     {
+      value: "/dashboard/settings/pipeline",
+      label: "AI Pipeline",
+      icon: Workflow,
+    },
+    {
       value: "/dashboard/settings/developer",
       label: "Nhà phát triển (Developer)",
       icon: Terminal,
@@ -27,10 +32,17 @@ export function SettingsTabs() {
   ] as const;
 
   // Determine active tab value based on current pathname
-  let activeValue: "/dashboard/settings/accounts" | "/dashboard/settings/personas" | "/dashboard/settings/developer" = "/dashboard/settings/accounts";
+  let activeValue: 
+    | "/dashboard/settings/accounts" 
+    | "/dashboard/settings/personas" 
+    | "/dashboard/settings/pipeline" 
+    | "/dashboard/settings/developer" 
+    = "/dashboard/settings/accounts";
   
   if (pathname?.startsWith("/dashboard/settings/personas")) {
     activeValue = "/dashboard/settings/personas";
+  } else if (pathname?.startsWith("/dashboard/settings/pipeline")) {
+    activeValue = "/dashboard/settings/pipeline";
   } else if (pathname?.startsWith("/dashboard/settings/developer")) {
     activeValue = "/dashboard/settings/developer";
   }

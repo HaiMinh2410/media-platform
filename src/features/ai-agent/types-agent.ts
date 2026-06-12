@@ -440,6 +440,8 @@ export const BLACKLIST_KEYWORDS: readonly string[] = [
 
 /**
  * Map từ blacklist keyword → cụm từ thay thế an toàn.
+ * LƯU Ý QUAN TRỌNG: Các cụm từ thay thế bắt buộc phải trung tính, tuyệt đối không chứa
+ * các từ xưng hô cứng (như em, anh, bạn, mình,...) để tránh làm ghi đè logic xưng hô động.
  */
 export const KEYWORD_REPLACEMENTS: Record<string, string> = {
   'nude': 'thoải mái hơn',
@@ -451,3 +453,4 @@ export const KEYWORD_REPLACEMENTS: Record<string, string> = {
   'lộ hàng': 'gần gũi hơn',
   'không mặc gì': 'thoải mái hơn',
 };
+

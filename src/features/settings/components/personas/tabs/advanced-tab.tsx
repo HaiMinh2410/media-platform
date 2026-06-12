@@ -25,10 +25,13 @@ export function AdvancedTab({ persona, onChange }: AdvancedTabProps) {
     setPreviewPrompt("");
     dialogRef.current?.showModal();
     try {
+      const personaGender = (persona as any)?.gender || 'female';
+      const mockCustomerGender = personaGender === 'female' ? 'male' : 'female';
+
       const res = await fetch("/api/ai-agent/preview-prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ persona }),
+        body: JSON.stringify({ persona, customerGender: mockCustomerGender }),
       });
       if (!res.ok) throw new Error("Failed to fetch preview prompt");
       const data = await res.json();

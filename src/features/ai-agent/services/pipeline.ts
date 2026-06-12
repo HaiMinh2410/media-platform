@@ -17,6 +17,7 @@ import { getTemplateResponse } from './templates';
 import { filterBlacklist, calculateDelay, checkLinkRateLimit, checkSafety } from './safety-checker';
 import { upsertFanProfile } from '@features/ai-agent/repositories/fan-profile.repository';
 import { generateResponse } from './response-generator';
+import { getDynamicPronouns } from './prompts/response-generator.prompt';
 import { detectAndHandleObjection } from './objection-handler';
 import { classifyService } from './classify.service';
 import type { FanProfile, NextAction, ResponseStrategy, ConversationStage, FanType } from '@features/ai-agent/types-agent';
@@ -135,6 +136,24 @@ export async function processIncomingMessage(params: {
       }
     } catch (err) {
       console.error('⚠️ [Orchestrator] Failed to load AIPersona/BotConfig from database:', err);
+    }
+
+    // Phát hiện Fan đổi cách xưng hô giữa chừng (Mid-conversation Pronoun Shift)
+    const personaGender = persona?.gender || 'female';
+    const pronounShiftGender = detectIncomingPronounShift(params.messageText, personaGender);
+    let currentGender = gender;
+    
+    if (pronounShiftGender && pronounShiftGender !== gender) {
+      console.log(`🔄 [Orchestrator] Mid-conversation Pronoun Shift detected! Overriding customer gender from '${gender}' to '${pronounShiftGender}' in DB and runtime.`);
+      currentGender = pronounShiftGender;
+      try {
+        await db.conversation.update({
+          where: { id: params.conversationId },
+          data: { gender: pronounShiftGender },
+        });
+      } catch (dbErr) {
+        console.error(`⚠️ [Orchestrator] Failed to update conversation gender in DB:`, dbErr);
+      }
     }
 
     // Xác định phiên bản thử nghiệm A/B nhất quán cho cuộc hội thoại này (A/B Test Routing)
@@ -462,7 +481,13 @@ export async function processIncomingMessage(params: {
     await sendStatus('AI đang tìm kiếm và xử lý phản đối từ kịch bản...');
     // 5. Objection Handling - Early Intercept (Xử lý các tin nhắn phản đối bám sát Playbook 2.0)
     console.log(`🔍 [Orchestrator] Running Objection Handler for message...`);
-    const objectionResult = await detectAndHandleObjection(params.messageText, tempProfile, link);
+    const objectionResult = await detectAndHandleObjection(
+      params.messageText,
+      tempProfile,
+      link,
+      persona,
+      currentGender
+    );
 
     if (objectionResult) {
       console.log(`⚠️ [Orchestrator] Objection detected: '${objectionResult.objectionType}'. Intercepting and responding...`);
@@ -504,7 +529,7 @@ export async function processIncomingMessage(params: {
         },
         contextSummary: tempProfile.lastSummary ? (tempProfile.lastSummary as any) : undefined,
         abTestVariant,
-        gender
+        gender: currentGender
       });
 
       if (genResult.data) {
@@ -527,7 +552,8 @@ export async function processIncomingMessage(params: {
         modelUsed = genResult.modelUsed || 'Rule-based-Phase-1';
       } else {
         // Fallback to Rule-based template
-        rawReply = getTemplateResponse(tempProfile.fanType, tempProfile.stage, link);
+        const { agentPronoun, fanPronoun } = getDynamicPronouns(persona, currentGender);
+        rawReply = getTemplateResponse(tempProfile.fanType, tempProfile.stage, link, agentPronoun, fanPronoun);
         modelUsed = 'Rule-based-Phase-1';
       }
     }
@@ -628,4 +654,65 @@ export async function processIncomingMessage(params: {
       }
     }
   }
+}
+
+/**
+ * Quét nhanh tin nhắn mới của Fan để phát hiện xem Fan có chủ động thay đổi cách xưng hô
+ * (quay xe từ khách sáo sang thân mật anh-em, chị-em) hay không.
+ * Trả về giới tính khách hàng tương ứng ('male' | 'female') nếu phát hiện sự chuyển dịch rõ ràng,
+ * ngược lại trả về null để giữ nguyên trạng thái cũ.
+ *
+ * Chỉ ghi nhận dịch chuyển xưng hô khi có từ khóa tự xưng đứng đầu câu/đi kèm động từ chỉ định rõ,
+ * loại trừ các từ chỉ bên thứ ba (anh trai, chị gái, em gái) để tránh False Positive.
+ */
+export function detectIncomingPronounShift(
+  messageText: string,
+  personaGender: string
+): 'male' | 'female' | null {
+  const text = messageText.toLowerCase().trim();
+  
+  if (personaGender === 'female') {
+    // Creator là NỮ (xưng em)
+    // 1. Phát hiện Fan xưng Anh - gọi Em (thân mật nam-nữ)
+    // Loại trừ từ chỉ bên thứ ba
+    const hasThirdPersonMale = /\b(anh\s+trai|anh\s+họ|anh\s+ấy|anh\s+rể|ông\s+anh)\b/i.test(text);
+    
+    // Fan tự xưng là "anh" ở đầu câu hoặc đi kèm hành động trực tiếp
+    const maleSelfCall = /^(?:dạ\s+)?anh\s+(chào|muốn|thích|cần|bảo|xem|gửi|hỏi|nghĩ|thấy|đang|vừa|chưa|mua|lấy)\b/i.test(text) ||
+                         /\b(cho\s+anh\s+hỏi|anh\s+muốn|anh\s+thích|anh\s+cần|anh\s+xem|anh\s+gửi|anh\s+chào)\b/i.test(text);
+                         
+    // Fan gọi creator nữ là em
+    const callAgentFemale = /\b(em\s+ơi|chào\s+em|gửi\s+em\b|cho\s+em\b|của\s+em\b|với\s+em\b|nhé\s+em|nha\s+em)\b/i.test(text);
+
+    if (!hasThirdPersonMale && (maleSelfCall || callAgentFemale)) {
+      return 'male';
+    }
+
+    // 2. Phát hiện Fan xưng Chị - gọi Em (thân mật nữ-nữ)
+    const hasThirdPersonFemale = /\b(chị\s+gái|chị\s+họ|chị\s+ấy|bà\s+chị)\b/i.test(text);
+    
+    const femaleSelfCall = /^(?:dạ\s+)?chị\s+(chào|muốn|thích|cần|bảo|xem|gửi|hỏi|nghĩ|thấy|đang|vừa|chưa|mua|lấy)\b/i.test(text) ||
+                           /\b(cho\s+chị\s+hỏi|chị\s+muốn|chị\s+thích|chị\s+cần|chị\s+xem|chị\s+gửi|chị\s+chào)\b/i.test(text);
+
+    if (!hasThirdPersonFemale && (femaleSelfCall || (callAgentFemale && /\bchị\b/i.test(text)))) {
+      return 'female';
+    }
+  } else {
+    // Creator là NAM (xưng anh)
+    // Phát hiện Fan xưng Em - gọi Anh (thân mật nữ-nam hoặc em-anh)
+    const hasThirdPersonEm = /\b(em\s+gái|em\s+trai|em\s+họ|em\s+ấy|nhóc\s+em)\b/i.test(text);
+    
+    // Fan tự xưng là em
+    const femaleSelfCallToMale = /^(?:dạ\s+)?em\s+(chào|muốn|thích|cần|bảo|xem|gửi|hỏi|nghĩ|thấy|đang|vừa|chưa|mua|lấy)\b/i.test(text) ||
+                                 /\b(cho\s+em\s+hỏi|em\s+muốn|em\s+thích|em\s+cần|em\s+xem|em\s+gửi|em\s+chào)\b/i.test(text);
+                                 
+    // Fan gọi creator nam là anh
+    const callAgentMale = /\b(anh\s+ơi|chào\s+anh|gửi\s+anh\b|cho\s+anh\b|của\s+anh\b|với\s+anh\b|nhé\s+anh|nha\s+anh)\b/i.test(text);
+
+    if (!hasThirdPersonEm && (femaleSelfCallToMale || callAgentMale)) {
+      return 'female'; // Trả về 'female' để kích hoạt cặp xưng hô Anh (Creator) - Em (Fan)
+    }
+  }
+
+  return null;
 }

@@ -8,6 +8,17 @@
 import type { FanProfile, SafetyCheckResult, SafetyViolation } from '@features/ai-agent/types-agent';
 import { KEYWORD_REPLACEMENTS, AI_AGENT_DEFAULTS } from '@features/ai-agent/types-agent';
 
+// Runtime validation (Defensive Programming): Đảm bảo không có cụm từ thay thế nào chứa đại từ xưng hô tĩnh cấm
+Object.entries(KEYWORD_REPLACEMENTS).forEach(([keyword, replacement]) => {
+  const forbiddenPronounsRegex = /\b(em|anh|chị|bạn|mình)\b/i;
+  if (forbiddenPronounsRegex.test(replacement)) {
+    throw new Error(
+      `[SafetyChecker Security Violation]: Cụm từ thay thế an toàn cho từ khóa "${keyword}" chứa từ xưng hô cấm "${replacement}". ` +
+      `Các cụm từ thay thế trong KEYWORD_REPLACEMENTS bắt buộc phải hoàn toàn trung tính (không chứa em, anh, chị, bạn, mình) để tránh làm lệch bộ lọc xưng hô động.`
+    );
+  }
+});
+
 /**
  * Lọc và tự động thay thế tất cả các từ khóa nhạy cảm nằm trong danh sách cấm (blacklist).
  * Thực hiện tìm kiếm không phân biệt chữ hoa thường (case-insensitive) và thay thế bằng từ ngữ an toàn hơn.
@@ -26,7 +37,12 @@ export function filterBlacklist(text: string, persona?: any): string {
   for (const [keyword, replacement] of Object.entries(KEYWORD_REPLACEMENTS)) {
     // Tạo regular expression không phân biệt chữ hoa chữ thường và thay thế toàn cục
     const regex = new RegExp(keyword, 'gi');
-    sanitized = sanitized.replace(regex, replacement);
+    // Phòng thủ bổ sung tại runtime: loại bỏ đại từ xưng hô tĩnh cấm khỏi replacement nếu có
+    const safeReplacement = replacement
+      .replace(/\b(em|anh|chị|bạn|mình)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    sanitized = sanitized.replace(regex, safeReplacement);
   }
 
   // Lọc các từ khóa cấm tự định nghĩa bởi user (blacklist_keywords)

@@ -2,6 +2,7 @@ import { db } from "@shared/lib/db";
 
 import { groqClient } from '@features/ai-agent/services/groq-client';
 import { longContextSummaryPrompt } from './prompts/long-context-summary.prompt';
+import { getDynamicPronouns } from './prompts/response-generator.prompt';
 import type { FanProfile, ConversationSummary } from '@features/ai-agent/types-agent';
 
 /**
@@ -37,12 +38,38 @@ export async function summarizeConversation(
       timestamp: msg.createdAt.toISOString(),
     }));
 
+    // 2.5 Fetch conversation with platform_accounts, persona, and customerGender
+    let persona: any = null;
+    let customerGender: string | null = null;
+    try {
+      const conversation = await db.conversation.findUnique({
+        where: { id: conversationId },
+        include: {
+          platform_accounts: {
+            include: {
+              ai_personas: true,
+            },
+          },
+        },
+      });
+      persona = conversation?.platform_accounts?.ai_personas || null;
+      customerGender = conversation?.gender || null;
+    } catch (err) {
+      console.error('⚠️ [ContextSummarizer] Failed to load conversation/persona for summarization:', err);
+    }
+
+    const { agentPronoun, fanPronoun } = getDynamicPronouns(persona, customerGender);
+
     // 3. Prepare Prompt context
-    const systemPrompt = longContextSummaryPrompt.system;
+    const systemPrompt = typeof longContextSummaryPrompt.system === 'function'
+      ? longContextSummaryPrompt.system({ agent_pronoun: agentPronoun, fan_pronoun: fanPronoun })
+      : longContextSummaryPrompt.system;
+
     const userPrompt = longContextSummaryPrompt.user({
       history: formattedHistory,
       currentProfile,
       now: new Date().toISOString(),
+      agent_pronoun: agentPronoun,
     });
 
     // 4. Invoke Groq with llama-3.3-70b-versatile for high reasoning quality

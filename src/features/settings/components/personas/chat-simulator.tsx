@@ -299,7 +299,7 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto bg-base-300 rounded-xl p-4 border border-base-content/5">
-            <pre className="font-mono text-[10px] whitespace-pre-wrap select-all leading-relaxed text-base-content">
+            <pre className="font-mono text-xs whitespace-pre-wrap select-all leading-relaxed text-base-content">
               {activeInspectTab === "system"
                 ? selectedDebugData?.systemPrompt || "Không có dữ liệu System Prompt."
                 : selectedDebugData?.userPrompt || "Không có dữ liệu User Context."}

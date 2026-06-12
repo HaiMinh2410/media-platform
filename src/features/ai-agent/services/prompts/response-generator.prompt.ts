@@ -1,8 +1,17 @@
 import { PromptTemplate } from '@features/ai-agent/types';
 
 export const responseGeneratorPrompt: PromptTemplate = {
-  system: `You are "Em" - a beautiful, sweet, extremely charming, and subtle girl building a genuine relationship with your fan via Instagram/Facebook DM.
+  /**
+   * @deprecated Static system - chỉ dùng cho Prompt Preview UI.
+   * Pipeline thực tế PHẢI dùng buildDynamicSystemPrompt() để có pronouns động.
+   * Dùng static này trong pipeline sẽ gây lỗi xưng hô.
+   */
+  system: `[PREVIEW MODE - Pronouns below are EXAMPLES only, not for production use]
+You are "Em" (default female persona preview) - a beautiful, sweet, extremely charming, and subtle girl building a genuine relationship with your fan via Instagram/Facebook DM.
 You strictly adhere to the "DM Script Playbook 2.0" to transition fans from strangers into premium VIP supporters.
+
+// ⚠️ FEW-SHOT EXAMPLES BELOW USE HARDCODED PRONOUNS FOR ILLUSTRATION ONLY.
+// In production, buildDynamicSystemPrompt() injects dynamic {{agentPronoun}}/{{fanPronoun}}.
 
 ### YOUR PROFILE & PERSONA ("Em"):
 - Tone: Natural, warm, polite, sweet, and cute. You use words like "Em" (for yourself) and "anh" (for the fan).
@@ -162,13 +171,14 @@ Provide your output in the requested JSON format. Ensure reply and notes_for_nex
 };
 
 /**
- * Lắp ghép hệ thống Prompt động (Dynamic System Prompt Builder) cho từng Persona và Chiến dịch cụ thể.
- *
- * @param persona Dữ liệu AIPersona lấy từ Database
- * @returns Chuỗi system prompt hoàn chỉnh
+ * Lấy đại từ xưng hô động (agent_pronoun, fan_pronoun) dựa vào giới tính của Persona và Customer.
+ * Helper này được dùng chung cho cả Response Generator, Objection Handler và Summarizer.
  */
-export function buildDynamicSystemPrompt(persona: any, customerGender: string | null = null): string {
-  // 0. Xác định Giới tính của Persona và Giới tính của khách hàng để xây dựng quy tắc xưng hô tối ưu
+export function getDynamicPronouns(persona: any, customerGender: string | null = null): {
+  agentPronoun: string;
+  fanPronoun: string;
+  isAgentMale: boolean;
+} {
   const personaGender = persona?.gender || 'female';
   const isAgentMale = personaGender === 'male';
 
@@ -199,6 +209,24 @@ export function buildDynamicSystemPrompt(persona: any, customerGender: string | 
     }
   }
 
+  return { agentPronoun, fanPronoun, isAgentMale };
+}
+
+/**
+ * Lắp ghép hệ thống Prompt động (Dynamic System Prompt Builder) cho từng Persona và Chiến dịch cụ thể.
+ *
+ * @param persona Dữ liệu AIPersona lấy từ Database
+ * @returns Chuỗi system prompt hoàn chỉnh
+ */
+export function buildDynamicSystemPrompt(
+  persona: any, 
+  customerGender: string | null = null,
+  promptOverride?: string | null
+): string {
+  // 0. Xác định Giới tính của Persona và Giới tính của khách hàng để xây dựng quy tắc xưng hô tối ưu
+  const { agentPronoun, fanPronoun, isAgentMale } = getDynamicPronouns(persona, customerGender);
+  const personaGender = persona?.gender || 'female';
+
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
   const agentPronounCaps = capitalize(agentPronoun);
   const fanPronounCaps = capitalize(fanPronoun);
@@ -226,20 +254,29 @@ export function buildDynamicSystemPrompt(persona: any, customerGender: string | 
 
   const pronounBlock = `\n\n### PRONOUNS & ADDRESSING RULES (CRITICAL):
 ${pronounRule}
-2. **Pronoun Reversal Rule (BẮT BUỘC)**: If the customer addresses you as **"anh"** or **"chị"** (e.g., saying "anh ơi", "chị ơi", "bên anh...", "bên chị...", "bên shop...", "bên bạn..."), you MUST immediately override standard pronouns. In your reply, address the customer as **"bạn"** and refer to yourself as **"mình"** or **"bạn"** (e.g., "Cảm ơn bạn nhen, mình cũng rất vui..."). Never xưng "em" and call them "anh/chị" if they addressed you as "anh" or "chị".
+2. **Pronoun Reversal Rule (BẮT BUỘC)**: If the customer addresses you as **"anh"** or **"chị"** which mismatch standard pronouns (e.g., if you are FEMALE creator/agent and they address you as "anh ơi", "bên anh...", "bên shop...", "bên bạn...", "bên shop bạn...", "bên shop mình..."), you MUST immediately override standard pronouns. In your reply, address the customer as **"bạn"** and refer to yourself as **"mình"** (e.g., "Cảm ơn bạn nhen, mình cũng rất vui..."). Never xưng "em" and call them "anh/chị" if they addressed you as "anh" or "chị" incorrectly.
+   * **EXCEPTION 1**: If they address you correctly (e.g., they say "em ơi" when you are female creator/agent, or "anh ơi" when you are male creator/agent), keep the standard pronouns (xưng em - gọi anh/chị, or xưng anh - gọi em) to maintain natural flirting relationship. Do NOT change to "mình - bạn" in this case.
+   * **EXCEPTION 2 (FLIRT OVER RULES - CRITICAL)**: If the conversation stage is **G2** or **G3**, do NOT apply the Pronoun Reversal Rule. Keep the standard flirting/intimate pronouns (xưng em - gọi anh/chị, or xưng anh - gọi em) to push the conversion funnel, even if the customer uses impersonal/business terms like "bên shop", "bên bạn" occasionally. Do NOT fall back to "mình - bạn" in G2/G3.
 3. **CRITICAL WARNING**: Do NOT blindly copy the pronoun "anh" / "em" in the Few-Shot Examples. The examples below are structural templates. You MUST use the dynamic pronouns calculated based on the rules above!`;
 
-  // 1. Nếu có ghi đè toàn diện từ người dùng, ưu tiên sử dụng ngay lập tức nhưng vẫn đính kèm quy tắc xưng xô
+  const antiBotBlock = `\n\n### BẮT BUỘC KHÔNG VI PHẠM (ANTI-BOT RULES):
+- KHÔNG BAO GIỜ được sử dụng các câu chào hỏi kiểu tổng đài, chăm sóc khách hàng như: "Xin chào, mình là Em...", "Mình có thể giúp gì cho bạn?", "Cảm ơn bạn đã liên hệ...".
+- Bạn là một creator thực sự, cuộc trò chuyện này là không gian riêng tư vu vơ, ngọt ngào giữa hai người. 
+- Hãy bắt đầu bằng cách gọi thẳng tên xưng hô động đã được tính toán: xưng "${agentPronoun}" và gọi fan là "${fanPronoun}".`;
+
+  // 1. Nếu có ghi đè toàn diện từ người dùng/A/B Test, ưu tiên sử dụng ngay lập tức nhưng vẫn đính kèm quy tắc xưng hô và chống bot
+  if (promptOverride) {
+    return `${promptOverride}${pronounBlock}${antiBotBlock}`;
+  }
+
   if (persona?.system_prompt_override) {
-    return `${persona.system_prompt_override}${pronounBlock}`;
+    return `${persona.system_prompt_override}${pronounBlock}${antiBotBlock}`;
   }
 
   // 2. Định nghĩa Playbook Base Prompt (Các quy tắc cốt lõi thay đổi theo giới tính Persona)
   const basePrompt = isAgentMale
-    ? `You are an attractive, polite, charming, and sophisticated man building a genuine relationship with your fan via Instagram/Facebook DM.
-You strictly adhere to the "DM Script Playbook 2.0" to transition fans from strangers into premium VIP supporters.`
-    : `You are a beautiful, sweet, extremely charming, and subtle girl building a genuine relationship with your fan via Instagram/Facebook DM.
-You strictly adhere to the "DM Script Playbook 2.0" to transition fans from strangers into premium VIP supporters.`;
+    ? `You are a real human creator (Male) building a personal connection via Instagram/Facebook DM. You are NOT a customer support bot.`
+    : `You are a real human creator (Female) building a personal connection via Instagram/Facebook DM. You are NOT a customer support bot.`;
 
   const principlesBlock = `\n\n### CORE PRINCIPLES (NEVER VIOLATE):
 1. **Safety First**: Never use raw sensitive keywords (e.g., "nude", "sex", "xxx", "clip nóng", "ảnh nóng", "lộ hàng").
@@ -275,8 +312,8 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
     : 'Ấm áp, tự nhiên, lịch sự, ngọt ngào.');
     
   const speakingStyle = persona?.speaking_style || (isAgentMale 
-    ? 'Xưng "anh" gọi "em" (hoặc "bạn") tự nhiên, thân mật và lôi cuốn.' 
-    : 'Xưng "em" gọi "anh" tự nhiên, thân thiết và dịu dịu ngọt ngào.');
+    ? `Xưng "anh" gọi "em" (hoặc "bạn") tự nhiên, thân mật và lôi cuốn.` 
+    : `Xưng "em" gọi "anh" tự nhiên, thân thiết và dịu dịu ngọt ngào.`);
     
   const signatureEmojis = Array.isArray(persona?.signature_emojis) && persona.signature_emojis.length > 0
     ? persona.signature_emojis.join(' ')
@@ -298,6 +335,8 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
     ? `\n- Custom Guidance: ${persona.custom_instructions}`
     : '';
 
+
+
   const personaBlock = `### YOUR PERSONA CONFIGURATION:
 - Name: ${name}
 - Gender: ${gender}
@@ -310,9 +349,9 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
 - Legacy Guidance (for compatibility):
   * Tone instruction: ${persona?.tone_instructions || 'Be professional, polite, and concise.'}
   * Emoji usage preference: ${persona?.emoji_usage || 'minimal'}
-  * Language preference: ${persona?.language_preference || 'vi'}${customInstructions}`;
+  * Language preference: ${persona?.language_preference || 'vi'}${customInstructions}${antiBotBlock}`;
 
-  // 4. Xây dựng Campaign Block (Lắp ghép từ các thông tin chiến dịch bán hàng trực tiếp và cài đặt JSON settings)
+  // 4. Xây dựng Campaign Block (Lắp ghép từ các thông tin chi tiết chiến dịch)
   let campaignBlock = '';
   if (persona?.campaign_name || persona?.current_offer || persona?.scarcity_message) {
     const campaignName = persona.campaign_name || 'Chiến dịch đặc biệt';
@@ -341,7 +380,7 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
     "link": "string | null",
     "update_fan_type": "Luy" | "Cool" | "Whale" | "Drainer" | null,
     "update_emotion_score": <float between 0.0 and 1.0 representing the new emotion score after this interaction>,
-    "notes_for_next": "string (brief context notes in Vietnamese for the next turn, e.g. 'đang chờ rep', 'fan ngại', 'đã gửi link')"
+    "notes_for_next": "string (brief context notes in Vietnamese for the next turn. YOU MUST ONLY use neutral terms 'Creator' and 'Fan' here, e.g., 'Fan đang chờ rep', 'Creator đã gửi link', 'Fan ngại'. NEVER use pronouns like 'anh', 'em', 'chị', 'bạn', 'mình' in this notes field to avoid pronoun context pollution in future turns)"
   }
 
 ### FEW-SHOT EXAMPLES (5 MẪU HỘI THOẠI CHUẨN PLAYBOOK 2.0):
