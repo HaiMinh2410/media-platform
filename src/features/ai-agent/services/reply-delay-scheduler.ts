@@ -25,6 +25,7 @@ export interface AIDelayedReplyPayload {
   externalSenderId: string;
   token?: string | null;
   aiLogId: string;
+  firstMessageTimestamp?: number;
 }
 
 declare global {
@@ -74,6 +75,7 @@ export async function scheduleDelayedReply(
   // Khai báo jobId duy nhất dựa trên conversationId để hỗ trợ cơ chế Debounce
   const jobId = `reply-${payload.conversationId}`;
   let finalDelayMs = delayMs;
+  let firstMessageTimestamp = Date.now();
 
   try {
     // Tự động hủy tin nhắn cũ đã lên lịch trước đó cho hội thoại này nếu fan nhắn tin mới (Debounce)
@@ -82,19 +84,27 @@ export async function scheduleDelayedReply(
       const state = await existingJob.getState();
       // Chỉ debounce và giữ mốc thời gian nếu job cũ chưa được thực thi (ở trạng thái delayed hoặc waiting)
       if (state === 'delayed' || state === 'waiting') {
+        firstMessageTimestamp = existingJob.data.firstMessageTimestamp || existingJob.timestamp;
         const originalTimestamp = existingJob.timestamp;
         const originalDelay = existingJob.opts.delay || 0;
         const originalTargetTimestamp = originalTimestamp + originalDelay;
         const proposedTargetTimestamp = Date.now() + delayMs;
 
-        // Chọn thời điểm gửi sớm nhất của 2 job để tránh dời thời gian chờ vô tận khi khách nhắn liên tục
-        const finalTargetTimestamp = Math.min(originalTargetTimestamp, proposedTargetTimestamp);
+        // Cửa sổ trượt (Sliding Window): Đẩy lịch hẹn lùi lại (Math.max)
+        // Nhưng giới hạn thời gian delay tối đa (Max Delay Cap) không quá 45 phút kể từ tin nhắn đầu tiên
+        const maxDelayCapMs = 45 * 60 * 1000; // 45 minutes
+        const absoluteMaxTargetTimestamp = firstMessageTimestamp + maxDelayCapMs;
+
+        const finalTargetTimestamp = Math.min(
+          Math.max(originalTargetTimestamp, proposedTargetTimestamp),
+          absoluteMaxTargetTimestamp
+        );
         
         // Đặt độ trễ tối thiểu (ví dụ 10 giây) để tránh gửi tin dồn dập ngay lập tức khi khách vừa nhắn xong tin mới
         const minDelayMs = Math.min(10000, delayMs);
         finalDelayMs = Math.max(minDelayMs, finalTargetTimestamp - Date.now());
 
-        console.log(`🔄 [DelayScheduler] Found existing job '${jobId}'. Original target: ${new Date(originalTargetTimestamp).toISOString()}, Proposed: ${new Date(proposedTargetTimestamp).toISOString()}. Adjusting final delay to: ${finalDelayMs / 1000}s`);
+        console.log(`🔄 [DelayScheduler] Found existing job '${jobId}'. First message: ${new Date(firstMessageTimestamp).toISOString()}, Original target: ${new Date(originalTargetTimestamp).toISOString()}, Proposed: ${new Date(proposedTargetTimestamp).toISOString()}, Final target: ${new Date(finalTargetTimestamp).toISOString()}. Adjusting final delay to: ${finalDelayMs / 1000}s`);
       }
       
       await existingJob.remove();
@@ -106,8 +116,8 @@ export async function scheduleDelayedReply(
 
   console.log(`⏱️ [DelayScheduler] Scheduling delayed reply for conversation ${payload.conversationId} in ${finalDelayMs / 1000}s`);
 
-  // Thêm job trì hoãn vào Queue với tùy chọn delay
-  await aiAgentReplyQueue.add('delayed-reply', payload, {
+  // Thêm job trì hoãn vào Queue với tùy chọn delay và payload đã đính kèm firstMessageTimestamp
+  await aiAgentReplyQueue.add('delayed-reply', { ...payload, firstMessageTimestamp }, {
     delay: finalDelayMs,
     jobId,
   });

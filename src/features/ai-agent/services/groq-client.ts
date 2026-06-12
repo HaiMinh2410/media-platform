@@ -26,8 +26,22 @@ export const groqClient = {
         jsonMode = false,
       } = options;
 
+      let finalMessages = [...messages];
+      if (jsonMode) {
+        const hasJsonKeyword = messages.some(m => 
+          m.content?.toLowerCase().includes('json')
+        );
+        if (!hasJsonKeyword && finalMessages.length > 0) {
+          const lastMsg = finalMessages[finalMessages.length - 1];
+          finalMessages[finalMessages.length - 1] = {
+            ...lastMsg,
+            content: `${lastMsg.content}\n\n[System Instruction: You must output a valid JSON object. Ensure the response conforms to the JSON format specifications.]`
+          };
+        }
+      }
+
       const response = await groq.chat.completions.create({
-        messages: messages as Groq.Chat.ChatCompletionMessageParam[],
+        messages: finalMessages as Groq.Chat.ChatCompletionMessageParam[],
         model,
         temperature,
         max_tokens: maxTokens,

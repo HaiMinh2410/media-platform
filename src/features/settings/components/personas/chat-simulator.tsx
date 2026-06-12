@@ -29,6 +29,7 @@ type Message = {
     confidence?: number;
     systemPrompt?: string;
     userPrompt?: string;
+    isError?: boolean;
   };
 };
 
@@ -43,6 +44,94 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const [customerGender, setCustomerGender] = useState<string | null>(null);
+  const [mockScenario, setMockScenario] = useState<string>("none");
+
+  const applyScenario = async (scenario: "none" | "male_senior" | "female_young" | "vip_inquiry") => {
+    setMockScenario(scenario);
+    let gender: string | null = null;
+    let initialMessage = "";
+
+    if (scenario === "male_senior") {
+      gender = "male";
+      initialMessage = "Chào em, anh là Nam. Nghe nói bên mình có dịch vụ nào đặc biệt không?";
+    } else if (scenario === "female_young") {
+      gender = "female";
+      initialMessage = "Chị chào em nha, chị muốn tìm hiểu thêm về gói đăng ký.";
+    } else if (scenario === "vip_inquiry") {
+      gender = "male";
+      initialMessage = "Gói VIP của bên em bao gồm những gì thế? Anh muốn mua trực tiếp.";
+    } else {
+      gender = null;
+      initialMessage = "Cho mình xin giá sản phẩm nhé";
+    }
+
+    setCustomerGender(gender);
+    
+    const newMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: initialMessage,
+    };
+    setMessages([newMsg]);
+    setIsTyping(true);
+
+    try {
+      const res = await fetch(`/api/ai-personas/simulator`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountId,
+          persona: personaDraft,
+          incomingMessage: initialMessage,
+          history: [],
+          customerGender: gender,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`API Error ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      const newAiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: data.reply || "Dạ vâng ạ.",
+        debug: {
+          action: data.action,
+          reasoning: data.reasoning,
+          confidence: data.confidence,
+          systemPrompt: data.systemPrompt,
+          userPrompt: data.userPrompt,
+          isError: data.isError,
+        },
+      };
+
+      setMessages([newMsg, newAiMsg]);
+    } catch (error) {
+      console.warn("Simulator API error/fallback:", error);
+      setTimeout(() => {
+        const fallbackMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `Disconnected: Không kết nối được API Simulator. Vui lòng kiểm tra Server Log!`,
+          debug: {
+            action: "continue",
+            reasoning: "API error, fallback mock response.",
+            confidence: 0.95,
+            isError: true,
+          },
+        };
+        setMessages((prev) => [...prev, fallbackMsg]);
+        setIsTyping(false);
+      }, 1000);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   const [activeInspectTab, setActiveInspectTab] = useState<"system" | "user">("system");
   const [selectedDebugData, setSelectedDebugData] = useState<{
@@ -112,6 +201,7 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
           persona: personaDraft,
           incomingMessage: newUserMsg.content,
           history,
+          customerGender,
         }),
       });
 
@@ -131,6 +221,7 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
           confidence: data.confidence,
           systemPrompt: data.systemPrompt,
           userPrompt: data.userPrompt,
+          isError: data.isError,
         },
       };
 
@@ -142,11 +233,12 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
         const fallbackMsg: Message = {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: `(Mock) Dạ vâng ạ, chào bạn! Mình là ${personaDraft.name || "Em"}. Đây là giá của sản phẩm ạ: 500k.`,
+          content: `Disconnected: Không kết nối được API Simulator. Vui lòng kiểm tra Server Log!`,
           debug: {
             action: "send_price",
             reasoning: "User asked for price, providing mock data.",
             confidence: 0.95,
+            isError: true,
           },
         };
         setMessages((prev) => [...prev, fallbackMsg]);
@@ -160,6 +252,50 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
 
   return (
     <div className="flex flex-col h-full bg-base-100 relative">
+      {/* Toolbar chọn ngữ cảnh nhanh */}
+      <div className="px-4 py-2 bg-base-200 border-b border-base-content/5 flex flex-wrap gap-2 items-center justify-between">
+        <span className="text-2xs font-bold text-base-content/40 uppercase tracking-wider">Mockup Context:</span>
+        <div className="flex flex-wrap gap-1">
+          <button
+            type="button"
+            onClick={() => applyScenario("male_senior")}
+            className={cn(
+              "btn btn-xs font-semibold rounded-full border border-base-content/10",
+              mockScenario === "male_senior" ? "btn-primary text-primary-content" : "btn-ghost text-base-content/80"
+            )}
+          >
+            🧑 Nam lớn
+          </button>
+          <button
+            type="button"
+            onClick={() => applyScenario("female_young")}
+            className={cn(
+              "btn btn-xs font-semibold rounded-full border border-base-content/10",
+              mockScenario === "female_young" ? "btn-primary text-primary-content" : "btn-ghost text-base-content/80"
+            )}
+          >
+            👩 Nữ lớn (Chị)
+          </button>
+          <button
+            type="button"
+            onClick={() => applyScenario("vip_inquiry")}
+            className={cn(
+              "btn btn-xs font-semibold rounded-full border border-base-content/10",
+              mockScenario === "vip_inquiry" ? "btn-primary text-primary-content" : "btn-ghost text-base-content/80"
+            )}
+          >
+            💎 Hỏi VIP
+          </button>
+          <button
+            type="button"
+            onClick={() => applyScenario("none")}
+            className="btn btn-xs btn-neutral btn-outline font-semibold rounded-full"
+          >
+            🔄 Reset
+          </button>
+        </div>
+      </div>
+
       <div
         className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-custom"
         ref={scrollRef}
@@ -187,7 +323,9 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
                 "chat-bubble text-sm shadow-xs",
                 msg.role === "user"
                   ? "chat-bubble-primary"
-                  : "bg-base-200 text-base-content border border-base-content/5",
+                  : msg.debug?.isError
+                    ? "bg-error/10 text-error border border-error/20"
+                    : "bg-base-200 text-base-content border border-base-content/5",
               )}
             >
               {msg.content}
@@ -196,7 +334,14 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
             {/* Debug Info for Assistant messages */}
             {msg.role === "assistant" && msg.debug && (
               <div className="chat-footer opacity-90 mt-1.5 w-full max-w-[85%]">
-                <div className="p-2.5 rounded-lg bg-success/15 border border-success/10 text-xs text-success">
+                <div 
+                  className={cn(
+                    "p-2.5 rounded-lg text-xs border",
+                    msg.debug.isError 
+                      ? "bg-error/15 border-error/10 text-error" 
+                      : "bg-success/15 border-success/10 text-success"
+                  )}
+                >
                   <div>Action: {msg.debug.action}</div>
                   {msg.debug.confidence && (
                     <div className="mb-0.5">
@@ -210,7 +355,10 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
                     <button
                       type="button"
                       onClick={() => handleInspectPrompt(msg.debug!)}
-                      className="mt-2 text-success hover:underline font-bold flex items-center gap-1 cursor-pointer w-fit"
+                      className={cn(
+                        "mt-2 hover:underline font-bold flex items-center gap-1 cursor-pointer w-fit",
+                        msg.debug.isError ? "text-error" : "text-success"
+                      )}
                     >
                       🔍 Inspect Prompt
                     </button>

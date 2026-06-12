@@ -171,6 +171,18 @@ Provide your output in the requested JSON format. Ensure reply and notes_for_nex
 };
 
 /**
+ * Chuẩn hóa giá trị giới tính khách hàng (customerGender) từ bất kỳ định dạng chuỗi nào
+ * (ví dụ: 'MALE', 'nam', 'FEMALE', 'nữ') về dạng chuẩn 'male' | 'female' | null.
+ */
+export function sanitizeGender(gender: any): string | null {
+  if (typeof gender !== 'string') return null;
+  const clean = gender.trim().toLowerCase();
+  if (clean === 'male' || clean === 'nam' || clean === 'm') return 'male';
+  if (clean === 'female' || clean === 'nữ' || clean === 'nu' || clean === 'f') return 'female';
+  return null;
+}
+
+/**
  * Lấy đại từ xưng hô động (agent_pronoun, fan_pronoun) dựa vào giới tính của Persona và Customer.
  * Helper này được dùng chung cho cả Response Generator, Objection Handler và Summarizer.
  */
@@ -179,6 +191,7 @@ export function getDynamicPronouns(persona: any, customerGender: string | null =
   fanPronoun: string;
   isAgentMale: boolean;
 } {
+  const cleanGender = sanitizeGender(customerGender);
   const personaGender = persona?.gender || 'female';
   const isAgentMale = personaGender === 'male';
 
@@ -186,10 +199,10 @@ export function getDynamicPronouns(persona: any, customerGender: string | null =
   let fanPronoun = 'anh';
 
   if (isAgentMale) {
-    if (customerGender === 'female') {
+    if (cleanGender === 'female') {
       agentPronoun = 'anh';
       fanPronoun = 'em';
-    } else if (customerGender === 'male') {
+    } else if (cleanGender === 'male') {
       agentPronoun = 'em';
       fanPronoun = 'anh';
     } else {
@@ -197,10 +210,10 @@ export function getDynamicPronouns(persona: any, customerGender: string | null =
       fanPronoun = 'em';
     }
   } else {
-    if (customerGender === 'female') {
+    if (cleanGender === 'female') {
       agentPronoun = 'em';
       fanPronoun = 'chị';
-    } else if (customerGender === 'male') {
+    } else if (cleanGender === 'male') {
       agentPronoun = 'em';
       fanPronoun = 'anh';
     } else {
@@ -223,8 +236,9 @@ export function buildDynamicSystemPrompt(
   customerGender: string | null = null,
   promptOverride?: string | null
 ): string {
+  const cleanGender = sanitizeGender(customerGender);
   // 0. Xác định Giới tính của Persona và Giới tính của khách hàng để xây dựng quy tắc xưng hô tối ưu
-  const { agentPronoun, fanPronoun, isAgentMale } = getDynamicPronouns(persona, customerGender);
+  const { agentPronoun, fanPronoun, isAgentMale } = getDynamicPronouns(persona, cleanGender);
   const personaGender = persona?.gender || 'female';
 
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -234,18 +248,18 @@ export function buildDynamicSystemPrompt(
   let pronounRule = '';
   if (isAgentMale) {
     // Agent là NAM
-    if (customerGender === 'female') {
+    if (cleanGender === 'female') {
       pronounRule = `1. **Customer Gender**: The customer is verified as **FEMALE**. Since you are a **MALE** creator/agent, you MUST address the customer as **"em"** and refer to yourself as **"anh"** by default (e.g., "anh chào em", "em ơi", "anh gửi em nhen").`;
-    } else if (customerGender === 'male') {
+    } else if (cleanGender === 'male') {
       pronounRule = `1. **Customer Gender**: The customer is verified as **MALE**. Since you are a **MALE** creator/agent, you MUST address the customer as **"anh"** and refer to yourself as **"em"** or **"mình"** (friendly bro-to-bro or polite tone, e.g., "em chào anh", "anh ơi", "mình chào bạn").`;
     } else {
       pronounRule = `1. **Customer Gender**: The customer's gender is unknown. Since you are a **MALE** creator/agent, you should default to addressing the customer as **"em"** and refer to yourself as **"anh"** (e.g., "anh chào em", "em ơi").`;
     }
   } else {
     // Agent là NỮ (Default)
-    if (customerGender === 'female') {
+    if (cleanGender === 'female') {
       pronounRule = `1. **Customer Gender**: The customer is verified as **FEMALE**. Since you are a **FEMALE** creator/agent, you MUST address the customer as **"chị"** and refer to yourself as **"em"** by default (e.g., "em chào chị", "chị ơi").`;
-    } else if (customerGender === 'male') {
+    } else if (cleanGender === 'male') {
       pronounRule = `1. **Customer Gender**: The customer is verified as **MALE**. Since you are a **FEMALE** creator/agent, you MUST address the customer as **"anh"** and refer to yourself as **"em"** by default (e.g., "em chào anh", "anh ơi").`;
     } else {
       pronounRule = `1. **Customer Gender**: The customer's gender is unknown. Since you are a **FEMALE** creator/agent, you should default to addressing the customer as **"anh"** and refer to yourself as **"em"** (e.g., "em chào anh", "anh ơi").`;

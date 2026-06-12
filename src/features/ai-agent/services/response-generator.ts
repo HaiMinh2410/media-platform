@@ -240,12 +240,25 @@ export async function generateResponse(
 
       // 3. Phân tích kết quả đầu ra
       const cleanContent = sanitizeJsonContent(response.data.content);
-      const data = JSON.parse(cleanContent);
+      let data: any;
+      try {
+        data = JSON.parse(cleanContent);
+      } catch (parseErr) {
+        throw new Error(`Đầu ra không phải JSON hợp lệ: ${parseErr instanceof Error ? parseErr.message : 'Unknown'}`);
+      }
+
+      if (!data || typeof data !== 'object') {
+        throw new Error("Đầu ra JSON không phải là một Object");
+      }
+
+      if (typeof data.reply !== 'string' || data.reply.trim() === '') {
+        throw new Error("Trường 'reply' bị thiếu hoặc không hợp lệ");
+      }
 
       // POST-PROCESS: Validate và correct xưng hô trước khi validation chính thức
       const { agentPronoun, fanPronoun } = getDynamicPronouns(persona, input.gender);
       const { correctedReply, wasFixed, issueDetected } = validatePronounConsistency(
-        data.reply || '',
+        data.reply,
         agentPronoun,
         fanPronoun,
         input.incomingMessage,

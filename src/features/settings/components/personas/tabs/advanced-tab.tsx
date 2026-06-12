@@ -19,19 +19,16 @@ export function AdvancedTab({ persona, onChange }: AdvancedTabProps) {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isCopied, setIsCopied] = React.useState(false);
   const dialogRef = React.useRef<HTMLDialogElement>(null);
+  const [previewCustomerGender, setPreviewCustomerGender] = React.useState<"male" | "female" | null>(null);
 
-  const handlePreview = async () => {
+  const fetchPreviewPrompt = async (selectedGender: "male" | "female") => {
     setIsPreviewLoading(true);
     setPreviewPrompt("");
-    dialogRef.current?.showModal();
     try {
-      const personaGender = (persona as any)?.gender || 'female';
-      const mockCustomerGender = personaGender === 'female' ? 'male' : 'female';
-
       const res = await fetch("/api/ai-agent/preview-prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ persona, customerGender: mockCustomerGender }),
+        body: JSON.stringify({ persona, customerGender: selectedGender }),
       });
       if (!res.ok) throw new Error("Failed to fetch preview prompt");
       const data = await res.json();
@@ -39,10 +36,22 @@ export function AdvancedTab({ persona, onChange }: AdvancedTabProps) {
     } catch (err) {
       console.error(err);
       toast.error("Không thể tải prompt xem trước.");
-      dialogRef.current?.close();
     } finally {
       setIsPreviewLoading(false);
     }
+  };
+
+  const handlePreview = async () => {
+    dialogRef.current?.showModal();
+    const personaGender = (persona as any)?.gender || 'female';
+    const initialGender = personaGender === 'female' ? 'male' : 'female';
+    setPreviewCustomerGender(initialGender);
+    await fetchPreviewPrompt(initialGender);
+  };
+
+  const handleGenderChange = async (selectedGender: "male" | "female") => {
+    setPreviewCustomerGender(selectedGender);
+    await fetchPreviewPrompt(selectedGender);
   };
 
   const handleCopy = async () => {
@@ -177,6 +186,35 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
           
           <div className="text-xs text-base-content/60 my-2">
             System Prompt dưới đây được lắp ráp động từ các cài đặt của Persona (Tên, tuổi, tính cách, đại từ xưng hô) kết hợp với các chỉ thị ẩn của Playbook 2.0.
+          </div>
+
+          {/* Chọn giới tính khách hàng mockup */}
+          <div className="flex items-center gap-3 py-2 border-b border-base-content/5">
+            <span className="text-xs font-bold text-base-content/60">Giả lập giới tính Fan:</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleGenderChange("male")}
+                className={`btn btn-xs rounded-full ${
+                  previewCustomerGender === "male"
+                    ? "btn-primary text-primary-content"
+                    : "btn-ghost border border-base-content/10"
+                }`}
+              >
+                🙋‍♂️ Khách hàng là Nam
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGenderChange("female")}
+                className={`btn btn-xs rounded-full ${
+                  previewCustomerGender === "female"
+                    ? "btn-primary text-primary-content"
+                    : "btn-ghost border border-base-content/10"
+                }`}
+              >
+                🙋‍♀️ Khách hàng là Nữ
+              </button>
+            </div>
           </div>
           
           {/* Search Bar & Copy Action */}

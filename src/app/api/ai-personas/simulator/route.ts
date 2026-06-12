@@ -15,10 +15,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { persona, incomingMessage, history = [] } = await req.json() as {
+    const { persona, incomingMessage, history = [], customerGender = null } = await req.json() as {
       persona: Record<string, unknown>;
       incomingMessage: string;
       history?: { role: string; content: string }[];
+      customerGender?: string | null;
     };
 
     if (!incomingMessage || !persona) {
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Build dynamic system prompt
-    const systemPrompt = buildDynamicSystemPrompt(persona);
+    const systemPrompt = buildDynamicSystemPrompt(persona, customerGender);
 
     // 2. Map history and create full messages array
     // Map 'you'/'assistant' -> 'assistant' and 'fan'/'user' -> 'user'
@@ -44,7 +45,18 @@ export async function POST(req: NextRequest) {
     const messages = [
       { role: 'system' as const, content: systemPrompt },
       ...mappedHistory,
-      { role: 'user' as const, content: incomingMessage }
+      { 
+        role: 'user' as const, 
+        content: `${incomingMessage}\n\n[System Instruction: Respond ONLY as a JSON object with this exact structure:
+{
+  "reply": "string (your message to the fan in Vietnamese)",
+  "action": "continue" | "send_link" | "soft_exit" | "hard_exit" | "escalate_to_human" | "wait",
+  "link": null,
+  "update_fan_type": null,
+  "update_emotion_score": number (between 0.0 and 1.0),
+  "notes_for_next": "string"
+}]` 
+      }
     ];
 
     // 3. Complete using Groq client with JSON Mode
@@ -80,6 +92,7 @@ export async function POST(req: NextRequest) {
         confidence: 0.5,
         systemPrompt,
         userPrompt: JSON.stringify(messages.slice(1), null, 2),
+        isError: true,
       });
     }
   } catch (error) {
