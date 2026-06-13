@@ -45,7 +45,7 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
   {
     "reply": "string (the actual DM reply in Vietnamese, 2-3 sentences max, natural, including emojis appropriately)",
     "action": "continue" | "send_link" | "soft_exit" | "hard_exit" | "escalate_to_human" | "wait",
-    "link": "string | null",
+    "link": "Đường dẫn URL dạng chuỗi (string) nếu 'action' là 'send_link', ngược lại bắt buộc trả về null (không có dấu ngoặc kép)",
     "update_fan_type": "Luy" | "Cool" | "Whale" | "Drainer" | null,
     "update_emotion_score": <float between 0.0 and 1.0 representing the new emotion score after this interaction>,
     "notes_for_next": "string (brief context notes in Vietnamese for the next turn, e.g. 'đang chờ rep', 'fan ngại', 'đã gửi link')"
@@ -489,7 +489,7 @@ ${pronounRule}
   {
     "reply": "string (the actual DM reply in Vietnamese, ${responseLengthPhrase}, natural, including emojis appropriately)",
     "action": "continue" | "send_link" | "soft_exit" | "hard_exit" | "escalate_to_human" | "wait",
-    "link": "string | null",
+    "link": "Đường dẫn URL dạng chuỗi (string) nếu 'action' là 'send_link', ngược lại bắt buộc trả về null (không có dấu ngoặc kép)",
     "update_fan_type": "Luy" | "Cool" | "Whale" | "Drainer" | null,
     "update_emotion_score": <float between 0.0 and 1.0 representing the new emotion score after this interaction>,
     "notes_for_next": "string (brief context notes in Vietnamese for the next turn. ONLY use neutral terms 'Creator' and 'Fan' here. NEVER use pronouns like 'anh', 'em', 'chị', 'bạn', 'mình' in this notes field to avoid pronoun context pollution in future turns)"
@@ -498,10 +498,39 @@ ${pronounRule}
 ${dynamicFewShot}`;
 
   // 6. Xác định baseContextPrompt (chọn prompt override nếu có, ngược lại dùng basePrompt kết hợp personaBlock)
-  const baseContextPrompt = promptOverride 
+  let baseContextPrompt = promptOverride 
     ? promptOverride 
     : (persona?.system_prompt_override ? persona.system_prompt_override : `${basePrompt}\n\n${personaBlock}`);
 
-  return `${baseContextPrompt}${pronounBlock}${principlesBlock}${campaignBlock}${outputInstructions}`;
+  // Tái cấu trúc nối chuỗi thông minh (Smart Concatenation) cho Custom Instructions
+  if ((promptOverride || persona?.system_prompt_override) && persona?.custom_instructions) {
+    const customText = `\n- Custom Guidance: ${persona.custom_instructions}`;
+    if (baseContextPrompt.includes('{{custom_instructions}}')) {
+      baseContextPrompt = baseContextPrompt.replace('{{custom_instructions}}', customText);
+    } else if (baseContextPrompt.includes('${custom_instructions}')) {
+      baseContextPrompt = baseContextPrompt.replace('${custom_instructions}', customText);
+    } else {
+      baseContextPrompt = `${baseContextPrompt}\n\n### CUSTOM GUIDANCE:${customText}`;
+    }
+  }
+
+  // Thay thế các biến thông tin Persona động trong baseContextPrompt nếu có
+  if (promptOverride || persona?.system_prompt_override) {
+    if (baseContextPrompt.includes('{{persona_name}}')) {
+      baseContextPrompt = baseContextPrompt.replace(/\{\{persona_name\}\}/g, name);
+    }
+    if (baseContextPrompt.includes('{{persona_age}}')) {
+      baseContextPrompt = baseContextPrompt.replace(/\{\{persona_age\}\}/g, age);
+    }
+  }
+
+  const finalPrompt = `${baseContextPrompt}${pronounBlock}${principlesBlock}${campaignBlock}${outputInstructions}`;
+
+  // Quét dọn dẹp các placeholder thừa dạng {{variable_name}} (loại trừ {{link}}) và các placeholder dạng ${variable_name} (loại trừ ${link})
+  const cleanPrompt = finalPrompt
+    .replace(/\{\{(?!link\b)[\w_]+\}\}/g, '')
+    .replace(/\$\{(?!link\b)[\w_]+\}/g, '');
+
+  return cleanPrompt;
 }
 

@@ -96,29 +96,6 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
   const [isObjectiveHelpActive, setIsObjectiveHelpActive] = React.useState(false);
   const objectiveHelpRef = React.useRef<HTMLDivElement>(null);
 
-  // Debounce trigger cho Campaign Name & Objective
-  const [debouncedCampaign, setDebouncedCampaign] = React.useState({
-    name: persona.campaign_name || "",
-    objective: persona.settings?.campaign_objective || "lead_generation",
-  });
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedCampaign({
-        name: persona.campaign_name || "",
-        objective: persona.settings?.campaign_objective || "lead_generation",
-      });
-    }, 1200);
-
-    return () => clearTimeout(timer);
-  }, [persona.campaign_name, persona.settings?.campaign_objective]);
-
-  // Ref ghi nhận giá trị khởi tạo khi Component được Mount để tránh tự kích hoạt
-  const initialValuesRef = React.useRef({
-    name: persona.campaign_name || "",
-    objective: persona.settings?.campaign_objective || "lead_generation",
-  });
-
   const handleGenerateProposal = async (name: string, objective: string) => {
     if (!name || isGenerating) return;
 
@@ -167,19 +144,6 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
     }
   };
 
-  React.useEffect(() => {
-    if (
-      debouncedCampaign.name &&
-      (debouncedCampaign.name !== initialValuesRef.current.name ||
-        debouncedCampaign.objective !== initialValuesRef.current.objective)
-    ) {
-      handleGenerateProposal(
-        debouncedCampaign.name,
-        debouncedCampaign.objective,
-      );
-    }
-  }, [debouncedCampaign]);
-
   const handleRewrite = () => {
     handleGenerateProposal(
       persona.campaign_name || "",
@@ -207,9 +171,25 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
       {/* Tên Chiến dịch */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm text-base-content/60">
-          Tên Chiến dịch
-        </label>
+        <div className="flex justify-between items-center">
+          <label className="text-sm text-base-content/60">
+            Tên Chiến dịch
+          </label>
+          <button
+            type="button"
+            onClick={handleRewrite}
+            disabled={!persona.campaign_name || isGenerating}
+            className="btn btn-xs btn-secondary btn-soft rounded-md gap-1"
+            title="AI đề xuất Lời chào hàng & Thông điệp khan hiếm"
+          >
+            {isGenerating ? (
+              <Loader2 className="animate-spin size-3" />
+            ) : (
+              <Sparkles size={12} className="text-secondary" />
+            )}
+            <span>Đề xuất bằng AI</span>
+          </button>
+        </div>
         <input
           type="text"
           value={persona.campaign_name || ""}
@@ -258,9 +238,8 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
           onChange={(val) => updateSettings("campaign_objective", val)}
           size="sm"
           fullWidth
-          rounded="rounded-full"
           layoutId="campaignObjectiveTabs"
-          className="bg-base-200"
+          className="bg-base-200 rounded-md!"
         />
       </div>
 

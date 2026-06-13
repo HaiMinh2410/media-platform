@@ -12,7 +12,6 @@ import {
   ShieldAlert, 
   Users2, 
   Cpu, 
-  GitCommit, 
   ArrowRight, 
   Lock, 
   Timer,
@@ -98,7 +97,9 @@ export function AiPipelineDetail() {
       howItWorks: [
         "Truy vấn FanProfile và các thiết lập Persona của Creator.",
         "Tải lịch sử chat 10 tin nhắn gần nhất.",
-        "Tự động tóm tắt cuộc hội thoại: Nếu lịch sử trò chuyện vượt quá 50 tin nhắn, worker 'context-summarizer' chạy ngầm để tóm tắt các hội thoại cũ thành một đoạn văn ngắn gọn, sử dụng danh từ trung tính (Creator và Fan), tuyệt đối cấm dùng các đại từ mang giới tính (anh, em, chị) để tránh gây nhiễm chéo đại từ cũ khi nạp lại."
+        "Tự động tóm tắt cuộc hội thoại lũy tiến (Incremental Summarization): Nếu lịch sử trò chuyện vượt quá 50 tin nhắn và đã có bản tóm tắt cũ, worker 'context-summarizer' chỉ tải các tin nhắn mới phát sinh từ sau mốc tóm tắt gần nhất để LLM cập nhật lũy tiến, tiết kiệm tới 80% token.",
+        "Hợp nhất thông tin thông minh (Smart Merge): Tự động gộp dữ liệu keyInsights, objectionsSeen, và purchaseHistory cũ với thông tin mới phát hiện ở tầng code-level để tránh thất thoát dữ liệu do LLM bỏ sót.",
+        "Dự phòng cơ sở dữ liệu (DB-level Fallback): Nếu LLM gặp sự cố khi đang chạy ở chế độ lũy tiến, hệ thống tự động truy vấn DB lấy 5 tin gần nhất để đảm bảo luôn đủ mạch rolling bridge context."
       ],
       conditions: "Luôn kích hoạt. Tiến trình tóm tắt (Summarizer) chỉ chạy khi tổng số tin nhắn của Fan > 50.",
       fallback: "Nếu cơ sở dữ liệu gặp lỗi nạp tin nhắn, hệ thống sẽ sử dụng 3 tin nhắn gần nhất có sẵn từ Webhook làm ngữ cảnh tối thiểu.",
@@ -199,6 +200,7 @@ If it matches one, return the matched label EXACTLY in the "matched_label" field
       howItWorks: [
         "Heuristic Rules Quét trước: Sử dụng bộ Regex quét nhanh từ khóa tĩnh (ví dụ: 'giá', 'link', 'mấy tiền' -> Whale; đòi ảnh free -> Drainer; nhiều emoji trái tim -> Luy) để phân loại tức thì và tiết kiệm chi phí.",
         "LLM Fallback: Nếu Rules trả về 'Unknown' và fan đã nhắn tin tối thiểu 3 câu, hệ thống kích hoạt Llama 3.1 8B để phân loại sâu.",
+        "Tối ưu hóa Flat Transcript & Tiết kiệm Token: Lịch sử tin nhắn truyền vào được nén thành dạng văn bản phẳng (Flat Transcript) thay vì cấu trúc JSON, giúp tiết kiệm ~60% token cú pháp và tránh rủi ro tráo vai nhờ defensive role mapping.",
         "Tự động phân loại lại (Reclassification): Theo dõi hành vi đột biến để tự động đổi nhóm (ví dụ: Cool bỗng nhiên nồng nhiệt -> Luy; fan hỏi STK/bank -> Whale). Chạy kiểm tra định kỳ sau mỗi 15 tin nhắn."
       ],
       conditions: "Khi trạng thái phân loại hiện tại là Unknown, hoặc khi kích hoạt các trigger đổi nhóm hành vi đột ngột.",
@@ -207,39 +209,25 @@ If it matches one, return the matched label EXACTLY in the "matched_label" field
       promptType: 'both',
       customizableFields: ["recent_messages"],
       promptData: {
-        system: prompts.hybridClassifier?.system || `You are an expert AI Profiler and DM Assistant for a premium personal brand. Your task is to analyze the recent conversation history and profile the fan into one of the following Fan Types:
+        system: prompts.hybridClassifier?.system || `You are an AI Profiler for a premium creator brand. Categorize the fan into one of these types based on the dialogue:
 
-1. **Whale (Fan Giàu/VIP)**: 
-   - Characteristics: Has high purchasing power, shows direct interest in buying, pricing, premium services, private packages, or tipping/donating. Uses words like "mắc", "giá", "bao nhiêu", "premium", "private", "gói", "donate", "mua".
-   - Recommended Stage: G3 (Upsell) or G2 (Warm-up).
+- **Whale**: High purchasing intent. Inquires about pricing, premium services, private packages, bank accounts, or tipping. Key words: "giá", "bao nhiêu", "gói", "private", "premium", "ck", "stk", "mua". (Stage: G3/G2).
+- **Luy**: Highly emotional & affectionate. Uses >3 emojis/turn, sends long messages, asks personal life questions, seeks deep emotional bonding. (Stage: G2/G1).
+- **Cool**: Short, concise, distant replies. Minimal/no emojis, no follow-up questions, slightly cold. (Stage: G1).
+- **Drainer**: Demands free photos/videos, bypasses buying, complains about pricing, drains resource. (Stage: G1, low emotion).
+- **Unknown**: Insufficient context (under 3 turns).
 
-2. **Luy (Emotional/Fan Cảm Xúc)**:
-   - Characteristics: Highly emotional, uses many emojis (usually >3 per turn), sends long messages, asks many questions about your life, is extremely affectionate or seeks emotional connection.
-   - Recommended Stage: G2 (Warm-up) or G1 (Build Trust).
+Rules:
+1. Output RAW JSON only (no markdown fences).
+2. Set "emotion_score" (0.0 to 1.0) and "risk_level" (low, medium, high) reflecting spam or boundary violations.
 
-3. **Cool (Lạnh lùng)**:
-   - Characteristics: Short, concise messages, uses almost no emojis, direct and slightly distant. No follow-up questions.
-   - Recommended Stage: G1 (Build Trust).
-
-4. **Drainer (Bào Sức/Freebie Seeker)**:
-   - Characteristics: Constantly asks for free pictures/videos, tries to extend conversation without ever showing intent to buy, or complains about prices.
-   - Recommended Stage: G1 (Build Trust) with low emotion score.
-
-5. **Unknown**:
-   - Only use this if there is not enough context to classify.
-
-### Rules of Engagement:
-- You must output a JSON object only. Do NOT include markdown blocks like \`\`\`json. Return raw JSON.
-- Define "emotion_score" from 0.0 (angry/disinterested) to 1.0 (extremely excited/loving/high intent).
-- Assess "risk_level" (low, medium, high) based on whether the fan is spamming, insulting, or showing Drainer behavior.
-
-### Output JSON Format:
+Output Schema:
 {
   "fan_type": "Whale" | "Luy" | "Cool" | "Drainer" | "Unknown",
-  "confidence": <float between 0.0 and 1.0>,
-  "reasoning": "<string in Vietnamese explaining why>",
+  "confidence": <float 0.0-1.0>,
+  "reasoning": "<Vietnamese reason>",
   "recommended_stage": "G1" | "G2" | "G3",
-  "emotion_score": <float between 0.0 and 1.0>,
+  "emotion_score": <float 0.0-1.0>,
   "risk_level": "low" | "medium" | "high"
 }`,
         user: prompts.hybridClassifier?.user || `Analyze the following recent messages:
@@ -296,6 +284,9 @@ Additionally, when writing notes_for_next, strictly use gender-neutral nouns "Cr
         "Tránh trễ xưng hô (Mid-conversation Pronoun Shift): Quét tin nhắn đến bằng regex loại trừ bên thứ ba để phát hiện Fan chủ động đổi cách xưng hô thân mật giữa chừng, cập nhật đồng thời biến in-memory 'currentGender' và cập nhật DB bất đồng bộ để tránh Race Condition.",
         "Bộ lọc Runtime (validatePronounConsistency) & Link Safety: Đầu ra của LLM được đưa qua bộ kiểm duyệt runtime tự động để quét và sửa đổi xưng hô đồng nhất. Bộ lọc này chạy độc lập trên trường 'reply' thô (chứa placeholder '{{link}}' tĩnh) trước khi hệ thống thực hiện thay thế '{{link}}' bằng URL thật, tránh làm biến dạng cấu trúc URL VIP gửi đi.",
         "Lắp ráp Prompt & Ghi chú trung tính: Gộp các chỉ dẫn Persona và Chiến dịch active cùng các quy tắc xưng hô động và chống bot bắt buộc. Trường 'notes_for_next' bắt buộc chỉ dùng danh từ trung tính 'Creator' và 'Fan', cấm dùng 'anh', 'em', 'chị' để tránh ô nhiễm ngữ cảnh.",
+        "Tối ưu hóa Lịch sử chat (Flat Transcript): Lịch sử chat được nén và truyền vào prompt dưới dạng văn bản phẳng (Flat Transcript) thay vì JSON, giúp tiết kiệm ~60% token cú pháp và loại bỏ rủi ro tráo vai.",
+        "Chọn lọc Dynamic Few-shot: Chỉ nạp ví dụ few-shot của chiến lược đang chạy (`strategy`) cùng ví dụ `TrustBuilding` mặc định vào prompt, tiết kiệm ~1,200 token và tăng độ tập trung (Attention) của mô hình.",
+        "Bảo toàn cấu trúc JSON khi Override: Dù người dùng thiết lập A/B Test prompt hay Persona Override, hệ thống luôn chèn chỉ dẫn kỹ thuật JSON và few-shot ở cuối prompt để đảm bảo LLM luôn trả về JSON hợp lệ, tránh sập pipeline.",
         "Thắt chặt kiểm tra JSON/Text thuần: Khi LLM (đặc biệt là Llama 8B ở cuối chuỗi) trả về text thuần thay vì JSON hoặc JSON bị thiếu thuộc tính 'reply' hợp lệ, parser sẽ chủ động ném lỗi để tiếp tục thử model tiếp theo hoặc hạ cấp tức thì về Rule-based template (getTemplateResponse) thay vì để crash hệ thống.",
         "Model Routing & Cascading Fallback: Nếu Creator cấu hình cứng một Model AI (như Llama 70B, Llama 8B, Qwen 32B, GPT-OSS 120B...), model đó sẽ được ưu tiên chạy trước. Nếu Creator chọn tự động định tuyến (Model Routing): Fan Whale dùng GPT-oss-120B để giao tiếp đẳng cấp; Luy/Cool dùng Llama 70B bay bổng; Drainer/Unknown dùng Llama 8B tối ưu chi phí. Nếu model ưu tiên lỗi (timeout/rate-limit), hệ thống tự động thử model kế tiếp (120B -> 70B -> 8B). Nếu tất cả đều lỗi, tự động hạ cấp về kịch bản cứng (Rule-based templates) đã động hóa đại từ."
       ],
@@ -361,7 +352,7 @@ You strictly adhere to the "DM Script Playbook 2.0" to transition fans from stra
 {
   "reply": "string (the actual DM reply in Vietnamese, 2-3 sentences max, natural, including {{persona.signature_emojis}} appropriately)",
   "action": "continue" | "send_link" | "soft_exit" | "hard_exit" | "escalate_to_human" | "wait",
-  "link": "string | null",
+  "link": "Đường dẫn URL dạng chuỗi (string) nếu 'action' là 'send_link', ngược lại bắt buộc trả về null (không có dấu ngoặc kép)",
   "update_fan_type": "Luy" | "Cool" | "Whale" | "Drainer" | null,
   "update_emotion_score": <float>,
   "notes_for_next": "string (strictly use gender-neutral nouns 'Creator' and 'Fan', never use 'anh', 'em', 'chị' to describe the parties)"
@@ -437,24 +428,6 @@ Provide your output in the requested JSON format. Ensure reply and notes_for_nex
 
   return (
     <div className="space-y-6">
-      {/* Intro section */}
-      <div className="card bg-base-100 border border-base-content/5 shadow-sm p-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="space-y-1">
-            <h2 className="text-xl font-bold tracking-tight text-base-content flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />
-              Sơ đồ hoạt động AI Agent Pipeline
-            </h2>
-            <p className="text-sm text-base-content/70">
-              Khám phá luồng xử lý tin nhắn đầu vào, phân tích cảm xúc, định tuyến kịch bản theo DM Script Playbook 2.0 và cơ chế tự động gửi tin nhắn.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 bg-base-200/50 p-2 rounded-lg border border-base-content/5 text-xs font-semibold text-base-content/60">
-            <span className="w-2.5 h-2.5 rounded-full bg-success animate-pulse"></span>
-            Orchestrator: pipeline.ts
-          </div>
-        </div>
-      </div>
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

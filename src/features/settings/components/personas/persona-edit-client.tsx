@@ -11,10 +11,10 @@ import {
   ArrowLeft,
   Save,
   Play,
-  User2,
-  MessageCircle,
-  ShieldAlert,
-  Sparkles,
+  UserCog,
+  BriefcaseBusiness,
+  Settings,
+  Pen,
   Loader2,
 } from "lucide-react";
 import { PersonaFormTabs } from "./persona-form-tabs";
@@ -123,10 +123,10 @@ export function PersonaEditClient({
   };
 
   const tabItems = [
-    { value: "basic", label: "Cơ bản", icon: User2 },
-    { value: "campaign", label: "Chiến dịch (Sales)", icon: MessageCircle },
-    { value: "advanced", label: "Prompt nâng cao", icon: Sparkles },
-    { value: "safety", label: "An toàn & Tham số", icon: ShieldAlert },
+    { value: "safety", label: "Thiết lập", icon: Settings },
+    { value: "basic", label: "Cơ bản", icon: UserCog },
+    { value: "campaign", label: "Chiến dịch", icon: BriefcaseBusiness },
+    { value: "advanced", label: "Nâng cao", icon: Pen },
   ] as const;
 
   const [activeTab, setActiveTab] = useState<
@@ -160,7 +160,6 @@ export function PersonaEditClient({
           items={tabItems}
           activeValue={activeTab}
           onChange={setActiveTab}
-          size="sm"
           rounded="rounded-full"
         />
       </div>

@@ -24,12 +24,6 @@ export function PersonaFormTabs({
   isLoadingBot,
 }: PersonaFormTabsProps) {
   switch (activeTab) {
-    case "basic":
-      return <BasicTab persona={persona} account={account} onChange={onChange} />;
-    case "campaign":
-      return <CampaignTab persona={persona} onChange={onChange} />;
-    case "advanced":
-      return <AdvancedTab persona={persona} onChange={onChange} />;
     case "safety":
       return (
         <SafetyTab
@@ -40,10 +34,15 @@ export function PersonaFormTabs({
           isLoadingBot={isLoadingBot}
         />
       );
+    case "basic":
+      return (
+        <BasicTab persona={persona} account={account} onChange={onChange} />
+      );
+    case "campaign":
+      return <CampaignTab persona={persona} onChange={onChange} />;
+    case "advanced":
+      return <AdvancedTab persona={persona} onChange={onChange} />;
     default:
       return null;
   }
 }
-
-
-
