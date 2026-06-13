@@ -327,10 +327,6 @@ ${pronounRule}
   const speakingStyle = persona?.speaking_style || (isAgentMale 
     ? `Xưng "anh" gọi "em" (hoặc "bạn") tự nhiên, thân mật và lôi cuốn.` 
     : `Xưng "em" gọi "anh" tự nhiên, thân thiết và dịu dịu ngọt ngào.`);
-    
-  const signatureEmojis = Array.isArray(persona?.signature_emojis) && persona.signature_emojis.length > 0
-    ? persona.signature_emojis.join(' ')
-    : (isAgentMale ? '✨ 😉 🤝' : '🥺 ❤️ ✨');
 
   // Calculate Response Length Guidance based on persona settings
   const responseLength = persona?.settings?.response_length || 'medium';

@@ -1,10 +1,10 @@
 "use client";
 
-import { Icon } from "@shared/ui";
+import { Icon, RangeSelector } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, X, Copy, Check } from "lucide-react";
+import { Send, Bot, X, Copy, Check, Gem, RotateCcw, Venus, Mars } from "lucide-react";
 import { toast } from "sonner";
 
 interface ChatSimulatorProps {
@@ -253,47 +253,40 @@ export function ChatSimulator({ accountId, personaDraft }: ChatSimulatorProps) {
   return (
     <div className="flex flex-col h-full bg-base-100 relative">
       {/* Toolbar chọn ngữ cảnh nhanh */}
-      <div className="px-4 py-2 bg-base-200 border-b border-base-content/5 flex flex-wrap gap-2 items-center justify-between">
-        <span className="text-2xs font-bold text-base-content/40 uppercase tracking-wider">Mockup Context:</span>
-        <div className="flex flex-wrap gap-1">
-          <button
-            type="button"
-            onClick={() => applyScenario("male_senior")}
-            className={cn(
-              "btn btn-xs font-semibold rounded-full border border-base-content/10",
-              mockScenario === "male_senior" ? "btn-primary text-primary-content" : "btn-ghost text-base-content/80"
-            )}
-          >
-            🧑 Nam lớn
-          </button>
-          <button
-            type="button"
-            onClick={() => applyScenario("female_young")}
-            className={cn(
-              "btn btn-xs font-semibold rounded-full border border-base-content/10",
-              mockScenario === "female_young" ? "btn-primary text-primary-content" : "btn-ghost text-base-content/80"
-            )}
-          >
-            👩 Nữ lớn (Chị)
-          </button>
-          <button
-            type="button"
-            onClick={() => applyScenario("vip_inquiry")}
-            className={cn(
-              "btn btn-xs font-semibold rounded-full border border-base-content/10",
-              mockScenario === "vip_inquiry" ? "btn-primary text-primary-content" : "btn-ghost text-base-content/80"
-            )}
-          >
-            💎 Hỏi VIP
-          </button>
-          <button
-            type="button"
-            onClick={() => applyScenario("none")}
-            className="btn btn-xs btn-neutral btn-outline font-semibold rounded-full"
-          >
-            🔄 Reset
-          </button>
-        </div>
+      <div className="px-4 py-2 border-y border-base-content/5 flex flex-wrap gap-2 items-center justify-between">
+        <span className="text-sm text-base-content/60 tracking-wide">Mockup Context:</span>
+        <RangeSelector
+          value={mockScenario}
+          onChange={(val) => applyScenario(val as "none" | "male_senior" | "female_young" | "vip_inquiry")}
+          options={[
+            {
+              id: "male_senior",
+              label: "Nam lớn",
+              icon: (cls) => <Mars className={cls} />,
+            },
+            {
+              id: "female_young",
+              label: "Nữ lớn (Chị)",
+              icon: (cls) => <Venus className={cls} />,
+            },
+            {
+              id: "vip_inquiry",
+              label: "Hỏi VIP",
+              icon: (cls) => <Gem className={cls} />,
+            },
+            {
+              id: "none",
+              label: "Mặc định (Reset)",
+              icon: (cls) => <RotateCcw className={cls} />,
+              dividerBefore: true,
+            },
+          ]}
+          size="xs"
+          menuMinWidth="w-44"
+          menuAlign="right"
+          triggerClassName="bg-soft rounded-md"
+          dropdownClassName="bg-soft border-base-content/10 rounded-lg"
+        />
       </div>
 
       <div

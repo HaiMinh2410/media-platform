@@ -160,6 +160,7 @@ export function PersonaEditClient({
           activeValue={activeTab}
           onChange={setActiveTab}
           rounded="rounded-full"
+          layoutId="personaEditFormTabs"
         />
       </div>
 

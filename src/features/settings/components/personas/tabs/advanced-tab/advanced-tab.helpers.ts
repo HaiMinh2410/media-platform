@@ -46,7 +46,7 @@ export function diffLines(one: string, two: string) {
 // Hàm highlight các biến {{...}} trong System Prompt để dễ theo dõi
 export function highlightPromptVariables(text: string) {
   if (!text) return "";
-  const parts = text.split(/(\{\{[a-zA-Z0-9_]+\}\})/g);
+  const parts = text.split(/(\{\{[\w.-]+\}\})/g);
   return parts.map((part, idx) => {
     if (part.startsWith("{{") && part.endsWith("}}")) {
       return React.createElement(
@@ -58,3 +58,4 @@ export function highlightPromptVariables(text: string) {
     return part;
   });
 }
+

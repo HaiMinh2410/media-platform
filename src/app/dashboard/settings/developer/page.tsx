@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { createClient } from '@shared/api/supabase/server';
 import { getWorkspaceRepository } from '@features/settings/repositories/workspace.repository';
 import { getPlatformAccountRepository } from '@features/settings/repositories/platform-account.repository';
-import { WorkspaceCredentials } from '@features/settings/components/workspace-credentials';
 import { MetaTokenUpserter } from '@features/settings/components/meta-token-upserter';
 import { LinkedTokensList } from '@features/settings/components/linked-tokens-list';
 import { ArrowRight, AlertCircle } from 'lucide-react';
@@ -38,16 +37,7 @@ export default async function DeveloperSettingsPage() {
       {/* Linked Tokens & IDs Info */}
       <LinkedTokensList accounts={accounts as any} />
 
-      <div className="divider" />
       
-      {/* Workspace credentials / server meta-data */}
-      <WorkspaceCredentials 
-        workspaceId={workspace.id} 
-        workspaceName={workspace.name}
-        verifyToken={process.env.META_WEBHOOK_VERIFY_TOKEN || ''}
-        skipVerify={process.env.SKIP_WEBHOOK_VERIFY || 'false'}
-      />
-
       {/* Manual Token Updater Tool */}
       <MetaTokenUpserter />
 

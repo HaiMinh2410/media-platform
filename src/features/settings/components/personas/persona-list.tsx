@@ -81,7 +81,7 @@ export function PersonaList({ accounts }: PersonaListProps) {
                   <span>Persona:</span>
                 </div>
                 <span className="font-medium text-foreground">
-                  {persona?.name || "Mặc định (Em)"}
+                  {persona?.name || account.platform_user_name}
                 </span>
               </div>
 

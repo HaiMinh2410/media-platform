@@ -13,6 +13,7 @@ export interface RangeOption {
   iconColorClass?: string;
   /** Hiển thị line ngăn cách phía trên option này */
   dividerBefore?: boolean;
+  className?: string;
 }
 
 interface RangeSelectorProps {
@@ -34,6 +35,7 @@ interface RangeSelectorProps {
   // Custom styles & content
   triggerClassName?: string;
   dropdownClassName?: string;
+  menuItemClassName?: string;
   children?: React.ReactNode;
 
   // Layout size of the selector
@@ -61,6 +63,7 @@ export const RangeSelector = React.forwardRef<HTMLDivElement, RangeSelectorProps
       menuAlign = "left",
       triggerClassName = "",
       dropdownClassName = "",
+      menuItemClassName = "",
       children,
       size = "md",
       position = "bottom",
@@ -230,11 +233,15 @@ export const RangeSelector = React.forwardRef<HTMLDivElement, RangeSelectorProps
                           onChange?.(r.id);
                           setOpen(false);
                         }}
-                        className={`flex items-center transition-all cursor-pointer ${currentStyle.menuItem} ${
+                        className={cn(
+                          "flex items-center transition-all cursor-pointer",
+                          currentStyle.menuItem,
                           value === r.id
                             ? "text-foreground bg-foreground/10"
-                            : "text-foreground/60 hover:text-foreground hover:bg-foreground/5"
-                        }`}
+                            : "text-foreground/60 hover:text-foreground hover:bg-foreground/5",
+                          menuItemClassName,
+                          r.className
+                        )}
                       >
                         {renderIcon(
                           r.icon,

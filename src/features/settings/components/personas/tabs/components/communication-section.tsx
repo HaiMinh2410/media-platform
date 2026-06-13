@@ -1,5 +1,5 @@
 import * as React from "react";
-import { HelpCircle, X, ShieldAlert, Smile } from "lucide-react";
+import { X, ShieldAlert, Smile } from "lucide-react";
 import { Icon, PortalTooltip, SlidingTabs } from "@shared/ui";
 import { toast } from "sonner";
 

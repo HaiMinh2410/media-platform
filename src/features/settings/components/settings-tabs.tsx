@@ -58,6 +58,7 @@ export function SettingsTabs() {
         activeValue={activeValue}
         onChange={handleChange}
         size="md"
+        layoutId="settingsNavigationTabs"
       />
     </div>
   );
