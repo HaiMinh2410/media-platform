@@ -49,7 +49,7 @@ export default async function PersonaEditPage(props: {
   // Get or create persona draft structure
   const persona = account.ai_personas || {
     account_id: accountId,
-    name: 'Em',
+    name: account.platform_user_name || '',
     gender: 'female',
     age: 22,
     personality: '',

@@ -84,7 +84,7 @@ export async function GET(
     // Return mock/default data but don't save to DB yet (lazy initialization)
     const defaultPersona = {
       account_id: accountId,
-      name: 'Em',
+      name: account.platform_user_name || '',
       gender: 'female',
       age: 22,
       personality: '',

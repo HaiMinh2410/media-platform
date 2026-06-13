@@ -10,7 +10,6 @@ import Link from "next/link";
 import {
   ArrowLeft,
   Save,
-  Play,
   UserCog,
   BriefcaseBusiness,
   Settings,

@@ -469,17 +469,13 @@ ${pronounRule}
   }`
   };
 
-  // Chọn lọc ví dụ dựa trên strategy hiện tại, mặc định thêm TrustBuilding để làm mẫu đối chiếu cấu trúc JSON
+  // TỐI ƯU (Tiết kiệm ngay 400 tokens/lượt chat):
   let dynamicFewShot = '';
   if (strategy && fewShotExamples[strategy]) {
-    dynamicFewShot = `### FEW-SHOT EXAMPLES (SELECTED FOR '${strategy}'):\n\n` + fewShotExamples[strategy];
-    // Nếu chiến lược hiện tại không phải TrustBuilding, đính kèm thêm TrustBuilding để đa dạng hóa ngữ cảnh mẫu
-    if (strategy !== 'TrustBuilding') {
-      dynamicFewShot += '\n\n' + fewShotExamples['TrustBuilding'];
-    }
+    dynamicFewShot = `### FEW-SHOT EXAMPLE (SELECTED FOR '${strategy}'):\n\n` + fewShotExamples[strategy];
   } else {
-    // Fallback nếu không truyền hoặc không khớp strategy: chỉ nạp 2 ví dụ đại diện
-    dynamicFewShot = `### FEW-SHOT EXAMPLES:\n\n` + fewShotExamples['TrustBuilding'] + '\n\n' + fewShotExamples['EmotionalBanking'];
+    // Thử cấp về TrustBuilding nếu không khớp strategy
+    dynamicFewShot = `### FEW-SHOT EXAMPLE:\n\n` + fewShotExamples['TrustBuilding'];
   }
 
   // 5. Kết hợp các phần lại thành System Prompt hoàn chỉnh
@@ -514,6 +510,9 @@ ${dynamicFewShot}`;
     }
   }
 
+  let hasReplacedFewShot = false;
+  let hasReplacedOutputInstructions = false;
+
   // Thay thế các biến thông tin Persona động trong baseContextPrompt nếu có
   if (promptOverride || persona?.system_prompt_override) {
     if (baseContextPrompt.includes('{{persona_name}}')) {
@@ -522,9 +521,18 @@ ${dynamicFewShot}`;
     if (baseContextPrompt.includes('{{persona_age}}')) {
       baseContextPrompt = baseContextPrompt.replace(/\{\{persona_age\}\}/g, age);
     }
+    if (baseContextPrompt.includes('{{few_shot_examples}}')) {
+      baseContextPrompt = baseContextPrompt.replace(/\{\{few_shot_examples\}\}/g, dynamicFewShot);
+      hasReplacedFewShot = true;
+    }
+    if (baseContextPrompt.includes('{{output_instructions}}')) {
+      baseContextPrompt = baseContextPrompt.replace(/\{\{output_instructions\}\}/g, outputInstructions);
+      hasReplacedOutputInstructions = true;
+    }
   }
 
-  const finalPrompt = `${baseContextPrompt}${pronounBlock}${principlesBlock}${campaignBlock}${outputInstructions}`;
+  const finalOutputInstructions = (hasReplacedFewShot || hasReplacedOutputInstructions) ? '' : outputInstructions;
+  const finalPrompt = `${baseContextPrompt}${pronounBlock}${principlesBlock}${campaignBlock}${finalOutputInstructions}`;
 
   // Quét dọn dẹp các placeholder thừa dạng {{variable_name}} (loại trừ {{link}}) và các placeholder dạng ${variable_name} (loại trừ ${link})
   const cleanPrompt = finalPrompt

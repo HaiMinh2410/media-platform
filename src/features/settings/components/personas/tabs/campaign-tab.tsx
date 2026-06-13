@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@shared/lib";
 import {
-  Sparkles,
+  Bot,
   Check,
   RotateCw,
   Undo2,
@@ -179,13 +179,13 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
             type="button"
             onClick={handleRewrite}
             disabled={!persona.campaign_name || isGenerating}
-            className="btn btn-xs btn-secondary btn-soft rounded-md gap-1"
+            className="group btn btn-sm btn-primary btn-soft rounded-md gap-1.5"
             title="AI đề xuất Lời chào hàng & Thông điệp khan hiếm"
           >
             {isGenerating ? (
-              <Loader2 className="animate-spin size-3" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
-              <Sparkles size={12} className="text-secondary" />
+              <Bot size={16} className="text-primary group-hover:text-primary-content" />
             )}
             <span>Đề xuất bằng AI</span>
           </button>
@@ -263,7 +263,7 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
       {aiProposal && (
         <div className="card bg-secondary/5 border border-secondary/20 p-4 flex flex-col gap-4 animate-in slide-in-from-top-4 duration-300">
           <div className="flex items-start gap-3">
-            <Sparkles
+            <Bot
               className="text-secondary shrink-0 mt-0.5 animate-bounce"
               size={18}
             />
@@ -321,7 +321,7 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
           </label>
           {aiProposal && (
             <span className="badge badge-secondary badge-soft font-bold text-2xs animate-pulse">
-              <Sparkles size={10} />
+              <Bot size={10} />
               Đề xuất bởi AI
             </span>
           )}
@@ -348,7 +348,7 @@ export function CampaignTab({ persona, onChange }: CampaignTabProps) {
           </label>
           {aiProposal && (
             <span className="badge badge-secondary badge-soft font-bold text-2xs animate-pulse">
-              <Sparkles size={10} />
+              <Bot size={10} />
               Đề xuất bởi AI
             </span>
           )}

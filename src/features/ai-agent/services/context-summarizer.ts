@@ -22,11 +22,19 @@ export async function summarizeConversation(
 
     let rawMessages: any[] = [];
     let lastSummaryCache: any = null;
+    let summaryForLLM: any = null;
     let isIncremental = false;
 
     // 1. Kiểm tra xem đã có bản tóm tắt cũ chưa để thực hiện tối ưu hóa luỹ tiến
     if (currentProfile.lastSummary) {
       lastSummaryCache = currentProfile.lastSummary as any;
+      summaryForLLM = { ...lastSummaryCache };
+
+      // Cắt bỏ phần tin nhắn thô lặp lại trong cache cũ, vì fullSummary đã bao quát rồi
+      if (summaryForLLM.lastMessages) {
+        delete summaryForLLM.lastMessages;
+      }
+
       const lastGeneratedAt = new Date(lastSummaryCache.generatedAt);
 
       // Chỉ lấy các tin nhắn được tạo SAU thời điểm bản tóm tắt trước đó được tạo ra
@@ -95,7 +103,7 @@ export async function summarizeConversation(
     // Tối ưu hóa User Prompt: Gửi kèm ngữ cảnh tóm tắt cũ dạng JSON và chỉ các tin nhắn mới nếu là luỹ tiến
     const userPrompt = isIncremental
       ? `PREVIOUS CONVERSATION SUMMARY:
-${JSON.stringify(lastSummaryCache, null, 2)}
+${JSON.stringify(summaryForLLM, null, 2)}
 
 NEW MESSAGES DEVELOPED SINCE THE PREVIOUS SUMMARY:
 ${JSON.stringify(formattedHistory, null, 2)}
