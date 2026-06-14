@@ -91,7 +91,7 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
               Bỏ đánh dấu
             </span>
           )}
-          <span className="badge badge-xs badge-neutral rounded-md text-base-content/60">Khuyên dùng</span>
+          <span className="badge badge-xs p-2 py-2.5 badge-ghost rounded-sm border-base-content/10 text-base-content/60">Khuyên dùng</span>
         </div>
       </div>
       

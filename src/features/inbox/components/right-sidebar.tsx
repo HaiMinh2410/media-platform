@@ -189,8 +189,8 @@ export function RightSidebar({
             "flex-1 py-2 text-sm font-semibold rounded-md transition-all flex items-center justify-center gap-1.5",
             isAutoReplyActive 
               ? activeTab === 'ai'
-                ? "text-success bg-success/20 border border-success/30 font-bold"
-                : "text-success bg-success/5 border border-success/10 hover:bg-success/10 font-bold"
+                ? "text-success bg-success/15 border border-success/30 font-bold"
+                : "text-success/60 bg-success/5 border border-success/10 hover:bg-success/10 font-bold"
               : activeTab === 'ai'
                 ? "text-primary bg-primary/15"
                 : "text-base-content/40 hover:text-base-content/70 hover:bg-base-content/5"
