@@ -1,7 +1,7 @@
 import { cn } from "@shared/lib";
+import { PortalTooltip, RangeSelector } from "@shared/ui";
 
 import React, { useRef, useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Info, X, Plus } from 'lucide-react';
 import { useInboxStore } from '../../../store/inbox.store';
 
@@ -14,12 +14,13 @@ interface TagManagerProps {
 
 export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpen }: TagManagerProps) {
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
-  const [dropdownDirection, setDropdownDirection] = useState<'down' | 'up'>('down');
+  const [dropdownPosition, setDropdownPosition] = useState<'top' | 'bottom'>('bottom');
   const [isMounted, setIsMounted] = useState(false);
   
-  const tagDropdownRef = useRef<HTMLDivElement>(null);
-  const tagMenuRef = useRef<HTMLDivElement>(null);
+  const tagTriggerRef = useRef<HTMLDivElement>(null);
+  const tagTooltipAnchorRef = useRef<HTMLDivElement>(null);
+  
+  const [isTagTooltipOpen, setIsTagTooltipOpen] = useState(false);
   
   const { availableTags, setAvailableTags } = useInboxStore();
 
@@ -42,37 +43,19 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
 
   useEffect(() => {
     setIsMounted(true);
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        tagDropdownRef.current && 
-        !tagDropdownRef.current.contains(event.target as Node) &&
-        (!tagMenuRef.current || !tagMenuRef.current.contains(event.target as Node))
-      ) {
-        setIsTagDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isTagDropdownOpen && tagTriggerRef.current) {
+      const rect = tagTriggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setDropdownPosition(spaceBelow < 320 ? 'top' : 'bottom');
+    }
+  }, [isTagDropdownOpen]);
 
   const parseTag = (tag: string) => {
     const [name, color] = tag.split('::');
     return { name, color: color || '#6366f1' };
-  };
-
-  const toggleTagDropdown = () => {
-    if (!isTagDropdownOpen && tagDropdownRef.current) {
-      const rect = tagDropdownRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      
-      setDropdownDirection(spaceBelow < 300 ? 'up' : 'down');
-      setDropdownPos({
-        top: rect.top,
-        left: rect.left,
-        width: rect.width
-      });
-    }
-    setIsTagDropdownOpen(!isTagDropdownOpen);
   };
 
   const toggleTag = (tag: string) => {
@@ -123,11 +106,34 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-xs font-bold text-base-content/40 uppercase tracking-wider flex items-center gap-1 font-mono">
-          Nhãn <Info size={14} className="text-base-content/40 cursor-help" />
+        <h3 className="text-sm font-medium text-base-content/50 flex items-center gap-2">
+          Nhãn 
+          <div
+            ref={tagTooltipAnchorRef}
+            onMouseEnter={() => setIsTagTooltipOpen(true)}
+            onMouseLeave={() => setIsTagTooltipOpen(false)}
+            className="cursor-help text-base-content/40 hover:text-base-content/70 transition-colors flex items-center"
+          >
+            <Info size={14} />
+          </div>
+          <PortalTooltip
+            active={isMounted && isTagTooltipOpen}
+            anchorRef={tagTooltipAnchorRef}
+            showArrow
+            position="top"
+            align="left"
+            className="w-72 text-xs font-normal leading-relaxed text-base-content"
+          >
+            <div className="space-y-1 p-0.5">
+              <p className="font-bold text-base-content">Nhãn hội thoại</p>
+              <p className="text-base-content/60">
+                Gắn nhãn giúp phân loại các cuộc hội thoại để dễ dàng quản lý, lọc và tìm kiếm theo chủ đề hoặc trạng thái.
+              </p>
+            </div>
+          </PortalTooltip>
         </h3>
         <span 
-          className="text-xs text-primary cursor-pointer hover:underline font-mono"
+          className="text-sm text-primary cursor-pointer hover:underline"
           onClick={() => setIsManageTagsOpen(true)}
         >
           Quản lý nhãn
@@ -163,58 +169,49 @@ export function TagManager({ workspaceId, tags, onUpdateTags, setIsManageTagsOpe
         )}
       </div>
 
-      <div className="relative w-full mt-2" ref={tagDropdownRef}>
-        <div 
-          className="flex items-center justify-between w-full p-2.5 bg-base-200 border border-base-content/10 rounded-lg text-sm text-base-content cursor-pointer transition-all hover:bg-base-300 hover:border-primary"
-          onClick={toggleTagDropdown}
-        >
-          <span>Thêm nhãn</span>
-          <Plus size={16} />
-        </div>
-
-        {isTagDropdownOpen && isMounted && createPortal(
+      <RangeSelector
+        ref={tagTriggerRef}
+        isOpen={isTagDropdownOpen}
+        onOpenChange={setIsTagDropdownOpen}
+        position={dropdownPosition}
+        className="w-full mt-2"
+        menuMinWidth="w-full min-w-full"
+        dropdownClassName="bg-base-100 rounded-xl shadow-2xl border border-base-content/10 overflow-hidden flex flex-col p-1.5 gap-0.5 w-full left-0 right-0"
+        customTrigger={
           <div 
-            ref={tagMenuRef}
-            className={cn(
-              "fixed bg-base-100 border border-base-content/10 rounded-xl shadow-2xl z-10000 overflow-hidden flex flex-col",
-              dropdownDirection === 'up' && "mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
-            )}
-            style={{
-              top: dropdownDirection === 'down' ? dropdownPos.top + 42 : 'auto',
-              bottom: dropdownDirection === 'up' ? window.innerHeight - dropdownPos.top + 2 : 'auto',
-              left: dropdownPos.left,
-              width: dropdownPos.width,
-            }}
+            className="flex items-center justify-between w-full p-2.5 bg-base-200 border border-base-content/10 rounded-lg text-sm text-base-content cursor-pointer transition-all hover:bg-base-300 hover:border-primary"
           >
-            <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-base-content/10">
-              {unappliedTags.length > 0 ? (
-                unappliedTags.map((tag: string) => {
-                  const { name, color } = parseTag(tag);
-                  return (
-                    <div 
-                      key={tag} 
-                      className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-base-content/5"
-                      onClick={() => {
-                        toggleTag(tag);
-                        setIsTagDropdownOpen(false);
-                      }}
-                    >
-                      <div 
-                        className="w-2.5 h-2.5 rounded-full shrink-0" 
-                        style={{ backgroundColor: color }} 
-                      />
-                      <span className="font-bold text-sm text-base-content">{name}</span>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="p-4 text-center text-sm text-base-content/40 italic">Không còn nhãn nào để thêm</div>
-              )}
-            </div>
-          </div>,
-          document.body
-        )}
-      </div>
+            <span>Thêm nhãn</span>
+            <Plus size={16} />
+          </div>
+        }
+      >
+        <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-base-content/10 flex flex-col gap-0.5">
+          {unappliedTags.length > 0 ? (
+            unappliedTags.map((tag: string) => {
+              const { name, color } = parseTag(tag);
+              return (
+                <div 
+                  key={tag} 
+                  className="flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all hover:bg-base-content/5"
+                  onClick={() => {
+                    toggleTag(tag);
+                    setIsTagDropdownOpen(false);
+                  }}
+                >
+                  <div 
+                    className="w-2.5 h-2.5 rounded-full shrink-0" 
+                    style={{ backgroundColor: color }} 
+                  />
+                  <span className="font-bold text-sm text-base-content truncate">{name}</span>
+                </div>
+              );
+            })
+          ) : (
+            <div className="p-4 text-center text-xs text-base-content/40 italic">Không còn nhãn nào để thêm</div>
+          )}
+        </div>
+      </RangeSelector>
     </div>
   );
 }

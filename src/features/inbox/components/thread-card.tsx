@@ -54,12 +54,16 @@ export function ThreadCard({
 
   const getPriorityClass = (priority?: string | null) => {
     switch (priority?.toLowerCase()) {
-      case "high":
-        return "bg-error/15 text-error";
-      case "medium":
-        return "bg-warning/15 text-warning";
-      case "low":
-        return "bg-info/15 text-info";
+      case "new":
+        return "text-info";
+      case "qualified":
+        return "text-success";
+      case "converted":
+        return "text-primary";
+      case "unqualified":
+        return "text-error";
+      case "lost":
+        return "text-base-content/60";
       default:
         return "";
     }
@@ -102,8 +106,8 @@ export function ThreadCard({
     <Link
       href={`/dashboard/inbox/${conversation.id}`}
       className={cn(
-        "flex gap-3 p-3 rounded-xl cursor-pointer transition-all border border-transparent no-underline absolute left-3 w-[calc(100%-24px)] box-border hover:bg-base-content/5 group",
-        isActive && "bg-base-100 border-base-content/10 shadow-xs",
+        "flex gap-3 p-3 rounded-xl cursor-pointer transition-all border border-transparent no-underline absolute left-3 w-[calc(100%-24px)] box-border hover:bg-soft/80 group",
+        isActive && "bg-soft/50 shadow-xs",
       )}
       style={style}
     >
@@ -193,7 +197,7 @@ export function ThreadCard({
         <div className="flex justify-between items-center gap-2">
           <span
             className={cn(
-              "text-sm text-base-content/70 whitespace-nowrap overflow-hidden text-ellipsis",
+              "text-sm text-base-content/80 whitespace-nowrap overflow-hidden text-ellipsis",
               isUnread && "font-medium text-base-content",
             )}
           >
@@ -218,7 +222,7 @@ export function ThreadCard({
             LEAD_STAGE_LABELS[conversation.priority] && (
               <span
                 className={cn(
-                  "text-2xs font-bold uppercase px-1.5 py-0.5 rounded-md",
+                  "text-xs px-1.5 py-0.5 rounded-md",
                   getPriorityClass(conversation.priority),
                 )}
               >

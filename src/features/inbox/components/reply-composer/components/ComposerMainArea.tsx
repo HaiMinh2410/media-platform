@@ -42,7 +42,7 @@ export function ComposerMainArea({
   return (
     <div
       className={cn(
-        'flex gap-3 items-end p-3 px-md transition-all rounded-lg bg-background-base shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] relative outline-none',
+        'flex gap-3 items-end p-3 px-md transition-all rounded-lg bg-base-200 relative outline-none',
         replyToMessage && 'rounded-tl-none',
         (isAiGenerating || isRewriting) === true && 'rounded-[8.5px] bg-background-base'
       )}

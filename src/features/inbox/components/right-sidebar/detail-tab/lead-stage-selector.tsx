@@ -1,7 +1,7 @@
 import { cn } from "@shared/lib";
+import { PortalTooltip, RangeSelector } from "@shared/ui";
 
 import React, { useRef, useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Info, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -12,6 +12,14 @@ export const leadStages = [
   { id: 'lost', label: 'Bị mất đi', description: 'Khách hàng tiềm năng không quan tâm nhưng có thể đáng để thu hút lại trong tương lai.', badge: 'gray' },
   { id: 'unqualified', label: 'Không đủ tiêu chuẩn', description: 'Khách hàng tiềm năng không phù hợp với doanh nghiệp của bạn.', badge: 'red' },
 ];
+
+const badgeColorMap: Record<string, string> = {
+  blue: 'badge-info badge-soft',
+  green: 'badge-success badge-soft',
+  purple: 'badge-primary badge-soft',
+  gray: 'badge-warning badge-soft',
+  red: 'badge-error badge-soft',
+};
 
 interface LeadStageSelectorProps {
   priority: string | null;
@@ -28,47 +36,29 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
   const [leadStatus, setLeadStatus] = useState(getInitialStatus(priority));
   const [isLead, setIsLead] = useState(priority !== null && leadStages.some(s => s.id === priority));
   const [isLeadStatusOpen, setIsLeadStatusOpen] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
-  const [dropdownDirection, setDropdownDirection] = useState<'down' | 'up'>('down');
   const [isMounted, setIsMounted] = useState(false);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const tooltipAnchorRef = useRef<HTMLDivElement>(null);
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState<'top' | 'bottom'>('bottom');
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isLeadStatusOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setDropdownPosition(spaceBelow < 320 ? 'top' : 'bottom');
+    }
+  }, [isLeadStatusOpen]);
 
   useEffect(() => {
     setIsMounted(true);
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current && 
-        !dropdownRef.current.contains(event.target as Node) &&
-        (!menuRef.current || !menuRef.current.contains(event.target as Node))
-      ) {
-        setIsLeadStatusOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
     setIsLead(priority !== null && leadStages.some(s => s.id === priority));
     setLeadStatus(getInitialStatus(priority));
   }, [priority]);
-
-  const toggleLeadStatus = () => {
-    if (!isLeadStatusOpen && dropdownRef.current) {
-      const rect = dropdownRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      
-      setDropdownDirection(spaceBelow < 400 ? 'up' : 'down');
-      setDropdownPos({
-        top: rect.top,
-        left: rect.left,
-        width: rect.width
-      });
-    }
-    setIsLeadStatusOpen(!isLeadStatusOpen);
-  };
 
   const handleUpdateLeadStatus = async (status: string) => {
     setLeadStatus(status);
@@ -87,11 +77,11 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-xs font-bold text-base-content/40 uppercase tracking-wider font-mono">Hoạt động</h3>
+        <h3 className="text-sm font-medium text-base-content/50">Hoạt động</h3>
         <div className="flex items-center gap-2">
           {isLead && (
             <span 
-              className="text-xs text-primary cursor-pointer hover:underline font-mono" 
+              className="text-xs text-primary cursor-pointer hover:underline" 
               onClick={() => {
                 setIsLead(false);
                 handleUpdateLeadStatus('none');
@@ -101,15 +91,38 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
               Bỏ đánh dấu
             </span>
           )}
-          <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-base-200 border border-base-content/10 text-base-content/40 font-mono">Khuyên dùng</span>
+          <span className="badge badge-xs badge-neutral rounded-md text-base-content/60">Khuyên dùng</span>
         </div>
       </div>
       
-      <h3 className="text-sm font-semibold text-base-content/70 flex items-center gap-1 mt-1 font-brand">
-        Giai đoạn khách hàng tiềm năng <Info size={14} className="text-base-content/40" />
+      <h3 className="text-sm font-semibold text-base-content/70 flex items-center gap-2 mt-1 font-brand">
+        Giai đoạn khách hàng tiềm năng 
+        <div
+          ref={tooltipAnchorRef}
+          onMouseEnter={() => setIsTooltipOpen(true)}
+          onMouseLeave={() => setIsTooltipOpen(false)}
+          className="cursor-help text-base-content/40 hover:text-base-content/70 transition-colors flex items-center"
+        >
+          <Info size={14} />
+        </div>
+        <PortalTooltip
+          active={isMounted && isTooltipOpen}
+          anchorRef={tooltipAnchorRef}
+          showArrow
+          position="top"
+          align="left"
+          className="w-72 text-xs font-normal leading-relaxed text-base-content"
+        >
+          <div className="space-y-1 p-0.5">
+            <p className="font-bold text-base-content">Giai đoạn tiềm năng</p>
+            <p className="text-base-content/60">
+              Giúp phân loại và theo dõi tiến trình của khách hàng trong phễu bán hàng (ví dụ: Tiếp nhận, Đủ tiêu chuẩn, Đã chuyển đổi...).
+            </p>
+          </div>
+        </PortalTooltip>
       </h3>
 
-      <div className="relative w-full mt-1" ref={dropdownRef}>
+      <div className="relative w-full mt-1">
         {!isLead ? (
           <div 
             className="flex items-center justify-center w-full p-2.5 bg-base-200 border border-base-content/10 rounded-lg text-sm text-base-content/70 cursor-pointer transition-all hover:bg-base-300 hover:border-primary"
@@ -122,35 +135,26 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
             <span>Đánh dấu là khách hàng tiềm năng</span>
           </div>
         ) : (
-          <div 
-            className="flex items-center justify-between w-full p-2.5 bg-base-200 border border-base-content/10 rounded-lg text-sm text-base-content cursor-pointer transition-all hover:bg-base-300 hover:border-primary"
-            onClick={toggleLeadStatus}
+          <RangeSelector
+            ref={triggerRef}
+            isOpen={isLeadStatusOpen}
+            onOpenChange={setIsLeadStatusOpen}
+            position={dropdownPosition}
+            className="w-full"
+            menuMinWidth="w-full min-w-full"
+            dropdownClassName="bg-base-100 rounded-xl shadow-2xl border border-base-content/10 overflow-hidden flex flex-col p-1.5 gap-0.5 w-full left-0 right-0"
+            customTrigger={
+              <div 
+                className="flex items-center justify-between w-full p-2.5 bg-base-200 border border-base-content/10 rounded-lg text-sm text-base-content cursor-pointer transition-all hover:bg-base-300 hover:border-primary"
+              >
+                <span>{
+                  leadStages.find(s => s.id === leadStatus)?.label || 'Chọn giai đoạn'
+                }</span>
+                <ChevronDown size={16} className={cn(isLeadStatusOpen && "rotate-180 transition-transform")} />
+              </div>
+            }
           >
-            <span>{
-              leadStages.find(s => s.id === leadStatus)?.label || 'Chọn giai đoạn'
-            }</span>
-            <ChevronDown size={16} className={cn(isLeadStatusOpen && "rotate-180 transition-transform")} />
-          </div>
-        )}
-
-        {isLeadStatusOpen && isMounted && createPortal(
-          <div 
-            ref={menuRef}
-            className={cn(
-              "fixed bg-base-100 border border-base-content/10 rounded-xl shadow-2xl z-10000 overflow-hidden flex flex-col",
-              dropdownDirection === 'up' && "mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
-            )}
-            style={{
-              top: dropdownDirection === 'down' ? dropdownPos.top + 42 : 'auto',
-              bottom: dropdownDirection === 'up' ? window.innerHeight - dropdownPos.top + 2 : 'auto',
-              left: dropdownPos.left,
-              width: dropdownPos.width,
-              maxHeight: dropdownDirection === 'down' 
-                ? window.innerHeight - dropdownPos.top - 60 
-                : dropdownPos.top - 20
-            }}
-          >
-            <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-base-content/10">
+            <div className="flex-1 overflow-y-auto p-2 max-h-[320px] scrollbar-thin scrollbar-thumb-base-content/10 flex flex-col gap-0.5">
               {leadStages.map((stage) => (
                 <div 
                   key={stage.id} 
@@ -171,30 +175,25 @@ export function LeadStageSelector({ priority, onUpdatePriority }: LeadStageSelec
                       {leadStatus === stage.id && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-sm text-base-content">{stage.label}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-1 gap-2">
+                      <span className="font-bold text-sm text-base-content truncate">{stage.label}</span>
                       <span className={cn(
-                        "text-3xs font-bold px-2 py-0.5 rounded-full",
-                        stage.badge === 'blue' && "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-                        stage.badge === 'green' && "bg-green-500/20 text-green-400 border border-green-500/30",
-                        stage.badge === 'purple' && "bg-purple-500/20 text-purple-400 border border-purple-500/30",
-                        stage.badge === 'gray' && "bg-slate-500/20 text-slate-400 border border-slate-500/30",
-                        stage.badge === 'red' && "bg-red-500/20 text-red-400 border border-red-500/30"
+                        "badge badge-xs font-semibold shrink-0",
+                        badgeColorMap[stage.badge] || "badge-neutral"
                       )}>
                         {stage.label}
                       </span>
                     </div>
-                    <p className="text-xs text-base-content/40 leading-normal">{stage.description}</p>
+                    <p className="text-xs text-base-content/40 leading-normal break-words whitespace-normal">{stage.description}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="p-3 bg-base-300 border-t border-base-content/10 text-xs text-base-content/40">
-              <span>Bạn có thể tạo giai đoạn tùy chỉnh trong <a href="#" className="text-primary hover:underline font-mono">Leads Center</a>.</span>
+            <div className="p-3 bg-base-200 border-t rounded-lg border-base-content/10 text-xs text-base-content/50">
+              <span>Bạn có thể tạo giai đoạn tùy chỉnh trong <a href="#" className="text-primary hover:underline">Leads Center</a>.</span>
             </div>
-          </div>,
-          document.body
+          </RangeSelector>
         )}
       </div>
     </div>

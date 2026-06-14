@@ -1,6 +1,6 @@
 'use client';
 
-import { PlatformIcon } from "@shared/ui";
+import { PlatformIcon, AccountAvatar } from "@shared/ui";
 import { cn } from "@shared/lib";
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -166,13 +166,13 @@ export function ChatHeader({
           className="p-1 px-1.5 -ml-1.5 rounded-lg flex items-center gap-2 transition-all duration-150 hover:bg-base-content/5 cursor-pointer select-none border border-transparent text-left"
           title="Xem trang cá nhân khách hàng"
         >
-          <div className="size-10 rounded-full bg-base-300 flex items-center justify-center font-semibold text-base-content border border-base-content/10 overflow-hidden shrink-0">
-            {customerAvatar ? (
-              <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover" />
-            ) : (
-              getInitials(customerName)
-            )}
-          </div>
+          <AccountAvatar
+            avatarUrl={customerAvatar}
+            name={customerName}
+            platform={platform}
+            size={10}
+            showPlatformIcon={false}
+          />
           <h2 className="text-lg font-semibold text-base-content leading-tight">{customerName}</h2>
         </button>
         <div className="flex items-center gap-1">

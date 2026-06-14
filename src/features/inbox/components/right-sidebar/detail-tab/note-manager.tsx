@@ -97,8 +97,8 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex justify-between items-center">
-        <h3 className="text-xs font-bold text-base-content/40 uppercase tracking-wider font-mono">Ghi chú</h3>
-        <span className="text-xs text-primary cursor-pointer hover:underline font-mono" onClick={() => setIsAddingNote(!isAddingNote)}>
+        <h3 className="text-sm font-medium text-base-content/50">Ghi chú</h3>
+        <span className="text-sm text-primary cursor-pointer hover:underline" onClick={() => setIsAddingNote(!isAddingNote)}>
           {isAddingNote ? 'Hủy' : 'Thêm ghi chú'}
         </span>
       </div>
@@ -112,10 +112,10 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
             onChange={(e) => setNoteContent(e.target.value)}
           />
           <button 
-            className="bg-primary text-primary-content border-none p-2 rounded-lg text-sm font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90 animate-none"
+            className="btn btn-primary btn-sm rounded-lg self-end"
             onClick={handleSaveNote}
           >
-            Lưu ghi chú
+            Save
           </button>
         </div>
       )}
@@ -155,7 +155,7 @@ export function NoteManager({ conversationId }: NoteManagerProps) {
                     autoFocus
                   />
                   <button 
-                    className="bg-primary text-primary-content border-none p-2 rounded-lg text-sm font-semibold cursor-pointer w-fit self-end transition-all hover:opacity-90 animate-none"
+                    className="btn btn-primary btn-sm rounded-lg self-end"
                     onClick={() => handleUpdateNote(note.id)}
                   >
                     Cập nhật

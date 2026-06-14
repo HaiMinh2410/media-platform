@@ -3,10 +3,12 @@ import { cn } from "@shared/lib";
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, X } from 'lucide-react';
+import { AccountAvatar } from "@shared/ui";
 
 interface SidebarCollapsedProps {
   customerName?: string;
   customerAvatar?: string;
+  platform: string;
   activeThreads: any[];
   conversationId: string;
   onToggleCollapse: () => void;
@@ -16,6 +18,7 @@ interface SidebarCollapsedProps {
 export function SidebarCollapsed({
   customerName,
   customerAvatar,
+  platform,
   activeThreads,
   conversationId,
   onToggleCollapse,
@@ -29,21 +32,18 @@ export function SidebarCollapsed({
       <div className="flex flex-col items-center gap-4 w-full">
         {/* Active Conversation Avatar - Toggles Sidebar */}
         <div 
-          className={cn(
-            "relative w-9 h-9 rounded-full bg-base-300 border-2 border-base-content/10 flex items-center justify-center text-sm font-bold text-base-content cursor-pointer transition-all hover:scale-105 hover:border-primary shadow-lg",
-            "border-primary bg-primary/10 ring-2 ring-primary/20"
-          )}
           onClick={onToggleCollapse}
           title={customerName || 'Active Conversation'}
+          className="cursor-pointer"
         >
-          {customerAvatar ? (
-            <img src={customerAvatar} alt={customerName} className="w-full h-full object-cover rounded-full" />
-          ) : (
-            customerName?.charAt(0) || 'U'
-          )}
-          <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] bg-background border-[1.5px] border-background rounded-full flex items-center justify-center text-instagram shadow-lg z-10">
-            <Camera size={10} />
-          </div>
+          <AccountAvatar
+            avatarUrl={customerAvatar}
+            name={customerName || 'Unknown'}
+            platform={platform}
+            size={9}
+            showPlatformIcon={true}
+            className="ring-2 ring-primary/20 hover:scale-105 transition-all shadow-lg"
+          />
         </div>
 
         {/* Divider */}

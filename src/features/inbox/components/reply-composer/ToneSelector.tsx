@@ -37,14 +37,14 @@ export function ToneSelector({
         items={toneItems}
         activeValue={selectedTone}
         onChange={setTone}
-        size="sm"
+        rounded="rounded-md"
         layoutId="toneSelectorTabs"
         className="border-none shadow-none bg-transparent p-0.5 rounded-md gap-0.5"
       />
       <button 
         type="button"
         className={cn(
-          "flex items-center gap-1.5 bg-linear-to-br from-primary/20 to-secondary/20 border border-primary/40 text-foreground text-xs font-semibold px-3 py-1.5 rounded-sm cursor-pointer transition-all shadow-sm hover:from-primary/30 hover:to-secondary/30 hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
+          "flex items-center rounded-md gap-1.5 bg-linear-to-br from-primary/20 to-secondary/20 border border-primary/40 text-foreground text-xs font-semibold px-3 py-1.5 cursor-pointer transition-all shadow-sm hover:from-primary/30 hover:to-secondary/30 hover:shadow-md hover:-translate-y-px disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
           isRewriting && "opacity-80 cursor-wait"
         )}
         onClick={onRewrite}
