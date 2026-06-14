@@ -1,15 +1,25 @@
 'use server';
 
 import { db } from "@shared/lib/db";
-
 import { revalidatePath } from 'next/cache';
+import { createClient } from "@shared/api/supabase/server";
+import crypto from 'crypto';
 
 /**
- * Server action to clear all webhook logs (both raw logs and parsed events)
- * to reset the development/testing state.
+ * Server action to cleared webhook logs securely, checking user authentication
  */
-export async function clearWebhookLogsAction() {
+export async function clearWebhookLogsAction(confirmText?: string) {
   try {
+    if (confirmText !== 'TRUNCATE') {
+      return { error: 'INVALID_CONFIRMATION_TEXT' };
+    }
+
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { error: 'UNAUTHORIZED' };
+    }
+
     // Delete parsed events first because of foreign key constraint
     const deletedEvents = await db.webhookEvent.deleteMany({});
     const deletedLogs = await db.platformEventLog.deleteMany({});
@@ -23,6 +33,59 @@ export async function clearWebhookLogsAction() {
   } catch (error) {
     console.error('[DevActions] Failed to clear webhook logs:', error);
     return { error: error instanceof Error ? error.message : 'DATABASE_ERROR' };
+  }
+}
+
+/**
+ * Server action to simulate Meta webhook POST request with valid HMAC-SHA256 signature
+ */
+export async function simulateWebhookAction(payload: any) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return { error: 'UNAUTHORIZED: Bạn phải đăng nhập để giả lập webhook' };
+    }
+
+    const appSecret = process.env.META_APP_SECRET || '';
+    const rawBody = JSON.stringify(payload);
+    const hmac = crypto.createHmac('sha256', appSecret);
+    const signature = 'sha256=' + hmac.update(rawBody, 'utf8').digest('hex');
+
+    const port = process.env.PORT || '3000';
+    // Fallback to localhost if NEXT_PUBLIC_APP_URL is not set
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${port}`;
+    
+    console.log(`[DevActions] Sending simulation POST to ${appUrl}/api/webhooks/meta`);
+    
+    const response = await fetch(`${appUrl}/api/webhooks/meta`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-hub-signature-256': signature,
+      },
+      body: rawBody,
+    });
+
+    const resText = await response.text();
+    let resBody: any;
+    try {
+      resBody = JSON.parse(resText);
+    } catch (e) {
+      resBody = { text: resText };
+    }
+
+    if (!response.ok) {
+      return { 
+        error: `HTTP ${response.status}: ${resBody.error || resText || 'Server Error'}` 
+      };
+    }
+
+    return { success: true, response: resBody };
+  } catch (error) {
+    console.error('[DevActions] Failed to simulate webhook:', error);
+    return { error: error instanceof Error ? error.message : 'INTERNAL_SERVER_ERROR' };
   }
 }
 

@@ -32,7 +32,7 @@ export function PurgeAccountsButton({ workspaceId }: { workspaceId: string }) {
       <button 
         onClick={triggerPurge} 
         disabled={loading}
-        className="btn btn-soft btn-error rounded-full w-full gap-2 font-bold h-10 min-h-0"
+        className="btn btn-soft btn-error rounded-md w-full gap-2 font-bold h-10 min-h-0"
       >
         {loading ? (
           <span className="loading loading-spinner loading-xs"></span>

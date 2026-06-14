@@ -89,7 +89,7 @@ export default async function AccountsSettingsPage(props: {
             </p>
             <div className="space-y-3">
               <PurgeAccountsButton workspaceId={workspace.id} />
-              <p className="text-2xs text-base-content/40 text-center">
+              <p className="text-xs text-base-content/40 text-center">
                 * Dữ liệu hội thoại của tài khoản bị xóa sẽ không thể phục hồi.
               </p>
             </div>
