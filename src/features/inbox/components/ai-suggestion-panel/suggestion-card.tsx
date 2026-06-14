@@ -16,33 +16,34 @@ export function SuggestionCard({ suggestion, onUse, onDismiss }: SuggestionCardP
   const timeDifferenceLabel = calculateTimeAgo(suggestion.createdAt);
 
   return (
-    <div className="bg-foreground/[0.03] border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 transition-all hover:bg-foreground/[0.05] hover:border-foreground/10 group">
+    <div className="card bg-base-100 border border-base-content/5 hover:border-base-content/10 rounded-xl p-4 flex flex-col gap-3 transition-all hover:bg-base-200/30 group shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs font-bold text-accent-primary">
+        <div className="flex items-center gap-2 text-xs font-bold text-primary">
           <Zap size={12} fill="currentColor" />
           <span className="text-sm font-bold select-none tracking-wider">
             {modelDisplayName}
           </span>
         </div>
-        <span className="text-xs text-foreground-tertiary flex items-center gap-1">
+        <span className="text-xs text-base-content/40 flex items-center gap-1">
           {timeDifferenceLabel}
         </span>
       </div>
 
-      <p className="text-sm text-foreground-secondary leading-relaxed m-0 italic">
+      <p className="text-sm text-base-content/70 leading-relaxed m-0 italic">
         "{suggestion.response}"
       </p>
 
       <div className="flex items-center gap-2 mt-1">
         <button
-          className="flex-1 bg-accent-primary text-foreground p-1.5 rounded-lg text-sm font-bold transition-all hover:brightness-110 active:scale-[0.98]"
+          className="btn btn-primary btn-sm flex-1"
           onClick={() => onUse(suggestion.response)}
         >
           Sử dụng
         </button>
         <button
-          className="w-9 h-9 flex items-center justify-center bg-foreground/5 border border-foreground/10 rounded-lg text-foreground-tertiary transition-all hover:bg-foreground/10 hover:text-foreground"
+          className="btn btn-square btn-ghost btn-sm bg-base-200/50 hover:bg-base-200 text-base-content/40 hover:text-base-content border border-base-content/5"
           onClick={() => onDismiss(suggestion.id)}
+          aria-label="Bỏ qua gợi ý"
         >
           <X size={14} />
         </button>

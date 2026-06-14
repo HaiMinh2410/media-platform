@@ -15,7 +15,7 @@ export { classifyService } from './services/classify.service';
 export { generateService } from './services/generate.service';
 export { selectModel } from './services/model-selector';
 export { evaluateABTest, promoteWinnerIfAny, logABTestDecision } from './services/ab-test-manager';
-export { retrieveContext } from './services/context-retriever';
+export { retrieveContext, calculateInteractiveDays } from './services/context-retriever';
 export { summarizeConversation } from './services/context-summarizer';
 export { canSendLink, decideAction } from './services/decision-engine';
 export { scoreEmotionAndTrend } from './services/emotion-scorer';

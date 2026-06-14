@@ -25,9 +25,9 @@ export type FanType = 'Luy' | 'Cool' | 'Whale' | 'Drainer' | 'Unknown';
 /**
  * Giai đoạn hội thoại — dựa trên số ngày tương tác + emotion_score.
  *
- * - G1 (0–30 ngày): Build Trust — thân thiện, không flirt, không link.
- * - G2 (31–60 ngày): Warm-up & Flirt nhẹ — Flirt Ladder Level 1→3.
- * - G3 (61+ ngày): Upsell & Chốt — gợi mở + send link.
+ * - G1 (0–10 ngày): Build Trust — thân thiện, không flirt, không link.
+ * - G2 (11–15 ngày): Warm-up & Flirt nhẹ — Flirt Ladder Level 1→3.
+ * - G3 (16+ ngày): Upsell & Chốt — gợi mở + send link.
  */
 export type ConversationStage = 'G1' | 'G2' | 'G3';
 
@@ -402,8 +402,8 @@ export const AI_AGENT_DEFAULTS = {
   CLASSIFIER_MIN_CONFIDENCE: 0.65,          // Dưới ngưỡng này → giữ Unknown
 
   // Stage transitions (day_count)
-  STAGE_G1_MAX_DAYS: 30,
-  STAGE_G2_MAX_DAYS: 60,
+  STAGE_G1_MAX_DAYS: 10,
+  STAGE_G2_MAX_DAYS: 15,
 
   // Emotion thresholds
   EMOTION_PROMOTE_G1_TO_G2: 0.85,          // Promote sớm nếu cảm xúc cao

@@ -12,6 +12,33 @@ export type ContextBundle = {
 };
 
 /**
+ * Calculates the number of unique calendar days that have at least one message in the conversation.
+ * The calendar day is calculated in GMT+7 (Asia/Ho_Chi_Minh) timezone.
+ */
+export async function calculateInteractiveDays(conversationId: string): Promise<number> {
+  const messages = await db.message.findMany({
+    where: { conversationId },
+    select: { createdAt: true },
+  });
+
+  if (messages.length === 0) return 0;
+
+  const uniqueDays = new Set<string>();
+  const formatter = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
+  for (const msg of messages) {
+    uniqueDays.add(formatter.format(msg.createdAt));
+  }
+
+  return uniqueDays.size;
+}
+
+/**
  * Retrieves the full conversation context (Context Bundle) including the fan's profile
  * and recent chat history for a given conversationId.
  * If the fan profile does not exist yet, a default profile is created automatically.
@@ -43,17 +70,8 @@ export async function retrieveContext(conversationId: string): Promise<ContextBu
         throw new Error(`Platform account not associated with conversation ID: ${conversationId}`);
       }
 
-      // Calculate dayCount since the first message
-      const firstMessage = await db.message.findFirst({
-        where: { conversationId },
-        orderBy: { createdAt: 'asc' },
-      });
-
-      let dayCount = 0;
-      if (firstMessage) {
-        const diffTime = Math.abs(new Date().getTime() - firstMessage.createdAt.getTime());
-        dayCount = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      }
+      // Calculate dayCount as the number of unique days with at least one interaction
+      const dayCount = await calculateInteractiveDays(conversationId);
 
       // Create new FanProfile record with default values
       const createdProfile = await upsertFanProfile({

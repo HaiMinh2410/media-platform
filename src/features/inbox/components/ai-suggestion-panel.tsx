@@ -6,11 +6,12 @@ import { cn } from "@shared/lib";
 import React, { useState, useEffect } from 'react';
 import type { AiSuggestion } from '@features/inbox/types';
 import { createClient } from '@shared/api/supabase/client';
-import { Zap, Info, Loader2 } from 'lucide-react';
+import { Bot, Info, Loader2 } from 'lucide-react';
 
 import { SuggestionCard } from './ai-suggestion-panel/suggestion-card';
 import { ScheduledReplyCard } from './ai-suggestion-panel/scheduled-reply-card';
 import { AiProfileViewer } from './ai-suggestion-panel/ai-profile-viewer';
+import { PortalTooltip } from "@shared/ui";
 import {
   REALTIME_REFRESH_POLL_INTERVAL_MS,
   REALTIME_POLL_RETRIES_MS,
@@ -28,6 +29,7 @@ type Props = {
   gender?: string | null;
   onUpdateGender?: (gender: string | null) => void;
   botConfig?: any;
+  onJumpToMessage?: (id: string) => void;
 };
 
 export function AiSuggestionPanel({
@@ -39,12 +41,15 @@ export function AiSuggestionPanel({
   fanProfile,
   gender,
   onUpdateGender,
-  botConfig
+  botConfig,
+  onJumpToMessage,
 }: Props) {
   const visibleSuggestions = suggestions.slice(0, MAX_VISIBLE_SUGGESTIONS);
   const [scheduledReply, setScheduledReply] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
+  const headerRef = React.useRef<HTMLHeadingElement>(null);
+  const [showHeaderTooltip, setShowHeaderTooltip] = useState<boolean>(false);
 
   const isAutoReplyActive = botConfig?.is_active === true && botConfig?.auto_send === true;
 
@@ -150,30 +155,21 @@ export function AiSuggestionPanel({
   };
 
   return (
-    <div className="flex flex-col text-foreground select-none">
+    <div className="flex flex-col text-base-content select-none">
       {/* ================= SECTION 1: AI SUGGESTIONS & AUTO REPLY ================= */}
       <div>
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className={cn(
-              "p-1 rounded border",
-              isAutoReplyActive 
-                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                : "bg-accent-primary/10 text-accent-primary border-accent-primary/20"
-            )}>
-              <Zap size={14} className="animate-pulse" />
-            </div>
-            <h4 className="text-xs font-black text-foreground-secondary uppercase tracking-wider">
+            <Bot size={16} className="animate-pulse" />
+            <h4 
+              ref={headerRef}
+              onMouseEnter={() => setShowHeaderTooltip(true)}
+              onMouseLeave={() => setShowHeaderTooltip(false)}
+              className="font-semibold text-base-content/70 cursor-help hover:text-base-content transition-colors select-none"
+            >
               {isAutoReplyActive ? "Tự động phản hồi AI" : "Gợi ý phản hồi AI"}
             </h4>
           </div>
-
-          {isAutoReplyActive && (
-            <span className="text-3xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 animate-pulse flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-              Auto Active
-            </span>
-          )}
         </div>
 
         <div className="p-4 flex flex-col gap-4">
@@ -188,19 +184,19 @@ export function AiSuggestionPanel({
                 isCancelling={isCancelling}
               />
             ) : loading ? (
-              <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3 bg-foreground/1 border border-foreground/5 rounded-xl">
-                <Loader2 size={18} className="animate-spin text-emerald-500" />
-                <p className="text-2xs italic leading-relaxed text-emerald-400 font-black animate-pulse">
+              <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-base-content/50 gap-3 bg-base-200/50 border border-base-content/5 rounded-xl">
+                <Loader2 size={18} className="animate-spin text-success" />
+                <p className="text-2xs italic leading-relaxed text-success font-black animate-pulse">
                   AI đang phân tích tin nhắn và soạn thảo phản hồi tự động...
                 </p>
               </div>
             ) : (
-              <div className="flex items-start justify-center px-4 py-5 text-center text-foreground-tertiary gap-3 bg-foreground/1 border border-foreground/5 rounded-xl relative">
-                <span className="absolute top-0 left-0 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <div className="flex items-start justify-center px-4 py-5 text-center text-base-content/50 gap-3 bg-base-200/50 rounded-xl relative">
+                <span className="absolute top-1 left-0 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
                 </span>
-                <p className="text-sm whitespace-nowrap">
+                <p className="text-sm text-left whitespace-nowrap">
                   Hệ thống tự động phản hồi đang chạy.<br/>Đang chờ tin nhắn tiếp theo của khách...
                 </p>
               </div>
@@ -211,13 +207,13 @@ export function AiSuggestionPanel({
               {loading && (
                 <div className="flex flex-col gap-4">
                   {[1, 2].map(i => (
-                    <div key={i} className="bg-foreground/2 border border-foreground/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
-                      <div className="h-3 bg-foreground/5 rounded w-1/3" />
-                      <div className="h-4 bg-foreground/5 rounded w-full" />
-                      <div className="h-4 bg-foreground/5 rounded w-4/5" />
+                    <div key={i} className="bg-base-200/50 border border-base-content/5 rounded-xl p-4 flex flex-col gap-3 animate-pulse">
+                      <div className="h-3 bg-base-content/10 rounded w-1/3" />
+                      <div className="h-4 bg-base-content/10 rounded w-full" />
+                      <div className="h-4 bg-base-content/10 rounded w-4/5" />
                     </div>
                   ))}
-                  <div className="flex items-center justify-center py-5 text-foreground-tertiary text-sm gap-2">
+                  <div className="flex items-center justify-center py-5 text-base-content/50 text-sm gap-2">
                     <Loader2 size={16} className="animate-spin" />
                     <span>Đang tạo phản hồi...</span>
                   </div>
@@ -225,8 +221,8 @@ export function AiSuggestionPanel({
               )}
 
               {!loading && visibleSuggestions.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-foreground-tertiary gap-3 bg-foreground/1 border border-foreground/5 rounded-xl">
-                  <Info size={24} className="text-foreground-tertiary opacity-40" />
+                <div className="flex flex-col items-center justify-center py-10 px-6 text-center text-base-content/40 gap-3 bg-base-200/50 border border-base-content/5 rounded-xl">
+                  <Info size={24} className="text-base-content/30" />
                   <p className="text-xs italic">Chưa có gợi ý nào</p>
                 </div>
               )}
@@ -254,7 +250,30 @@ export function AiSuggestionPanel({
           fanProfile={fanProfile}
           gender={gender || null}
           onUpdateGender={onUpdateGender || (() => {})}
+          onJumpToMessage={onJumpToMessage}
         />
+      )}
+
+      {showHeaderTooltip && (
+        <PortalTooltip
+          active={showHeaderTooltip}
+          anchorRef={headerRef}
+          position="bottom"
+          align="left"
+          showArrow
+          className="w-76"
+        >
+          <div className="flex flex-col text-sm  gap-1 text-base-content">
+            <span className="text-primary">
+              {isAutoReplyActive ? "Chế độ: Tự động phản hồi" : "Chế độ: Gợi ý phản hồi"}
+            </span>
+            <p className="text-base-content/85 leading-normal">
+              {isAutoReplyActive 
+                ? "Hệ thống đang tự động lập lịch và gửi câu trả lời AI sau khoảng trễ ngẫu nhiên để giả lập người thật chat. Bạn có thể xem và hủy tin nhắn đang chờ gửi tại đây." 
+                : "Gợi ý các phương án phản hồi tối ưu do AI soạn thảo. Bạn có thể nhấn 'Sử dụng' để đưa vào khung chat và chỉnh sửa thủ công trước khi gửi."}
+            </p>
+          </div>
+        </PortalTooltip>
       )}
     </div>
   );

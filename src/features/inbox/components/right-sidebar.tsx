@@ -264,6 +264,7 @@ export function RightSidebar({
             gender={gender}
             onUpdateGender={onUpdateGender}
             botConfig={botConfig}
+            onJumpToMessage={onJumpToMessage}
           />
         )}
 

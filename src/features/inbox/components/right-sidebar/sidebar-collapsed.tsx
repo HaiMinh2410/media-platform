@@ -42,7 +42,7 @@ export function SidebarCollapsed({
             platform={platform}
             size={9}
             showPlatformIcon={true}
-            className="ring-2 ring-primary/20 hover:scale-105 transition-all shadow-lg"
+            className="hover:scale-105"
           />
         </div>
 

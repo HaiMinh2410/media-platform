@@ -1,4 +1,5 @@
 import type { FanProfile, ConversationStage, RiskLevel, FlirtLevel, FanType } from '@features/ai-agent/types-agent';
+import { AI_AGENT_DEFAULTS } from '@features/ai-agent/types-agent';
 
 // Regex for checking high-risk or sensitive patterns in incoming chat messages
 const SENSITIVE_PATTERNS = /(gọi video|video call|cam show|show cam|gặp trực tiếp|gặp ngoài đời|free photo|free video|ảnh miễn phí|video miễn phí|ảnh nude|nude photo|hack|scam|lừa đảo|đòi tiền|chuyển khoản riêng|bị phốt|bóc phốt|phốt|tống tiền|bắt cóc|tố cáo|báo công an)/i;
@@ -14,9 +15,9 @@ export function determineStage(profile: FanProfile): ConversationStage {
   let baseStage: ConversationStage = 'G1';
 
   // 1. Determine baseline stage from dayCount
-  if (profile.dayCount <= 30) {
+  if (profile.dayCount <= AI_AGENT_DEFAULTS.STAGE_G1_MAX_DAYS) {
     baseStage = 'G1';
-  } else if (profile.dayCount <= 60) {
+  } else if (profile.dayCount <= AI_AGENT_DEFAULTS.STAGE_G2_MAX_DAYS) {
     baseStage = 'G2';
   } else {
     baseStage = 'G3';

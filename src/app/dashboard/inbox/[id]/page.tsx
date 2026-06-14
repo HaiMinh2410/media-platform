@@ -3,6 +3,7 @@ import { db } from "@shared/lib/db";
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { RightPanel } from '@features/inbox/components/right-panel';
+import { calculateInteractiveDays, determineStage } from '@features/ai-agent';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -30,6 +31,54 @@ export default async function ConversationPage({
     notFound();
   }
 
+  // Bổ sung tính toán ngày tương tác thực tế cho FanProfile
+  let fanProfile = null;
+  if (conversation.fan_profile) {
+    const firstMessage = await db.message.findFirst({
+      where: { conversationId: id },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    let dayCount = conversation.fan_profile.day_count;
+    let firstInteractedAt = conversation.fan_profile.created_at;
+
+    if (firstMessage) {
+      firstInteractedAt = firstMessage.createdAt;
+      
+      // Tính số ngày có tương tác thực tế (đếm số ngày duy nhất có tin nhắn)
+      dayCount = await calculateInteractiveDays(id);
+
+      // Tính lại stage dựa trên dayCount mới
+      const currentStage = determineStage({
+        ...conversation.fan_profile,
+        dayCount,
+      } as any);
+
+      // Cập nhật lại DB nếu day_count hoặc stage thực tế bị sai lệch
+      if (dayCount !== conversation.fan_profile.day_count || currentStage !== conversation.fan_profile.stage) {
+        await db.fanProfile.update({
+          where: { id: conversation.fan_profile.id },
+          data: { 
+            day_count: dayCount,
+            stage: currentStage,
+          },
+        });
+      }
+
+      fanProfile = {
+        ...conversation.fan_profile,
+        day_count: dayCount,
+        stage: currentStage,
+        firstInteractedAt,
+      };
+    } else {
+      fanProfile = {
+        ...conversation.fan_profile,
+        firstInteractedAt,
+      };
+    }
+  }
+
   const platform = conversation.platform_accounts.platform;
   const userName = (conversation as any).customer_name || conversation.platform_conversation_id; 
   const userAvatar = (conversation as any).customer_avatar;
@@ -49,7 +98,7 @@ export default async function ConversationPage({
         priority={(conversation as any).priority || null}
         sentiment={(conversation as any).sentiment || null}
         initialTags={(conversation as any).tags || []}
-        initialFanProfile={conversation.fan_profile}
+        initialFanProfile={fanProfile}
         initialBotConfig={conversation.platform_accounts.bot_configurations}
         gender={(conversation as any).gender || null}
         contactInfo={{

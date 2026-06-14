@@ -8,7 +8,7 @@ import { db } from "@shared/lib/db";
 
 import * as crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
-import { retrieveContext } from './context-retriever';
+import { retrieveContext, calculateInteractiveDays } from './context-retriever';
 import { determineStage, assessRisk, determineFlirtLevel } from './state-manager';
 import { scoreEmotionAndTrend } from './emotion-scorer';
 import { classifyFanHybrid, shouldReclassifyFan } from './fan-classifier';
@@ -258,6 +258,10 @@ export async function processIncomingMessage(params: {
     }
 
     await sendStatus('AI đang xác định giai đoạn hội thoại & đánh giá rủi ro...');
+    // Tính toán lại dayCount tương tác thực tế từ các tin nhắn hiện có trong DB (đã bao gồm tin nhắn mới vừa lưu)
+    const updatedDayCount = await calculateInteractiveDays(params.conversationId);
+    fanProfile.dayCount = updatedDayCount;
+
     // 2. Xác định Giai đoạn (Stage) & Đánh giá Rủi ro (Risk Level) từ StateManager
     const currentStage = determineStage(fanProfile);
     
@@ -577,6 +581,7 @@ export async function processIncomingMessage(params: {
       fanType: tempProfile.fanType,
       fanTypeConfidence: tempProfile.fanTypeConfidence,
       stage: tempProfile.stage,
+      dayCount: tempProfile.dayCount,
       riskLevel: tempProfile.riskLevel,
       nextAction: tempProfile.nextAction,
       messageCount: tempProfile.messageCount,
