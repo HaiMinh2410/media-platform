@@ -103,9 +103,10 @@ export function RightSidebar({
         id: conversationId,
         sender_name: customerName,
         customer_avatar: customerAvatar,
+        platform: platform,
       } as any);
     }
-  }, [conversationId, customerName, customerAvatar, addActiveThread]);
+  }, [conversationId, customerName, customerAvatar, platform, addActiveThread]);
 
   const handleSyncProfile = async () => {
     setIsSyncing(true);

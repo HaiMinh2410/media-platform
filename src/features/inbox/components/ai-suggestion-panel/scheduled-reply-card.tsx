@@ -26,7 +26,7 @@ export function ScheduledReplyCard({
   const [showTooltip, setShowTooltip] = React.useState(false);
 
   return (
-    <div className="card bg-gradient-to-br from-success/10 via-success/5 to-transparent border border-success/20 rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden group shadow-sm">
+    <div className="card bg-linear-to-br from-success/10 via-success/5 to-transparent border border-success/20 rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden group shadow-sm">
       <div className="absolute top-0 right-0 w-32 h-32 bg-success/5 rounded-full blur-2xl group-hover:bg-success/10 transition-all duration-500" />
       
       <div className="flex items-center justify-between z-10">

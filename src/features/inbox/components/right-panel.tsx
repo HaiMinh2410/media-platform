@@ -115,6 +115,28 @@ export function RightPanel({
   const fillSeqRef = useRef(0);
   const chatRef = useRef<ChatWindowRef>(null);
 
+  const composerContainerRef = useRef<HTMLDivElement>(null);
+  const [composerHeight, setComposerHeight] = useState(130);
+
+  // Measure the height of the composer to adjust chat window scroll padding bottom
+  useEffect(() => {
+    const element = composerContainerRef.current;
+    if (!element) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      setComposerHeight(element.offsetHeight);
+    });
+
+    resizeObserver.observe(element);
+
+    // Initial measurement
+    setComposerHeight(element.offsetHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [conversationId]);
+
   const { suggestions, loading, dismiss } = useAiSuggestions({ conversationId });
 
   // Real-time Presence and Typing tracking
@@ -196,7 +218,7 @@ export function RightPanel({
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      <div className="flex-1 flex flex-col border-r border-base-content/10 relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 border-r border-base-content/10 relative z-10">
         <ChatHeader 
           conversationId={conversationId}
           customerName={customerName || externalId}
@@ -213,17 +235,23 @@ export function RightPanel({
           typingUsers={typingUsers}
           customerAvatar={customerAvatar}
           customerName={customerName}
+          composerHeight={composerHeight}
         />
-        <ReplyComposer
-          workspaceId={workspaceId}
-          conversationId={conversationId}
-          fillText={fillText}
-          onMessageSent={handleMessageSent}
-          platform={platform}
-          platformUserName={pageName}
-          onTypingStateChange={sendTypingState}
-          botConfig={botConfig}
-        />
+        <div 
+          ref={composerContainerRef}
+          className="absolute bottom-0 left-0 right-0 z-20 bg-base-100/80 backdrop-blur-md"
+        >
+          <ReplyComposer
+            workspaceId={workspaceId}
+            conversationId={conversationId}
+            fillText={fillText}
+            onMessageSent={handleMessageSent}
+            platform={platform}
+            platformUserName={pageName}
+            onTypingStateChange={sendTypingState}
+            botConfig={botConfig}
+          />
+        </div>
       </div>
 
       {/* Spacer div to keep structural spacing in flow layout */}

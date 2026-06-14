@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import { PlatformIcon, AccountAvatar } from "@shared/ui";
+import { PlatformIcon, AccountAvatar, RangeSelector } from "@shared/ui";
 import { cn } from "@shared/lib";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { MoreHorizontal, ShieldAlert, ShieldCheck, Trash2, Search, X } from 'lucide-react';
-import { useInboxStore } from '../store/inbox.store';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-
+import React, { useState, useRef, useEffect } from "react";
+import {
+  MoreHorizontal,
+  ShieldAlert,
+  ShieldCheck,
+  Trash2,
+  Search,
+  X,
+} from "lucide-react";
+import { useInboxStore } from "../store/inbox.store";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type ChatHeaderProps = {
   conversationId: string;
@@ -34,111 +40,114 @@ export function ChatHeader({
   const router = useRouter();
   const triggerRefresh = useInboxStore((state) => state.triggerRefresh);
   const setRightSidebarTab = useInboxStore((state) => state.setRightSidebarTab);
-  const setRightPanelVisible = useInboxStore((state) => state.setRightPanelVisible);
-  const isRightPanelVisible = useInboxStore((state) => state.isRightPanelVisible);
+  const setRightPanelVisible = useInboxStore(
+    (state) => state.setRightPanelVisible,
+  );
+  const isRightPanelVisible = useInboxStore(
+    (state) => state.isRightPanelVisible,
+  );
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleMoveToSpam = async () => {
     setIsDropdownOpen(false);
     try {
-      const metaRes = await fetch(`/api/conversations/${conversationId}/metadata`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: 'spam' }),
-      });
+      const metaRes = await fetch(
+        `/api/conversations/${conversationId}/metadata`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ status: "spam" }),
+        },
+      );
 
-      const newTags = ['Bị chặn::#ef4444'];
+      const newTags = ["Bị chặn::#ef4444"];
       if (onUpdateTags) {
         onUpdateTags(newTags);
       } else {
         await fetch(`/api/conversations/${conversationId}/tags`, {
-          method: 'PUT',
+          method: "PUT",
           body: JSON.stringify({ tags: newTags }),
         });
       }
 
       if (metaRes.ok) {
-        toast.success('Hội thoại đã được chuyển vào mục spam và bị chặn');
+        toast.success("Hội thoại đã được chuyển vào mục spam và bị chặn");
         triggerRefresh();
-        router.push('/dashboard/inbox');
+        router.push("/dashboard/inbox");
       } else {
-        toast.error('Không thể chuyển hội thoại vào mục spam');
+        toast.error("Không thể chuyển hội thoại vào mục spam");
       }
     } catch (err) {
-      toast.error('Lỗi kết nối máy chủ');
+      toast.error("Lỗi kết nối máy chủ");
     }
   };
 
   const handleUnblock = async () => {
     setIsDropdownOpen(false);
     try {
-      const metaRes = await fetch(`/api/conversations/${conversationId}/metadata`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: 'open' }),
-      });
+      const metaRes = await fetch(
+        `/api/conversations/${conversationId}/metadata`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ status: "open" }),
+        },
+      );
 
-      const newTags = tags.filter(t => !t.startsWith('Bị chặn::'));
+      const newTags = tags.filter((t) => !t.startsWith("Bị chặn::"));
       if (onUpdateTags) {
         onUpdateTags(newTags);
       } else {
         await fetch(`/api/conversations/${conversationId}/tags`, {
-          method: 'PUT',
+          method: "PUT",
           body: JSON.stringify({ tags: newTags }),
         });
       }
 
       if (metaRes.ok) {
-        toast.success('Đã bỏ chặn hội thoại');
+        toast.success("Đã bỏ chặn hội thoại");
         triggerRefresh();
-        router.push('/dashboard/inbox');
+        router.push("/dashboard/inbox");
       } else {
-        toast.error('Không thể bỏ chặn hội thoại');
+        toast.error("Không thể bỏ chặn hội thoại");
       }
     } catch (err) {
-      toast.error('Lỗi kết nối máy chủ');
+      toast.error("Lỗi kết nối máy chủ");
     }
   };
 
   const handleDeleteConversation = async () => {
     setIsDropdownOpen(false);
-    if (!confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this conversation? This action cannot be undone.",
+      )
+    ) {
       return;
     }
 
     try {
       const res = await fetch(`/api/conversations/${conversationId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       if (res.ok) {
-        toast.success('Conversation deleted successfully');
-        router.push('/dashboard/inbox');
+        toast.success("Conversation deleted successfully");
+        router.push("/dashboard/inbox");
       } else {
-        toast.error('Failed to delete conversation');
+        toast.error("Failed to delete conversation");
       }
     } catch (err) {
-      toast.error('Error connecting to server');
+      toast.error("Error connecting to server");
     }
   };
 
   const handleToggleSearch = () => {
     setIsDropdownOpen(false);
-    setRightSidebarTab('search');
+    setRightSidebarTab("search");
     setRightPanelVisible(true);
   };
 
   const getInitials = (name: string) => {
-    const split = name.split(' ');
+    const split = name.split(" ");
     if (split.length > 1) {
       return (split[0][0] + split[1][0]).toUpperCase();
     }
@@ -147,12 +156,12 @@ export function ChatHeader({
 
   const handleAvatarClick = () => {
     if (customerLink) {
-      window.open(customerLink, '_blank', 'noopener,noreferrer');
+      window.open(customerLink, "_blank", "noopener,noreferrer");
     } else {
       toast.info(
-        platform === 'instagram'
+        platform === "instagram"
           ? 'Chưa đồng bộ được username Instagram. Vui lòng nhấn "Làm mới" ở cột bên phải để thử lại.'
-          : 'Facebook hạn chế liên kết trang cá nhân qua API do chính sách bảo mật.'
+          : "Facebook hạn chế liên kết trang cá nhân qua API do chính sách bảo mật.",
       );
     }
   };
@@ -170,56 +179,64 @@ export function ChatHeader({
             avatarUrl={customerAvatar}
             name={customerName}
             platform={platform}
-            size={10}
+            size={9}
             showPlatformIcon={false}
           />
-          <h2 className="text-lg font-semibold text-base-content leading-tight">{customerName}</h2>
+          <h2 className="text-lg font-semibold text-base-content leading-tight">
+            {customerName}
+          </h2>
         </button>
         <div className="flex items-center gap-1">
-          <span className="text-xs text-base-content/40 leading-none">via {platformUserName}</span>
+          <span className="text-xs text-base-content/40 leading-none">
+            via {platformUserName}
+          </span>
           <PlatformIcon platform={platform} size={12} className="shrink-0" />
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <div className="relative" ref={dropdownRef}>
+        <RangeSelector
+          isOpen={isDropdownOpen}
+          onOpenChange={setIsDropdownOpen}
+          menuAlign="right"
+          menuMinWidth="w-56"
+          customTrigger={
+            <button className="btn btn-ghost btn-circle" title="More Options">
+              <MoreHorizontal size={20} />
+            </button>
+          }
+        >
           <button
-            className={cn(
-              "bg-transparent border border-base-content/10 text-base-content/70 w-8 h-8 rounded-md flex items-center justify-center cursor-pointer transition-colors hover:bg-base-content/5 hover:text-base-content",
-              isDropdownOpen && "bg-primary/10 border-primary text-primary"
-            )}
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            title="More Options"
+            className="w-full rounded-lg px-4 py-2 flex items-center gap-3 text-sm text-base-content/70 hover:bg-base-content/5 hover:text-base-content transition-colors text-left cursor-pointer"
+            onClick={handleToggleSearch}
           >
-            <MoreHorizontal size={20} />
+            <Search size={16} />
+            <span>Search conversation</span>
           </button>
-
-          {isDropdownOpen && (
-            <div className="absolute top-full right-0 mt-2 w-56 bg-base-100 border border-base-content/10 rounded-lg shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-              <button className="w-full px-4 py-2 flex items-center gap-3 text-sm text-base-content/70 hover:bg-base-content/5 hover:text-base-content transition-colors text-left" onClick={handleToggleSearch}>
-                <Search size={16} />
-                <span>Search conversation</span>
-              </button>
-              {tags.some(t => t.startsWith('Bị chặn::')) ? (
-                <button className="w-full px-4 py-2 flex items-center gap-3 text-sm text-base-content/70 hover:bg-base-content/5 hover:text-base-content transition-colors text-left" onClick={handleUnblock}>
-                  <ShieldCheck size={16} />
-                  <span>Unblock</span>
-                </button>
-              ) : (
-                <button className="w-full px-4 py-2 flex items-center gap-3 text-sm text-base-content/70 hover:bg-base-content/5 hover:text-base-content transition-colors text-left" onClick={handleMoveToSpam}>
-                  <ShieldAlert size={16} />
-                  <span>Move to spam</span>
-                </button>
-              )}
-              <button
-                className="w-full px-4 py-2 flex items-center gap-3 text-sm text-error hover:bg-error/10 hover:text-error transition-colors text-left"
-                onClick={handleDeleteConversation}
-              >
-                <Trash2 size={16} />
-                <span>Delete conversation</span>
-              </button>
-            </div>
+          {tags.some((t) => t.startsWith("Bị chặn::")) ? (
+            <button
+              className="w-full rounded-lg px-4 py-2 flex items-center gap-3 text-sm text-base-content/70 hover:bg-base-content/5 hover:text-base-content transition-colors text-left cursor-pointer"
+              onClick={handleUnblock}
+            >
+              <ShieldCheck size={16} />
+              <span>Unblock</span>
+            </button>
+          ) : (
+            <button
+              className="w-full rounded-lg px-4 py-2 flex items-center gap-3 text-sm text-base-content/70 hover:bg-base-content/5 hover:text-base-content transition-colors text-left cursor-pointer"
+              onClick={handleMoveToSpam}
+            >
+              <ShieldAlert size={16} />
+              <span>Move to spam</span>
+            </button>
           )}
-        </div>
+          <button
+            className="w-full rounded-lg px-4 py-2 flex items-center gap-3 text-sm text-error hover:bg-error/10 hover:text-error transition-colors text-left cursor-pointer"
+            onClick={handleDeleteConversation}
+          >
+            <Trash2 size={16} />
+            <span>Delete conversation</span>
+          </button>
+        </RangeSelector>
       </div>
     </header>
   );

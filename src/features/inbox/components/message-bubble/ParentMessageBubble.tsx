@@ -21,7 +21,7 @@ export function ParentMessageBubble({
     <div 
       onClick={onScrollToParent}
       className={cn(
-        "p-2 px-3.5 pb-4.5 text-xs leading-relaxed cursor-pointer transition-all duration-200 select-none max-w-60 border-none",
+        "w-fit p-2 px-3.5 text-xs leading-relaxed cursor-pointer transition-all duration-200 select-none max-w-60 border-none",
         "opacity-55 hover:opacity-85 active:scale-[0.98]",
         "rounded-2xl",
         "bg-foreground/8 text-foreground/70 backdrop-blur-[0.5px]",

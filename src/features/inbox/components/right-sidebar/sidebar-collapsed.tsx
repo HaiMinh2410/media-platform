@@ -47,7 +47,7 @@ export function SidebarCollapsed({
         </div>
 
         {/* Divider */}
-        {otherThreads.length > 0 && <div className="w-6 h-px bg-base-content/10 opacity-50 my-2" />}
+        {otherThreads.length > 0 && <div className="w-full h-px bg-base-content/10 my-2" />}
 
         {/* Other Active Threads */}
         {otherThreads.length > 0 && (
@@ -55,18 +55,21 @@ export function SidebarCollapsed({
             {otherThreads.map(t => (
               <div 
                 key={t.id} 
-                className="group relative w-8 h-8 rounded-full border border-base-content/10 flex items-center justify-center bg-base-content/5 cursor-pointer transition-all hover:scale-110 hover:bg-base-content/10 hover:border-base-content/40"
+                className="group relative cursor-pointer"
                 onClick={() => router.push(`/dashboard/inbox/${t.id}`)}
                 title={t.sender_name || 'Switch conversation'}
               >
-                {t.customer_avatar ? (
-                  <img src={t.customer_avatar} alt="" className="w-full h-full object-cover rounded-full" />
-                ) : (
-                  <span className="text-xs font-bold text-base-content/70">{t.sender_name?.charAt(0) || '?'}</span>
-                )}
+                <AccountAvatar
+                  avatarUrl={t.customer_avatar}
+                  name={t.sender_name || 'Unknown'}
+                  platform={t.platform || platform}
+                  size={9}
+                  showPlatformIcon={true}
+                  className="transition-all hover:scale-110"
+                />
                 
                 <button 
-                  className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full hidden group-hover:flex items-center justify-center z-10 border-2 border-background transition-all hover:scale-110"
+                  className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full hidden group-hover:flex items-center justify-center z-10 border-2 border-background transition-all hover:scale-110 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();
                     removeActiveThread(t.id);

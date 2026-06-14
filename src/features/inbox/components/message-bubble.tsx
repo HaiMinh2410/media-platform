@@ -10,7 +10,6 @@ import { useInboxStore } from "../store/inbox.store";
 import { createPortal } from "react-dom";
 
 // --- Sub-components and utilities ---
-import { VoiceNotePlayer } from "./message-bubble/VoiceNotePlayer";
 import { AttachmentRenderer } from "./message-bubble/AttachmentRenderer";
 import { ParentMessageBubble } from "./message-bubble/ParentMessageBubble";
 import { HoverActions } from "./message-bubble/HoverActions";
@@ -306,17 +305,14 @@ export const MessageBubble = memo(function MessageBubble({
           {(message.content || isAi) && (
             <div
               className={cn(
-                "w-fit p-2 px-3.5 flex flex-col gap-1 relative wrap-break-word transition-all duration-300 hover:-translate-y-px cursor-pointer bubble-highlight-target",
-                message.parentMessage
-                  ? "shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.22)]"
-                  : "shadow-sm hover:shadow-md",
+                "w-fit p-2 px-3.5 flex flex-col gap-1 relative wrap-break-word transition-all duration-300 hover:-translate-y-px cursor-pointer bubble-highlight-target max-w-2xl",
                 getBubbleCornersClass(),
                 isUser &&
-                  "bg-background-secondary border border-foreground/10 text-foreground",
+                  "bg-base-200 border border-foreground/10 text-base-content",
                 isAgent &&
-                  "bg-linear-to-br from-primary to-secondary text-primary-content shadow-md shadow-primary/25",
+                  "bg-primary/90 text-primary-content",
                 isAi &&
-                  "bg-linear-to-br from-accent/15 to-accent/5 border border-accent/35 text-foreground shadow-md shadow-accent/15 backdrop-blur-md",
+                  "bg-soft border-2 border-primary/90 text-base-content",
               )}
             >
               {/* Main Message Text */}

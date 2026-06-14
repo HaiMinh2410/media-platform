@@ -48,42 +48,42 @@ export function PinnedMessageBanner({
       onClick={() => onJumpToMessage(currentMessage.id)}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg text-foreground-secondary shrink-0">
-          <Pin fill="currentColor" className="rotate-45 size-4.5" />
+        <div className="flex items-center justify-cente rounded-lg text-base-content shrink-0">
+          <Pin fill="currentColor" className="rotate-45 size-4" />
         </div>
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="text-xs tracking-wider text-foreground-secondary">
+          <span className="text-xs tracking-wider text-base-content">
             {currentMessage.senderType === "user"
               ? customerName || "Khách hàng"
               : "Bạn"}
           </span>
-          <span className="text-sm text-foreground truncate max-w-full font-semibold">
+          <p className="text-sm text-base-content/80 truncate max-w-full">
             {currentMessage.content || "Ghim tập tin / phương tiện"}
-          </span>
+          </p>
         </div>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
         {pinnedMessages.length > 1 && (
           <div
-            className="flex items-center gap-1.5 bg-foreground/5 rounded-full p-0.5"
+            className="flex items-center gap-1.5 bg-base-content/5 rounded-full p-0.5"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={handlePrev}
-              className="p-1 rounded-full text-foreground-tertiary hover:text-foreground hover:bg-foreground/5 transition-all duration-150 cursor-pointer border-0 bg-transparent flex items-center justify-center"
+              className="p-1 rounded-full text-base-content-tertiary hover:text-base-content hover:bg-base-content/5 transition-all duration-150 cursor-pointer border-0 bg-transparent flex items-center justify-center"
               title="Tin nhắn ghim trước"
             >
               <ChevronLeft size={14} />
             </button>
-            <span className="text-2xs text-foreground-tertiary font-bold px-1 select-none">
+            <span className="text-2xs text-base-content-tertiary font-bold px-1 select-none">
               {safeActiveIndex + 1}/{pinnedMessages.length}
             </span>
             <button
               type="button"
               onClick={handleNext}
-              className="p-1 rounded-full text-foreground-tertiary hover:text-foreground hover:bg-foreground/5 transition-all duration-150 cursor-pointer border-0 bg-transparent flex items-center justify-center"
+              className="p-1 rounded-full text-base-content-tertiary hover:text-base-content hover:bg-base-content/5 transition-all duration-150 cursor-pointer border-0 bg-transparent flex items-center justify-center"
               title="Tin nhắn ghim tiếp theo"
             >
               <ChevronRight size={14} />
@@ -96,7 +96,7 @@ export function PinnedMessageBanner({
             e.stopPropagation();
             onUnpin(currentMessage.id);
           }}
-          className="p-1.5 rounded-full text-foreground-tertiary hover:text-error hover:bg-error/10 transition-all duration-150 cursor-pointer border-0 bg-transparent flex items-center justify-center"
+          className="btn btn-ghost btn-xs btn-circle"
           title="Bỏ ghim tin nhắn này"
         >
           <X size={14} />

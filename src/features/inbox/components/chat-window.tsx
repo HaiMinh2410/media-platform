@@ -30,8 +30,9 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
   typingUsers?: TypingUser[];
   customerAvatar?: string;
   customerName?: string;
+  composerHeight?: number;
 }>(
-  ({ conversationId, typingUsers = [], customerAvatar, customerName }, ref) => {
+  ({ conversationId, typingUsers = [], customerAvatar, customerName, composerHeight = 130 }, ref) => {
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
@@ -104,7 +105,7 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
       : null;
 
     return (
-      <div className="flex-1 flex flex-col overflow-y-auto relative">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto relative">
         {/* Glassmorphic Sticky Pinned Message Banner */}
         {pinnedMessages.length > 0 && (
           <PinnedMessageBanner
@@ -219,6 +220,9 @@ export const ChatWindow = forwardRef<ChatWindowRef, {
               No messages found for this conversation.
             </div>
           )}
+
+          {/* Spacer to allow scrolling past the absolute composer */}
+          <div style={{ height: `${composerHeight}px` }} className="shrink-0" />
         </div>
 
         {/* Premium Lightbox Overlay and Pinned Messages Modal Portals */}
